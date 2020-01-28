@@ -1791,7 +1791,7 @@ function getRootPath() {
      //alert("pathname["+ pathName+"]");
     var webName = pathName == '' ? '' : pathName.substring(0, pathName.indexOf('/'));
     //alert("webName[" + webName + "]");
-    var rootPath = window.location.protocol + '//' + window.location.host;//+ '/' + webName;
+    var rootPath = window.location.protocol + '//' + window.location.host+ '/' + webName;
 
     //alert("rootPath[" + rootPath + "]");
     return rootPath;

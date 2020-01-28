@@ -75,7 +75,7 @@ namespace dp2weixin.service
 
         #region 成员变量
         // 日志级别
-        public int LogLevel = 1;
+        public int LogLevel = 3;
 
         // 微信数据目录
         public string weiXinDataDir = "";
@@ -3363,10 +3363,7 @@ namespace dp2weixin.service
                 // 2016/9/30 在需要的地方再激活吧，放在这里都受影响了。// 激活后面处理线程，可以给工作人员发通知
                 //this._managerThread.Activate();
 
-                if (string.IsNullOrEmpty(libName) == true)
-                    return "图书馆 " + libName + " 的桥接服务器失去连接，无法访问。";
-
-                return "图书馆 " + libName + " 的桥接服务器失去连接，无法访问。";
+                return "图书馆 " + libName + " 的桥接服务器失去连接，无法访问。" + result.ErrorInfo;
             }
 
             return result.ErrorInfo;
@@ -3821,7 +3818,13 @@ ErrorInfo成员里可能会有报错信息。
                 return -1;
             }
 
-            LoginInfo loginInfo = new LoginInfo(userName, false);
+            // 读者自助注册时使用代理账号capo 2020/1/21
+            LoginInfo loginInfo = new LoginInfo("", false);
+            if (string.IsNullOrEmpty(userName) == false)
+            {
+                loginInfo = new LoginInfo(userName, false);
+            }
+
 
             /*
 public class Entity
@@ -3858,6 +3861,7 @@ public string ErrorCode { get; set; }
             {
                 xml = "<root>"
                        + "<barcode>" + patron.barcode + "</barcode>"
+                       + "<state>临时</state> "
                        + "<readerType>" + patron.readerType + "</readerType>"
                        + "<name>" + patron.name + "</name>"
                        + "<gender>" + patron.gender + "</gender>"

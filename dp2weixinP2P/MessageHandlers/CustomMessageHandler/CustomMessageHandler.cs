@@ -9,18 +9,13 @@
 ----------------------------------------------------------------*/
 
 using System;
-using System.Configuration;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Web;
 using System.Web.Configuration;
-using Senparc.Weixin.MP.Agent;
 using Senparc.Weixin.MP.Entities;
 using Senparc.Weixin.MP.Entities.Request;
 using Senparc.Weixin.MP.MessageHandlers;
-using Senparc.Weixin.MP.Helpers;
 using Senparc.Weixin.MP.Sample.CommonService.Utilities;
 using Senparc.Weixin.MP.Containers;
 using Senparc.NeuChar.Entities;
@@ -59,7 +54,7 @@ namespace Senparc.Weixin.MP.Sample.CommonService.CustomMessageHandler
         {
             //这里设置仅用于测试，实际开发可以在外部更全局的地方设置，
             //比如MessageHandler<MessageContext>.GlobalWeixinContext.ExpireMinutes = 3。
-            WeixinContext.ExpireMinutes = 3;
+            //WeixinContext.ExpireMinutes = 3;
 
             if (!string.IsNullOrEmpty(postModel.AppId))
             {
@@ -78,6 +73,7 @@ namespace Senparc.Weixin.MP.Sample.CommonService.CustomMessageHandler
             };
         }
 
+        /*
         public override void OnExecuting()
         {
             //测试MessageContext.StorageData
@@ -87,13 +83,14 @@ namespace Senparc.Weixin.MP.Sample.CommonService.CustomMessageHandler
             }
             base.OnExecuting();
         }
+  
 
         public override void OnExecuted()
         {
             base.OnExecuted();
             CurrentMessageContext.StorageData = ((int)CurrentMessageContext.StorageData) + 1;
         }
-
+              */
         /// <summary>
         /// 处理文字请求
         /// </summary>
@@ -202,19 +199,19 @@ namespace Senparc.Weixin.MP.Sample.CommonService.CustomMessageHandler
                     {
                         var historyMessage = CurrentMessageContext.RequestMessages[i];
                         result.AppendFormat("{0} 【{1}】{2}\r\n",
-                            historyMessage.CreateTime.ToShortTimeString(),
+                            historyMessage.CreateTime.ToString(),//.ToShortTimeString(),
                             historyMessage.MsgType.ToString(),
                             (historyMessage is RequestMessageText)
                                 ? (historyMessage as RequestMessageText).Content
                                 : "[非文字类型]"
-                            );
+                            ); ;
                     }
                     result.AppendLine("\r\n");
                 }
 
-                result.AppendFormat("如果您在{0}分钟内连续发送消息，记录将被自动保留（当前设置：最多记录{1}条）。过期后记录将会自动清除。\r\n",
-                    WeixinContext.ExpireMinutes, WeixinContext.MaxRecordCount);
-                result.AppendLine("\r\n");
+                //result.AppendFormat("如果您在{0}分钟内连续发送消息，记录将被自动保留（当前设置：最多记录{1}条）。过期后记录将会自动清除。\r\n",
+                //    WeixinContext.ExpireMinutes, WeixinContext.MaxRecordCount);
+                //result.AppendLine("\r\n");
                 result.AppendLine(
                     "您还可以发送【位置】【图片】【语音】【视频】等类型的信息（注意是这几种类型，不是这几个文字），查看不同格式的回复。\r\nSDK官方地址：http://weixin.senparc.com");
 

@@ -13,6 +13,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
+using System.Xml.Linq;
+using Senparc.NeuChar;
 using Senparc.NeuChar.Context;
 using Senparc.NeuChar.Entities;
 //using Senparc.Weixin.Context;
@@ -25,6 +27,16 @@ namespace Senparc.Weixin.MP.Sample.CommonService.CustomMessageHandler
         public CustomMessageContext()
         {
             base.MessageContextRemoved += CustomMessageContext_MessageContextRemoved;
+        }
+
+        public override IRequestMessageBase GetRequestEntityMappingResult(RequestMsgType requestMsgType, XDocument doc)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IResponseMessageBase GetResponseEntityMappingResult(ResponseMsgType responseMsgType, XDocument doc)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>

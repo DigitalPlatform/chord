@@ -27,7 +27,7 @@ namespace dp2weixin
             GzhCfg gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppId(this.AppId);
             if (gzh == null)
             {
-                return this.CreateTextResponseMessage("未找到" + this.AppId + "对应的公众号配置", false);
+                return this.CreateTextResponseMessage("未找到" + this.AppId + "对应的公众号配置");
             }
 
             string resetPasswordUrl = dp2WeiXinService.Instance.GetOAuth2Url(gzh, "Account/ResetPassword");
@@ -37,7 +37,7 @@ namespace dp2weixin
                 + "\r\n1) 去图书馆出纳台，找工作人员在图书馆系统中登记存储您的手机号码；"
                 + "\r\n2) 点击 <a href='" +resetPasswordUrl + "'>找回密码</a>，获得您的图书馆读者证密码(密码将自动通过短信发送到您的手机)；"
                 + "\r\n3) 点击 <a href='" + accountIndex + "'>绑定账户</a>，完成绑定。";
-            return this.CreateTextResponseMessage(strMessage,false);
+            return this.CreateTextResponseMessage(strMessage);
         }
 
         /// <summary>
@@ -50,24 +50,7 @@ namespace dp2weixin
             // 注意这里为了与命令常量一致，都转成小写了
             string strEventKey = requestMessage.EventKey.ToLower();
 
-            //设当前命令路径，用于在回复时输出
-            this.CurrentMessageContext.CurrentCmdPath = strEventKey;
-
-            switch (strEventKey) 
-            {
-                case dp2CommandUtility.C_Command_Search: //"Search":
-                    {
-                        return this.DoSearch("");
-                    }
-                case dp2CommandUtility.C_Command_Set:
-                    {
-                        return this.DoSet("");
-                    }
-                default:
-                    {
-                        return this.DoUnknownCmd(strEventKey);// this.CreateTextResponseMessage("未知的命令:" + requestMessage.EventKey);
-                    }
-            }
+            return this.CreateTextResponseMessage("不支持");
         }
 
         #region 其它用户事件消息

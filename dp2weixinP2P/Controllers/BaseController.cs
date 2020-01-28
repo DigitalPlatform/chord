@@ -46,7 +46,8 @@ namespace dp2weixinWeb.Controllers
             int nRet = 0;
             activeUser = null;
 
-
+            // 日志
+            dp2WeiXinService.Instance.WriteLog1("code=["+code+"] state=["+state+"]");
 
 
             // 获取session对象，如果不存在新new一个
@@ -56,6 +57,9 @@ namespace dp2weixinWeb.Controllers
                 if (sessionInfo != null)
                 {
                     //sessionInfo.ClearDebugInfo();
+
+                    // 日志
+                    dp2WeiXinService.Instance.WriteLog1("已存在session");
                 }
                 else
                 {
@@ -91,6 +95,7 @@ namespace dp2weixinWeb.Controllers
                     }
                     sessionInfo.SetInfo(state, gzh1, libList1);
                 }
+
                 sessionInfo.AddDebugInfo("~~~~~~" + this.Request.Path + "~~~~~~");
 
                 // 如果客户端特别传来了weixinid，使用传来的weixinid
@@ -158,7 +163,7 @@ namespace dp2weixinWeb.Controllers
                         strError = "从微信入口进来，code参数不能为空";
                         return -1;
                     }
-                    state = "ilovelibrary";
+                    state = "ilovelibrary:";
                 }
                 sessionInfo.AddDebugInfo("给sesion存入state[" + state + "]");
                 nRet = dp2WeiXinService.Instance.GetGzhAndLibs(state,

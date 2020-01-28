@@ -1,0 +1,206 @@
+﻿@{
+    ViewBag.Title = "NewPatron";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section header {
+    <h1 class="mui-title">注册读者帐户</h1>
+}
+
+@section style {
+    <style>
+        TABLE.patronEdit {
+            text-align: left;
+            background-color: white;
+            width: 100%;
+        }
+
+            TABLE.patronEdit TR TD {
+                border-width: 0px;
+                padding: 2px;
+            }
+
+                TABLE.patronEdit TR TD.value {
+                    padding-left: 5px;
+                }
+
+                TABLE.patronEdit TR TD.label {
+                    min-width: 80px;
+                    width: 80px;
+                    color: #cccccc;
+                    padding-left: 5px;
+                    padding-right: 5px;
+                    text-align: right;
+                }
+    </style>
+}
+
+@section Scripts {
+    <script>
+
+        // 选择图书馆
+        function gotoSelectLib()
+        {
+            var url = "/Patron/SelectLib?returnUrl=" + encodeURIComponent("/Account/ResetPassword");
+            gotoUrl(url);
+        }
+
+        // 新增和保存
+        function save() {
+
+            // 新增读者的记录路径
+            var recPath = "读者/?";
+
+            // 图书馆ID
+            var libId = getLibId(); 
+            if (libId == "") {
+                alert("异常情况：libId为空。");
+                return;
+            }
+
+            //姓名
+            var name = $("#txtName").val();
+            if (name == "") {
+                alert("姓名不能为空！");
+                return;
+            }
+
+            //性别
+            var gender = $('#selGender option:checked').val();
+            if (gender == "") {
+                alert("您尚未选择性别。");
+                return;
+            }
+
+            // 部门
+            var department = $("#txtDepartment").val();
+            if (department == "") {
+                alert("部门不能为空！");
+                return;
+            }
+
+
+            // 手机号
+            var tel = $("#txtTel").val();
+            if (tel == "") {
+                alert("手机号不能为空！");
+                return;
+            }
+
+
+            //显示等待图层
+            showMaskLayer();
+
+            // 调Patron的SetPatron()
+            var url = "/api/Patron?libId=" + libId
+                + "&userName=" //+ encodeURIComponent(userName)
+                + "&action=new"// + encodeURIComponent(action)
+                + "&recPath=" + encodeURIComponent(recPath)
+                + "&timestamp=" // + encodeURIComponent(timestamp)
+                + "&bMergeInfo=false"; //+ bMergeInfo;
+
+            sendAjaxRequest(url, "POST",
+                function (result) {
+
+                    // 关闭等待层
+                    hideMaskLayer();
+
+                    if (result.errorCode == -1) {
+                        alert(result.errorInfo);
+                        return;
+                    }
+
+                    $("#_recPath").text(result.recPath);
+
+                    alert("新增读者成功");
+
+                    //清空编辑界面信息,todo
+                    $("#txtName").val("");
+                    $("#selGender").val("");
+                    $("#txtDepartment").val("");
+                    $("#txtTel").val("");
+
+
+                },
+                function (xhq, textStatus, errorThrown) {
+                    // 关闭等待层
+                    hideMaskLayer();
+                    alert(errorThrown);
+                },
+                {
+                    barcode: "", //readerBarcord,
+                    readerType:"临时读者",// readerType,
+                    name: name,
+                    gender: gender,
+                    department: department,
+                    tel: tel
+                }
+            );
+        }
+
+
+    </script>
+}
+<span id="_recPath" style="display:none"></span>
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
+}
+else
+{
+    if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
+    {
+        @Html.Raw(ViewBag.RedirectInfo);
+    }
+    else
+    {
+<div class="mui-input-group">
+
+    <table style="width:100%">
+        <tr>
+            <td style="width:100%">
+                <div class="mui-input-group" style="background-color:white">
+                    <div class="mui-input-row">
+                        <label style="color:#cccccc;">图书馆</label>
+                        <input type="text" class="mui-input mui-input-clear" id="txtLib" readonly value="@ViewBag.PureLibName">
+                    </div>
+                </div>
+            </td>
+            <td><button onclick="gotoSelectLib()" id='login' class="" style="border:1px dotted gray;margin-right:2px;height:40px;">...</button></td>
+        </tr>
+    </table>
+
+    <div class="mui-input-row ">
+        <label id="lblName" style="color:#cccccc">姓名</label>
+        <input id='txtName' type="text" class="mui-input mui-input-clear">
+    </div>
+
+    <div class="mui-input-row selArrowRightContainer">
+        <label id="lblGender" style="color:#cccccc">性别</label>
+        <select id="selGender" name="selGender" class='selArrowRight'>
+            <option value=''>请选择</option>"
+            <option value="男">男</option>
+            <option value="女">女</option>
+        </select>
+    </div>
+
+    <div class="mui-input-row ">
+        <label id="lblDepartment" style="color:#cccccc">部门</label>
+        <input id='txtDepartment' type="text" class="mui-input mui-input-clear">
+    </div>
+
+    <div class="mui-input-row ">
+        <label id="lblTel" style="color:#cccccc">手机号</label>
+        <input id='txtTel' type="text" class="mui-input mui-input-clear">
+    </div>
+
+    <div class="mui-content-padded">
+        <button id='btnResetPassword' class="mui-btn mui-btn-block mui-btn-primary" onclick="save()">提交</button>
+    </div>
+</div>
+    }
+}
+

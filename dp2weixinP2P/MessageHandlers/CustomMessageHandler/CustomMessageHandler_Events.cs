@@ -8,14 +8,9 @@
     创建标识：Senparc - 20150312
 ----------------------------------------------------------------*/
 
-using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Web;
-using Senparc.Weixin.MP.Agent;
 using Senparc.Weixin.MP.Entities;
-using Senparc.Weixin.MP.Helpers;
-using Senparc.Weixin.MP.MessageHandlers;
 using Senparc.Weixin.MP.Sample.CommonService.Utilities;
 using Senparc.Weixin.MP.Containers;
 using Senparc.NeuChar.Entities;

@@ -8,7 +8,7 @@
     <link href="@Url.Content("~/Content/mui.min.css?test=3")" rel="stylesheet">
     <link href="@Url.Content("~/Content/style.css?a=9")" rel="stylesheet" type="text/css" />
     <link href="@Url.Content("~/Content/jquery-ui.css")" rel="stylesheet">
-    <script src='@Url.Content("~/Scripts/jquery-3.3.1.js")'></script>
+    <script src='@Url.Content("~/Scripts/jquery-3.4.1.js")'></script>
     <script src='@Url.Content("~/Scripts/jquery-ui-1.12.1.js?a=1")'></script>
     <script src="@Url.Content("~/Scripts/knockout-2.2.0.js")"></script>
     <script type="text/javascript" src="@Url.Content("~/Scripts/weixin.js?test=1.8")"></script>
@@ -21,10 +21,12 @@
 <body style="padding-bottom:50px;font-family: 'Microsoft YaHei',微软雅黑!important">
     <header class="mui-bar mui-bar-nav" id="myheader">
         @RenderSection("header", required: false)
-        <a class=" mui-icon mui-pull-left"  href='javascript:void(0)'  style="color:#cccccc">
-        <span style="font-size:10pt" id="_libName">@ViewBag.AppName -后台管理系统</span>
+        <a class=" mui-icon mui-pull-left" href='javascript:void(0)' style="color:#cccccc">
+            <span style="font-size:10pt" id="_libName">@ViewBag.AppName -后台管理系统</span>
         </a>
     </header>
+
+
 
     <div class="btn3 clearfix" id="divBottonTab">
         <div class="menu">
@@ -84,9 +86,9 @@
                     <li>
                         <a href="~/UI/Loading">加载</a>
                     </li>
-                        <li>
-                            <a href="~/UI/PersonalInfo">我的信息</a>
-                        </li>
+                    <li>
+                        <a href="~/UI/PersonalInfo">我的信息</a>
+                    </li>
                     <li>
                         <a href="~/UI/BiblioIndex">书目</a>
                     </li>
@@ -107,11 +109,14 @@
         </div>
     </div>
 
+
     <div class="mui-content" style="padding-top:50px">
         <span id="idTest" style="display:block"></span>
         <!--部分页占位符 -->
         @RenderBody()
     </div>
+
+
 
     <script>
         //弹出垂直菜单
@@ -168,7 +173,7 @@
                     setShowValue(false);
                     window.setTimeout("showTopBottom()", 1);
                 });
-                $("input").blur(function () {                   
+                $("input").blur(function () {
                     setShowValue(true);
                     window.setTimeout("showTopBottom()", 1);
                 });
@@ -201,7 +206,7 @@
             }
         });
 
-        
+
         // 设置是否显示头尾参数的值，同时改变背景
         function setShowValue(value) {
             bShowTopBottom = value;

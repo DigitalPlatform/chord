@@ -12,6 +12,41 @@ namespace dp2weixinWeb.Controllers
 {
     public class AccountController : BaseController
     {
+
+        public ActionResult NewParton(string code, string state,
+         string libId)
+        {
+            string strError = "";
+            int nRet = 0;
+
+            // 检查当前是否已经选择了图书馆绑定了帐号
+            WxUserItem activeUser = null;
+            nRet = this.GetActive(code, state,
+                out activeUser,
+                out strError);
+            if (nRet == -1)
+            {
+                goto ERROR1;
+            }
+            if (nRet == 0)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Account/ResetPassword");
+                return View();
+            }
+
+            if (libId == null)
+                libId = "";
+
+            string weixinId = ViewBag.weixinId; 
+
+
+            return View();
+
+        ERROR1:
+            ViewBag.Error = strError;
+            return View();
+        }
+
         /*
         // web登录
         public ActionResult WebLogin(string returnUrl)
@@ -54,6 +89,7 @@ namespace dp2weixinWeb.Controllers
             return View();
         }
         */
+
         /// <summary>
         /// 账户管理
         /// </summary>
@@ -248,47 +284,14 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
 
-
-            //// 登录检查
-            //nRet = this.CheckLogin(code, state, out strError);
-            //if (nRet == -1)
-            //{
-            //    goto ERROR1;
-            //}
-            //if (nRet == 0)
-            //{
-            //    //return Redirect("~/Account/Bind?from=web");
-
-            //    // weixinId = "temp";//这是时间还得用temp因为还没有登录成功，只是做一些初始化设置，后面 "~~" + guid; //2018/3/8
-
-            //    //// 初始化session
-            //    //state = "ilovelibrary";
-            //    //SessionInfo sessionInfo = null;
-            //    //nRet = this.InitSession(state, weixinId, out sessionInfo, out strError);
-            //    //if (nRet == -1)
-            //    //    goto ERROR1;
-
-            //    // 初始化 viewbag
-            //    SessionInfo sessionInfo = this.GetSessionInfo();
-
-            //    nRet = this.InitViewBag(sessionInfo, out strError);
-            //    if (nRet == -1)
-            //        goto ERROR1;
-            //}
-
             if (libId == null)
                 libId = "";
 
             // 图书馆html
             string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
       
-
             if (string.IsNullOrEmpty(readerName) == false && readerName != "undefined")
                 ViewBag.ReaderName = readerName;// "test";
-
-            // 2016-11-16去掉，统一放在weixinId里
-            //SessionInfo sessionInfo = this.GetSessionInfo();
-            //ViewBag.appId = sessionInfo.gzh.appId;
 
             return View();
 
