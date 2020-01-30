@@ -8086,7 +8086,7 @@ public string ErrorCode { get; set; }
             //得到可以访问的图书馆列表
             if (libs == null || libs.Length == 0)
             {
-                WriteLog1("debug:url参数中未指定图书馆，所以显示全部图书馆。");
+                //WriteLog1("debug:url参数中未指定图书馆，所以显示全部图书馆。");
                 //未配时，全部图书馆
                 foreach (Library lib in this.LibManager.Librarys)
                 {
@@ -8095,7 +8095,7 @@ public string ErrorCode { get; set; }
             }
             else
             {
-                WriteLog1("debug:url参数中指定了图书馆["+ libCapoNames + "]");
+                //WriteLog1("debug:url参数中指定了图书馆["+ libCapoNames + "]");
 
                 foreach (Library lib in this.LibManager.Librarys)
                 {

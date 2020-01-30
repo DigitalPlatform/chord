@@ -85,6 +85,10 @@
                 alert("手机号不能为空！");
                 return;
             }
+            if (tel.length != 11) {
+                alert("手机号必须是11位数字！");
+                return;
+            }
 
 
             //显示等待图层
@@ -111,7 +115,7 @@
 
                     $("#_recPath").text(result.recPath);
 
-                    alert("新增读者成功");
+                    alert("读者信息提交成功，请等待管理员审核。");
 
                     //清空编辑界面信息,todo
                     $("#txtName").val("");

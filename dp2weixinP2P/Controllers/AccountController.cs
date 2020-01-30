@@ -176,34 +176,6 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
 
-            //// ｗｅｂ来源
-            //if (from == "web")
-            //{
-            //    string weixinId = "temp";//这是时间还得用temp因为还没有登录成功，只是做一些初始化设置，后面 "~~" + guid; //2018/3/8
-
-            //    // 初始化session
-            //     state = "ilovelibrary";
-            //    SessionInfo sessionInfo = null;
-            //     nRet = this.InitSession(state, weixinId, out sessionInfo, out strError);
-            //    if (nRet == -1)
-            //        goto ERROR1;
-
-            //    // 初始化 viewbag
-            //    nRet = this.InitViewBag(sessionInfo, out strError);
-            //    if (nRet == -1)
-            //        goto ERROR1;
-
-            //    ViewBag.fromUrl = "/Account/Bind?from=web";
-
-            //    return View();
-            //}
-
-            //// 登录检查
-            //nRet = this.CheckLogin(code, state, out strError);
-            //if (nRet == -1 || nRet ==0)
-            //{
-            //    goto ERROR1;
-            //}
             ViewBag.fromUrl = "/Account/Bind";
 
             return View();

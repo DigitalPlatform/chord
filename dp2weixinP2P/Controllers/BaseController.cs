@@ -112,7 +112,7 @@ namespace dp2weixinWeb.Controllers
                 state = "";
 
             // 日志
-            dp2WeiXinService.Instance.WriteLog1("code=["+code+"] state=["+state+"]");
+            //dp2WeiXinService.Instance.WriteLog1("debug:code=["+code+"] state=["+state+"]");
 
             SessionInfo sessionInfo = null;
             try
