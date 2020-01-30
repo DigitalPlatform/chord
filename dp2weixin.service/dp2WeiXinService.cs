@@ -3867,6 +3867,7 @@ public string ErrorCode { get; set; }
                        + "<name>" + patron.name + "</name>"
                        + "<gender>" + patron.gender + "</gender>"
                        + "<department>" + patron.department + "</department>"
+                       +"<tel>"+patron.tel+"</tel>"
                        + "</root>";
             }
             else
