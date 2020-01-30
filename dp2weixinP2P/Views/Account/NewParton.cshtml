@@ -3,7 +3,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 @section header {
-    <h1 class="mui-title">注册读者帐户</h1>
+    <h1 class="mui-title">注册读者</h1>
 }
 
 @section style {
@@ -40,7 +40,7 @@
         // 选择图书馆
         function gotoSelectLib()
         {
-            var url = "/Patron/SelectLib?returnUrl=" + encodeURIComponent("/Account/ResetPassword");
+            var url = "/Patron/SelectLib?returnUrl=" + encodeURIComponent("/Account/NewParton");
             gotoUrl(url);
         }
 

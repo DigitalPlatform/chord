@@ -23,19 +23,79 @@ namespace dp2weixinWeb.Controllers
                 sessionInfo = (SessionInfo)Session[WeiXinConst.C_Session_sessioninfo];
                 return sessionInfo;
             }
-
             return null;
         }
 
+        public int GetSession2(string code,
+            string state, 
+            out SessionInfo  sessionInfo,
+            out string error)
+        {
+            int nRet = 0;
+            error = "";
 
-        /// <summary>
-        /// 获取当前帐号
-        /// </summary>
-        /// <param name="state"></param>
-        /// <param name="code"></param>
-        /// <param name="browseId"></param>
-        /// <param name="strError"></param>
-        /// <returns></returns>
+            // 获取session对象，如果不存在新new一个
+             sessionInfo = this.GetSessionInfo1();
+
+            if (sessionInfo != null)
+            {
+                //sessionInfo.ClearDebugInfo();
+
+                // 日志
+                dp2WeiXinService.Instance.WriteLog1("已存在session");
+            }
+            else
+            {
+                // 当发现session为空时，new一个sessioninfo
+                sessionInfo = new SessionInfo();
+                Session[WeiXinConst.C_Session_sessioninfo] = sessionInfo;
+
+                sessionInfo.AddDebugInfo("session不存在，新建一个session对象");
+
+                // 得到weixinid
+                GzhCfg gzh = sessionInfo.gzh;  // 此时也为null呀？
+
+
+                List<string> libList1 = new List<string>();
+                if (string.IsNullOrEmpty(state) == true)
+                {
+                    if (string.IsNullOrEmpty(code) == false)
+                    {
+                        error = "从微信入口进来，code参数不能为空";
+                        return -1;
+                    }
+                    state = "ilovelibrary";
+                }
+
+                sessionInfo.AddDebugInfo("给sesion存入state[" + state + "]");
+                nRet = dp2WeiXinService.Instance.GetGzhAndLibs(state,
+                   out gzh,
+                   out libList1,
+                   out error);
+                if (nRet == -1)
+                    return -1;
+
+                if (gzh == null)
+                {
+                    error = "异常，未得到公众号配置信息";
+                    return -1;
+                }
+                sessionInfo.SetInfo(state, gzh, libList1);
+            }
+
+            return 0;
+        }
+
+
+
+        // 获取当前帐号
+        // code:公众号入口会传入code值，web入口无此参数
+        // state:表示是对接哪个公众号，需要在weixin.xml里配置公众号的appID等参数和对应的模板消息
+        // http://www.dp2003.com/dp2weixin/weixin/index?state=ilovelibrary
+        // web入口默认是ilovelibrary公众号，如果要指定特定用户单位，state里可以写capo_XXX帐户，例如http://dp2003.com/i?state=capo_cabr
+        // activeUser：返回当前用户，如果已绑定帐户则当前用户是绑定的用户，如果未绑定则是public帐户
+        // strError:出错信息
+        // myWixinId:特殊用法，用于内部调试直接输入微信id，以便使用公众号特有的功能？？？
         public int GetActive(string code,
             string state,
             out WxUserItem activeUser,
@@ -46,55 +106,21 @@ namespace dp2weixinWeb.Controllers
             int nRet = 0;
             activeUser = null;
 
+            if (code == null)
+                code = "";
+            if (state == null)
+                state = "";
+
             // 日志
             dp2WeiXinService.Instance.WriteLog1("code=["+code+"] state=["+state+"]");
 
-
-            // 获取session对象，如果不存在新new一个
-            SessionInfo sessionInfo = this.GetSessionInfo1();
+            SessionInfo sessionInfo = null;
             try
             {
-                if (sessionInfo != null)
-                {
-                    //sessionInfo.ClearDebugInfo();
 
-                    // 日志
-                    dp2WeiXinService.Instance.WriteLog1("已存在session");
-                }
-                else
-                {
-                    // 当发现session为空时，new一个sessioninfo
-                    sessionInfo = new SessionInfo();
-
-                    sessionInfo.AddDebugInfo("session不存在，新建一个session对象");
-                    Session[WeiXinConst.C_Session_sessioninfo] = sessionInfo;
-
-                    // 得到weixinid
-                    GzhCfg gzh1 = sessionInfo.gzh;
-                    List<string> libList1 = new List<string>();
-                    if (string.IsNullOrEmpty(state) == true)
-                    {
-                        if (string.IsNullOrEmpty(code) == false)
-                        {
-                            strError = "从微信入口进来，code参数不能为空";
-                            return -1;
-                        }
-                        state = "ilovelibrary";
-                    }
-                    sessionInfo.AddDebugInfo("给sesion存入state[" + state + "]");
-                    nRet = dp2WeiXinService.Instance.GetGzhAndLibs(state,
-                       out gzh1,
-                       out libList1,
-                       out strError);
-                    if (nRet == -1)
-                        return -1;
-                    if (gzh1 == null)
-                    {
-                        strError = "异常，未得到公众号配置信息";
-                        goto ERROR1;
-                    }
-                    sessionInfo.SetInfo(state, gzh1, libList1);
-                }
+               nRet = this.GetSession2(code, state, out  sessionInfo, out strError);
+                if (nRet == -1)
+                    goto ERROR1;
 
                 sessionInfo.AddDebugInfo("~~~~~~" + this.Request.Path + "~~~~~~");
 
@@ -103,20 +129,16 @@ namespace dp2weixinWeb.Controllers
                     && sessionInfo.WeixinId != myWeixinId)
                 {
                     sessionInfo.AddDebugInfo("原来的weixinid=" + sessionInfo.WeixinId);
-
                     sessionInfo.WeixinId = myWeixinId;
                     sessionInfo.Active = null;
                     sessionInfo.AddDebugInfo("使用传进来的weixinId=" + myWeixinId);
-
                 }
 
 
-                if (code == null)
-                    code = "";
-                if (state == null)
-                    state = "";
+
                 if (sessionInfo.WeixinId == null)
                     sessionInfo.WeixinId = "";
+
                 sessionInfo.AddDebugInfo("走进GetActive(),code=[" + code + "] state=[" + state + "],session.weixinId=[" + sessionInfo.WeixinId + "]");
 
                 activeUser = sessionInfo.Active;
@@ -127,7 +149,8 @@ namespace dp2weixinWeb.Controllers
                     if (activeUser.weixinId.Substring(0, 2) == "~~"
                         && string.IsNullOrEmpty(code) == false)
                     {
-                        strError = "异常：微信入口怎么是临时ID";
+                        strError = "异常：微信入口怎么是临时ID" +"\r\n"+sessionInfo.DebugInfo;
+                        
                         goto ERROR1;
                     }
 

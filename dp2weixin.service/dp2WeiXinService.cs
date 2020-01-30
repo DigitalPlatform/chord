@@ -2,6 +2,7 @@
 
 using com.google.zxing;
 using com.google.zxing.common;
+using DigitalPlatform;
 using DigitalPlatform.Interfaces;
 using DigitalPlatform.IO;
 using DigitalPlatform.Marc;
@@ -1202,7 +1203,7 @@ namespace dp2weixin.service
             string oldRemark = templateData.remark.value;
 
             // 加日期与操作人
-            string nowTime = SessionInfo.DateTimeToStringNoSec(DateTime.Now);
+            string nowTime = dp2WeiXinService.DateTimeToStringNoSec(DateTime.Now);
             templateData.remark.value = oldRemark + "\n" + nowTime;
             if (theOperator != "")
                 templateData.remark.value = templateData.remark.value + " " + theOperator;
@@ -8046,12 +8047,9 @@ public string ErrorCode { get; set; }
             }
 
             // 2016-11-22
-            //state格式：公众号名称:图书馆capo账户1+图书馆capo账户2
+            //state格式：公众号名称:图书馆capo账户1,图书馆capo账户2
             int nIndex = state.IndexOf(":");
             string gzhName = state;
-
-            //WriteErrorLog1("*0*-state:"+state +"-gzhName:"+ gzhName);
-
             string libCapoNames = "";
             string[] libs = null;
             if (nIndex != -1)
@@ -8062,10 +8060,8 @@ public string ErrorCode { get; set; }
                 {
                     libs = libCapoNames.Split(new char[] { ',' });
                 }
-
-                //WriteErrorLog1("*1*" + libs.Length);
             }
-            else if (state != "" && state  != "ilovelibrary" && state!=null)
+            else if (state != "" && state  != "ilovelibrary" && state!=null)  // 这里有些问题，对接的第三方公众号怎么办
             {
                 gzhName ="ilovelibrary";
                 libCapoNames = state;
@@ -8073,8 +8069,6 @@ public string ErrorCode { get; set; }
                 {
                     libs = libCapoNames.Split(new char[] { ',' });
                 }
-
-                //WriteErrorLog1("*2*" + libs.Length);
             }
 
 
@@ -8092,7 +8086,7 @@ public string ErrorCode { get; set; }
             //得到可以访问的图书馆列表
             if (libs == null || libs.Length == 0)
             {
-
+                WriteLog1("debug:url参数中未指定图书馆，所以显示全部图书馆。");
                 //未配时，全部图书馆
                 foreach (Library lib in this.LibManager.Librarys)
                 {
@@ -8101,11 +8095,10 @@ public string ErrorCode { get; set; }
             }
             else
             {
+                WriteLog1("debug:url参数中指定了图书馆["+ libCapoNames + "]");
 
                 foreach (Library lib in this.LibManager.Librarys)
                 {
-
-
                     if (libs.Contains(lib.Entity.capoUserName) == true && string.IsNullOrEmpty(lib.Entity.state) == true)
                     {
                        // WriteErrorLog1("***" + lib.Entity.capoUserName +"--"+lib.Entity.state);
@@ -8644,8 +8637,38 @@ tempRemark);
             {
                 var logDir = this.weiXinLogDir;
                 string strFilename = string.Format(logDir + "/log_{0}.txt", DateTime.Now.ToString("yyyyMMdd"));
-                SessionInfo.WriteLog(strFilename, strText, "dp2weixin");
+                dp2WeiXinService.WriteLog(strFilename, strText, "dp2weixin");
             }
+        }
+
+
+        /// <summary>
+        /// 写日志
+        /// </summary>
+        /// <param name="strText"></param>
+        public static void WriteLog(string strFilename, string strText, string strEventLogSource)
+        {
+            try
+            {
+                //lock (logSyncRoot)
+                {
+                    string strTime = DateTime.Now.ToString();
+                    StreamUtil.WriteText(strFilename, strTime + " " + strText + "\r\n");
+                }
+            }
+            catch (Exception ex)
+            {
+                EventLog Log = new EventLog();
+                Log.Source = strEventLogSource;
+                Log.WriteEntry("因为原本要写入日志文件的操作发生异常， 所以不得不改为写入 Windows 日志(见后一条)。异常信息如下：'" + ExceptionUtil.GetDebugText(ex) + "'", EventLogEntryType.Error);
+                Log.WriteEntry(strText, EventLogEntryType.Error);
+            }
+        }
+
+        // 日期转换成yyyy-MM-dd HH:mm:ss格式字符串
+        public static string DateTimeToStringNoSec(DateTime time)
+        {
+            return time.ToString("yyyy-MM-dd HH:mm");
         }
 
 

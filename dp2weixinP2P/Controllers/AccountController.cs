@@ -28,11 +28,11 @@ namespace dp2weixinWeb.Controllers
             {
                 goto ERROR1;
             }
-            if (nRet == 0)
-            {
-                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Account/ResetPassword");
-                return View();
-            }
+            //if (nRet == 0)
+            //{
+            //    ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Account/NewParton");
+            //    return View();
+            //}
 
             if (libId == null)
                 libId = "";
