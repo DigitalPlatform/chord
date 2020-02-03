@@ -44,6 +44,59 @@
             gotoUrl(url);
         }
 
+        // 发送手机验证码
+        function sendVC() {
+
+                        // 图书馆ID
+            var libId = getLibId(); 
+            if (libId == "") {
+                alert("异常情况：libId为空。");
+                return;
+            }
+
+            // 手机号
+            var tel = $("#txtTel").val();
+            if (tel == "") {
+                alert("手机号不能为空！");
+                return;
+            }
+            if (tel.length != 11) {
+                alert("手机号必须是11位数字！");
+                return;
+            }
+
+            //显示等待图层
+            showLoading();
+
+            // 调GetPatron
+            var url = "/api/patron?libId=" + encodeURIComponent(libId)
+                + "&tel=" + encodeURIComponent(tel)
+
+            //alert(url);
+            sendAjaxRequest(url, "GET",
+                function (result) {
+
+                    // 关闭等待层
+                    hideLoading();
+                    if (result.errorCode == -1) {
+                        alert("发送短信验证码出错：" + result.errorInfo);
+                        return;
+                    }
+
+                    //alert(result.verifyCode);
+
+                    $("#_verifyCode").text(result.verifyCode);
+
+
+                    alert("短信验证码已发送到您手机号，请查收。");
+
+                }, function (xhq, textStatus, errorThrown) {
+                    // 关闭等待层
+                    hideLoading();
+                    alert(errorThrown);
+                });
+        }
+
         // 新增和保存
         function save() {
 
@@ -91,6 +144,19 @@
             }
 
 
+            var txtVC = $("#txtVerifyCode").val();
+            if (txtVC == "") {
+                alert("尚未输入验证码！");
+                return;
+            }
+
+            var realVC = $("#_verifyCode").text();
+            if (txtVC != realVC) {
+                alert("验证码不正确！");
+                return;
+            }
+
+
             //显示等待图层
             showMaskLayer();
 
@@ -100,6 +166,7 @@
                 + "&action=new"// + encodeURIComponent(action)
                 + "&recPath=" + encodeURIComponent(recPath)
                 + "&timestamp=" // + encodeURIComponent(timestamp)
+                +"&weixinId=test"
                 + "&bMergeInfo=false"; //+ bMergeInfo;
 
             sendAjaxRequest(url, "POST",
@@ -145,6 +212,7 @@
     </script>
 }
 <span id="_recPath" style="display:none"></span>
+<span id="_verifyCode" style="display:none"></span>
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {
     <div class="mui-content-padded">
@@ -200,6 +268,21 @@ else
         <label id="lblTel" style="color:#cccccc">手机号</label>
         <input id='txtTel' type="text" class="mui-input mui-input-clear">
     </div>
+
+    <table style="width:100%;border:none">
+        <tr style="border:none">
+            <td style="width:100%;border:none">
+                <div class="mui-input-row" >
+                    <label id="lblVerifyCode" style="color:gray;border:none">验证码</label>
+                    <input id='txtVerifyCode' type="text" class="mui-input mui-input-clear" style="border:none">
+                </div>
+            </td>
+            <td>
+                <button onclick="sendVC()" id='btnSendVC' class="mui-btn" style="border:1px dotted #eeeeee;margin-right:2px;height:40px;">获取短信验证码</button></td>
+        </tr>
+    </table>
+
+
 
     <div class="mui-content-padded">
         <button id='btnResetPassword' class="mui-btn mui-btn-block mui-btn-primary" onclick="save()">提交</button>

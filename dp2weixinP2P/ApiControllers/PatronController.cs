@@ -103,6 +103,7 @@ namespace dp2weixinWeb.ApiControllers
             string action,
             string recPath,
             string timestamp,
+            string weixinId,
             SimplePatron patron,
             bool bMergeInfo)
         {
@@ -118,6 +119,7 @@ namespace dp2weixinWeb.ApiControllers
                 action,
                 recPath,
                 timestamp,
+                weixinId,
                 patron,
                 bMergeInfo,
                 out outputRecPath,
@@ -134,6 +136,28 @@ namespace dp2weixinWeb.ApiControllers
             result.recPath = outputRecPath;
             result.timestamp = outputTimestamp;
 
+
+            return result;
+        }
+
+        public GetVerifyCodeResult GetVerifyCode(string libId, 
+            string tel)
+        {
+            GetVerifyCodeResult result = new GetVerifyCodeResult();
+            result.verifyCode = "7";
+
+            string error = "";
+            int nRet = dp2WeiXinService.Instance.GetVerifyCode(libId,
+                tel,
+                out string verifyCode,
+                out error);
+            if (nRet == -1)
+            {
+                result.errorCode = -1;
+                result.errorInfo = error;
+            }
+
+            result.verifyCode = verifyCode;
 
             return result;
         }

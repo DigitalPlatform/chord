@@ -29,6 +29,11 @@ namespace dp2weixin.service
         public string timestamp = "";
     }
 
+    public class GetVerifyCodeResult : ApiResult
+    {
+        public string verifyCode = "";
+    }
+
     public class ChargeCommandResult:ApiResult
     {
         public List<ChargeCommand> cmds = null;

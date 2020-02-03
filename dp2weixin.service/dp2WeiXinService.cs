@@ -3802,6 +3802,7 @@ ErrorInfo成员里可能会有报错信息。
             string action,
             string recPath,
             string timestamp,
+            string weixinId,
             SimplePatron patron,
             bool bMergeInfo,
             out string outputRecPath,
@@ -3860,6 +3861,12 @@ public string ErrorCode { get; set; }
 
             if (bMergeInfo == false)
             {
+                string wxAppId = "wx57aa3682c59d16c2";
+                string email = "";
+                if (string.IsNullOrEmpty(weixinId) == false)
+                {
+                    email = "weixinid:" + weixinId + "@" + wxAppId;
+                }
                 xml = "<root>"
                        + "<barcode>" + patron.barcode + "</barcode>"
                        + "<state>临时</state> "
@@ -3868,6 +3875,7 @@ public string ErrorCode { get; set; }
                        + "<gender>" + patron.gender + "</gender>"
                        + "<department>" + patron.department + "</department>"
                        +"<tel>"+patron.tel+"</tel>"
+                       + "<email>"+email+"</email>"
                        + "</root>";
             }
             else
@@ -4087,36 +4095,20 @@ public string ErrorCode { get; set; }
                 goto ERROR1;
             }
 
-            // 20170509注释，找回密码，前面会先设置好当前图书馆
-            //// 2016-8-13 jane 自动修改设置的图书馆
-            // this.UpdateUserSetting(weixinId,//string weixinId, 
-            //    libId,              //string libId,
-            //    libraryCode,    //string libraryCode,
-            //    "",                 //string bookSubject,
-            //    true,              //bool bCheckActiveUser,
-            //    null);             //string patronRefID)
 
-
-            // 发送短信
-            string strMessageTemplate = "";
-            MessageInterface external_interface = this.GetMessageInterface("sms");
-            if (string.IsNullOrEmpty(strMessageTemplate) == true)
-            {
-                //strMessageTemplate = "%name% 您好！\n您的读者帐户(证条码号为 %barcode%)已设临时密码 %temppassword%，在 %period% 内登录会成为正式密码";
-                strMessageTemplate = "%name% 您好！密码为 %temppassword%。一小时内有效。";
-            }
+            // 准备发送短信
             /*
-<root>
-  <patron>
-    <tel>13862157150</tel>
-    <barcode>R00001</barcode>
-    <name>任延华</name>
-    <tempPassword>586284</tempPassword>
-    <expireTime>13:24:57</expireTime>
-    <period>一小时</period>
-    <refID>63aeb890-8936-4471-bfc5-8e72d5c7fe94</refID>
-  </patron>
-</root>             
+            <root>
+              <patron>
+                <tel>13862157150</tel>
+                <barcode>R00001</barcode>
+                <name>任延华</name>
+                <tempPassword>586284</tempPassword>
+                <expireTime>13:24:57</expireTime>
+                <period>一小时</period>
+                <refID>63aeb890-8936-4471-bfc5-8e72d5c7fe94</refID>
+              </patron>
+            </root>             
              */
             XmlDocument dom = new XmlDocument();
             dom.LoadXml(resultXml);
@@ -4131,53 +4123,22 @@ public string ErrorCode { get; set; }
             string expireTime = DomUtil.GetNodeText(nodePatron.SelectSingleNode("expireTime"));
             string period = DomUtil.GetNodeText(nodePatron.SelectSingleNode("period"));
 
-            string strBody = strMessageTemplate.Replace("%barcode%", strBarcode)
+            string strMessageTemplate = "%name% 您好！密码为 %temppassword%。一小时内有效。";
+            string strMessageText = strMessageTemplate.Replace("%barcode%", strBarcode)
                 .Replace("%name%", strName)
                 .Replace("%temppassword%", strReaderTempPassword)
                 .Replace("%expiretime%", expireTime)
                 .Replace("%period%", period);
-            // string strBody = "读者(证条码号) " + strBarcode + " 的帐户密码已经被重设为 " + strReaderNewPassword + "";
-            int nRet = 0;
-            // 向手机号码发送短信
-            {
-                // 得到高级xml
-                string strXml = "<root><tel>" + strTel + "</tel></root>";
-                // 发送消息
-                try
-                {
 
-                    // 发送一条消息
-                    // parameters:
-                    //      strPatronBarcode    读者证条码号
-                    //      strPatronXml    读者记录XML字符串。如果需要除证条码号以外的某些字段来确定消息发送地址，可以从XML记录中取
-                    //      strMessageText  消息文字
-                    //      strError    [out]返回错误字符串
-                    // return:
-                    //      -1  发送失败
-                    //      0   没有必要发送
-                    //      >=1   发送成功，返回实际发送的消息条数
-                    nRet = external_interface.HostObj.SendMessage(
-                        strBarcode,
-                        strXml,
-                        strBody,
-                        lib.libName, //todo,注意这里原来传的code 还是读者的libraryCode
-                        out strError);
-                    if (nRet == -1 || nRet == 0)
-                        return nRet;
-                }
-                catch (Exception ex)
-                {
-                    strError = external_interface.Type + " 类型的外部消息接口Assembly中SendMessage()函数抛出异常: " + ex.Message;
-                    nRet = -1;
-                }
-                if (nRet == -1)
-                {
-                    strError = "向读者 '" + strBarcode + "' 发送" + external_interface.Type + " message时出错：" + strError;
+            // 发送短信
+            int nRet = this.SendSMS(patronBarcode,
+                strTel,
+                strMessageText,
+                lib.libName,
+                out strError);
+            if (nRet == -1)
+                return -1;
 
-                    this.WriteErrorLog1(strError);
-                    return -1;
-                }
-            }
 
             return 1;
 
@@ -4186,8 +4147,97 @@ public string ErrorCode { get; set; }
             return -1;
         }
 
+        // 向手机号码发送短信
+        public int SendSMS(string strPatronBarcode, 
+            string strTel, 
+            string strMessageText,
+            string strLibName,
+            out string strError)
+        {
+            strError = "";
+            int nRet = 0;
+            // 组织读者xml，手机号必备
+            string strPatronXml = "<root><tel>" + strTel + "</tel></root>";
+            MessageInterface external_interface = this.GetMessageInterface("sms");
+            try
+            {
+                // 发送一条消息
+                // parameters:
+                //      strPatronBarcode    读者证条码号
+                //      strPatronXml    读者记录XML字符串。如果需要除证条码号以外的某些字段来确定消息发送地址，可以从XML记录中取
+                //      strMessageText  消息文字
+                //      strError    [out]返回错误字符串
+                // return:
+                //      -1  发送失败
+                //      0   没有必要发送
+                //      >=1   发送成功，返回实际发送的消息条数
+                nRet = external_interface.HostObj.SendMessage(strPatronBarcode,
+                    strPatronXml,
+                    strMessageText,
+                    strLibName,
+                    out strError);
+                if (nRet == -1 || nRet == 0)
+                    return -1;
+            }
+            catch (Exception ex)
+            {
+                strError = external_interface.Type + " 类型的外部消息接口Assembly中SendMessage()函数抛出异常: " + ex.Message;
+                nRet = -1;
+            }
+            if (nRet == -1)
+            {
+                strError = "向读者 '" + strPatronBarcode + "' 发送" + external_interface.Type + " message时出错：" + strError;
+                this.WriteErrorLog1(strError);
+                return -1;
+            }
+
+            return nRet;
+        }
 
 
+        public string Get4DigitalCode()
+        {
+            string vc = "";
+            Random rNum = new Random();//随机生成类
+            int num1 = rNum.Next(0, 9);//返回指定范围内的随机数
+            int num2 = rNum.Next(0, 9);
+            int num3 = rNum.Next(0, 9);
+            int num4 = rNum.Next(0, 9);
+
+            int[] nums = new int[4] { num1, num2, num3, num4 };
+            for (int i = 0; i < nums.Length; i++)//循环添加四个随机生成数
+            {
+                vc += nums[i].ToString();
+            }
+
+            return vc;
+        }
+
+        public int GetVerifyCode(string libId, 
+            string tel, 
+            out string verifyCode,
+            out string error)
+        {
+            int nRet = 0;
+            error = "";
+            verifyCode = "";
+
+            verifyCode = this.Get4DigitalCode();
+
+            string strMessageText = "您好！注册验证码为" + verifyCode + "。";// 一小时内有效。";
+
+
+            // 发送短信
+             nRet = this.SendSMS("~temp",//patronBarcode,
+                tel,
+                strMessageText,
+                libId,
+                out error);
+            if (nRet == -1)
+                return -1;
+
+            return nRet;
+        }
 
         /// <summary>
         /// 修改密码

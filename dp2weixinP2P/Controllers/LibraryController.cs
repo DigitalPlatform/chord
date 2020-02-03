@@ -444,6 +444,18 @@ namespace dp2weixinWeb.Controllers
                 userName = this.GetHasRightUserName(activeUser, lib);
             }
 
+           // 2020/1/31 add,如果设置了不允许外部访问，则公告也不允许外部人员访问
+            if (lib.Entity.noShareBiblio == 1)
+            {
+                List<WxUserItem> users = WxUserDatabase.Current.Get(weixinId, lib.Entity.id, -1);
+                if (users.Count == 0
+                    || (users.Count == 1 && users[0].userName == "public"))
+                {
+                    ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("公告", "/Library/BB", lib.Entity.libName);
+                    return View();
+                }
+            }
+
             //设到ViewBag里
             ViewBag.userName = userName;
 
