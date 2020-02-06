@@ -91,7 +91,7 @@ namespace dp2weixin.service
                     // 检查尺寸有没有超过限制
                     if (_msgBuffer.Length + record.data.Length > C_StringBuffer_MaxLength)
                     {
-                        dp2WeiXinService.Instance.WriteErrorLog1("消息尺寸超过1M，不处理该消息。");
+                        dp2WeiXinService.Instance.WriteErrorLog("消息尺寸超过1M，不处理该消息。");
                         _msgBuffer.Clear();//消空消息缓存
                         return;
                     }
@@ -121,8 +121,7 @@ namespace dp2weixin.service
                     if (this._messageList.Count < 10000)
                         this._messageList.AddRange(fullRecords);//e.Records);
                 }
-
-                this.WriteLog("AddMessage得到" + fullRecords.Count.ToString() + "条消息。", dp2WeiXinService.C_LogLevel_3);
+                dp2WeiXinService.Instance.WriteDebug("AddMessage得到" + fullRecords.Count.ToString() + "条消息。");
                 this.Activate();
             }
         }
@@ -215,7 +214,8 @@ DeleteMessage(temp_records, this.GroupName);
                 if (this._sendedTable.ContainsKey(record.id))
                     continue;
 
-                this.WriteLog("开始处理:" + record.id, dp2WeiXinService.C_LogLevel_3);
+                dp2WeiXinService.Instance.WriteDebug("开始处理:" + record.id);
+                //this.WriteLog(, dp2WeiXinService.C_LogLevel_3);
 
                 // 发送
                 if (handler != null)
@@ -224,8 +224,8 @@ DeleteMessage(temp_records, this.GroupName);
                     e.Message = record;
                     handler(this, e);
                 }
-
-                this.WriteLog("处理结束:" + record.id, dp2WeiXinService.C_LogLevel_3);
+                dp2WeiXinService.Instance.WriteDebug("处理结束:" + record.id);
+                //this.WriteLog("处理结束:" + record.id, dp2WeiXinService.C_LogLevel_3);
 
                 if (this._sendedTable.Count < C_SendTable_MaxCount)  //大于了5K则不再给里面增加了。
                 {
@@ -277,10 +277,10 @@ DeleteMessage(temp_records, this.GroupName);
             }
         }
 
-        void WriteLog(string strText,int logLevel)
-        {
-            dp2WeiXinService.Instance.WriteLog(strText,logLevel);
-        }
+        //void WriteLog(string strText,int logLevel)
+        //{
+        //    dp2WeiXinService.Instance.WriteLog(strText,logLevel);
+        //}
 
         // 从 dp2mserver 获得消息
         // 每次最多获得 100 条
@@ -323,8 +323,10 @@ DeleteMessage(temp_records, this.GroupName);
                 strError = ex.Message;
                 goto ERROR1;
             }
+
         ERROR1:
-            this.WriteLog("GetMessage() error: " + strError,dp2WeiXinService.C_LogLevel_1);
+            dp2WeiXinService.Instance.WriteErrorLog("GetMessage() error: " + strError);
+            //this.WriteLog("GetMessage() error: " + strError,dp2WeiXinService.C_LogLevel_1);
             return new List<MessageRecord>();
         }
 
@@ -387,7 +389,9 @@ DeleteMessage(temp_records, this.GroupName);
 
 
         ERROR1:
-            this.WriteLog("DeleteMessage() error : " + strError, dp2WeiXinService.C_LogLevel_1);
+            dp2WeiXinService.Instance.WriteErrorLog("DeleteMessage() error : " + strError);
+
+            //this.WriteLog("DeleteMessage() error : " + strError, dp2WeiXinService.C_LogLevel_1);
             return false;
         }
     }

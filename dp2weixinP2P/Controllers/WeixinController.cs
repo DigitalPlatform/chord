@@ -60,12 +60,12 @@ namespace dp2weixinWeb.Controllers
             string state = Request.QueryString["state"];
             if (String.IsNullOrEmpty(state) == false)
             {
-                dp2WeiXinService.Instance.WriteLog1("url参数state=" + state);
+                dp2WeiXinService.Instance.WriteDebug("url参数state=" + state);
                 gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppName(state);
                 if (gzh == null)
                 {
                     string tempError = "Get未找到公众号[" + state + "]的配置信息。";
-                    dp2WeiXinService.Instance.WriteErrorLog1(tempError);
+                    dp2WeiXinService.Instance.WriteErrorLog(tempError);
                     return new WeixinResult(tempError);
                 }
             }
@@ -77,7 +77,7 @@ namespace dp2weixinWeb.Controllers
             if (string.IsNullOrEmpty(postModel.AppId) == false)
             {
                 gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppId(postModel.AppId);
-                dp2WeiXinService.Instance.WriteErrorLog1("惊喜Get中有appId=" + postModel.AppId);
+                dp2WeiXinService.Instance.WriteErrorLog("惊喜Get中有appId=" + postModel.AppId);
             }
 
             //GzhCfg gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppId(postModel.AppId);
@@ -94,7 +94,7 @@ namespace dp2weixinWeb.Controllers
                 gzh.token))
             {
                 string info = DumpPostModel(postModel);
-                dp2WeiXinService.Instance.WriteLog1(info);
+                dp2WeiXinService.Instance.WriteDebug(info);
                 return Content(echostr); //返回随机字符串则表示验证通过
             }
             else
@@ -126,13 +126,13 @@ namespace dp2weixinWeb.Controllers
             if (string.IsNullOrEmpty(postModel.AppId) == false)
             { 
                 gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppId(postModel.AppId);
-                dp2WeiXinService.Instance.WriteErrorLog1("惊喜post中有appId=" + postModel.AppId);
+                dp2WeiXinService.Instance.WriteErrorLog("惊喜post中有appId=" + postModel.AppId);
             }
 
             if (gzh == null)
             {
                 string tempError = "Post未找到公众号[" + postModel.AppId + "]的配置信息。";
-                dp2WeiXinService.Instance.WriteErrorLog1(tempError);
+                dp2WeiXinService.Instance.WriteErrorLog(tempError);
                 return new WeixinResult(tempError);
             }
 
@@ -221,11 +221,11 @@ namespace dp2weixinWeb.Controllers
                 if (time_length.TotalSeconds > 5)
                 {
                     info = "请求超时:" + info;
-                    dp2WeiXinService.Instance.WriteLog1(info);
+                    dp2WeiXinService.Instance.WriteErrorLog(info);
                 }
                 else
                 {
-                    dp2WeiXinService.Instance.WriteLog3(info);
+                    dp2WeiXinService.Instance.WriteDebug(info);
                 }
 
                 // 发送客服消息
@@ -259,7 +259,7 @@ namespace dp2weixinWeb.Controllers
                 }
 
                 //将程序运行中发生的错误记录到日志
-                dp2WeiXinService.Instance.WriteErrorLog1(error);
+                dp2WeiXinService.Instance.WriteErrorLog(error);
 
                 // 返回error信息
                 return new WeixinResult(error);

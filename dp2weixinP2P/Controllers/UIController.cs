@@ -42,7 +42,7 @@ namespace dp2weixinWeb.Controllers
                     }
                     catch (Exception ex)
                     {
-                        dp2WeiXinService.Instance.WriteLog1("!!!生成声音["+text+"]异常：" + ex.Message);
+                        dp2WeiXinService.Instance.WriteErrorLog("!!!生成声音["+text+"]异常：" + ex.Message);
                         
                     }
                     

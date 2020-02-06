@@ -282,13 +282,13 @@ namespace dp2weixin.service
                 if (activeList.Count > 1)
                 {
                     string strError="发现微信号活动读者帐户有" + list.Count + "个,程序自动将除第1个外的其余帐户没为非活动态";
-                    dp2WeiXinService.Instance.WriteLog1(strError);
+                    dp2WeiXinService.Instance.WriteDebug(strError);
                     for (int i = 1; i < activeList.Count; i++)
                     {
                         WxUserItem item = activeList[i];
                         item.isActive = 0;
                         WxUserDatabase.Current.Update(item);
-                        dp2WeiXinService.Instance.WriteLog1(item.userName + "/" + item.readerBarcode);
+                        dp2WeiXinService.Instance.WriteDebug(item.userName + "/" + item.readerBarcode);
                     }
                 }
             }
@@ -296,11 +296,11 @@ namespace dp2weixin.service
             // 有绑号帐号，但没有对应的活动帐号，自动将第一个帐户设为活动帐户
             if (list.Count > 0 && activeList.Count == 0)
             {
-                dp2WeiXinService.Instance.WriteLog1("发现微信号有绑定帐户，但当前没有活动帐户，自动将第一条设为活动帐户");
+                dp2WeiXinService.Instance.WriteDebug("发现微信号有绑定帐户，但当前没有活动帐户，自动将第一条设为活动帐户");
                 activeUser = list[0];
                 activeUser.isActive = 1;
                 WxUserDatabase.Current.Update(activeUser);
-                dp2WeiXinService.Instance.WriteLog1(activeUser.userName + "/" + activeUser.readerBarcode);
+                dp2WeiXinService.Instance.WriteDebug(activeUser.userName + "/" + activeUser.readerBarcode);
             }
 
 
@@ -352,7 +352,7 @@ namespace dp2weixin.service
 
             WxUserDatabase.Current.Add(userItem);
 
-            dp2WeiXinService.Instance.WriteLog1("自动以绑public身份新建一条");
+            dp2WeiXinService.Instance.WriteDebug("自动以绑public身份新建一条");
 
             return userItem;
         }
@@ -411,17 +411,17 @@ namespace dp2weixin.service
         {
             lock (_sync_addUser)
             {
-                dp2WeiXinService.Instance.WriteLog1("走进WxUserDatabase.Add(),id=" + item.id + " weixinid=" + item.weixinId);
+                dp2WeiXinService.Instance.WriteDebug("走进WxUserDatabase.Add(),id=" + item.id + " weixinid=" + item.weixinId);
 
                 List<WxUserItem> itemList = this.Get(item.weixinId, item.libId, null,item.type, item.readerBarcode, item.userName, true);
                 if (itemList.Count == 0)
                 {
                     this.wxUserCollection.InsertOne(item);
-                    dp2WeiXinService.Instance.WriteLog1("InsertOne(),id="+item.id);
+                    dp2WeiXinService.Instance.WriteDebug("InsertOne(),id="+item.id);
                 }
                 else
                 {
-                    dp2WeiXinService.Instance.WriteLog1("发现绑定帐户库中已有'" + item.readerBarcode + "'或'" + item.userName + "'对应的记录。");
+                    dp2WeiXinService.Instance.WriteDebug("发现绑定帐户库中已有'" + item.readerBarcode + "'或'" + item.userName + "'对应的记录。");
                 }
             }
             return item;
@@ -433,7 +433,7 @@ namespace dp2weixin.service
         {
             newActivePatron = null;
 
-            dp2WeiXinService.Instance.WriteLog1("走进WxUserDatabase.Delete() id=" + id);
+            dp2WeiXinService.Instance.WriteDebug("走进WxUserDatabase.Delete() id=" + id);
 
             if (string.IsNullOrEmpty(id) == true || id == "null")
                 return;
@@ -442,7 +442,7 @@ namespace dp2weixin.service
             WxUserItem userItem = this.GetById(id);
             if (userItem == null)
                 return;
-            dp2WeiXinService.Instance.WriteLog1("走进WxUserDatabase.Delete(),id=" + userItem.id + " weixinid=" + userItem.weixinId);
+            dp2WeiXinService.Instance.WriteDebug("走进WxUserDatabase.Delete(),id=" + userItem.id + " weixinid=" + userItem.weixinId);
 
             string weixinId = "";
             int type = -1;
@@ -504,17 +504,19 @@ namespace dp2weixin.service
 
         public void SimpleDelete(String id)
         {
-            dp2WeiXinService.Instance.WriteLog1("走进WxUserDatabase.SimpleDelete()");
+            dp2WeiXinService.Instance.WriteDebug("1.走进WxUserDatabase.SimpleDelete()");
+
             if (string.IsNullOrEmpty(id) == true)
                 return;
-            dp2WeiXinService.Instance.WriteLog1("走进WxUserDatabase.SimpleDelete() id=" + id);
 
-            // 先删除
+            dp2WeiXinService.Instance.WriteDebug("2.走进WxUserDatabase.SimpleDelete() id=" + id);
+
+            // 从mongodb库删除
             IMongoCollection<WxUserItem> collection = this.wxUserCollection;
             var filter = Builders<WxUserItem>.Filter.Eq("id", id);
-           DeleteResult ret =  collection.DeleteOne(filter);
-            dp2WeiXinService.Instance.WriteLog1("共删除成功"+ret.DeletedCount+"个对象");
-            
+            DeleteResult ret = collection.DeleteOne(filter);
+
+            dp2WeiXinService.Instance.WriteDebug("3.共删除成功" + ret.DeletedCount + "个对象");
         }
 
         // 根据libId与状态删除记录
@@ -618,7 +620,7 @@ namespace dp2weixin.service
         /// <returns></returns>
         public long Update(WxUserItem item)
         {
-            dp2WeiXinService.Instance.WriteLog1("走进WxUserDatabase.Update(),id=" + item.id + " weixinid=" + item.weixinId);
+            dp2WeiXinService.Instance.WriteDebug("走进WxUserDatabase.Update(),id=" + item.id + " weixinid=" + item.weixinId);
 
             var filter = Builders<WxUserItem>.Filter.Eq("id", item.id);
             var update = Builders<WxUserItem>.Update

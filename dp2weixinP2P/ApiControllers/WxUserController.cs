@@ -451,7 +451,7 @@ namespace dp2weixinWeb.ApiControllers
                     user = publicList[0];
                     if (publicList.Count > 1)
                     {
-                        dp2WeiXinService.Instance.WriteLog1("!!!异常：出现" + publicList.Count + "个public帐户?应该只有一个，把多余的帐户删除");
+                        dp2WeiXinService.Instance.WriteErrorLog("!!!异常：出现" + publicList.Count + "个public帐户?应该只有一个，把多余的帐户删除");
                         for (int i = 1; i < publicList.Count; i++)
                         {
                             WxUserDatabase.Current.SimpleDelete(publicList[i].id);
@@ -514,7 +514,7 @@ namespace dp2weixinWeb.ApiControllers
         {
             string error = "";
 
-            dp2WeiXinService.Instance.WriteLog1("!!!走进bind API");
+            dp2WeiXinService.Instance.WriteDebug("走进bind API");
 
             if (item.bindLibraryCode == null)
                 item.bindLibraryCode = "";
@@ -557,14 +557,14 @@ namespace dp2weixinWeb.ApiControllers
 
             if (sessionInfo.Active != null)
             {
-                dp2WeiXinService.Instance.WriteLog1("原来session中的user对象id=["+sessionInfo.Active.id+"],weixinid=["+sessionInfo.WeixinId+"]");
+                dp2WeiXinService.Instance.WriteDebug("原来session中的user对象id=["+sessionInfo.Active.id+"],weixinid=["+sessionInfo.WeixinId+"]");
             }
             else
             {
-                dp2WeiXinService.Instance.WriteLog1("原来session中无user对象");
+                dp2WeiXinService.Instance.WriteDebug("原来session中无user对象");
             }
 
-            dp2WeiXinService.Instance.WriteUserInfo(item.weixinId, "bind返回后");
+            dp2WeiXinService.Instance.WriteDebugUserInfo(item.weixinId, "bind返回后");
 
 
             //更新session信息
@@ -572,7 +572,7 @@ namespace dp2weixinWeb.ApiControllers
             if (nRet == -1)
                 goto ERROR1;
 
-            dp2WeiXinService.Instance.WriteUserInfo(item.weixinId, "session.init后");
+            dp2WeiXinService.Instance.WriteDebugUserInfo(item.weixinId, "session.init后");
 
             return result;
 

@@ -16,7 +16,6 @@
             //绑定观察模块
             ko.applyBindings(model);
 
-
             // 密码框打回车时，进行绑定
             $('#password').bind('keypress', function (event) {
                 if (event.keyCode == "13") {
@@ -25,8 +24,6 @@
                     bind();
                 }
             });
-
-
         })
 
         // 绑定账号

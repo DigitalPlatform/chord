@@ -47,48 +47,7 @@ namespace dp2weixinWeb.Controllers
             return View();
         }
 
-        /*
-        // web登录
-        public ActionResult WebLogin(string returnUrl)
-        {
-            ViewBag.ReturnUrl = returnUrl;
 
-            string strError = "";
-
-            //// 检查是否从微信入口进来
-            //string strError = "";
-            //string state = "ilovelibrary";
-            //int nRet = this.CheckIsFromWeiXin("", state, out strError);
-            //if (nRet == -1 && strError!="未登录1")
-            //    goto ERROR1;
-
-            
-
-            // 临时id
-            //string guid = Guid.NewGuid().ToString();
-            string weixinId = "temp" ;//这是时间还得用temp因为还没有登录成功，只是做一些初始化设置，后面 "~~" + guid; //2018/3/8
-
-
-            // 初始化session
-            string state = "ilovelibrary";
-            SessionInfo sessionInfo = null;
-           int nRet = this.InitSession(state, weixinId, out sessionInfo, out strError);
-            if (nRet == -1)
-                goto ERROR1;
-
-            // 初始化 viewbag
-            nRet = this.InitViewBag(sessionInfo, out strError);
-            if (nRet == -1)
-                goto ERROR1;
-
-            return View();
-
-
-            ERROR1:
-            ViewBag.Error = strError;
-            return View();
-        }
-        */
 
         /// <summary>
         /// 账户管理

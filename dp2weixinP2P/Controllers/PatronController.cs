@@ -30,7 +30,7 @@ namespace dp2weixinWeb.Controllers
             nRet = this.GetActive(code, state, 
                 out activeUser,
                 out strError);
-            if (nRet == -1 && ViewBag.LibState!= LibraryManager.C_State_Hangup)
+            if (nRet == -1 && ViewBag.LibState!= LibraryManager.C_State_Hangup1)
             {
                 goto ERROR1;
             }
@@ -387,7 +387,7 @@ namespace dp2weixinWeb.Controllers
             nRet = this.GetActive(code, state,
                 out activeUser,
                 out strError);
-            if (nRet == -1 && ViewBag.LibState != LibraryManager.C_State_Hangup)
+            if (nRet == -1 && ViewBag.LibState != LibraryManager.C_State_Hangup1)
             {
                 goto ERROR1;
             }
@@ -464,7 +464,7 @@ namespace dp2weixinWeb.Controllers
             nRet = this.GetActive(code, state,
                 out activeUser,
                 out strError);
-            if (nRet == -1 && ViewBag.LibState != LibraryManager.C_State_Hangup)
+            if (nRet == -1 && ViewBag.LibState != LibraryManager.C_State_Hangup1)
             {
                 goto ERROR1;
             }

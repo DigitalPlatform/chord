@@ -90,7 +90,7 @@ namespace dp2weixin.service
                         out error);
                     if (nRet == -1)
                     {
-                        dp2WeiXinService.Instance.WriteErrorLog1("!!!" + error);
+                        dp2WeiXinService.Instance.WriteErrorLog("!!!" + error);
                         //return -1;
                     }
                     if (dataList != null && dataList.Count > 0)
@@ -108,7 +108,7 @@ namespace dp2weixin.service
                         out error);
                     if (nRet == -1)
                     {
-                        dp2WeiXinService.Instance.WriteErrorLog1("!!!" + error);
+                        dp2WeiXinService.Instance.WriteErrorLog("!!!" + error);
                         return -1;
                     }
                     if (dataList != null && dataList.Count > 0)

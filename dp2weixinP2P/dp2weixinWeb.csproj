@@ -360,7 +360,6 @@
     <Content Include="Views\Patron\SelectLib.cshtml" />
     <Content Include="Views\UI\AudioTest.cshtml" />
     <Content Include="Views\Library\Circulate.cshtml" />
-    <Content Include="Views\Account\WebLogin.cshtml" />
     <Content Include="Views\Library\Message.cshtml" />
     <Content Include="Views\Biblio\ViewPDF.cshtml" />
     <Content Include="Views\Biblio\ViewPDF-V.cshtml" />

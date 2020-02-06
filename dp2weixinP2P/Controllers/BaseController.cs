@@ -42,7 +42,7 @@ namespace dp2weixinWeb.Controllers
                 //sessionInfo.ClearDebugInfo();
 
                 // 日志
-                dp2WeiXinService.Instance.WriteLog1("已存在session");
+                dp2WeiXinService.Instance.WriteDebug("已存在session");
             }
             else
             {
@@ -230,7 +230,7 @@ namespace dp2weixinWeb.Controllers
                         sessionInfo.AddDebugInfo("微信入口，根据微信code=[" + code + "]获取weixinId");
 
                         // 根据微信接口得到weixinid
-                        nRet = dp2WeiXinService.Instance.GetWeiXinId1(code,
+                        nRet = dp2WeiXinService.Instance.GetWeiXinId(code,
                            gzh,
                           out weixinId,
                           out strError);
@@ -399,8 +399,8 @@ namespace dp2weixinWeb.Controllers
                 ViewBag.showPhoto = sessionInfo.Active.showPhoto;
                 ViewBag.showCover = sessionInfo.Active.showCover;
 
-                ViewBag.LibState = sessionInfo.CurrentLib.State;
-                if (sessionInfo.CurrentLib.State == LibraryManager.C_State_Hangup)  //checkLibState == true && 
+                ViewBag.LibState = sessionInfo.CurrentLib.IsHangup.ToString();
+                if (sessionInfo.CurrentLib.IsHangup == true)  //checkLibState == true && 
                 {
                     string warn = LibraryManager.GetLibHungWarn(sessionInfo.CurrentLib);
                     if (string.IsNullOrEmpty(warn) == false)

@@ -58,16 +58,13 @@ namespace dp2weixinWeb
                 throw new Exception("微信数据目录" + dataDir + "不存在。");
             }
 
+
+
             // 初始化命令服务类
             dp2WeiXinService.Instance.Init(dataDir);
 
-            dp2WeiXinService.Instance.WriteLog1("Application_Start完成");
+            dp2WeiXinService.Instance.WriteDebug("Application_Start完成");
 
-
-            // 测试application_error
-            //throw new Exception("test");
-
-            //Application["app"] = "test";
         }
 
 
@@ -94,7 +91,7 @@ namespace dp2weixinWeb
         {
             dp2WeiXinService.Instance.Close();
 
-            dp2WeiXinService.Instance.WriteLog1("走进Application_End");
+            dp2WeiXinService.Instance.WriteDebug("走进Application_End");
         }
 
         protected void Application_Error(Object sender, EventArgs e)
@@ -111,14 +108,14 @@ namespace dp2weixinWeb
                 + "\r\nForm Data(Decoded)=" + HttpUtility.UrlDecode(HttpContext.Current.Request.Form.ToString())
                 + "\r\n\r\n版本: " + System.Reflection.Assembly.GetAssembly(typeof(dp2WeiXinService)).GetName().ToString();
 
-                dp2WeiXinService.Instance.WriteErrorLog1(strText);
+                dp2WeiXinService.Instance.WriteErrorLog(strText);
 
                 if (ex is Senparc.Weixin.Exceptions.ErrorJsonResultException)
                 {
                     Server.ClearError(); //清除异常 2016-10-24，不加这句话，还会继续抛黄页                    
 
                     //重启web应用
-                    dp2WeiXinService.Instance.WriteLog1("遇到微信40001错误，重启web应用。");
+                    dp2WeiXinService.Instance.WriteDebug("遇到微信40001错误，重启web应用。");
                     string binDir = Server.MapPath("~/bin");//"~/App_Data"
                     string strTempFile = binDir + "\\temp";
                     if (File.Exists(strTempFile) == true)

@@ -35,7 +35,7 @@ namespace dp2weixinWeb.ApiControllers
             ChargeCommandContainer cmdContainer = sessionInfo.cmdContainer;
             if (sessionInfo.Active == null)
             {
-                dp2WeiXinService.Instance.WriteLog1("提交流通API时，发现session失效了。");
+                dp2WeiXinService.Instance.WriteDebug("提交流通API时，发现session失效了。");
             }
             
 
@@ -53,7 +53,7 @@ namespace dp2weixinWeb.ApiControllers
             {
                 cmd.errorInfo = ex.Message;
                 cmd.state = -1;
-                dp2WeiXinService.Instance.WriteLog1("借还时同错："+ex.Message);
+                dp2WeiXinService.Instance.WriteErrorLog("借还时出错："+ex.Message);
 
 
                 return cmd;
@@ -79,7 +79,7 @@ namespace dp2weixinWeb.ApiControllers
                 out error);
             if (nRet == -1)
             {
-                dp2WeiXinService.Instance.WriteLog1("校验条码error:" + error);
+                dp2WeiXinService.Instance.WriteDebug("校验条码error:" + error);
             }
             result.errorCode = nRet;
             result.errorInfo = error;

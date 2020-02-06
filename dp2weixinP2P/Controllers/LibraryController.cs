@@ -506,7 +506,7 @@ namespace dp2weixinWeb.Controllers
                     out strError);
                 if (nHasRights == -1)
                 {
-                    dp2WeiXinService.Instance.WriteErrorLog1("CheckRights()出错：" + strError);
+                    dp2WeiXinService.Instance.WriteErrorLog("CheckRights()出错：" + strError);
                     userName = "";
                 }
                 if (nHasRights == 1)
