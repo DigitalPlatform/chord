@@ -3090,7 +3090,10 @@ namespace dp2weixin.service
                     string title = libName + " 桥接服务器dp2capo失去连接";
 
                     string operTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-                    string text = LibraryManager.GetLibHungWarn(lib);
+                    
+                    // 此时不需要再次重新检查是否挂起了，只需要得到提示就可以
+                    string text = LibraryManager.GetLibHungWarn(lib,false);
+
 
                     string first = "☀☀☀☀☀☀☀☀☀☀";
                     string first_color = "#9400D3";
@@ -3195,6 +3198,16 @@ namespace dp2weixin.service
                 // 如果有工作人员配了 接收警告 权限，将只返回有权限的工作人员
                 foreach (WxUserItem user in workers)
                 {
+                    if (user.userName == "public")
+                        continue;
+
+                    // 从web页面绑定的
+                    if (user.weixinId.Substring(0, 2) == "~~")
+                    {
+                        this.WriteDebug("数字平台工作人员" + user.userName + "的weixinId为" + user.weixinId + ",非微信入口，不发通知。");
+                        continue;
+                    }
+
                     bool hasRight = CheckContainRights(user.rights, dp2WeiXinService.C_Right_GetWarning);
                     if (hasRight == true)
                     {
@@ -3615,121 +3628,22 @@ ErrorInfo成员里可能会有报错信息。
 
         #region 找回密码，修改密码，二维码
 
-        /*
-        /// <summary>
-        /// 更新用户设置
-        /// </summary>
-        /// <param name="weixinId"></param>
-        /// <param name="libId"></param>
-        /// <param name="bookSubject"></param>
-        public void UpdateUserSetting(string weixinId, 
-            string libId,
-            string libraryCode,
-            string bookSubject,
-            bool bCheckActiveUser,
-            string patronRefID)
-        {
-            if (bookSubject == null)
-                bookSubject = "";
 
-            if (patronRefID == null)
-                patronRefID = "";
-
-            UserSettingItem settingItem = UserSettingDb.Current.GetByWeixinId(weixinId);
-            if (settingItem == null) //此微信用户还没有对应的设置信息
-            {
-                settingItem = new UserSettingItem();
-                settingItem.weixinId = weixinId;
-                settingItem.libId = libId;
-                settingItem.libraryCode = libraryCode;
-
-                settingItem.showCover = 1;
-                settingItem.showPhoto = 1;
-
-                settingItem.patronRefID = patronRefID;
-                settingItem.bookSubject = bookSubject;
-                settingItem.xml = "";//<root><subject book='" + bookSubject + "'/></root>";
-
-                UserSettingDb.Current.Add(settingItem);
-            }
-            else
-            {
-                if (string.IsNullOrEmpty(libId) == false)
-                {
-                    if (settingItem.libId != libId)
-                    {
-                        settingItem.libId = libId;
-                    }
-
-                    if (libraryCode != null)
-                    {
-                        if (settingItem.libraryCode != libraryCode)
-                            settingItem.libraryCode = libraryCode;
-                    }
-                }
-
-                if (string.IsNullOrEmpty(bookSubject) == false)
-                {
-                    settingItem.bookSubject = bookSubject;
-                    settingItem.xml = "";//<root><subject book='" + bookSubject + "'/></root>";
-                }
-
-                if (String.IsNullOrEmpty(patronRefID) == false)
-                {
-                    settingItem.patronRefID = patronRefID;
-                }
-
-                UserSettingDb.Current.Update(settingItem);
-
-            }
-
-            
-            if (bCheckActiveUser == true)
-            {
-                //检查微信用户对于该馆是否设置了活动账户
-                this.CheckUserActivePatron(weixinId, libId);
-            }
-        }
-    */
-
-            /*
-        /// <summary>
-        /// 检查微信用户对于该馆是否设置了活动账户
-        /// </summary>
-        /// <param name="weixinId"></param>
-        /// <param name="libId"></param>
-        public void CheckUserActivePatron(string weixinId, string libId)
-        {
-            // 检查该图是否绑定了读者账户
-            List<WxUserItem> users = WxUserDatabase.Current.GetPatron(weixinId, libId, null);
-            if (users != null && users.Count > 0)
-            {
-                // 检查当前有没有激活账户
-                bool isActive = false;
-                foreach (WxUserItem user in users)
-                {
-                    if (user.isActive == 1)
-                    {
-                        isActive = true;
-                        break;
-                    }
-                }
-
-                // 没有激活的，激活第一人
-                if (isActive == false)
-                {
-                    WxUserItem userItem = users[0];
-                    WxUserDatabase.Current.SetActivePatron(userItem.weixinId, userItem.id);
-                }
-            }
-            else
-            {
-                // 没有绑定该图书馆读者账户，将该微信用户对应的他馆全部账户置为未激活状态
-                WxUserDatabase.Current.SetNoActivePatron(weixinId);
-            }
-        }
-    */
-
+          /// <summary>
+          /// 
+          /// </summary>
+          /// <param name="libId"></param>
+          /// <param name="userName"></param>
+          /// <param name="action"></param>
+          /// <param name="recPath"></param>
+          /// <param name="timestamp"></param>
+          /// <param name="weixinId">当读者自助注册帐号时，会传入weixinId</param>
+          /// <param name="patron"></param>
+          /// <param name="bMergeInfo"></param>
+          /// <param name="outputRecPath"></param>
+          /// <param name="outputTimestamp"></param>
+          /// <param name="strError"></param>
+          /// <returns></returns>
         public int SetReaderInfo(string libId,
             string userName,
             string action,
@@ -3794,11 +3708,11 @@ public string ErrorCode { get; set; }
 
             if (bMergeInfo == false)
             {
-                string wxAppId = "wx57aa3682c59d16c2";
+                //string wxAppId = "wx57aa3682c59d16c2";
                 string email = "";
                 if (string.IsNullOrEmpty(weixinId) == false)
                 {
-                    email = "weixinid:" + weixinId + "@" + wxAppId;
+                    email = "weixinid:" + weixinId;//带着后缀 + "@" + wxAppId;
                 }
                 xml = "<root>"
                        + "<barcode>" + patron.barcode + "</barcode>"
@@ -3878,7 +3792,6 @@ public string ErrorCode { get; set; }
                 Record oldRecord = new Record();
                 oldRecord.Timestamp = timestamp;
                 entity.OldRecord = oldRecord;
- 
             }
 
             CancellationToken cancel_token = new CancellationToken();
@@ -3910,7 +3823,6 @@ public string ErrorCode { get; set; }
 
                 if (result.Entities.Count > 0)
                 {
-
                     outputRecPath = result.Entities[0].NewRecord.RecPath;
                     outputTimestamp = result.Entities[0].NewRecord.Timestamp;
                 }
@@ -3926,6 +3838,46 @@ public string ErrorCode { get; set; }
                 strError = ex.Message;
                 goto ERROR1;
             }
+
+
+
+            // 如果是读者自助的情况，给本地mongodb创建一笔绑定记录
+            if (string.IsNullOrEmpty(weixinId) == false)
+            {
+                // outputRecPath
+                string partonRecPath = "@path:" + outputRecPath;
+                string strPartonXml = "";
+                int nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
+                    loginInfo,
+                    partonRecPath,
+                    "xml,timestamp",
+                    out recPath,
+                    out timestamp,
+                    out strPartonXml,
+                    out strError);
+                if (nRet == -1 || nRet == 0)
+                {
+                    return -1;
+                }
+
+                //result.recPath = recPath;
+                //result.timestamp = timestamp;
+
+                string bindLibraryCode = "";
+                nRet = this.SaveUserToLocal(weixinId,
+                    libId,
+                    bindLibraryCode,
+                    C_TYPE_READER,
+                    strPartonXml,
+                    "new",
+                    out WxUserItem userItem,
+                    out strError);
+                if (nRet == -1)
+                {
+                    return -1;
+                }
+            }
+
             return 0;
 
         ERROR1:
@@ -4555,7 +4507,7 @@ public string ErrorCode { get; set; }
             }
 
             // 输出调试信息
-            this.WriteDebugUserInfo(weixinId, "检索后");
+            //this.WriteDebugUserInfo(weixinId, "检索后");
 
 
             userItem.weixinId = weixinId;
@@ -4613,21 +4565,21 @@ public string ErrorCode { get; set; }
             {
                 WxUserDatabase.Current.Add(userItem);
 
-                this.WriteDebug("走到新增weixinid=" + userItem.weixinId + " id=[" + userItem.id + "]");
-                this.WriteDebugUserInfo(weixinId, "新增后");
+                this.WriteDebug("新增weixinid=" + userItem.weixinId + " id=[" + userItem.id + "]");
+                //this.WriteDebugUserInfo(weixinId, "新增后");
             }
             else
             {
                 lRet = WxUserDatabase.Current.Update(userItem);
-                this.WriteDebug("走到更新weixinid=" + userItem.weixinId + " id=[" + userItem.id + "]");
-                this.WriteDebugUserInfo(weixinId, "更新后");
+                this.WriteDebug("更新weixinid=" + userItem.weixinId + " id=[" + userItem.id + "]");
+                //this.WriteDebugUserInfo(weixinId, "更新后");
             }
 
 
             // 置为活动状态
             WxUserDatabase.Current.SetActivePatron1(userItem.weixinId, userItem.id);
 
-            this.WriteDebugUserInfo(weixinId, "设置当前活动后");
+            //this.WriteDebugUserInfo(weixinId, "设置当前活动后");
 
             // 微信入口才需要发通知
             if (isWeb == false)
@@ -4693,7 +4645,7 @@ public string ErrorCode { get; set; }
         }
 
 
-        public void WriteDebugUserInfo(string weixinId,string lable)
+        public void WriteDebugUserInfo1(string weixinId,string lable)
         {
             string info = "";
             List<WxUserItem> l = WxUserDatabase.Current.Get(weixinId, "", -1);
@@ -7872,7 +7824,7 @@ public string ErrorCode { get; set; }
         /// <returns></returns>
         public int GetPatronXml(string libId,
             LoginInfo loginInfo,
-            string patronBarocde,  //todo refID
+            string patronBarocde,  //todo refID  @path:
             string format,
             out string recPath,
             out string timestamp,
@@ -10588,10 +10540,14 @@ tempRemark);
             }
 
 
-
-
             WxUserItem userItem = new WxUserItem();
+            // 如果barcode为空，则用"@refid:" + refID 来代替
+            if (readerBarcode == null)
+                readerBarcode = "";
+            if (readerBarcode == "")
+                readerBarcode = "@refid:" + refID;
             userItem.readerBarcode = readerBarcode;
+
             userItem.readerName = readerName;
             userItem.department = department;
             userItem.refID = refID;
@@ -10894,7 +10850,7 @@ tempRemark);
 
             XmlNode patronRecord = root.SelectSingleNode("patronRecord");
 
-            // 将ｘｍｌ转成ｐａｔｒｏｎ对象
+            // 将xml转成parton对象
             List<string> newWeixinIds = null;
             WxUserItem patronInfo = this.GetPatronInfoByXml(patronRecord.OuterXml,
                 out newWeixinIds);

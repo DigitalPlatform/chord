@@ -355,9 +355,10 @@ namespace dp2weixinWeb.Controllers
             // 如果图书馆是挂起状态，作为警告
             string libId = activeUser.libId;
             Library lib = dp2WeiXinService.Instance.LibManager.GetLibrary(libId);
-            string warn = LibraryManager.GetLibHungWarn(lib);
-            ViewBag.Warn = warn;
+            //string warn = LibraryManager.GetLibHungWarn(lib);
+            //ViewBag.Warn = warn;
 
+            string warn = "";
             string qrcodeUrl = "";
             if (String.IsNullOrEmpty(warn) == true)
             {
@@ -768,14 +769,18 @@ namespace dp2weixinWeb.Controllers
             string loginUserName = activeUser.readerBarcode;
             bool isPatron = true;
 
-
+            string searchWord = patronBarcode;
+            if (patronBarcode.Length > 7 && patronBarcode.Substring(0, 7) == "@refid:")
+            {
+                searchWord ="@path:"+ activeUser.recPath;
+            }
 
             // 获取读者记录
-            LoginInfo loginInfo = new LoginInfo(loginUserName, isPatron);
+            LoginInfo loginInfo = new LoginInfo("", false);//new LoginInfo(loginUserName, isPatron);
             string timestamp = "";
             nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
                 loginInfo,
-                patronBarcode,
+                searchWord,
                 "advancexml",  // 格式
                 out recPath,
                 out timestamp,

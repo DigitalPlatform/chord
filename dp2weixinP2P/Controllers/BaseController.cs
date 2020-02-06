@@ -39,10 +39,8 @@ namespace dp2weixinWeb.Controllers
 
             if (sessionInfo != null)
             {
-                //sessionInfo.ClearDebugInfo();
-
                 // 日志
-                dp2WeiXinService.Instance.WriteDebug("已存在session");
+                dp2WeiXinService.Instance.WriteDebug("已存在session。*****");
             }
             else
             {
@@ -402,7 +400,7 @@ namespace dp2weixinWeb.Controllers
                 ViewBag.LibState = sessionInfo.CurrentLib.IsHangup.ToString();
                 if (sessionInfo.CurrentLib.IsHangup == true)  //checkLibState == true && 
                 {
-                    string warn = LibraryManager.GetLibHungWarn(sessionInfo.CurrentLib);
+                    string warn = LibraryManager.GetLibHungWarn(sessionInfo.CurrentLib,true);
                     if (string.IsNullOrEmpty(warn) == false)
                     {
                         strError = warn;

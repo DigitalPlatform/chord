@@ -474,7 +474,7 @@ namespace dp2weixinWeb.Controllers
 
 
             // 如果图书馆是挂起状态，作为警告
-            ViewBag.Warn = LibraryManager.GetLibHungWarn(lib);
+            //ViewBag.Warn = LibraryManager.GetLibHungWarn(lib,true);
 
 
             return View(list);
@@ -531,43 +531,20 @@ namespace dp2weixinWeb.Controllers
             // 检查当前是否已经选择了图书馆绑定了帐号
             WxUserItem activeUser = null;
 
-            /*
-            // 如果是超级管理员，支持传一个weixin id参数
-            if (String.IsNullOrEmpty(weixinId) == false)
-            {
-                if (this.CheckSupervisorLogin() == true)
-                {
-                    // 记下微信id
-                    nRet = this.GetActive(code, state,
-                        out activeUser,
-                        out strError,
-                        weixinId);
-                    if (nRet == -1)
-                    {
-                        goto ERROR1;
-                    }
-                }
-                else
-                {
-                    // 转到登录界面
-                    return Redirect("~/Home/Login?returnUrl=" + HttpUtility.UrlEncode("~/Library/Home?weixinId=" + weixinId));
-                }
-            }
-            */
 
-                nRet = this.GetActive(code, state,
-                    out activeUser,
-                    out strError,
-                    weixinId);
-                if (nRet == -1)
-                {
-                    goto ERROR1;
-                }
-                if (nRet == 0)
-                {
-                    ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Library/Home");
-                    return View();
-                }
+            nRet = this.GetActive(code, state,
+                out activeUser,
+                out strError,
+                weixinId);
+            if (nRet == -1)
+            {
+                goto ERROR1;
+            }
+            if (nRet == 0)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Library/Home");
+                return View();
+            }
 
 
 
@@ -603,7 +580,7 @@ namespace dp2weixinWeb.Controllers
 
             // 获取栏目
             List<SubjectItem> list1 = null;
-            nRet = dp2WeiXinService.Instance.GetSubject(libId, 
+            nRet = dp2WeiXinService.Instance.GetSubject(libId,
                 dp2WeiXinService.C_Group_HomePage,
                 out list1, out strError);
             if (nRet == -1)
@@ -619,7 +596,7 @@ namespace dp2weixinWeb.Controllers
             }
 
             // 如果图书馆是挂起状态，作为警告
-            ViewBag.Warn = LibraryManager.GetLibHungWarn(lib);
+            //ViewBag.Warn = LibraryManager.GetLibHungWarn(lib);
 
             return View(list);
 
@@ -799,7 +776,7 @@ namespace dp2weixinWeb.Controllers
             }
 
             // 如果图书馆是挂起状态，作为警告
-            ViewBag.Warn = LibraryManager.GetLibHungWarn(lib);
+            //ViewBag.Warn = LibraryManager.GetLibHungWarn(lib);
 
 
             return View(list);
@@ -925,7 +902,7 @@ namespace dp2weixinWeb.Controllers
             }
 
             // 如果图书馆是挂起状态，作为警告
-            ViewBag.Warn = LibraryManager.GetLibHungWarn(lib);
+            //ViewBag.Warn = LibraryManager.GetLibHungWarn(lib);
 
 
             return View(list);

@@ -277,16 +277,19 @@ namespace dp2weixin.service
         }
 
         // 得到图书馆挂起警告
-        public static string GetLibHungWarn(Library lib)
+        public static string GetLibHungWarn(Library lib,bool bCheckHangup)
         {
             string warnText = "";
             // 如果图书馆是挂起状态，需要发出警告
             if (lib.IsHangup == true)
             {
-                // 立即重新检查一下 todo，要不要这样做，如果不立即检查，要等10分钟后才能生效
-                dp2WeiXinService.Instance.LibManager.RedoCheckHangup(lib);
+                if (bCheckHangup == true)
+                {
+                    // 立即重新检查一下 todo，要不要这样做，如果不立即检查，要等10分钟后才能生效
+                    dp2WeiXinService.Instance.LibManager.RedoCheckHangup(lib);
+                }
 
-                if (lib.HangupReason == C_HangupReason_Low)
+                if (lib.HangupReason == C_HangupReason_VersionApiError)
                 {
                     warnText = lib.Entity.libName + " 的桥接服务器dp2capo获取版本号访问不通，公众号功能已被挂起，请尽快升级。";
                 }

@@ -21,7 +21,7 @@ namespace dp2weixin.service
         // 工作线程每一轮循环的实质性工作
         public override void Worker()
         {
-            dp2WeiXinService.Instance.WriteDebug("===轮循线程begin===");
+            dp2WeiXinService.Instance.WriteDebug("===轮循线程begin===\r\n");
 
             if (this.Stopped == true)
                 return;
@@ -34,7 +34,7 @@ namespace dp2weixin.service
             // 对于挂起状态的图书馆，通知内容直接为类似"贵馆dp2capo版本太低，公众号无法访问，请及时升级。" 2016/10/17 jane
             WeixinService.WarnOfflineLib();
 
-            dp2WeiXinService.Instance.WriteDebug("===轮循线程end===");
+            dp2WeiXinService.Instance.WriteDebug("===轮循线程end===\r\n");
         }
     }
 }

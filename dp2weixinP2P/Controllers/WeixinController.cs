@@ -32,6 +32,8 @@ using Senparc.Weixin.MP;
 using dp2weixin;
 using dp2Command.Service;
 using dp2weixin.service;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace dp2weixinWeb.Controllers
 {
@@ -120,7 +122,7 @@ namespace dp2weixinWeb.Controllers
         /// </summary>
         [HttpPost]
         [ActionName("Index")]
-        public ActionResult Post(PostModel postModel)
+        public async Task<ActionResult> Post(PostModel postModel)
         {
             GzhCfg gzh=dp2WeiXinService.Instance.gzhContainer.GetDefault();
             if (string.IsNullOrEmpty(postModel.AppId) == false)
@@ -142,10 +144,6 @@ namespace dp2weixinWeb.Controllers
                 return Content("参数错误！");
             }
 
-            //string appId = dp2WeiXinService.Instance.gzhContainer.GetDefault().appId;
-            //postModel.AppId = appId;
-
-
 
             // 开始时间
             DateTime start_time = DateTime.Now;
@@ -162,62 +160,27 @@ namespace dp2weixinWeb.Controllers
             // 日志总目录,使用前请确保App_Data文件夹存在，且有读写权限。
             var logDir = dp2WeiXinService.Instance.weiXinLogDir;
 
-            //// 当日日志目录，用于详细输出消息
-            //var logToday =string.Format(logDir + "/{0}/", DateTime.Now.ToString("yyyy-MM-dd"));
-            //if (!Directory.Exists(logToday))
-            //{
-            //    Directory.CreateDirectory(logToday);
-            //}
-
             //自定义MessageHandler，对微信请求的详细判断操作都在这里面。
             var messageHandler = new dp2weixinMessageHandler(Request.InputStream, postModel, maxRecordCount);
             try
             {
-                ////测试时可开启此记录，帮助跟踪数据
-                //string id=_getRandomFileName();
-                //string tempPath = Path.Combine(logToday, string.Format("{0}_Request_{1}.txt", id, messageHandler.RequestMessage.FromUserName));
-                //messageHandler.RequestDocument.Save(tempPath);
-                //if (messageHandler.UsingEcryptMessage)
-                //{
-                //    tempPath = Path.Combine(logToday, string.Format("{0}_Request_Ecrypt_{1}.txt", id, messageHandler.RequestMessage.FromUserName));
-                //    messageHandler.EcryptRequestDocument.Save(tempPath);
-                //}
-
-                /* 如果需要添加消息去重功能，只需打开OmitRepeatedMessage功能，SDK会自动处理。
-                 * 收到重复消息通常是因为微信服务器没有及时收到响应，会持续发送2-5条不等的相同内容的RequestMessage*/
-                //messageHandler.OmitRepeatedMessage = true;
-
                 //执行微信处理过程
-                messageHandler.Execute();
-
-                //////测试时可开启，帮助跟踪数据
-                //if (messageHandler.ResponseDocument != null)
-                //{
-                //    //tempPath = Path.Combine(logToday, string.Format("{0}_Response_{1}.txt", id, messageHandler.RequestMessage.FromUserName));
-                //    string path = dp2WeiXinService.Instance.weiXinDataDir+"/test.txt";
-                //    messageHandler.ResponseDocument.Save(path);
-                //}
-                //if (messageHandler.UsingEcryptMessage)
-                //{
-                //    //记录加密后的响应信息
-                //    tempPath = Path.Combine(logToday, string.Format("{0}_Response_Final_{1}.txt", id, messageHandler.RequestMessage.FromUserName));
-                //    messageHandler.FinalResponseDocument.Save(tempPath);
-                //}
-
-                //return Content(messageHandler.ResponseDocument.ToString());//v0.7-
-                //return new FixWeixinBugWeixinResult(messageHandler);//为了解决官方微信5.0软件换行bug暂时添加的方法，平时用下面一个方法即可
-                
-                // 测试异常
-                //throw new Exception("test");
-
-
+                CancellationToken cancellationToken = new CancellationToken();
+                await messageHandler.ExecuteAsync(cancellationToken);
 
                 // 计算处理消息用了多少时间
                 TimeSpan time_length = DateTime.Now - start_time;
                 string strMsgContext = "";
                 if (messageHandler.RequestMessage is RequestMessageText)
                     strMsgContext = ((RequestMessageText)messageHandler.RequestMessage).Content;
-                string info = "处理[" + messageHandler.RequestMessage.CreateTime + "-" + messageHandler.RequestMessage.MsgType.ToString() + "-" + strMsgContext + "]消息，time span: " + time_length.TotalSeconds.ToString() + " secs";
+
+                
+                // 点一下菜单也是一个event消息，太频繁了，没必要写日志了。2020-2-6
+                /*
+                string info = "处理[" + messageHandler.RequestMessage.CreateTime 
+                    + "-" + messageHandler.RequestMessage.MsgType.ToString() 
+                    + "-" + messageHandler.RequestMessage.FromUserName
+                    + "-" + strMsgContext + "]消息，time span: " + time_length.TotalSeconds.ToString() + " secs";
                 if (time_length.TotalSeconds > 5)
                 {
                     info = "请求超时:" + info;
@@ -227,9 +190,8 @@ namespace dp2weixinWeb.Controllers
                 {
                     dp2WeiXinService.Instance.WriteDebug(info);
                 }
+                */
 
-                // 发送客服消息
-                //messageHandler.SendCustomeMessage(info);
 
                 // 如果消息是空内容，直接返回空，这样微信就不是重试了，用于 用户请求书目详细消息，公众号以客户消息返回
                 if (messageHandler.ResponseMessage is ResponseMessageText)
@@ -244,8 +206,6 @@ namespace dp2weixinWeb.Controllers
             }
             catch (Exception ex)
             {
-                // 发送客服消息
-                //messageHandler.SendCustomeMessage("异常：" + ex.Message);
 
                 string error = "ExecptionMessage:" + ex.Message + "\n";
                 error += ex.Source + "\n";

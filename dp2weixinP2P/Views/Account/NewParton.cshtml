@@ -38,8 +38,7 @@
     <script>
 
         // 选择图书馆
-        function gotoSelectLib()
-        {
+        function gotoSelectLib() {
             var url = "/Patron/SelectLib?returnUrl=" + encodeURIComponent("/Account/NewParton");
             gotoUrl(url);
         }
@@ -47,8 +46,8 @@
         // 发送手机验证码
         function sendVC() {
 
-                        // 图书馆ID
-            var libId = getLibId(); 
+            // 图书馆ID
+            var libId = getLibId();
             if (libId == "") {
                 alert("异常情况：libId为空。");
                 return;
@@ -104,11 +103,15 @@
             var recPath = "读者/?";
 
             // 图书馆ID
-            var libId = getLibId(); 
+            var libId = getLibId();
             if (libId == "") {
                 alert("异常情况：libId为空。");
                 return;
             }
+
+                        var libraryCode = $("#libraryCode").text();
+            if (libraryCode == null)
+                libraryCode = "";
 
             //姓名
             var name = $("#txtName").val();
@@ -156,6 +159,14 @@
                 return;
             }
 
+            // 微信id
+            var weixinId = $("#_weixinId").text();
+            if (weixinId == "") {
+                alert("weixinId不能为空。");
+                return;
+            }
+            alert(weixinId);
+
 
             //显示等待图层
             showMaskLayer();
@@ -166,7 +177,7 @@
                 + "&action=new"// + encodeURIComponent(action)
                 + "&recPath=" + encodeURIComponent(recPath)
                 + "&timestamp=" // + encodeURIComponent(timestamp)
-                +"&weixinId=test"
+                + "&weixinId=" + encodeURIComponent(weixinId)
                 + "&bMergeInfo=false"; //+ bMergeInfo;
 
             sendAjaxRequest(url, "POST",
@@ -189,8 +200,11 @@
                     $("#selGender").val("");
                     $("#txtDepartment").val("");
                     $("#txtTel").val("");
+                    $("#txtVerifyCode").val("");
+                    $("#_verifyCode").text("");
 
-
+                    var returnUrl = "/Patron/PersonalInfo"; 
+                    gotoUrl(returnUrl);
                 },
                 function (xhq, textStatus, errorThrown) {
                     // 关闭等待层
@@ -199,7 +213,7 @@
                 },
                 {
                     barcode: "", //readerBarcord,
-                    readerType:"临时读者",// readerType,
+                    readerType: "临时读者",// readerType,
                     name: name,
                     gender: gender,
                     department: department,
@@ -213,6 +227,9 @@
 }
 <span id="_recPath" style="display:none"></span>
 <span id="_verifyCode" style="display:none"></span>
+<span id="_weixinId" style="display:none">@ViewBag.weixinId</span>
+<span id="libId" style="display:none">@ViewBag.LibId</span>
+<span id="libraryCode" style="display:none">@ViewBag.LibraryCode</span>
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {
     <div class="mui-content-padded">
@@ -229,65 +246,66 @@ else
     }
     else
     {
-<div class="mui-input-group">
+        <div class="mui-input-group">
 
-    <table style="width:100%">
-        <tr>
-            <td style="width:100%">
-                <div class="mui-input-group" style="background-color:white">
-                    <div class="mui-input-row">
-                        <label style="color:#cccccc;">图书馆</label>
-                        <input type="text" class="mui-input mui-input-clear" id="txtLib" readonly value="@ViewBag.PureLibName">
-                    </div>
-                </div>
-            </td>
-            <td><button onclick="gotoSelectLib()" id='login' class="" style="border:1px dotted gray;margin-right:2px;height:40px;">...</button></td>
-        </tr>
-    </table>
+            <table style="width:100%">
+                <tr>
+                    <td style="width:100%">
+                        <div class="mui-input-group" style="background-color:white">
+                            <div class="mui-input-row">
+                                <label style="color:#cccccc;">图书馆</label>
+                                <input type="text" class="mui-input mui-input-clear" id="txtLib" readonly value="@ViewBag.PureLibName">
+                            </div>
+                        </div>
+                    </td>
+                    <td><button onclick="gotoSelectLib()" id='login' class="" style="border:1px dotted gray;margin-right:2px;height:40px;">...</button></td>
+                </tr>
+            </table>
 
-    <div class="mui-input-row ">
-        <label id="lblName" style="color:#cccccc">姓名</label>
-        <input id='txtName' type="text" class="mui-input mui-input-clear">
-    </div>
+            <div class="mui-input-row ">
+                <label id="lblName" style="color:#cccccc">姓名</label>
+                <input id='txtName' type="text" class="mui-input mui-input-clear">
+            </div>
 
-    <div class="mui-input-row selArrowRightContainer">
-        <label id="lblGender" style="color:#cccccc">性别</label>
-        <select id="selGender" name="selGender" class='selArrowRight'>
-            <option value=''>请选择</option>"
-            <option value="男">男</option>
-            <option value="女">女</option>
-        </select>
-    </div>
+            <div class="mui-input-row selArrowRightContainer">
+                <label id="lblGender" style="color:#cccccc">性别</label>
+                <select id="selGender" name="selGender" class='selArrowRight'>
+                    <option value=''>请选择</option>"
+                    <option value="男">男</option>
+                    <option value="女">女</option>
+                </select>
+            </div>
 
-    <div class="mui-input-row ">
-        <label id="lblDepartment" style="color:#cccccc">部门</label>
-        <input id='txtDepartment' type="text" class="mui-input mui-input-clear">
-    </div>
+            <div class="mui-input-row ">
+                <label id="lblDepartment" style="color:#cccccc">部门</label>
+                <input id='txtDepartment' type="text" class="mui-input mui-input-clear">
+            </div>
 
-    <div class="mui-input-row ">
-        <label id="lblTel" style="color:#cccccc">手机号</label>
-        <input id='txtTel' type="text" class="mui-input mui-input-clear">
-    </div>
+            <div class="mui-input-row ">
+                <label id="lblTel" style="color:#cccccc">手机号</label>
+                <input id='txtTel' type="text" class="mui-input mui-input-clear">
+            </div>
 
-    <table style="width:100%;border:none">
-        <tr style="border:none">
-            <td style="width:100%;border:none">
-                <div class="mui-input-row" >
-                    <label id="lblVerifyCode" style="color:gray;border:none">验证码</label>
-                    <input id='txtVerifyCode' type="text" class="mui-input mui-input-clear" style="border:none">
-                </div>
-            </td>
-            <td>
-                <button onclick="sendVC()" id='btnSendVC' class="mui-btn" style="border:1px dotted #eeeeee;margin-right:2px;height:40px;">获取短信验证码</button></td>
-        </tr>
-    </table>
+            <table style="width:100%;border:none">
+                <tr style="border:none">
+                    <td style="width:100%;border:none">
+                        <div class="mui-input-row">
+                            <label id="lblVerifyCode" style="color:gray;border:none">验证码</label>
+                            <input id='txtVerifyCode' type="text" class="mui-input mui-input-clear" style="border:none">
+                        </div>
+                    </td>
+                    <td>
+                        <button onclick="sendVC()" id='btnSendVC' class="mui-btn" style="border:1px dotted #eeeeee;margin-right:2px;height:40px;">获取短信验证码</button>
+                    </td>
+                </tr>
+            </table>
 
 
 
-    <div class="mui-content-padded">
-        <button id='btnResetPassword' class="mui-btn mui-btn-block mui-btn-primary" onclick="save()">提交</button>
-    </div>
-</div>
+            <div class="mui-content-padded">
+                <button id='btnResetPassword' class="mui-btn mui-btn-block mui-btn-primary" onclick="save()">提交</button>
+            </div>
+        </div>
     }
 }
 

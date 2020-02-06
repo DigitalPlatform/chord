@@ -564,7 +564,7 @@ namespace dp2weixinWeb.ApiControllers
                 dp2WeiXinService.Instance.WriteDebug("原来session中无user对象");
             }
 
-            dp2WeiXinService.Instance.WriteDebugUserInfo(item.weixinId, "bind返回后");
+            //dp2WeiXinService.Instance.WriteDebugUserInfo(item.weixinId, "bind返回后");
 
 
             //更新session信息
@@ -572,7 +572,7 @@ namespace dp2weixinWeb.ApiControllers
             if (nRet == -1)
                 goto ERROR1;
 
-            dp2WeiXinService.Instance.WriteDebugUserInfo(item.weixinId, "session.init后");
+            //dp2WeiXinService.Instance.WriteDebugUserInfo(item.weixinId, "session.init后");
 
             return result;
 
