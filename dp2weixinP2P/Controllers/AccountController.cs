@@ -13,96 +13,81 @@ namespace dp2weixinWeb.Controllers
     public class AccountController : BaseController
     {
 
-        public ActionResult NewParton(string code, string state,
-         string libId)
+        /// <summary>
+        /// 读者自助注册功能
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="state"></param>
+        /// <returns></returns>
+        public ActionResult NewParton(string code, string state)
         {
             string strError = "";
             int nRet = 0;
 
-            // 检查当前是否已经选择了图书馆绑定了帐号
-            WxUserItem activeUser = null;
-            nRet = this.GetActive(code, state,
-                out activeUser,
+            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
+            // -1 出错
+            // 0 成功
+            nRet = this.GetSessionInfo3(code, 
+                state,
+                out SessionInfo sessionInfo,
                 out strError);
             if (nRet == -1)
             {
-                goto ERROR1;
+                ViewBag.Error = strError;
+                return View();
             }
-            //if (nRet == 0)
-            //{
-            //    ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Account/NewParton");
-            //    return View();
-            //}
 
-            if (libId == null)
-                libId = "";
-
-            string weixinId = ViewBag.weixinId; 
-
-
-            return View();
-
-        ERROR1:
-            ViewBag.Error = strError;
             return View();
         }
-
-
 
         /// <summary>
         /// 账户管理
         /// </summary>
         /// <param name="code"></param>
         /// <param name="state"></param>
+        /// myWeixinId：参数里传一个weixinId，用于在浏览器模拟微信功能
         /// <returns></returns>
         public ActionResult Index(string code, string state,string myWeixinId)
         {
             string strError = "";
             int nRet = 0;
 
-            // 检查当前是否已经选择了图书馆绑定了帐号
-            WxUserItem activeUser = null;
-            nRet = this.GetActive(code, state, 
-                out  activeUser,
+            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
+            // -1 出错
+            // 0 成功
+            nRet = this.GetSessionInfo3(code,
+                state,
+                out SessionInfo sessionInfo,
                 out strError,
                 myWeixinId);
             if (nRet == -1)
             {
-                goto ERROR1;
+                ViewBag.Error = strError;
+                return View();
             }
-            if (nRet == 0)
+
+            // 如果尚未选择图书馆，不存在当前帐号，出现绑定帐号链接
+            if (sessionInfo.ActiveUser == null)
             {
                 ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state,"/Account/Index");
                 return View();
             }
 
-            //dp2WeiXinService.Instance.WriteLog1("Index页面，获取完当前对象。");
-
             // 检查微信id是否已经绑定的读者
-            string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
-            
-
-            //dp2WeiXinService.Instance.WriteLog1("Index页面，检查绑了" + userList.Count + "对象。");
-
-            if (activeUser.type == WxUserDatabase.C_Type_Worker && activeUser.userName == "public")
+            if (sessionInfo.ActiveUser.type == WxUserDatabase.C_Type_Worker 
+                && sessionInfo.ActiveUser.userName == "public")
             {
-                List<WxUserItem> userList = WxUserDatabase.Current.Get(weixinId, null, -1);
+                List<WxUserItem> userList = WxUserDatabase.Current.Get(sessionInfo.WeixinId, null, -1);
                 if (userList.Count > 1)
                 {
                     ViewBag.Warn = "您尚未绑定当前图书馆[" + ViewBag.LibName + "]的帐户，请点击'新增绑定账号'按钮绑定帐户。";
-
                 }
                 else
                 {
                     return RedirectToAction("Bind");
-
                 }
             }
 
-            return View();
-
-        ERROR1:
-            ViewBag.Error = strError;
             return View();
         }
 
@@ -111,40 +96,47 @@ namespace dp2weixinWeb.Controllers
         /// </summary>
         /// <param name="code"></param>
         /// <param name="state"></param>
-        /// <param name="returnUrl"></param>
+        /// <param name="returnUrl">绑定完返回的url</param>
         /// <returns></returns>
-        public ActionResult Bind(string code, string state, string returnUrl,string from)
+        public ActionResult Bind(string code, string state, string returnUrl)
         {
             ViewBag.ReturnUrl = returnUrl;
 
             string strError = "";
             int nRet = 0;
 
-            // 检查当前是否已经选择了图书馆绑定了帐号
-            WxUserItem activeUser = null;
-            nRet = this.GetActive(code, state,
-                out activeUser,
+            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
+            // -1 出错
+            // 0 成功
+            nRet = this.GetSessionInfo3(code,
+                state,
+                out SessionInfo sessionInfo,
                 out strError);
             if (nRet == -1)
             {
-                goto ERROR1;
+                ViewBag.Error = strError;
+                return View();
             }
-            if (nRet == 0)
+
+            // 如果尚未选择图书馆，不存在当前帐号，出现绑定帐号链接
+            if (sessionInfo.ActiveUser == null)
             {
                 ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Accout/Bind");
                 return View();
             }
 
             ViewBag.fromUrl = "/Account/Bind";
-
-            return View();
-
-        ERROR1:
-            ViewBag.Error = strError;
             return View();
         }
 
-        // 柜台绑定
+
+        /// <summary>
+        /// 柜台绑定
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="state"></param>
+        /// <param name="libId">???没用吧</param>
+        /// <returns></returns>
         public ActionResult ScanQRCodeBind(string code, string state,
             string libId)
         {
@@ -152,36 +144,27 @@ namespace dp2weixinWeb.Controllers
             string strError = "";
             int nRet = 0;
 
-            // 检查当前是否已经选择了图书馆绑定了帐号
-            WxUserItem activeUser = null;
-            nRet = this.GetActive(code, state,
-                out activeUser,
+            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
+            // -1 出错
+            // 0 成功
+            nRet = this.GetSessionInfo3(code,
+                state,
+                out SessionInfo sessionInfo,
                 out strError);
             if (nRet == -1)
             {
-                goto ERROR1;
+                ViewBag.Error = strError;
+                return View();
             }
-            if (nRet == 0)
+
+            // 当前帐号不存在，尚未选择图书馆
+            if (sessionInfo.ActiveUser == null)
             {
                 ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Accout/ScanQRCodeBind");
                 return View();
             }
 
-            if (libId == null)
-                libId = "";
-
-            // 图书馆html
-            string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
-
-
             ViewBag.LibVersions = dp2WeiXinService.Instance.LibManager.GetLibVersiongString();
-
-
-
-            return View();
-
-        ERROR1:
-            ViewBag.Error = strError;
             return View();
         }
 
@@ -190,44 +173,40 @@ namespace dp2weixinWeb.Controllers
         /// </summary>
         /// <param name="code"></param>
         /// <param name="state"></param>
-        /// <param name="libId"></param>
         /// <param name="readerName"></param>
         /// <returns></returns>
-        public ActionResult ResetPassword(string code, string state,
-            string libId,
+        public ActionResult ResetPassword(string code, 
+            string state,
             string readerName)
         {
             string strError = "";
             int nRet = 0;
 
-            // 检查当前是否已经选择了图书馆绑定了帐号
-            WxUserItem activeUser = null;
-            nRet = this.GetActive(code, state, 
-                out activeUser,
+            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
+            // -1 出错
+            // 0 成功
+            nRet = this.GetSessionInfo3(code,state,
+                out SessionInfo sessionInfo,
                 out strError);
             if (nRet == -1)
             {
-                goto ERROR1;
+                ViewBag.Error = strError;
+                return View();
             }
-            if (nRet == 0)
+
+            // 当前帐号不存在，尚未选择图书馆
+            if (sessionInfo.ActiveUser == null)
             {
                 ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state,"/Account/ResetPassword");
                 return View();
             }
 
-            if (libId == null)
-                libId = "";
-
-            // 图书馆html
-            string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
-      
-            if (string.IsNullOrEmpty(readerName) == false && readerName != "undefined")
+            if (string.IsNullOrEmpty(readerName) == false
+                && readerName != "undefined")
+            {
                 ViewBag.ReaderName = readerName;// "test";
+            }
 
-            return View();
-
-        ERROR1:
-            ViewBag.Error = strError;
             return View();
         }
 
@@ -239,21 +218,27 @@ namespace dp2weixinWeb.Controllers
         /// <param name="state"></param>
         /// <param name="patronBarcode"></param>
         /// <returns></returns>
-        public ActionResult ChangePassword(string code, string state,string patronBarcode)
+        public ActionResult ChangePassword(string code, 
+            string state,
+            string patronBarcode)
         {
             string strError = "";
             int nRet = 0;
 
-            // 检查当前是否已经选择了图书馆绑定了帐号
-            WxUserItem activeUser = null;
-            nRet = this.GetActive(code, state, 
-                out activeUser,
+            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
+            // -1 出错
+            // 0 成功
+            nRet = this.GetSessionInfo3(code, state,
+                out SessionInfo sessionInfo,
                 out strError);
             if (nRet == -1)
             {
-                goto ERROR1;
+                ViewBag.Error = strError;
+                return View();
             }
-            if (nRet == 0)
+
+            // 当前帐号不存在，尚未选择图书馆
+            if (sessionInfo.ActiveUser == null)
             {
                 ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Account/ChangePassword");
                 return View();
@@ -261,23 +246,11 @@ namespace dp2weixinWeb.Controllers
 
             if (String.IsNullOrEmpty(patronBarcode) == true)
             {
-                string weixinId = ViewBag.weixinId; //(string)Session[WeiXinConst.C_Session_WeiXinId];
-                WxUserItem userItem = WxUserDatabase.Current.GetActive(weixinId);
-                if (userItem.type == WxUserDatabase.C_Type_Worker)
-                {
-                    strError = "当前用户不可能是工作人员";
-                    goto ERROR1;
-                }
-                if (userItem != null)
-                    patronBarcode = userItem.readerBarcode;
+                if (sessionInfo.ActiveUser != null)
+                    patronBarcode = sessionInfo.ActiveUser.readerBarcode;
             }
 
             ViewBag.patronBarcode = patronBarcode;
-
-            return View();
-
-        ERROR1:
-            ViewBag.Error = strError;
             return View();
         }
 

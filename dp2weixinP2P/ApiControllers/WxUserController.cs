@@ -172,25 +172,25 @@ namespace dp2weixinWeb.ApiControllers
             }
 
             SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
-            if (sessionInfo.Active == null)
+            if (sessionInfo.ActiveUser == null)
             {
                 error = "session中没有活动帐号，不可能的情况";
                 goto ERROR1;
             }
 
-            if (sessionInfo.Active.id != workerId)
+            if (sessionInfo.ActiveUser.id != workerId)
             {
                 error = "传来的user对象id与当前活动对象的id不一致。";
                 goto ERROR1;
             }
 
             // 更新数据库设置
-            sessionInfo.Active.tracing = tracing;
-            int nRet = (int)WxUserDatabase.Current.Update(sessionInfo.Active);//.UpdateTracing(workerId, tracing);
+            sessionInfo.ActiveUser.tracing = tracing;
+            int nRet = (int)WxUserDatabase.Current.Update(sessionInfo.ActiveUser);//.UpdateTracing(workerId, tracing);
 
 
             // 更新内存
-            dp2WeiXinService.Instance.UpdateTracingUser(sessionInfo.Active);//.UpdateMemoryTracingUser(sessionInfo.Active.weixinId, 
+            dp2WeiXinService.Instance.UpdateTracingUser(sessionInfo.ActiveUser);//.UpdateMemoryTracingUser(sessionInfo.Active.weixinId, 
                 //sessionInfo.Active.libId,
                 //tracing);
 
@@ -220,14 +220,14 @@ namespace dp2weixinWeb.ApiControllers
             }
 
             SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
-            if (sessionInfo.Active == null)
+            if (sessionInfo.ActiveUser == null)
             {
                 error = "session中没有活动帐号，不可能的情况";
                 goto ERROR1;
             }
 
-            sessionInfo.Active.selLocation = locations;
-            WxUserDatabase.Current.Update(sessionInfo.Active);
+            sessionInfo.ActiveUser.selLocation = locations;
+            WxUserDatabase.Current.Update(sessionInfo.ActiveUser);
 
             return result;
 
@@ -257,15 +257,15 @@ namespace dp2weixinWeb.ApiControllers
                 goto ERROR1;
             }
 
-            if (sessionInfo.Active == null)
+            if (sessionInfo.ActiveUser == null)
             {
                 error = "session中没有活动帐号，不可能的情况";
                 goto ERROR1;
             }
 
-            sessionInfo.Active.verifyBarcode = verifyBarcode;
+            sessionInfo.ActiveUser.verifyBarcode = verifyBarcode;
 
-            WxUserDatabase.Current.Update(sessionInfo.Active);
+            WxUserDatabase.Current.Update(sessionInfo.ActiveUser);
 
             return result;
 
@@ -296,15 +296,15 @@ namespace dp2weixinWeb.ApiControllers
                 goto ERROR1;
             }
 
-            if (sessionInfo.Active == null)
+            if (sessionInfo.ActiveUser == null)
             {
                 error = "session中没有活动帐号，不可能的情况";
                 goto ERROR1;
             }
 
-            sessionInfo.Active.audioType = audioType;
+            sessionInfo.ActiveUser.audioType = audioType;
 
-            WxUserDatabase.Current.Update(sessionInfo.Active);
+            WxUserDatabase.Current.Update(sessionInfo.ActiveUser);
 
             return result;
 
@@ -365,7 +365,7 @@ namespace dp2weixinWeb.ApiControllers
                 goto ERROR1;
             }
 
-            if (sessionInfo.Active == null)
+            if (sessionInfo.ActiveUser == null)
             {
                 error = "session中没有活动帐号，不可能的情况";
                 goto ERROR1;
@@ -373,10 +373,10 @@ namespace dp2weixinWeb.ApiControllers
 
 
             //sessionInfo.Active.libraryCode = input.libraryCode;
-            sessionInfo.Active.showCover = input.showCover;
-            sessionInfo.Active.showPhoto = input.showPhoto;
+            sessionInfo.ActiveUser.showCover = input.showCover;
+            sessionInfo.ActiveUser.showPhoto = input.showPhoto;
 
-            WxUserDatabase.Current.Update(sessionInfo.Active);
+            WxUserDatabase.Current.Update(sessionInfo.ActiveUser);
 
 
 
@@ -419,9 +419,9 @@ namespace dp2weixinWeb.ApiControllers
             }
 
             //如果选择的图书馆就是是当前活动帐户对应的图书馆，则不用处理
-            if (sessionInfo.Active != null
-                && sessionInfo.Active.libId == libId
-                && sessionInfo.Active.bindLibraryCode == bindLibraryCode)
+            if (sessionInfo.ActiveUser != null
+                && sessionInfo.ActiveUser.libId == libId
+                && sessionInfo.ActiveUser.bindLibraryCode == bindLibraryCode)
             {
                 return result;
             }
@@ -477,6 +477,7 @@ namespace dp2weixinWeb.ApiControllers
                 {
                     try
                     {
+                        // 创建一个public帐号
                         user = WxUserDatabase.Current.CreatePublic(weixinId, libId, bindLibraryCode);
                     }
                     catch (Exception ex)
@@ -491,11 +492,9 @@ namespace dp2weixinWeb.ApiControllers
             WxUserDatabase.Current.SetActivePatron1(user.weixinId, user.id);
 
             // 初始化sesson
-            int nRet = sessionInfo.Init1(user.weixinId, out error);
+            int nRet = sessionInfo.GetActiveUser(user.weixinId, out error);
             if (nRet == -1)
                 goto ERROR1;
-
-
 
             //===================
 
@@ -555,9 +554,9 @@ namespace dp2weixinWeb.ApiControllers
             result.users = new List<WxUserItem>();
             result.users.Add(userItem);
 
-            if (sessionInfo.Active != null)
+            if (sessionInfo.ActiveUser != null)
             {
-                dp2WeiXinService.Instance.WriteDebug("原来session中的user对象id=["+sessionInfo.Active.id+"],weixinid=["+sessionInfo.WeixinId+"]");
+                dp2WeiXinService.Instance.WriteDebug("原来session中的user对象id=["+sessionInfo.ActiveUser.id+"],weixinid=["+sessionInfo.WeixinId+"]");
             }
             else
             {
@@ -568,7 +567,7 @@ namespace dp2weixinWeb.ApiControllers
 
 
             //更新session信息
-            nRet = sessionInfo.Init1(item.weixinId, out error);
+            nRet = sessionInfo.GetActiveUser(item.weixinId, out error);
             if (nRet == -1)
                 goto ERROR1;
 
@@ -645,8 +644,7 @@ namespace dp2weixinWeb.ApiControllers
 
 
             //更新session
-
-            int nRet = sessionInfo.Init1(weixinId,out error);
+            int nRet = sessionInfo.GetActiveUser(weixinId,out error);
             if (nRet == -1)
                 goto ERROR1;
 
@@ -692,7 +690,7 @@ namespace dp2weixinWeb.ApiControllers
                 goto ERROR1;
             }
 
-            nRet = sessionInfo.Init1(sessionInfo.WeixinId, out error);
+            nRet = sessionInfo.GetActiveUser(sessionInfo.WeixinId, out error);
             if (nRet == -1)
                 goto ERROR1;
 

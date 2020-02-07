@@ -804,27 +804,27 @@ namespace dp2weixin.service
         public string Dump()
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append("id=[" + this.id + "] ");
-            sb.Append("weixinId=[" + this.weixinId + "] ");
-            sb.Append("libId=[" + this.libId + "] ");
-            sb.Append("libName=[" + this.libName + "] ");
-            sb.Append("libraryCode=[" + this.libraryCode + "] ");
-            sb.Append("bindLibraryCode=[" + this.bindLibraryCode + "] ");
-            sb.Append("readerBarcode=[" + this.readerBarcode + "] ");
-            sb.Append("readerName=[" + this.readerName + "] ");
-            sb.Append("department=[" + this.department + "] ");
-            sb.Append("refID=[" + this.refID + "] ");
-            sb.Append("isActive=[" + this.isActive + "] ");
-            sb.Append("userName=[" + this.userName + "] ");
-            sb.Append("tracing=[" + this.tracing + "] ");
+            sb.AppendLine("id=[" + this.id + "] ");
+            sb.AppendLine("weixinId=[" + this.weixinId + "] ");
+            sb.AppendLine("libId=[" + this.libId + "] ");
+            sb.AppendLine("libName=[" + this.libName + "] ");
+            sb.AppendLine("libraryCode=[" + this.libraryCode + "] ");
+            sb.AppendLine("bindLibraryCode=[" + this.bindLibraryCode + "] ");
+            sb.AppendLine("readerBarcode=[" + this.readerBarcode + "] ");
+            sb.AppendLine("readerName=[" + this.readerName + "] ");
+            sb.AppendLine("department=[" + this.department + "] ");
+            sb.AppendLine("refID=[" + this.refID + "] ");
+            sb.AppendLine("isActive=[" + this.isActive + "] ");
+            sb.AppendLine("userName=[" + this.userName + "] ");
+            sb.AppendLine("tracing=[" + this.tracing + "] ");
 
-            sb.Append("location=[" + this.location + "] ");
-            sb.Append("selLocation=[" + this.selLocation + "] ");
-            sb.Append("verifyBarcode=[" + this.verifyBarcode + "] ");
+            sb.AppendLine("location=[" + this.location + "] ");
+            sb.AppendLine("selLocation=[" + this.selLocation + "] ");
+            sb.AppendLine("verifyBarcode=[" + this.verifyBarcode + "] ");
 
-            sb.Append("audioType=[" + this.audioType + "] ");
-            sb.Append("showPhoto=[" + this.showPhoto + "] ");
-            sb.Append("showCover=[" + this.showCover + "] ");
+            sb.AppendLine("audioType=[" + this.audioType + "] ");
+            sb.AppendLine("showPhoto=[" + this.showPhoto + "] ");
+            sb.AppendLine("showCover=[" + this.showCover + "] ");
 
             return sb.ToString();
         }

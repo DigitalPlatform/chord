@@ -33,7 +33,7 @@ namespace dp2weixinWeb.ApiControllers
 
             SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
             ChargeCommandContainer cmdContainer = sessionInfo.cmdContainer;
-            if (sessionInfo.Active == null)
+            if (sessionInfo.ActiveUser == null)
             {
                 dp2WeiXinService.Instance.WriteDebug("提交流通API时，发现session失效了。");
             }

@@ -171,7 +171,7 @@ namespace dp2weixinWeb.ApiControllers
             {
                 // 查找当前微信用户绑定的工作人员账号
 
-                WxUserItem user = sessionInfo.Active; //WxUserDatabase.Current.GetWorker(weixinId, libId);
+                WxUserItem user = sessionInfo.ActiveUser; //WxUserDatabase.Current.GetWorker(weixinId, libId);
                 if (user != null)
                 {
                     libraryCode = user.bindLibraryCode;
@@ -284,7 +284,7 @@ namespace dp2weixinWeb.ApiControllers
             }
 
             MessageItem returnItem = null;
-            int nRet = dp2WeiXinService.Instance.CoverMessage(sessionInfo.Active,
+            int nRet = dp2WeiXinService.Instance.CoverMessage(sessionInfo.ActiveUser,
                 weixinId,
                 group,
                 libId,
