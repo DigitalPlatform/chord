@@ -28,7 +28,7 @@ namespace dp2weixinWeb.Controllers
             // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
             // -1 出错
             // 0 成功
-            nRet = this.GetSessionInfo3(code, state,
+            nRet = this.GetSessionInfo(code, state,
                 out SessionInfo sessionInfo,
                 out strError);
              if (nRet == -1)
@@ -133,7 +133,7 @@ namespace dp2weixinWeb.Controllers
             // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
             // -1 出错
             // 0 成功
-            nRet = this.GetSessionInfo3(code, state,
+            nRet = this.GetSessionInfo(code, state,
                 out SessionInfo sessionInfo,
                 out strError);
             if (nRet == -1)
@@ -293,7 +293,7 @@ namespace dp2weixinWeb.Controllers
             // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
             // -1 出错
             // 0 成功
-            nRet = this.GetSessionInfo3(code, state,
+            nRet = this.GetSessionInfo(code, state,
                 out SessionInfo sessionInfo,
                 out strError);
             if (nRet == -1)
@@ -355,7 +355,7 @@ namespace dp2weixinWeb.Controllers
             // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
             // -1 出错
             // 0 成功
-            nRet = this.GetSessionInfo3(code, state,
+            nRet = this.GetSessionInfo(code, state,
                 out SessionInfo sessionInfo,
                 out strError);
             if (nRet == -1)//???为什么要做这一句 2020-2-8 && ViewBag.LibState != LibraryManager.C_State_Hangup1)
@@ -434,7 +434,7 @@ namespace dp2weixinWeb.Controllers
             // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
             // -1 出错
             // 0 成功
-            nRet = this.GetSessionInfo3(code, state,
+            nRet = this.GetSessionInfo(code, state,
                 out SessionInfo sessionInfo,
                 out strError);
             if (nRet == -1) ;//??? 为什么加后面部分 2020-2-8 && ViewBag.LibState != LibraryManager.C_State_Hangup1)
@@ -482,7 +482,7 @@ namespace dp2weixinWeb.Controllers
             // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
             // -1 出错
             // 0 成功
-            nRet = this.GetSessionInfo3(code, state,
+            nRet = this.GetSessionInfo(code, state,
                 out SessionInfo sessionInfo,
                 out strError);
             if (nRet == -1)
@@ -562,7 +562,7 @@ namespace dp2weixinWeb.Controllers
             // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
             // -1 出错
             // 0 成功
-            nRet = this.GetSessionInfo3(code,state,
+            nRet = this.GetSessionInfo(code,state,
                 out SessionInfo sessionInfo,
                 out strError);
             if (nRet == -1)
@@ -618,7 +618,7 @@ namespace dp2weixinWeb.Controllers
             // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
             // -1 出错
             // 0 成功
-            nRet = this.GetSessionInfo3(code, state,
+            nRet = this.GetSessionInfo(code, state,
                 out SessionInfo sessionInfo,
                 out strError);
             if (nRet == -1)
@@ -678,7 +678,7 @@ namespace dp2weixinWeb.Controllers
             // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
             // -1 出错
             // 0 成功
-            nRet = this.GetSessionInfo3(code, state,
+            nRet = this.GetSessionInfo(code, state,
                 out SessionInfo sessionInfo,
                 out strError);
             if (nRet == -1)
