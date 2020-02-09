@@ -3285,8 +3285,8 @@ namespace dp2weixin.service
             string bindLink = "请先点击<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>这里</a>进行绑定。";
             string strRedirectInfo = "您当前帐户"+ partInfo + "，不能" + action + menu + "，" + bindLink;
 
-            if (menu == "书目查询" || menu == "好书推荐")
-                strRedirectInfo = libName + " 不对外公开书目，您需要先<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>绑定图书馆账户</a>，才能进入" + menu;
+            if (menu == "书目查询" || menu == "好书推荐" || menu== "公告")
+                strRedirectInfo = libName + " 不支持外部访问，您需要先<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>绑定图书馆账户</a>，才能进入" + menu;
 
             strRedirectInfo = "<div class='mui-content-padded' style='color:#666666'>"
                 + strRedirectInfo
@@ -9330,6 +9330,17 @@ tempRemark);
 
         // 从 dp2mserver 获得消息
         // 每次最多获得 100 条
+        /// <summary>
+        /// 获取消息
+        /// </summary>
+        /// <param name="action"></param>
+        /// <param name="group"></param>
+        /// <param name="libId"></param>
+        /// <param name="msgId"></param>
+        /// <param name="subjectCondition"></param>
+        /// <param name="records"></param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
         private int GetMessageInternal(string action,
             string group,
             string libId,

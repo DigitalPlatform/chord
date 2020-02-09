@@ -291,7 +291,7 @@ namespace dp2weixin.service
 
                 if (lib.HangupReason == C_HangupReason_VersionApiError)
                 {
-                    warnText = lib.Entity.libName + " 的桥接服务器dp2capo获取版本号访问不通，公众号功能已被挂起，请尽快升级。";
+                    warnText = lib.Entity.libName + " 的桥接服务器dp2capo获取版本号访问不通，公众号功能已被挂起，请尽快修复。";
                 }
                 else if (lib.HangupReason == C_HangupReason_Low)
                 {

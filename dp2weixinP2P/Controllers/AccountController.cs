@@ -37,6 +37,13 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
 
+            // 如果尚未选择图书馆，不存在当前帐号，出现绑定帐号链接
+            if (sessionInfo.ActiveUser == null)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Account/NewParton");
+                return View();
+            }
+
             return View();
         }
 

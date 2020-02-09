@@ -476,19 +476,25 @@ namespace dp2weixinWeb.Controllers
             //绑定的工作人员账号 需要有权限
             string userName = "";
             // 2016-8-24 超级管理员可修改任何图书馆的介绍与公告
-            if (sessionInfo.ActiveUser.weixinId == dp2WeiXinService.C_Supervisor)
+            if (sessionInfo.ActiveUser!=null 
+                && sessionInfo.ActiveUser.weixinId == dp2WeiXinService.C_Supervisor)
             {
                 userName = weixinId;
             }
-
             // 设到ViewBag
             ViewBag.userName = userName;
 
+            string libId = "";
+            if (sessionInfo.ActiveUser != null)
+                libId = sessionInfo.ActiveUser.libId;
+
             // 获取栏目
             List<SubjectItem> list1 = null;
-            nRet = dp2WeiXinService.Instance.GetSubject(sessionInfo.ActiveUser.libId,
+            // 当是数字平台group时，libId可为空
+            nRet = dp2WeiXinService.Instance.GetSubject(libId,
                 dp2WeiXinService.C_Group_dp_home,
-                out list1, out strError);
+                out list1, 
+                out strError);
             if (nRet == -1)
             {
                 ViewBag.Error = strError;
@@ -508,7 +514,7 @@ namespace dp2weixinWeb.Controllers
 
 
         // 好书推荐
-        public ActionResult BookSubject(string code, string state,string libId)
+        public ActionResult BookSubject(string code, string state)
         {
 
             string strError = "";
@@ -552,7 +558,7 @@ namespace dp2weixinWeb.Controllers
 
             // 获取栏目
             List<SubjectItem> list = null;
-            nRet = dp2WeiXinService.Instance.GetSubject(libId,
+            nRet = dp2WeiXinService.Instance.GetSubject(sessionInfo.ActiveUser.libId,
                 dp2WeiXinService.C_Group_Book,
                 out list, out strError);
             if (nRet == -1)

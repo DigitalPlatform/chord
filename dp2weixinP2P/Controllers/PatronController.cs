@@ -437,7 +437,7 @@ namespace dp2weixinWeb.Controllers
             nRet = this.GetSessionInfo(code, state,
                 out SessionInfo sessionInfo,
                 out strError);
-            if (nRet == -1) ;//??? 为什么加后面部分 2020-2-8 && ViewBag.LibState != LibraryManager.C_State_Hangup1)
+            if (nRet == -1) //??? 为什么加后面部分 2020-2-8 && ViewBag.LibState != LibraryManager.C_State_Hangup1)
             {
                 goto ERROR1;
             }
