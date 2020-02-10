@@ -197,3 +197,4 @@ ChordInstaller/*_app/
 *.nupkg
 /WebZ/DongshifangMessageInterface.dll.config
 /dp2weixinP2P/DongshifangMessageInterface.dll.config
+/dp2Mini/代码签名证书-2019.p12

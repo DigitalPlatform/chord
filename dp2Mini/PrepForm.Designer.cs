@@ -49,9 +49,7 @@
             this.contextMenuStrip_prep = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.toolStripMenuItem_print = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem_printPreview = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem_export = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem_remove = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem_change = new System.Windows.Forms.ToolStripMenuItem();
+            this.ToolStripMenuItem_move = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer_prep)).BeginInit();
             this.splitContainer_prep.Panel1.SuspendLayout();
             this.splitContainer_prep.Panel2.SuspendLayout();
@@ -63,6 +61,7 @@
             // 
             this.splitContainer_prep.Dock = System.Windows.Forms.DockStyle.Fill;
             this.splitContainer_prep.Location = new System.Drawing.Point(0, 0);
+            this.splitContainer_prep.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.splitContainer_prep.Name = "splitContainer_prep";
             this.splitContainer_prep.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
@@ -75,15 +74,17 @@
             // splitContainer_prep.Panel2
             // 
             this.splitContainer_prep.Panel2.Controls.Add(this.listView_results);
-            this.splitContainer_prep.Size = new System.Drawing.Size(1001, 572);
-            this.splitContainer_prep.SplitterDistance = 46;
+            this.splitContainer_prep.Size = new System.Drawing.Size(1502, 858);
+            this.splitContainer_prep.SplitterDistance = 69;
+            this.splitContainer_prep.SplitterWidth = 6;
             this.splitContainer_prep.TabIndex = 0;
             // 
             // button_search
             // 
-            this.button_search.Location = new System.Drawing.Point(296, 10);
+            this.button_search.Location = new System.Drawing.Point(444, 15);
+            this.button_search.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.button_search.Name = "button_search";
-            this.button_search.Size = new System.Drawing.Size(75, 23);
+            this.button_search.Size = new System.Drawing.Size(112, 34);
             this.button_search.TabIndex = 2;
             this.button_search.Text = "查询";
             this.button_search.UseVisualStyleBackColor = true;
@@ -91,17 +92,19 @@
             // 
             // textBox_queryWord
             // 
-            this.textBox_queryWord.Location = new System.Drawing.Point(107, 12);
+            this.textBox_queryWord.Location = new System.Drawing.Point(160, 18);
+            this.textBox_queryWord.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.textBox_queryWord.Name = "textBox_queryWord";
-            this.textBox_queryWord.Size = new System.Drawing.Size(183, 21);
+            this.textBox_queryWord.Size = new System.Drawing.Size(272, 28);
             this.textBox_queryWord.TabIndex = 1;
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 15);
+            this.label1.Location = new System.Drawing.Point(18, 22);
+            this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(89, 12);
+            this.label1.Size = new System.Drawing.Size(134, 18);
             this.label1.TabIndex = 0;
             this.label1.Text = "读者证条码号：";
             // 
@@ -126,9 +129,11 @@
             this.listView_results.ContextMenuStrip = this.contextMenuStrip_prep;
             this.listView_results.FullRowSelect = true;
             this.listView_results.GridLines = true;
-            this.listView_results.Location = new System.Drawing.Point(12, 3);
+            this.listView_results.HideSelection = false;
+            this.listView_results.Location = new System.Drawing.Point(18, 4);
+            this.listView_results.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.listView_results.Name = "listView_results";
-            this.listView_results.Size = new System.Drawing.Size(977, 507);
+            this.listView_results.Size = new System.Drawing.Size(1464, 758);
             this.listView_results.TabIndex = 0;
             this.listView_results.UseCompatibleStateImageBehavior = false;
             this.listView_results.View = System.Windows.Forms.View.Details;
@@ -194,57 +199,43 @@
             // 
             // contextMenuStrip_prep
             // 
+            this.contextMenuStrip_prep.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.contextMenuStrip_prep.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripMenuItem_print,
             this.toolStripMenuItem_printPreview,
-            this.toolStripMenuItem_export,
-            this.toolStripMenuItem_remove,
-            this.toolStripMenuItem_change});
+            this.ToolStripMenuItem_move});
             this.contextMenuStrip_prep.Name = "contextMenuStrip1";
-            this.contextMenuStrip_prep.Size = new System.Drawing.Size(141, 114);
+            this.contextMenuStrip_prep.Size = new System.Drawing.Size(177, 94);
             this.contextMenuStrip_prep.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
             // 
             // toolStripMenuItem_print
             // 
             this.toolStripMenuItem_print.Name = "toolStripMenuItem_print";
-            this.toolStripMenuItem_print.Size = new System.Drawing.Size(140, 22);
+            this.toolStripMenuItem_print.Size = new System.Drawing.Size(176, 30);
             this.toolStripMenuItem_print.Text = "打印(&P)";
             this.toolStripMenuItem_print.Click += new System.EventHandler(this.toolStripMenuItem_print_Click);
             // 
             // toolStripMenuItem_printPreview
             // 
             this.toolStripMenuItem_printPreview.Name = "toolStripMenuItem_printPreview";
-            this.toolStripMenuItem_printPreview.Size = new System.Drawing.Size(140, 22);
+            this.toolStripMenuItem_printPreview.Size = new System.Drawing.Size(176, 30);
             this.toolStripMenuItem_printPreview.Text = "打印预览(&V)";
             this.toolStripMenuItem_printPreview.Click += new System.EventHandler(this.toolStripMenuItem_printPreview_Click);
             // 
-            // toolStripMenuItem_export
+            // ToolStripMenuItem_move
             // 
-            this.toolStripMenuItem_export.Name = "toolStripMenuItem_export";
-            this.toolStripMenuItem_export.Size = new System.Drawing.Size(140, 22);
-            this.toolStripMenuItem_export.Text = "导出(&E)";
-            this.toolStripMenuItem_export.Click += new System.EventHandler(this.toolStripMenuItem_export_Click);
-            // 
-            // toolStripMenuItem_remove
-            // 
-            this.toolStripMenuItem_remove.Name = "toolStripMenuItem_remove";
-            this.toolStripMenuItem_remove.Size = new System.Drawing.Size(140, 22);
-            this.toolStripMenuItem_remove.Text = "移除(&R)";
-            this.toolStripMenuItem_remove.Click += new System.EventHandler(this.toolStripMenuItem_remove_Click);
-            // 
-            // toolStripMenuItem_change
-            // 
-            this.toolStripMenuItem_change.Name = "toolStripMenuItem_change";
-            this.toolStripMenuItem_change.Size = new System.Drawing.Size(140, 22);
-            this.toolStripMenuItem_change.Text = "修改(&M)";
-            this.toolStripMenuItem_change.Click += new System.EventHandler(this.toolStripMenuItem_change_Click);
+            this.ToolStripMenuItem_move.Name = "ToolStripMenuItem_move";
+            this.ToolStripMenuItem_move.Size = new System.Drawing.Size(176, 30);
+            this.ToolStripMenuItem_move.Text = "移除(&M)";
+            this.ToolStripMenuItem_move.Click += new System.EventHandler(this.toolStripMenuItem_remove_Click);
             // 
             // PrepForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1001, 572);
+            this.ClientSize = new System.Drawing.Size(1502, 858);
             this.Controls.Add(this.splitContainer_prep);
+            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.Name = "PrepForm";
             this.Text = "PrepForm";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.PrepForm_FormClosing);
@@ -281,9 +272,7 @@
         private System.Windows.Forms.ColumnHeader columnHeader_isPrint;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip_prep;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_print;
-        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_export;
-        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_remove;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_printPreview;
-        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_change;
+        private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_move;
     }
 }

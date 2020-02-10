@@ -98,11 +98,34 @@ namespace dp2Mini
 
             Debug.Assert(mainForm != null, "登录对话框的父窗口为空");
 
+            // 登录地址必须为rest.开头的地址
+            string url = this.textBox_libraryUrl.Text;
+            if (url.Length < 5
+                || (url.Substring(0, 5).ToLower() != "rest."))
+            {
+                MessageBox.Show(this,"服务器必须仅支持rest.开头的地址，请重新输入服务器地址或咨询管理员");
+                return;
+            }
+
+
             LibraryChannel channel = mainForm.GetChannel();
             try
             {
-                channel.Url = LibraryUrl;
-                string strParameters = "type=worker,client=dp2Mini|" + Program.ClientVersion;
+                string pureUrl = LibraryUrl.Substring(5);
+                channel.Url = pureUrl;
+                string strParameters = "type=worker"
+                    +",client=dp2Mini|" + Program.ClientVersion;
+
+                //// 以手机短信验证方式登录
+                //string phoneNumber = this.textBox_phone.Text.Trim();
+                //if (string.IsNullOrEmpty(phoneNumber) == false)
+                //    strParameters += ",phoneNumber=" + phoneNumber;
+
+                //// 验证码
+                //string tempCode = this.textBox_tempCode.Text.Trim();
+                //if (string.IsNullOrEmpty(tempCode) == false)
+                //    strParameters += ",tempCode=" + tempCode;
+
                 LoginResponse response = channel.Login(Username, Password, strParameters);
                 if (response.LoginResult.Value == -1 || response.LoginResult.Value == 0)
                 {

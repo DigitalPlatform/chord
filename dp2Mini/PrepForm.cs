@@ -121,7 +121,18 @@ namespace dp2Mini
                     {
                         string strPath = record.Path;
 
-                        string[] cols = FillListViewItem(channel, record.RecordBody.Xml);
+                        string strRecordXml = record.RecordBody.Xml;
+                        XmlDocument dom = new XmlDocument();
+                        dom.LoadXml(strRecordXml);
+
+                        //string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
+                        //if ("outof" == strState)
+                        //{
+                        //    //strState = "超过保留期";
+                        //    continue;
+                        //}
+
+                        string[] cols = FillListViewItem(channel, dom);
 
                         AppendNewLine(this.listView_results, strPath, cols);
 
@@ -148,7 +159,7 @@ namespace dp2Mini
         }
 
 
-        string[] FillListViewItem(LibraryChannel channel, string strRecord)
+        string[] FillListViewItem(LibraryChannel channel, XmlDocument dom) //string strRecord)
         {
             string strErrorInfo = "";
             string strError = "";
@@ -156,9 +167,9 @@ namespace dp2Mini
 
             long lRet = 0;
 
-            // string strXML = record.RecordBody.Xml;
-            XmlDocument dom = new XmlDocument();
-            dom.LoadXml(strRecord);
+            //// string strXML = record.RecordBody.Xml;
+            //XmlDocument dom = new XmlDocument();
+            //dom.LoadXml(strRecord);
 
             string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
             if ("arrived" == strState)
@@ -260,6 +271,20 @@ namespace dp2Mini
                 }
             }
 
+            // 如果是已打印过的预约记录，背景显示灰色
+            string strPrintState = ListViewUtil.GetItemText(item, item.SubItems.Count - 1);
+            if (strPrintState == "已打印")
+            {
+                item.BackColor = Color.Gray;
+            }
+
+            // 如果是超过保留期的，背景显示淡蓝
+            string strState = ListViewUtil.GetItemText(item, item.SubItems.Count - 2);
+            if (strState == "超过保留期")
+            {
+                item.BackColor = Color.SkyBlue ;
+            }
+
             return item;
         }
 
@@ -312,6 +337,11 @@ namespace dp2Mini
             return strPrefix + strText + strPostfix;
         }
 
+        /// <summary>
+        /// 打印
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void toolStripMenuItem_print_Click(object sender, EventArgs e)
         {
             Cursor oldCursor = this.Cursor;
@@ -347,6 +377,11 @@ namespace dp2Mini
             MessageBox.Show(this, strError);
         }
 
+        /// <summary>
+        /// 打印预览，注意不能用打印预览中的打印按钮打印
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void toolStripMenuItem_printPreview_Click(object sender, EventArgs e)
         {
             Cursor oldCursor = this.Cursor;
@@ -366,23 +401,33 @@ namespace dp2Mini
             {
                 this.toolStripMenuItem_print.Enabled = false;
                 this.toolStripMenuItem_printPreview.Enabled = false;
-                this.toolStripMenuItem_export.Enabled = false;
-                this.toolStripMenuItem_remove.Enabled = false;
+                //this.toolStripMenuItem_export.Enabled = false;
+                //this.toolStripMenuItem_remove.Enabled = false;
             }
             else
             {
                 this.toolStripMenuItem_print.Enabled = true;
                 this.toolStripMenuItem_printPreview.Enabled = true;
-                this.toolStripMenuItem_export.Enabled = true;
-                this.toolStripMenuItem_remove.Enabled = true;
+                //this.toolStripMenuItem_export.Enabled = true;
+                //this.toolStripMenuItem_remove.Enabled = true;
             }
         }
 
+        /// <summary>
+        /// 导出excel
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void toolStripMenuItem_export_Click(object sender, EventArgs e)
         {
-
+            MessageBox.Show(this, "尚未实现");
         }
 
+        /// <summary>
+        /// 移出行
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void toolStripMenuItem_remove_Click(object sender, EventArgs e)
         {
             Cursor oldCursor = this.Cursor;
@@ -398,6 +443,11 @@ namespace dp2Mini
             this.Cursor = oldCursor;
         }
 
+        /// <summary>
+        /// 将状态修改为未打印
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void toolStripMenuItem_change_Click(object sender, EventArgs e)
         {
             ListViewItem[] listViews = new ListViewItem[this.listView_results.SelectedItems.Count];
@@ -405,6 +455,12 @@ namespace dp2Mini
             changeAcctiveItemPrintState(listViews, "");
         }
 
+
+        /// <summary>
+        /// 设置状态
+        /// </summary>
+        /// <param name="items"></param>
+        /// <param name="strChangeState"></param>
         void changeAcctiveItemPrintState(ListViewItem[] items, string strChangeState = "已打印")
         {
             if (items.Length == 0)
@@ -467,6 +523,9 @@ namespace dp2Mini
                     }
 
                     ListViewUtil.ChangeItemText(item, 11, strChangeState);
+
+                    if (strChangeState == "已打印")
+                        item.BackColor = Color.Gray;
                 }
             }
             finally

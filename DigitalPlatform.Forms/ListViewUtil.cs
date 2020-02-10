@@ -158,6 +158,8 @@ namespace DigitalPlatform.Forms
             }
 
             item.SubItems[col].Text = strText;
+
+ 
         }
 
         public static void DeleteSelectedItems(ListView list)

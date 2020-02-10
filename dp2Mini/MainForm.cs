@@ -152,6 +152,11 @@ namespace dp2Mini
         {
             if (strServerUrl == ".")
                 strServerUrl = Properties.Settings.Default.cfg_library_url;
+            if (strServerUrl.Length >= 5 && strServerUrl.Substring(0, 5).ToLower() == "rest.")
+            {
+                strServerUrl = strServerUrl.Substring(5);
+            }
+
             if (strUserName == ".")
                 strUserName = Properties.Settings.Default.cfg_library_username;
 
@@ -288,21 +293,50 @@ namespace dp2Mini
             this.toolStripStatusLabel_message.Text = text;
         }
 
-        private void toolStripButton_prep_Click(object sender, EventArgs e)
-        {
-            this.toolStripMenuItem_prep_Click(sender, e);
-        }
+        //private void toolStripButton_prep_Click(object sender, EventArgs e)
+        //{
+        //    
+        //}
 
 
         private void toolStripButton1_Click(object sender, EventArgs e)
+        {
+            
+        }
+
+        static string WrapString(string strText)
+        {
+            string strPrefix = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n"
+                + "<root>\r\n"
+                + "<pageSetting width='190'>\r\n"
+                + "  <font name=\"微软雅黑\" size=\"8\" style=\"\" />\r\n"
+                + "  <p align=\"left\" indent='-60'/>\r\n"
+                + "</pageSetting>\\\r\n"
+                + "<document padding=\"0,0,0,0\">\r\n"
+                + "  <column width=\"auto\" padding='60,0,0,0'>\r\n";
+
+            string strPostfix = "</column></document></root>";
+
+            return strPrefix + strText + strPostfix;
+        }
+
+        private void ToolStripMenuItem_test_Click(object sender, EventArgs e)
         {
             string strError = "";
 
             string line = null;
             StringBuilder sb = new StringBuilder();
+
+            string printFile = Application.StartupPath + "//print.txt";
+            if (File.Exists(printFile) == false)
+            {
+                MessageBox.Show(this, "打印不存在");
+                return;
+            }
+
             using (StreamReader reader = new StreamReader("print.txt", Encoding.UTF8))
             {
-                while ((line = reader.ReadLine())!=null)
+                while ((line = reader.ReadLine()) != null)
                 {
                     sb.Append("<p>").Append(line).Append("</p>").AppendLine();
                 }
@@ -328,24 +362,13 @@ namespace dp2Mini
             }
             form.Close();
             return;
-            ERROR1:
+        ERROR1:
             MessageBox.Show(this, strError);
         }
 
-        static string WrapString(string strText)
+        private void toolStripButton_prep_Click(object sender, EventArgs e)
         {
-            string strPrefix = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n"
-                + "<root>\r\n"
-                + "<pageSetting width='190'>\r\n"
-                + "  <font name=\"微软雅黑\" size=\"8\" style=\"\" />\r\n"
-                + "  <p align=\"left\" indent='-60'/>\r\n"
-                + "</pageSetting>\\\r\n"
-                + "<document padding=\"0,0,0,0\">\r\n"
-                + "  <column width=\"auto\" padding='60,0,0,0'>\r\n";
-
-            string strPostfix = "</column></document></root>";
-
-            return strPrefix + strText + strPostfix;
+            this.toolStripMenuItem_prep_Click(sender, e);
         }
     }
 }
