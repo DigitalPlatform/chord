@@ -278,7 +278,12 @@ namespace dp2Mini
                 MdiParent = this,
                 Text = "备书"
             };
+            prepForm.MdiParent = this;
+            prepForm.AutoSize = true;
+            prepForm.WindowState = FormWindowState.Maximized;
             prepForm.Show();
+
+
         }
 
         private void toolStripMenuItem_setting_Click(object sender, EventArgs e)
@@ -287,8 +292,11 @@ namespace dp2Mini
             dlg.ShowDialog(this);
         }
 
-
-        public void SetMessage(string text)
+        /// <summary>
+        /// 设置状态栏参数
+        /// </summary>
+        /// <param name="text"></param>
+        public void SetStatusMessage(string text)
         {
             this.toolStripStatusLabel_message.Text = text;
         }

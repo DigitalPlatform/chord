@@ -13,6 +13,7 @@ using DigitalPlatform.Marc;
 using DigitalPlatform.Forms;
 using DigitalPlatform.LibraryRestClient;
 using System.Collections.Generic;
+using DigitalPlatform.IO;
 
 namespace dp2Mini
 {
@@ -42,25 +43,30 @@ namespace dp2Mini
         {
             string strError = "";
 
+            // 清空listview
             this.listView_results.Items.Clear();
 
+            // 父窗口
             MainForm mainForm = null;
             if (this.MdiParent is MainForm)
                 mainForm = this.MdiParent as MainForm;
-
             Debug.Assert(mainForm != null, "MdiParent 父窗口为 null");
 
-            mainForm.SetMessage("");
+            // 设置状态栏参数
+            mainForm.SetStatusMessage("");
 
+            // 检索条件
             string strQueryWord = this.textBox_queryWord.Text;
             string strFrom = "读者证条码号";
             string strMatchStyle = "exact";
+            // 如果检索词为空，则按__id检索出全部记录
             if (string.IsNullOrEmpty(strQueryWord))
             {
                 strFrom = "__id";
                 strMatchStyle = "left";
             }
 
+            // 拼装检索语句
             string strQueryXml = "<target list='" + mainForm.ArrivedDbName + ":" + strFrom + "'>" +
                 "<item>" +
                 "<word>" + strQueryWord + "</word>" +
@@ -75,23 +81,26 @@ namespace dp2Mini
             try
             {
                 string strOutputStyle = "";
-                SearchResponse searchResponse = channel.Search(strQueryXml, "arrived", strOutputStyle);
+                SearchResponse searchResponse = channel.Search(strQueryXml,
+                    "arrived", 
+                    strOutputStyle);
                 long lRet = searchResponse.SearchResult.Value;
                 if (lRet == -1)
                 {
                     strError = "检索发生错误：" + strError;
                     goto ERROR1;
                 }
-                else if (lRet == 0)
+                if (lRet == 0)
                 {
                     strError = "读者'" + strQueryWord + "'没有到书信息";
                     goto ERROR1;
                 }
 
+                // 总记录数
+                long lTotalCount = lRet;
 
-                long lHitCount = lRet;
                 long lStart = 0;
-                long lCount = lHitCount;
+                long lOnceCount = lTotalCount;
                 Record[] searchresults = null;
                 for (; ; )
                 {
@@ -99,7 +108,7 @@ namespace dp2Mini
 
                     lRet = channel.GetSearchResult("arrived",
                         lStart,
-                        lCount,
+                        lOnceCount,
                         "id,xml",// cols,
                         "zh",
                         out searchresults,
@@ -111,7 +120,7 @@ namespace dp2Mini
                     }
                     else if (lRet == 0)
                     {
-                        strError = "没有获得到 0 条检索结果";
+                        strError = "获得0 条检索结果";
                         goto ERROR1;
                     }
 
@@ -121,37 +130,45 @@ namespace dp2Mini
                     {
                         string strPath = record.Path;
 
-                        string strRecordXml = record.RecordBody.Xml;
-                        XmlDocument dom = new XmlDocument();
-                        dom.LoadXml(strRecordXml);
+                        // 把一条记录，解析出各列
+                        string[] cols = null;
+                        int nRet = GetLineCols(channel,
+                            record.RecordBody.Xml,
+                            out cols,
+                            out strError);
+                        if (nRet == -1)
+                            goto ERROR1;
 
-                        //string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
-                        //if ("outof" == strState)
-                        //{
-                        //    //strState = "超过保留期";
-                        //    continue;
-                        //}
+                        if (cols[cols.Length - 1] == "超过保留期")
+                        {
+                            // 增加一行到超过保留期的
+                            AppendNewLine(this.listView_outof, strPath, cols);
 
-                        string[] cols = FillListViewItem(channel, dom);
+                        }
+                        else
+                        {
+                            // 增加一行到预约到书
+                            AppendNewLine(this.listView_results, strPath, cols);
+                        }
 
-                        AppendNewLine(this.listView_results, strPath, cols);
+                        // 设置状态栏信息
+                        mainForm.SetStatusMessage((lStart + i + 1).ToString() + " / " + lTotalCount);
 
-                        mainForm.SetMessage((lStart + i + 1).ToString() + " / " + lHitCount);
+                        // 数量加1
                         i++;
                     }
 
                     lStart += searchresults.Length;
-                    // lCount -= searchresults.Length;
-                    if (lStart >= lHitCount || lCount <= 0)
+                    if (lStart >= lTotalCount)
                         break;
                 }
-
-                // this.listView_results.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
             }
             finally
             {
                 mainForm.ReturnChannel(channel);
             }
+
+
             return;
 
             ERROR1:
@@ -159,18 +176,24 @@ namespace dp2Mini
         }
 
 
-        string[] FillListViewItem(LibraryChannel channel, XmlDocument dom) //string strRecord)
+        /// <summary>
+        /// 分析出各列值
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="strRecord"></param>
+        /// <param name="cols"></param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
+         int GetLineCols(LibraryChannel channel,
+            string strRecord,
+            out string[] cols,
+            out string strError)
         {
-            string strErrorInfo = "";
-            string strError = "";
-            string[] cols = new string[11];
+            strError = "";
+            cols = new string[13]; //13列
 
-            long lRet = 0;
-
-            //// string strXML = record.RecordBody.Xml;
-            //XmlDocument dom = new XmlDocument();
-            //dom.LoadXml(strRecord);
-
+            XmlDocument dom = new XmlDocument();
+            dom.LoadXml(strRecord);
             string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
             if ("arrived" == strState)
                 strState = "图书在馆";
@@ -183,21 +206,27 @@ namespace dp2Mini
             if (string.IsNullOrEmpty(strPrintState))
                 strPrintState = "未打印";
 
+            string strISBN = "";
+            string strTitle = "";
+            string strAuthor = "";
 
+            // 获取册信息以及书目信息
             string strItemBarcode = DomUtil.GetElementText(dom.DocumentElement, "itemBarcode");
             if (!string.IsNullOrEmpty(strItemBarcode))
             {
-                GetItemInfoResponse itemInfoResponse = channel.GetItemInfo(strItemBarcode,
-                    "xml", // "xml:noborrowhistory", // resultType (itemType)
+                GetItemInfoResponse itemRet = channel.GetItemInfo(strItemBarcode,
+                    "xml", 
                     "xml");
-
-                lRet = itemInfoResponse.GetItemInfoResult.Value;
-                strErrorInfo = itemInfoResponse.GetItemInfoResult.ErrorInfo;
-                if (lRet == 1)
+                if (itemRet.GetItemInfoResult.Value == -1)
+                {
+                    strError = itemRet.GetItemInfoResult.ErrorInfo;
+                    return -1;
+                }
+                if (itemRet.GetItemInfoResult.Value == 1)
                 {
                     string strOutMarcSyntax = "";
                     string strMARC = "";
-                    string strMarcXml = itemInfoResponse.strBiblio;
+                    string strMarcXml = itemRet.strBiblio;
                     int nRet = MarcUtil.Xml2Marc(strMarcXml,
                         false,
                         "", // 自动识别 MARC 格式
@@ -207,40 +236,89 @@ namespace dp2Mini
                     if (nRet != -1)
                     {
                         MarcRecord marcRecord = new MarcRecord(strMARC);
-                        string strISBN = marcRecord.select("field[@name='010']/subfield[@name='a']").FirstContent;
-                        string strTitle = marcRecord.select("field[@name='200']/subfield[@name='a']").FirstContent;
-                        string strAuthor = marcRecord.select("field[@name='200']/subfield[@name='f']").FirstContent;
+                         strISBN = marcRecord.select("field[@name='010']/subfield[@name='a']").FirstContent;
+                         strTitle = marcRecord.select("field[@name='200']/subfield[@name='a']").FirstContent;
+                         strAuthor = marcRecord.select("field[@name='200']/subfield[@name='f']").FirstContent;
 
-                        cols[1] = strISBN;
-                        cols[2] = strTitle;
-                        cols[3] = strAuthor;
+
                     }
                 }
             }
 
+            // 获取读者信息
             string strReaderBarcode = DomUtil.GetElementText(dom.DocumentElement, "readerBarcode");
-            GetReaderInfoResponse readerInfoResponse = channel.GetReaderInfo(strReaderBarcode, "xml:noborrowhistory");
-            lRet = readerInfoResponse.GetReaderInfoResult.Value;
-            strErrorInfo = readerInfoResponse.GetReaderInfoResult.ErrorInfo;
-            if (lRet == 1)
-            {
-                string strReaderXml = readerInfoResponse.results[0];
-                dom.LoadXml(strReaderXml);
-                string strName = DomUtil.GetElementText(dom.DocumentElement, "name");
-                string strDept = DomUtil.GetElementText(dom.DocumentElement, "department");
+            string strName = "";
+            string strDept = "";
+            string requestDate = "";// 预约时间
+            string arrivedDate = ""; // 到书时间
 
-                cols[6] = strReaderBarcode;
-                cols[7] = strName;
-                cols[8] = strDept;
+            GetReaderInfoResponse readerRet = channel.GetReaderInfo(strReaderBarcode, 
+                "xml:noborrowhistory");
+            if (readerRet.GetReaderInfoResult.Value == -1)
+            {
+                strError = readerRet.GetReaderInfoResult.ErrorInfo;
+                return -1;
+            }
+            if (readerRet.GetReaderInfoResult.Value == 1)
+            {
+                string strReaderXml = readerRet.results[0];
+                dom.LoadXml(strReaderXml);
+
+                XmlNode rootNode = dom.DocumentElement;
+                 strName = DomUtil.GetElementText(rootNode, "name");
+                 strDept = DomUtil.GetElementText(rootNode, "department");
+
+
+                /*
+                - <root expireDate="">
+                 <barcode>XZP10199</barcode> 
+                 <readerType>学生</readerType> 
+                 <name>李明</name> 
+                 <overdues /> 
+               - <reservations>
+                 <request items="XZ000101" requestDate="Tue, 11 Feb 2020 00:30:27 +0800" 
+                    operator="XZP10199" state="arrived" arrivedDate="Tue, 11 Feb 2020 00:31:45 +0800" 
+                    arrivedItemBarcode="XZ000101" notifyID="59abfc23-f44f-4b34-a22c-f8a8aa5e289e" 
+                    accessNo="K825.6=76/Z780" location="星洲学校/图书馆,#reservation" /> 
+                 </reservations>
+                 </root>
+                 */
+
+                XmlNodeList nodeList = rootNode.SelectNodes("reservations/request");
+                foreach (XmlNode node in nodeList)
+                {
+                    string arrivedItemBarcode = DomUtil.GetAttr(node, "arrivedItemBarcode");
+                    if (arrivedItemBarcode == strItemBarcode)
+                    {
+                        requestDate = DateTimeUtil.LocalDate(DomUtil.GetAttr(node, "requestDate"));
+                        arrivedDate = DateTimeUtil.LocalDate(DomUtil.GetAttr(node, "arrivedDate"));
+                        break;
+                    }
+                }
+            
             }
 
-            cols[0] = strItemBarcode;
-            cols[4] = strAccessNo;
-            cols[5] = strLocation;
-            cols[9] = strState;
-            cols[10] = strPrintState;
+            cols[0] = strPrintState; //备书状态
+            cols[1] = requestDate;
+            cols[2] = arrivedDate;
+            cols[3] = strItemBarcode;
 
-            return cols;
+            cols[4] = strISBN;
+            cols[5] = strTitle;
+            cols[6] = strAuthor;
+
+            cols[7] = strAccessNo;
+            cols[8] = strLocation;
+
+            cols[9] = strReaderBarcode;
+            cols[10] = strName;
+            cols[11] = strDept;
+
+            // 是否超过保留期
+            cols[12] = strState;
+
+
+            return 0;
         }
 
 
@@ -258,11 +336,13 @@ namespace dp2Mini
             string[] others)
         {
             if (others != null)
+            {
+                //确保列标题数量足够
                 ListViewUtil.EnsureColumns(list, others.Length + 1, 100);
+            }
 
             ListViewItem item = new ListViewItem(strID, 0);
             list.Items.Add(item);
-
             if (others != null)
             {
                 for (int i = 0; i < others.Length; i++)
@@ -272,14 +352,14 @@ namespace dp2Mini
             }
 
             // 如果是已打印过的预约记录，背景显示灰色
-            string strPrintState = ListViewUtil.GetItemText(item, item.SubItems.Count - 1);
+            string strPrintState = ListViewUtil.GetItemText(item, 1);
             if (strPrintState == "已打印")
             {
                 item.BackColor = Color.Gray;
             }
 
             // 如果是超过保留期的，背景显示淡蓝
-            string strState = ListViewUtil.GetItemText(item, item.SubItems.Count - 2);
+            string strState = ListViewUtil.GetItemText(item, item.SubItems.Count - 1);
             if (strState == "超过保留期")
             {
                 item.BackColor = Color.SkyBlue ;
