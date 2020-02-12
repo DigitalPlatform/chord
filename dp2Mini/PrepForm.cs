@@ -45,6 +45,7 @@ namespace dp2Mini
 
             // 清空listview
             this.listView_results.Items.Clear();
+            this.listView_outof.Items.Clear();
 
             // 父窗口
             MainForm mainForm = null;

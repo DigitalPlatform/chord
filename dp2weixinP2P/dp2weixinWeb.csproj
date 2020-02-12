@@ -45,9 +45,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Antlr.3.5.0.2\lib\Antlr3.Runtime.dll</HintPath>
     </Reference>
-    <Reference Include="DongshifangMessageInterface">
-      <HintPath>..\DongshifangMessageInterface\bin\Debug\netstandard2.0\DongshifangMessageInterface.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <Private>True</Private>
@@ -236,6 +233,9 @@
     <Content Include="img\right1.png" />
     <Content Include="img\wait2.gif" />
     <Content Include="fonts\mui-icons-extra.ttf" />
+    <Content Include="DongshifangMessageInterface.dll.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="Scripts\jquery-3.4.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.4.1.js" />
     <Content Include="Scripts\jquery-3.4.1.min.js" />
@@ -392,6 +392,10 @@
     <ProjectReference Include="..\DigitalPlatform.Xml\DigitalPlatform.Xml.csproj">
       <Project>{a62f763a-96ee-43ad-80c5-9ce57ecfeaf4}</Project>
       <Name>DigitalPlatform.Xml</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DongshifangMessageInterface\DongshifangMessageInterface.csproj">
+      <Project>{17eb59ec-270a-4fe1-86fb-24c71d36609a}</Project>
+      <Name>DongshifangMessageInterface</Name>
     </ProjectReference>
     <ProjectReference Include="..\dp-library\DigitalPlatform.Core\DigitalPlatform.Core.csproj">
       <Project>{ffd44d99-c846-477a-86e9-a68c04985c0e}</Project>
