@@ -980,7 +980,7 @@ namespace dp2weixin.service
             if (strType == "预约到书通知")
             {
                 nRet = this.SendArrived(bodyDom,
-                    libName,
+                    lib,//libName,
                     bindWeixinIds,
                     fullPatronName,
                     markFullPatronName,
@@ -1702,6 +1702,7 @@ namespace dp2weixin.service
             out string strError)
         {
             strError = "";
+
             /*
  <root>
   <type>借书成功</type>
@@ -2503,7 +2504,7 @@ namespace dp2weixin.service
         /// 1 成功
         /// </returns>
         private int SendArrived(XmlDocument bodyDom,
-            string libName,
+            LibEntity lib,
             List<string> bindWeixinIds,
             string fullPatronName,
             string markFullPatronName,
@@ -2511,6 +2512,12 @@ namespace dp2weixin.service
             out string strError)
         {
             strError = "";
+            string libName = "";
+            if (lib != null)
+                libName = "";
+
+
+
             /*
            body元素里面是预约到书通知记录(注意这是一个字符串，需要另行装入一个XmlDocument解析)，其格式如下：
            <?xml version="1.0" encoding="utf-8"?>
@@ -2543,6 +2550,25 @@ namespace dp2weixin.service
             //<onShelf>false</onShelf>
             // <reserveTime>2天</reserveTime>
             // <today>2016/5/17 10:10:59</today>
+
+            // 是否在架
+            XmlNode nodeOnShelf = root.SelectSingleNode("onShelf");
+            if (nodeOnShelf == null)
+            {
+                strError = "尚未定义<onShelf>节点";
+                return -1;
+            }
+            string onShelf = DomUtil.GetNodeText(nodeOnShelf);
+            bool bOnShelf = false;
+            if (onShelf == "true")
+                bOnShelf = true;
+
+            // 如果图书馆配了在架预约不发通知，则不给读者发通知 2020/2/14 编译局使用的馆员备书功能
+            if (bOnShelf ==true 
+                && lib.comment.IndexOf("OnshelfArrivedNoNotice") != -1)
+            {
+                return 0;
+            }
 
             // 摘要
             XmlNode nodeSummary = root.SelectSingleNode("summary");
@@ -2616,17 +2642,7 @@ namespace dp2weixin.service
                 reserveTime += "(至" + toDate + ")";
             }
 
-            // 是否在架
-            XmlNode nodeOnShelf = root.SelectSingleNode("onShelf");
-            if (nodeOnShelf == null)
-            {
-                strError = "尚未定义<onShelf>节点";
-                return -1;
-            }
-            string onShelf = DomUtil.GetNodeText(nodeOnShelf);
-            bool bOnShelf = false;
-            if (onShelf == "true")
-                bOnShelf = true;
+
 
             // 册条码
             string itemBarcode = "";
@@ -2942,7 +2958,7 @@ namespace dp2weixin.service
             foreach (Library lib in libs)
             {
                 // 可以图书馆的备注信息设为notwart，则不进行检查是否在线
-                if (lib.Entity.comment == "notwarn") // 任延华测试用的图书馆
+                if (lib.Entity.comment.IndexOf("notwarn") !=-1) // 任延华测试用的图书馆
                     continue;
 
                 //20171003 到期的图书馆不再提醒
@@ -3016,7 +3032,7 @@ namespace dp2weixin.service
                     // 移除已经连线的图书馆
                     foreach (string oneId in removeIds)
                     {
-                        this.WriteDebug("图书馆 " + oneId + " 恢复在线，从内存离线图书馆列表移除。");
+                        this.WriteDebug("图书馆 " + this.LibManager.GetLibrary(oneId).Entity.libName + " 恢复在线，从内存离线图书馆列表移除。");
                         this._offlineLibs.Remove(oneId);
                     }
                 }
@@ -3204,7 +3220,7 @@ namespace dp2weixin.service
                     // 从web页面绑定的
                     if (user.weixinId.Substring(0, 2) == "~~")
                     {
-                        this.WriteDebug("数字平台工作人员" + user.userName + "的weixinId为" + user.weixinId + ",非微信入口，不发通知。");
+                        this.WriteDebug("工作人员" + user.userName + "的weixinId为" + user.weixinId + ",非微信入口，不发通知。");
                         continue;
                     }
 
@@ -6705,6 +6721,12 @@ public string ErrorCode { get; set; }
                     // 被借出的情况
                     if (string.IsNullOrEmpty(item.borrower) == false)
                     {
+                        // 馆的备注信息如果配置了ReserveOnshelf，则表示仅支持在架预约，外借的图不支持预约。2020/2/14 renyh
+                        if (lib.comment.IndexOf("ReserveOnshelf") != -1) 
+                        {
+                            bCanReservation = false;
+                        }
+
                         // 工作人员的情况
                         if (loginInfo.UserType != "patron" && loginInfo.UserName!="public")
                         {
@@ -8368,11 +8390,19 @@ public string ErrorCode { get; set; }
                 }
                 else if (style == "new")
                 {
-                    // 根据result.ErrorInfo区分是否到书 todo这个区分可靠吗？
-                    if (strError != "")
-                        reserRowHtml = this.getReservationHtml("已到书", items, true, true);
-                    else
+                    // 图书馆设置为支持在线预约，预约成功后，统一叫已预约。2020/2/14 编译局使用的馆员备书功能
+                    if (lib.comment.IndexOf("ReserveOnshelf") != -1)
+                    {
                         reserRowHtml = this.getReservationHtml("已预约", items, true, true);
+                        strError = ""; //将在架预约的提示清掉。
+                    }
+                    else
+                    {
+                        if (strError != "")
+                            reserRowHtml = this.getReservationHtml("已到书", items, true, true);
+                        else
+                            reserRowHtml = this.getReservationHtml("已预约", items, true, true);
+                    }
                 }
 
 
@@ -8482,7 +8512,7 @@ tempRemark);
                     }
                 }
 
-                strError = result.ErrorInfo;
+                //strError = result.ErrorInfo;
                 return (int)result.Value;
             }
             catch (AggregateException ex)
