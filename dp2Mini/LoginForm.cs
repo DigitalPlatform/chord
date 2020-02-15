@@ -159,5 +159,17 @@ namespace dp2Mini
             this.DialogResult = DialogResult.Cancel;
             this.Close();
         }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            string text = "aaa";
+            test(out text);
+            MessageBox.Show(this, text);
+        }
+
+        private void test(out string text)
+        {
+            text = "bbb";
+        }
     }
 }

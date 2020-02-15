@@ -8390,19 +8390,18 @@ public string ErrorCode { get; set; }
                 }
                 else if (style == "new")
                 {
-                    // 图书馆设置为支持在线预约，预约成功后，统一叫已预约。2020/2/14 编译局使用的馆员备书功能
+
+                    if (strError != "")
+                        reserRowHtml = this.getReservationHtml("已到书", items, true, true);
+                    else
+                        reserRowHtml = this.getReservationHtml("已预约", items, true, true);
+
+                    // 图书馆设置为支持在线预约，预约成功后，同时提示简化。2020/2/14 编译局使用的馆员备书功能
                     if (lib.comment.IndexOf("ReserveOnshelf") != -1)
                     {
-                        reserRowHtml = this.getReservationHtml("已预约", items, true, true);
                         strError = ""; //将在架预约的提示清掉。
                     }
-                    else
-                    {
-                        if (strError != "")
-                            reserRowHtml = this.getReservationHtml("已到书", items, true, true);
-                        else
-                            reserRowHtml = this.getReservationHtml("已预约", items, true, true);
-                    }
+
                 }
 
 

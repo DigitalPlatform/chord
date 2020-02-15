@@ -78,6 +78,7 @@ namespace dp2weixinWeb.Controllers
                     nRet = WhenNoSession(code,
                         state,
                         myWeixinId,
+                        out sessionInfo,
                         out strError);
                     if (nRet == -1)
                         return -1;
@@ -102,7 +103,10 @@ namespace dp2weixinWeb.Controllers
         /// <param name="myWeixinId"></param>
         /// <param name="sessionInfo"></param>
         /// <param name="strError"></param>
-        /// <returns></returns>
+        /// <returns>
+        /// -1 出错
+        /// 0 成功
+        /// </returns>
         private int WhenHasSession(string code,
             string state,
             string myWeixinId,
@@ -125,13 +129,19 @@ namespace dp2weixinWeb.Controllers
             if (string.IsNullOrEmpty(state) == false
                && sessionInfo.gzhState != state)
             {
-                dp2WeiXinService.Instance.WriteDebug("GetActive/WhenHasSession-1--session原来的state为[" + sessionInfo.gzhState + "]，此次传入的state参数为[" + state + "],两者不一样，重新初始化session信息");
+                dp2WeiXinService.Instance.WriteDebug("GetActive/WhenHasSession-1--session原来的gzhState为[" + sessionInfo.gzhState + "]，此次传入的state参数为[" + state + "],两者不一样，重新初始化session信息");
 
-                // 完全重新初始化session
-                return this.WhenNoSession(code,
-                    state,
-                    myWeixinId,
-                    out strError);
+                //// 完全重新初始化session
+                //return this.WhenNoSession(code,
+                //    state,
+                //    myWeixinId,
+                //    out sessionInfo,
+                //    out strError);
+
+                // 给session设置公众号和图书馆配置
+                nRet = sessionInfo.SetGzhInfo(state, out strError);
+                if (nRet == -1)
+                    return -1;
             }
 
             // 检查session中的公众号配置与数据库配置是否正常
@@ -187,7 +197,7 @@ namespace dp2weixinWeb.Controllers
 
                 dp2WeiXinService.Instance.WriteDebug("GetActive/WhenHasSession-5--InitViewBag完成，直接返回");
 
-                // 直接返回1
+                // 直接返回0
                 return 0;
             }
 
@@ -227,17 +237,21 @@ namespace dp2weixinWeb.Controllers
         /// <param name="state"></param>
         /// <param name="myWeixinId"></param>
         /// <param name="strError"></param>
-        /// <returns></returns>
+        /// <returns>
+        /// -1 出错
+        /// 0 成功
+        /// </returns>
         private int WhenNoSession(string code,
             string state,
             string myWeixinId,
+            out SessionInfo sessionInfo,
             out string strError)
         {
             int nRet = 0;
             strError = "";
 
             // 当发现session为空时，new一个sessioninfo
-            SessionInfo sessionInfo = new SessionInfo();
+            sessionInfo = new SessionInfo();
             Session[WeiXinConst.C_Session_sessioninfo] = sessionInfo;
 
             // 调试日志
