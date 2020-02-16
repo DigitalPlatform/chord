@@ -46,6 +46,7 @@
             this.columnHeader_readerBarcode = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_readerName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_department = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader_tel = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_state = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.contextMenuStrip_prep = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.toolStripMenuItem_print = new System.Windows.Forms.ToolStripMenuItem();
@@ -56,6 +57,8 @@
             this.tabPage_outof = new System.Windows.Forms.TabPage();
             this.listView_outof = new System.Windows.Forms.ListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader_priteState = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader5 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader6 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -66,9 +69,9 @@
             this.columnHeader11 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader12 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader13 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader14 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeader_priteState = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.button_stop = new System.Windows.Forms.Button();
             this.contextMenuStrip_prep.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage_arrived.SuspendLayout();
@@ -120,6 +123,7 @@
             this.columnHeader_readerBarcode,
             this.columnHeader_readerName,
             this.columnHeader_department,
+            this.columnHeader_tel,
             this.columnHeader_state});
             this.listView_results.ContextMenuStrip = this.contextMenuStrip_prep;
             this.listView_results.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -129,30 +133,31 @@
             this.listView_results.Location = new System.Drawing.Point(3, 3);
             this.listView_results.Margin = new System.Windows.Forms.Padding(4);
             this.listView_results.Name = "listView_results";
-            this.listView_results.Size = new System.Drawing.Size(1058, 392);
+            this.listView_results.Size = new System.Drawing.Size(1057, 464);
             this.listView_results.TabIndex = 0;
             this.listView_results.UseCompatibleStateImageBehavior = false;
             this.listView_results.View = System.Windows.Forms.View.Details;
+            this.listView_results.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.listView_results_ColumnClick);
             // 
             // columnHeader_path
             // 
             this.columnHeader_path.Text = "路径";
-            this.columnHeader_path.Width = 136;
+            this.columnHeader_path.Width = 97;
             // 
             // columnHeader_isPrint
             // 
             this.columnHeader_isPrint.Text = "备书状态";
-            this.columnHeader_isPrint.Width = 95;
+            this.columnHeader_isPrint.Width = 87;
             // 
             // columnHeader_requestTime
             // 
             this.columnHeader_requestTime.Text = "预约时间";
-            this.columnHeader_requestTime.Width = 101;
+            this.columnHeader_requestTime.Width = 109;
             // 
             // columnHeader_arrivedTime
             // 
             this.columnHeader_arrivedTime.Text = "到书时间";
-            this.columnHeader_arrivedTime.Width = 101;
+            this.columnHeader_arrivedTime.Width = 113;
             // 
             // columnHeader_itemBarcode
             // 
@@ -197,6 +202,10 @@
             // 
             this.columnHeader_department.Text = "预约者部门";
             this.columnHeader_department.Width = 100;
+            // 
+            // columnHeader_tel
+            // 
+            this.columnHeader_tel.Text = "电话";
             // 
             // columnHeader_state
             // 
@@ -245,7 +254,7 @@
             this.tabControl1.Location = new System.Drawing.Point(12, 51);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(1072, 430);
+            this.tabControl1.Size = new System.Drawing.Size(1071, 502);
             this.tabControl1.TabIndex = 1;
             // 
             // tabPage_arrived
@@ -254,7 +263,7 @@
             this.tabPage_arrived.Location = new System.Drawing.Point(4, 28);
             this.tabPage_arrived.Name = "tabPage_arrived";
             this.tabPage_arrived.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage_arrived.Size = new System.Drawing.Size(1064, 398);
+            this.tabPage_arrived.Size = new System.Drawing.Size(1063, 470);
             this.tabPage_arrived.TabIndex = 0;
             this.tabPage_arrived.Text = "预约到书";
             this.tabPage_arrived.UseVisualStyleBackColor = true;
@@ -265,7 +274,7 @@
             this.tabPage_outof.Location = new System.Drawing.Point(4, 28);
             this.tabPage_outof.Name = "tabPage_outof";
             this.tabPage_outof.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage_outof.Size = new System.Drawing.Size(1180, 64);
+            this.tabPage_outof.Size = new System.Drawing.Size(1063, 470);
             this.tabPage_outof.TabIndex = 1;
             this.tabPage_outof.Text = "超过保留期";
             this.tabPage_outof.UseVisualStyleBackColor = true;
@@ -286,6 +295,7 @@
             this.columnHeader11,
             this.columnHeader12,
             this.columnHeader13,
+            this.columnHeader3,
             this.columnHeader14});
             this.listView_outof.ContextMenuStrip = this.contextMenuStrip_prep;
             this.listView_outof.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -295,15 +305,26 @@
             this.listView_outof.Location = new System.Drawing.Point(3, 3);
             this.listView_outof.Margin = new System.Windows.Forms.Padding(4);
             this.listView_outof.Name = "listView_outof";
-            this.listView_outof.Size = new System.Drawing.Size(1174, 58);
+            this.listView_outof.Size = new System.Drawing.Size(1057, 464);
             this.listView_outof.TabIndex = 1;
             this.listView_outof.UseCompatibleStateImageBehavior = false;
             this.listView_outof.View = System.Windows.Forms.View.Details;
+            this.listView_outof.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.listView_outof_ColumnClick);
             // 
             // columnHeader1
             // 
             this.columnHeader1.Text = "路径";
-            this.columnHeader1.Width = 118;
+            this.columnHeader1.Width = 75;
+            // 
+            // columnHeader_priteState
+            // 
+            this.columnHeader_priteState.Text = "备书状态";
+            this.columnHeader_priteState.Width = 0;
+            // 
+            // columnHeader2
+            // 
+            this.columnHeader2.Text = "预约时间";
+            this.columnHeader2.Width = 0;
             // 
             // columnHeader4
             // 
@@ -313,7 +334,7 @@
             // columnHeader5
             // 
             this.columnHeader5.Text = "册条码";
-            this.columnHeader5.Width = 100;
+            this.columnHeader5.Width = 93;
             // 
             // columnHeader6
             // 
@@ -354,26 +375,31 @@
             this.columnHeader13.Text = "预约者部门";
             this.columnHeader13.Width = 100;
             // 
+            // columnHeader3
+            // 
+            this.columnHeader3.Text = "电话";
+            // 
             // columnHeader14
             // 
             this.columnHeader14.Text = "状态";
             this.columnHeader14.Width = 100;
             // 
-            // columnHeader_priteState
+            // button_stop
             // 
-            this.columnHeader_priteState.Text = "备书状态";
-            this.columnHeader_priteState.Width = 0;
-            // 
-            // columnHeader2
-            // 
-            this.columnHeader2.Text = "预约时间";
-            this.columnHeader2.Width = 0;
+            this.button_stop.Location = new System.Drawing.Point(560, 13);
+            this.button_stop.Margin = new System.Windows.Forms.Padding(4);
+            this.button_stop.Name = "button_stop";
+            this.button_stop.Size = new System.Drawing.Size(112, 34);
+            this.button_stop.TabIndex = 3;
+            this.button_stop.Text = "停止";
+            this.button_stop.UseVisualStyleBackColor = true;
             // 
             // PrepForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1091, 492);
+            this.ClientSize = new System.Drawing.Size(1090, 564);
+            this.Controls.Add(this.button_stop);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.button_search);
             this.Controls.Add(this.textBox_queryWord);
@@ -434,5 +460,8 @@
         private System.Windows.Forms.ColumnHeader columnHeader14;
         private System.Windows.Forms.ColumnHeader columnHeader_priteState;
         private System.Windows.Forms.ColumnHeader columnHeader2;
+        private System.Windows.Forms.ColumnHeader columnHeader_tel;
+        private System.Windows.Forms.ColumnHeader columnHeader3;
+        private System.Windows.Forms.Button button_stop;
     }
 }

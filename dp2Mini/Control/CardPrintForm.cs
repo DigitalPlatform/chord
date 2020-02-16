@@ -311,10 +311,12 @@ namespace dp2Mini
         /// 类型
         /// </summary>
         public string Type = "";
+
         /// <summary>
         /// 预设缺省打印机名字，记忆选择过的打印机名字
         /// </summary>
         public string PrinterName = "";  // 预设缺省打印机名字，记忆选择过的打印机名字
+
         /// <summary>
         /// 预设缺省的纸张尺寸名字
         /// </summary>

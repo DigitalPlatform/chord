@@ -2565,6 +2565,7 @@ namespace dp2weixin.service
 
             // 如果图书馆配了在架预约不发通知，则不给读者发通知 2020/2/14 编译局使用的馆员备书功能
             if (bOnShelf ==true 
+                && string.IsNullOrEmpty(lib.comment)==false
                 && lib.comment.IndexOf("OnshelfArrivedNoNotice") != -1)
             {
                 return 0;
@@ -6722,7 +6723,8 @@ public string ErrorCode { get; set; }
                     if (string.IsNullOrEmpty(item.borrower) == false)
                     {
                         // 馆的备注信息如果配置了ReserveOnshelf，则表示仅支持在架预约，外借的图不支持预约。2020/2/14 renyh
-                        if (lib.comment.IndexOf("ReserveOnshelf") != -1) 
+                        if (string.IsNullOrEmpty(lib.comment)==false
+                            && lib.comment.IndexOf("ReserveOnshelf") != -1) 
                         {
                             bCanReservation = false;
                         }
@@ -8397,7 +8399,8 @@ public string ErrorCode { get; set; }
                         reserRowHtml = this.getReservationHtml("已预约", items, true, true);
 
                     // 图书馆设置为支持在线预约，预约成功后，同时提示简化。2020/2/14 编译局使用的馆员备书功能
-                    if (lib.comment.IndexOf("ReserveOnshelf") != -1)
+                    if (string.IsNullOrEmpty(lib.comment) == false
+                        && lib.comment.IndexOf("ReserveOnshelf") != -1)
                     {
                         strError = ""; //将在架预约的提示清掉。
                     }

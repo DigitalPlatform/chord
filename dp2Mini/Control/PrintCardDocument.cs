@@ -19,15 +19,24 @@ namespace dp2Mini
     internal class PrintCardDocument : PrintDocument
     {
         public string XmlFilename = "";
+
         Stream m_file = null;
         XmlTextReader m_reader = null;
         bool EOF = false;
 
         int m_nPageNo = 0;  // 0表示没有初始化
+
+        // 页数
         List<Page> m_pages = new List<Page>();
 
         PageSetting m_pagesetting = null;
 
+        /// <summary>
+        /// 打开配置文件
+        /// </summary>
+        /// <param name="strInputFileName"></param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
         public int Open(string strInputFileName,
             out string strError)
         {
@@ -47,9 +56,7 @@ namespace dp2Mini
 
 
             this.XmlFilename = strInputFileName;
-
             this.m_reader = new XmlTextReader(m_file);
-
             while (true)
             {
                 bool bRet = m_reader.Read();
@@ -67,9 +74,8 @@ namespace dp2Mini
             //      -1  error
             //      0   normal
             //      1   reach file end。strXml中无内容
-            int nRet = GetPageSetting(
-            out strPageSettingXml,
-            out strError);
+            int nRet = GetPageSetting(out strPageSettingXml,
+                out strError);
             if (nRet == -1)
                 return -1;
             if (nRet == 0)
@@ -154,8 +160,7 @@ namespace dp2Mini
         //      -1  error
         //      0   normal
         //      1   reach file end。strXml中无内容
-        public int GetPageSetting(
-            out string strXml,
+        public int GetPageSetting(out string strXml,
             out string strError)
         {
             strError = "";
@@ -459,8 +464,7 @@ namespace dp2Mini
         // return:
         //      0   普通
         //      1   文件已经到达末尾，后面再也没有任何<document>了
-        int GetPages(
-            Graphics g,
+        int GetPages(Graphics g,
             int nCount,
             bool bClear,
             out string strError)
@@ -2135,6 +2139,10 @@ namespace dp2Mini
         }
     }
 
+
+    /// <summary>
+    /// 页面设置
+    /// </summary>
     internal class PageSetting
     {
         public float Width = 0;
@@ -2148,11 +2156,18 @@ namespace dp2Mini
         public string Align = "left";   // 水平对齐 left center right leftright
         public string VertAlign = "top";   // 垂直对齐 top bottom
 
+        /// <summary>
+        /// 根据xml创建页面
+        /// </summary>
+        /// <param name="strPageSettingXml"></param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
         public int Build(string strPageSettingXml,
             out string strError)
         {
             strError = "";
 
+            // 加载pageSetting配置文件
             XmlDocument setting_dom = new XmlDocument();
             try
             {
@@ -2164,6 +2179,7 @@ namespace dp2Mini
                 return -1;
             }
 
+            //width
             string strWidth = DomUtil.GetAttr(setting_dom.DocumentElement,
                 "width");
             if (string.IsNullOrEmpty(strWidth) == false)
@@ -2175,6 +2191,7 @@ namespace dp2Mini
                 }
             }
 
+            // height
             string strHeight = DomUtil.GetAttr(setting_dom.DocumentElement,
                 "height");
             if (string.IsNullOrEmpty(strHeight) == false)
@@ -2186,32 +2203,32 @@ namespace dp2Mini
                 }
             }
 
-            XmlNode nodeFont = setting_dom.DocumentElement.SelectSingleNode("font");
-            if (nodeFont != null)
+            // font
+            XmlNode nodeFont1 = setting_dom.DocumentElement.SelectSingleNode("font");
+            if (nodeFont1 != null)
             {
-
-                string strValue = DomUtil.GetAttr(nodeFont, "name");
+                string strValue = DomUtil.GetAttr(nodeFont1, "name");
                 if (String.IsNullOrEmpty(strValue) == false)
                     this.FontName = strValue;
 
-                strValue = DomUtil.GetAttr(nodeFont, "size");
+                strValue = DomUtil.GetAttr(nodeFont1, "size");
                 if (String.IsNullOrEmpty(strValue) == false)
                     this.FontSize = strValue;
 
-                strValue = DomUtil.GetAttr(nodeFont, "style");
+                strValue = DomUtil.GetAttr(nodeFont1, "style");
                 if (String.IsNullOrEmpty(strValue) == false)
                     this.FontStyle = strValue;
 
-                strValue = DomUtil.GetAttr(nodeFont, "color");
+                strValue = DomUtil.GetAttr(nodeFont1, "color");
                 if (String.IsNullOrEmpty(strValue) == false)
                     this.FontColor = strValue;
             }
-            nodeFont = null;
+            //nodeFont = null;
 
             XmlNode nodeP = setting_dom.DocumentElement.SelectSingleNode("p");
             if (nodeP != null)
             {
-
+                // indent
                 string strValue = DomUtil.GetAttr(nodeP, "indent");
                 if (String.IsNullOrEmpty(strValue) == false)
                 {
@@ -2222,6 +2239,7 @@ namespace dp2Mini
                     }
                 }
 
+                // lineBreak
                 strValue = DomUtil.GetAttr(nodeP, "lineBreak");
                 if (String.IsNullOrEmpty(strValue) == false)
                 {
@@ -2234,6 +2252,7 @@ namespace dp2Mini
                     this.LineBreak = strValue;
                 }
 
+                // align
                 strValue = DomUtil.GetAttr(nodeP, "align");
                 if (String.IsNullOrEmpty(strValue) == false)
                 {
@@ -2249,6 +2268,7 @@ namespace dp2Mini
                     this.Align = strValue;
                 }
 
+                // valign
                 strValue = DomUtil.GetAttr(nodeP, "valign");
                 if (String.IsNullOrEmpty(strValue) == false)
                 {
@@ -2262,7 +2282,7 @@ namespace dp2Mini
                     this.VertAlign = strValue;
                 }
             }
-            nodeP = null;
+            //nodeP = null;
 
             return 0;
         }
