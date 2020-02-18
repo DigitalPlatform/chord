@@ -1,0 +1,77 @@
+﻿        /// <summary>
+        /// 设置状态
+        /// </summary>
+        /// <param name="items"></param>
+        /// <param name="strChangeState"></param>
+        void changeAcctiveItemPrintState(ListViewItem[] items, string strChangeState)
+        {
+            if (items.Length == 0)
+                return;
+
+            MainForm mainForm = null;
+            if (this.MdiParent is MainForm)
+                mainForm = this.MdiParent as MainForm;
+
+            Debug.Assert(mainForm != null, "MdiParent 父窗口为 null");
+
+            LibraryChannel channel = mainForm.GetChannel();
+            try
+            {
+                string strResult = "";
+                string strMetaData = "";
+                byte[] baTimestamp = null;
+                string strOutputResPath = "";
+                string strError = "";
+                foreach (ListViewItem item in items)
+                {
+                    Application.DoEvents();
+
+                    string strResPath = item.Text;
+                    long lRet = channel.GetRes(strResPath,
+                        "content,data,metadata,timestamp,outputpath",
+                        out strResult,
+                        out strMetaData,
+                        out baTimestamp,
+                        out strOutputResPath,
+                        out strError);
+                    if (lRet == -1)
+                    {
+                        MessageBox.Show(this, strError);
+                        return;
+                    }
+
+                    XmlDocument dom = new XmlDocument();
+                    dom.LoadXml(strResult);
+
+                    string strPrintState = DomUtil.GetElementText(dom.DocumentElement, "printState");
+                    if (strPrintState == strChangeState)
+                        continue;
+
+                    DomUtil.SetElementText(dom.DocumentElement, "printState", strChangeState);
+
+                    byte[] baOutTimestamp = null;
+                    lRet = channel.WriteRes(strResPath,
+                        dom.DocumentElement.OuterXml,
+                        true,
+                        "",
+                        baTimestamp,
+                        out baOutTimestamp,
+                        out strOutputResPath,
+                        out strError);
+                    if (lRet == -1)
+                    {
+                        MessageBox.Show(this, strError);
+                        return;
+                    }
+
+                    ListViewUtil.ChangeItemText(item, 1, strChangeState);
+
+                    if (strChangeState == "已打印")
+                        item.BackColor = Color.Gray;
+                }
+            }
+            finally
+            {
+                mainForm.ReturnChannel(channel);
+            }
+        }

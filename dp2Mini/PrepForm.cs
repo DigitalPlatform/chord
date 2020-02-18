@@ -22,152 +22,90 @@ namespace dp2Mini
 {
     public partial class PrepForm : Form
     {
-        string _fileName = "";
-        List<BookNote> _list = new List<BookNote>();
+        // mid父窗口
+        MainForm _mainForm = null;
 
+        // 名字以用途命名即可。TokenSource 这种类型名称可以不出现在名字中
+        CancellationTokenSource _cancel = new CancellationTokenSource();
+
+        public const string C_State_outof = "outof";
+        public const string C_State_arrived = "arrived";
+
+        /// <summary>
+        ///  构造函数
+        /// </summary>
         public PrepForm()
         {
             InitializeComponent();
         }
 
+        /// <summary>
+        /// 窗体装载
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void PrepForm_Load(object sender, EventArgs e)
         {
-            this._list = new List<BookNote>();
-
-            this._fileName = Application.StartupPath + "\\records.xml";
-            if (File.Exists(this._fileName) == true)
-            {
-                XmlDocument dom = new XmlDocument();
-                dom.Load(this._fileName);
-                XmlNodeList nodeList = dom.DocumentElement.SelectNodes("item");
-                foreach (XmlNode node in nodeList)
-                {
-                    string id = DomUtil.GetAttr(node, "id");
-                    string records = DomUtil.GetAttr(node, "records");
-                    string noticeState = DomUtil.GetAttr(node, "noticeState");
-                    string dateTime = DomUtil.GetAttr(node, "dateTime");
-                    BookNote order = new BookNote
-                    {
-                        id = id,
-                        records = records,
-                        noticeState = noticeState,
-                        dateTime = dateTime,
-                    };
-
-                    this._list.Add(order);
-                }
-            }
-
-            foreach (BookNote note in this._list)
-            {
-                this.AddNoteToListView(note);
-            }
-
-
+            this._mainForm = this.MdiParent as MainForm;
         }
 
-        public void AddNoteToListView(BookNote note)
-        {
-            ListViewItem item = new ListViewItem(note.id, 0);
-            this.listView_bsd.Items.Add(item);
-
-            item.SubItems.Add(note.dateTime);
-            item.SubItems.Add(note.records);
-            item.SubItems.Add(note.noticeState);
-            item.SubItems.Add(note.takeBoolState);
-        }
-
-        private void PrepForm_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            if (this._list.Count == 0)
-                return;
-
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("<root>");
-
-            foreach (BookNote order in this._list)
-            {
-                sb.AppendLine("<item id='"+order.id+"' records='"+order.records+"' noticeState='"+order.noticeState + "' dateTime='"+order.dateTime+"'/>");
-            }
-            sb.AppendLine("</root>");
-
-            XmlDocument dom = new XmlDocument();
-            dom.LoadXml(sb.ToString());
-            dom.Save(this._fileName);
-        }
-
-
-        private void PrepForm_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            string text = "";
-        }
-
-        // 名字以用途命名即可。TokenSource 这种类型名称可以不出现在名字中
-        CancellationTokenSource _cancel = new CancellationTokenSource();
-
-
+        /// <summary>
+        /// 检索预约到书记录
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void button_search_Click(object sender, EventArgs e)
         {
+            //预约到书库和检索词
+            string strQueryWord = this.textBox_queryWord.Text;
+            string arrivedDbName = this._mainForm.ArrivedDbName;
 
             // 每次开头都重新 new 一个。这样避免受到上次遗留的 _cancel 对象的状态影响
             this._cancel.Dispose();
             this._cancel = new CancellationTokenSource();
-            //this.textBox_info.Text = "";
 
+            // 开一个新线程
             Task.Run(() =>
             {
-                doSearch(this._cancel.Token);
+                doSearch(this._cancel.Token,
+                    arrivedDbName,
+                    strQueryWord);
             });
-
-
         }
 
-        private void doSearch(CancellationToken token)
+        /// <summary>
+        /// 检索做事的函数
+        /// </summary>
+        /// <param name="token"></param>
+        private void doSearch(CancellationToken token,
+            string arrivedDbName,
+            string strQueryWord)
         {
+            string strError = "";
+
+            // 记下原来的光标
             Cursor oldCursor = Cursor.Current;
-            // 设置按钮状态
+
+            // 用Invoke线程安全的方式来调
             this.Invoke((Action)(() =>
             {
+                // 设置按钮状态
                 EnableControls(false);
+
+                //清空界面数据
+                this.ClearInfo();
+
                 // 鼠标设为等待状态
                 oldCursor = this.Cursor;
                 this.Cursor = Cursors.WaitCursor;
-
             }
-                )) ;
+            ));
+
+            LibraryChannel channel = this._mainForm.GetChannel();
             try
             {
-
-                string strError = "";
-
-                string strQueryWord = "";
-                string dbNams = "";
-                MainForm mainForm = null;
-
-                // 界面显示信息
-                this.Invoke((Action)(() =>
-                {
-                // 清空listview
-                this.listView_results.Items.Clear();
-                    this.listView_outof.Items.Clear();
-
-                //设置父窗口状态栏参数
-
-                if (this.MdiParent is MainForm)
-                        mainForm = this.MdiParent as MainForm;
-                    Debug.Assert(mainForm != null, "MdiParent 父窗口为 null");
-
-                    mainForm.SetStatusMessage("");
-
-                    strQueryWord = this.textBox_queryWord.Text;
-                    dbNams = mainForm.ArrivedDbName;
-
-                }
-                 ));
-
-                // 检索条件
-                string strFrom = "读者证条码号";
-                string strMatchStyle = "exact";
+                string strFrom = "读者证条码号"; // 检索途径
+                string strMatchStyle = "exact";  //匹配方式
                 // 如果检索词为空，则按__id检索出全部记录
                 if (string.IsNullOrEmpty(strQueryWord))
                 {
@@ -176,7 +114,7 @@ namespace dp2Mini
                 }
 
                 // 拼装检索语句
-                string strQueryXml = "<target list='" + dbNams + ":" + strFrom + "'>" +
+                string strQueryXml = "<target list='" + arrivedDbName + ":" + strFrom + "'>" +
                     "<item>" +
                     "<word>" + strQueryWord + "</word>" +
                     "<match>" + strMatchStyle + "</match>" +
@@ -186,116 +124,98 @@ namespace dp2Mini
                     "<lang>zh</lang>" +
                     "</target>";
 
-                LibraryChannel channel = mainForm.GetChannel();
-                try
+                string strOutputStyle = "";
+                SearchResponse searchResponse = channel.Search(strQueryXml,
+                    "arrived",
+                    strOutputStyle);
+                long lRet = searchResponse.SearchResult.Value;
+                if (lRet == -1)
                 {
-                    string strOutputStyle = "";
-                    SearchResponse searchResponse = channel.Search(strQueryXml,
-                        "arrived",
-                        strOutputStyle);
-                    long lRet = searchResponse.SearchResult.Value;
+                    strError = "检索发生错误：" + strError;
+                    goto ERROR1;
+                }
+                if (lRet == 0)
+                {
+                    strError = "读者'" + strQueryWord + "'没有到书信息";
+                    goto ERROR1;
+                }
+
+                // 获取结果集记录
+                long lTotalCount = lRet;
+                long lStart = 0;
+                long lOnceCount = lTotalCount;
+                Record[] searchresults = null;
+                while (token.IsCancellationRequested == false)
+                {
+                    lRet = channel.GetSearchResult("arrived",
+                        lStart,
+                        lOnceCount,
+                        "id,xml",// cols,
+                        "zh",
+                        out searchresults,
+                        out strError);
                     if (lRet == -1)
                     {
-                        strError = "检索发生错误：" + strError;
+                        strError = "获得检索结果发生错误：" + strError;
                         goto ERROR1;
                     }
-                    if (lRet == 0)
+                    else if (lRet == 0)
                     {
-                        strError = "读者'" + strQueryWord + "'没有到书信息";
+                        strError = "获得0 条检索结果";
                         goto ERROR1;
                     }
 
-                    // 总记录数
-                    long lTotalCount = lRet;
-
-                    long lStart = 0;
-                    long lOnceCount = lTotalCount;
-                    Record[] searchresults = null;
-                    while (token.IsCancellationRequested == false)
+                    // 处理每一条记录
+                    int i = 0;
+                    foreach (Record record in searchresults)
                     {
-                        //Application.DoEvents();
-
-
-                        lRet = channel.GetSearchResult("arrived",
-                            lStart,
-                            lOnceCount,
-                            "id,xml",// cols,
-                            "zh",
-                            out searchresults,
-                            out strError);
-                        if (lRet == -1)
-                        {
-                            strError = "获得检索结果发生错误：" + strError;
-                            goto ERROR1;
-                        }
-                        else if (lRet == 0)
-                        {
-                            strError = "获得0 条检索结果";
-                            goto ERROR1;
-                        }
-
-
-                        int i = 0;
-                        foreach (Record record in searchresults)
-                        {
-                            if (token.IsCancellationRequested == true)
-                                break;
-
-                            string strPath = record.Path;
-                            // 检查这笔记录是否已经在配书单里了
-                            BookNote order = this.getOrderByRecPath(strPath);
-                            if (order != null)
-                            {
-                                //// 增加一行到超过保留期的
-                                //AppendNewLine(this.listView1, strPath, cols);
-                                continue;
-                            }
-
-
-                            // 把一条记录，解析出各列
-                            string[] cols = null;
-                            int nRet = GetLineCols(channel,
-                                strPath,
-                                record.RecordBody.Xml,
-                                out cols,
-                                out strError);
-                            if (nRet == -1)
-                                goto ERROR1;
-
-                            this.Invoke((Action)(() =>
-                            {
-                                 if (cols[cols.Length - 1] == "超过保留期")
-                                {
-                                    // 增加一行到超过保留期的
-                                    AppendNewLine(this.listView_outof, strPath, cols);
-                                }
-                                else
-                                {
-                                    // 增加一行到预约到书
-                                    AppendNewLine(this.listView_results, strPath, cols);
-                                }
-
-
-                                // 设置状态栏信息
-                                mainForm.SetStatusMessage((lStart + i + 1).ToString() + " / " + lTotalCount);
-
-                                // 数量加1
-                                i++;
-                            }
-                        ));
-
-                        }
-
-                        lStart += searchresults.Length;
-                        if (lStart >= lTotalCount)
+                        if (token.IsCancellationRequested == true)
                             break;
-                    }
-                }
-                finally
-                {
-                    mainForm.ReturnChannel(channel);
-                }
 
+                        string strPath = record.Path;
+                        // 检查这笔记录是否已经在备书单里了
+                        //BookNote order = this.getOrderByRecPath(strPath);
+                        //if (order != null)
+                        //{
+                        //    continue;
+                        //}
+
+                        // 把一条记录，解析出各列
+                        //string[] cols = null;
+                        int nRet = GetLineCols(channel,
+                           strPath,
+                           record.RecordBody.Xml,
+                           out ReservationItem reserItem,
+                            out strError);
+                        if (nRet == -1)
+                            goto ERROR1;
+
+                        this.Invoke((Action)(() =>
+                        {
+                            if (reserItem.State == C_State_outof)
+                            {
+                                // 增加一行到超过保留期的
+                                AppendNewLine(this.listView_outof, strPath, reserItem);
+                            }
+                            else
+                            {
+                                // 增加一行到预约到书
+                                AppendNewLine(this.listView_results, strPath, reserItem);
+                            }
+
+                            // 设置状态栏信息
+                            this._mainForm.SetStatusMessage((lStart + i + 1).ToString() + " / " + lTotalCount);
+
+                            // 数量加1
+                            i++;
+                        }
+                        ));
+                    }
+
+                    lStart += searchresults.Length;
+                    if (lStart >= lTotalCount)
+                        break;
+                }
 
                 return;
 
@@ -305,7 +225,6 @@ namespace dp2Mini
                     MessageBox.Show(strError);
                 }
                 ));
-
             }
             finally
             {
@@ -314,13 +233,28 @@ namespace dp2Mini
                 {
                     EnableControls(true);
                     this.Cursor = oldCursor;
+
+                    this._mainForm.ReturnChannel(channel);
                 }
-                    ));
+                ));
             }
         }
 
         /// <summary>
-        /// 分析出各列值
+        /// 清空界面数据
+        /// </summary>
+        public void ClearInfo()
+        {
+            // 清空listview
+            this.listView_results.Items.Clear();
+            this.listView_outof.Items.Clear();
+
+            //设置父窗口状态栏参数
+            this._mainForm.SetStatusMessage("");
+        }
+
+        /// <summary>
+        /// 获取记录详细信息
         /// </summary>
         /// <param name="channel"></param>
         /// <param name="strRecord"></param>
@@ -328,173 +262,134 @@ namespace dp2Mini
         /// <param name="strError"></param>
         /// <returns></returns>
         int GetLineCols(LibraryChannel channel,
-            string strPath,
-           string strRecord,
-           out string[] cols,
+            string recPath,
+            string strRecordXml,
+            out ReservationItem reserItem,
            out string strError)
         {
             strError = "";
-            cols = new string[15]; //13列
+
+            reserItem = new ReservationItem();
+            reserItem.RecPath = recPath;
 
             XmlDocument dom = new XmlDocument();
-            dom.LoadXml(strRecord);
-            
+            dom.LoadXml(strRecordXml);
+            XmlNode nodeRoot = dom.DocumentElement;
 
-            string strLocation = DomUtil.GetElementText(dom.DocumentElement, "location");
-            string strAccessNo = DomUtil.GetElementText(dom.DocumentElement, "accessNo");
-            string strPrintState = DomUtil.GetElementText(dom.DocumentElement, "printState");
-            if (string.IsNullOrEmpty(strPrintState))
-                strPrintState = "未打印";
+            reserItem.RecPath = recPath;
+            reserItem.State = DomUtil.GetElementText(nodeRoot, "state");
+            reserItem.ItemBarcode = DomUtil.GetElementText(nodeRoot, "itemBarcode");
+            reserItem.ItemRefID = DomUtil.GetElementText(nodeRoot, "itemRefID");
+            reserItem.ReaderBarcode = DomUtil.GetElementText(nodeRoot, "readerBarcode");
+            reserItem.LibraryCode = DomUtil.GetElementText(nodeRoot, "libraryCode");
+            reserItem.OnShelf = DomUtil.GetElementText(nodeRoot, "onShelf");
+            reserItem.NotifyDate = DateTimeUtil.ToLocalTime(DomUtil.GetAttr(nodeRoot, "notifyDate"), "yyyy-MM-dd HH:mm:ss");
+            reserItem.Location = DomUtil.GetElementText(nodeRoot, "location");
+            reserItem.AccessNo = DomUtil.GetElementText(nodeRoot, "accessNo");
 
-            string strISBN = "";
-            string strTitle = "";
-            string strAuthor = "";
+            // 以下字段为图书信息
+            reserItem.ISBN = "";
+            reserItem.Title = "";
+            reserItem.Author = "";
 
-           
-            string strItemBarcode = DomUtil.GetElementText(dom.DocumentElement, "itemBarcode");
-            
-            string strReaderBarcode = DomUtil.GetElementText(dom.DocumentElement, "readerBarcode");
-            string strName = "";
-            string strDept = "";
-            string strTel = "";
-            string requestDate = "";// 预约时间
-            string arrivedDate = ""; // 到书时间
+            // 以下字段是读者信息
+            reserItem.ReaderName = "";
+            reserItem.Department = "";
+            reserItem.Tel = "";
+            reserItem.RequestDate = "";
+            reserItem.ArrivedDate = "";
 
-            // 本地记录
-            string operState = "未知";
-            //ReservationItem localRecord = this.getItem(strPath);
-            //if (localRecord != null)
-            //    operState = localRecord.State;
-
-            string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
-            if ("arrived" == strState)
-            {
-                strState = "图书在馆";
-            }
-            else if ("outof" == strState) 
-            {
-                strState = "超过保留期";
-                goto END;
-            }
+            // 备书产生的字段
+            reserItem.PrintState = DomUtil.GetElementText(nodeRoot, "printState");
+            reserItem.CheckState = "";// 是否找到图书，值为：找到/未找到
 
             // 获取册信息以及书目信息
-            if (!string.IsNullOrEmpty(strItemBarcode))
+            if (!string.IsNullOrEmpty(reserItem.ItemBarcode))
             {
-                GetItemInfoResponse itemRet = channel.GetItemInfo(strItemBarcode,
+                GetItemInfoResponse response = channel.GetItemInfo(reserItem.ItemBarcode,
                     "xml",
                     "xml");
-                if (itemRet == null)
+                if (response.GetItemInfoResult.Value == -1)
                 {
-                    strError = "返回结果为null。";
+                    strError = "获取册记录'"+reserItem.ItemBarcode+"'出错:" + response.GetItemInfoResult.ErrorInfo;
                     return -1;
                 }
-                if (itemRet.GetItemInfoResult.Value == -1)
+                if (response.GetItemInfoResult.Value == 0)
                 {
-                    strError = itemRet.GetItemInfoResult.ErrorInfo;
+                    strError = "获取册记录'" + reserItem.ItemBarcode + "未命中";
                     return -1;
                 }
-                if (itemRet.GetItemInfoResult.Value == 1)
-                {
-                    string strOutMarcSyntax = "";
-                    string strMARC = "";
-                    string strMarcXml = itemRet.strBiblio;
-                    int nRet = MarcUtil.Xml2Marc(strMarcXml,
-                        false,
-                        "", // 自动识别 MARC 格式
-                        out strOutMarcSyntax,
-                        out strMARC,
-                        out strError);
-                    if (nRet != -1)
-                    {
-                        MarcRecord marcRecord = new MarcRecord(strMARC);
-                        strISBN = marcRecord.select("field[@name='010']/subfield[@name='a']").FirstContent;
-                        strTitle = marcRecord.select("field[@name='200']/subfield[@name='a']").FirstContent;
-                        strAuthor = marcRecord.select("field[@name='200']/subfield[@name='f']").FirstContent;
 
+                string strOutMarcSyntax = "";
+                string strMARC = "";
+                string strMarcXml = response.strBiblio;
+                int nRet = MarcUtil.Xml2Marc(strMarcXml,
+                    false,
+                    "", // 自动识别 MARC 格式
+                    out strOutMarcSyntax,
+                    out strMARC,
+                    out strError);
+                if (nRet == -1)
+                    return -1;
 
-                    }
-                }
+                MarcRecord marcRecord = new MarcRecord(strMARC);
+                reserItem.ISBN = marcRecord.select("field[@name='010']/subfield[@name='a']").FirstContent;
+                reserItem.Title = marcRecord.select("field[@name='200']/subfield[@name='a']").FirstContent;
+                reserItem.Author = marcRecord.select("field[@name='200']/subfield[@name='f']").FirstContent;
             }
 
-
             // 获取读者信息
-            if (string.IsNullOrEmpty(strReaderBarcode) == false)
+            if (string.IsNullOrEmpty(reserItem.ReaderBarcode) == false)
             {
-                GetReaderInfoResponse readerRet = channel.GetReaderInfo(strReaderBarcode,
+                GetReaderInfoResponse readerRet = channel.GetReaderInfo(reserItem.ReaderBarcode,
                     "xml:noborrowhistory");
                 if (readerRet.GetReaderInfoResult.Value == -1)
                 {
-                    strError = readerRet.GetReaderInfoResult.ErrorInfo;
+                    strError = "获取册记录'" + reserItem.ItemBarcode + "'出错:" + readerRet.GetReaderInfoResult.ErrorInfo;
                     return -1;
                 }
-                if (readerRet.GetReaderInfoResult.Value == 1)
+                if (readerRet.GetReaderInfoResult.Value == 0)
                 {
-                    string strReaderXml = readerRet.results[0];
-                    dom.LoadXml(strReaderXml);
+                    strError = "获取册记录'" + reserItem.ItemBarcode + "'未命中。";// + readerRet.GetReaderInfoResult.ErrorInfo;
+                    return -1;
+                }
 
-                    XmlNode rootNode = dom.DocumentElement;
-                    strName = DomUtil.GetElementText(rootNode, "name");
-                    strDept = DomUtil.GetElementText(rootNode, "department");
-                    strTel = DomUtil.GetElementText(rootNode, "tel");
+                string strPatronXml = readerRet.results[0];
+                dom.LoadXml(strPatronXml);
+                XmlNode rootNode = dom.DocumentElement;
+                reserItem.ReaderName = DomUtil.GetElementText(rootNode, "name");
+                reserItem.Department = DomUtil.GetElementText(rootNode, "department");
+                reserItem.Tel = DomUtil.GetElementText(rootNode, "tel");
 
-                    /*
-                    - <root expireDate="">
-                     <barcode>XZP10199</barcode> 
-                     <readerType>学生</readerType> 
-                     <name>李明</name> 
-                     <overdues /> 
-                   - <reservations>
-                     <request items="XZ000101" requestDate="Tue, 11 Feb 2020 00:30:27 +0800" 
-                        operator="XZP10199" state="arrived" arrivedDate="Tue, 11 Feb 2020 00:31:45 +0800" 
-                        arrivedItemBarcode="XZ000101" notifyID="59abfc23-f44f-4b34-a22c-f8a8aa5e289e" 
-                        accessNo="K825.6=76/Z780" location="星洲学校/图书馆,#reservation" /> 
-                     </reservations>
-                     </root>
-                     */
-
-                    XmlNodeList nodeList = rootNode.SelectNodes("reservations/request");
-                    foreach (XmlNode node in nodeList)
+                /*
+                - <root expireDate="">
+                 <barcode>XZP10199</barcode> 
+                 <readerType>学生</readerType> 
+                 <name>李明</name> 
+                 <overdues /> 
+               - <reservations>
+                 <request items="XZ000101" requestDate="Tue, 11 Feb 2020 00:30:27 +0800" 
+                    operator="XZP10199" state="arrived" arrivedDate="Tue, 11 Feb 2020 00:31:45 +0800" 
+                    arrivedItemBarcode="XZ000101" notifyID="59abfc23-f44f-4b34-a22c-f8a8aa5e289e" 
+                    accessNo="K825.6=76/Z780" location="星洲学校/图书馆,#reservation" /> 
+                 </reservations>
+                 </root>
+                 */
+                XmlNodeList nodeList = rootNode.SelectNodes("reservations/request");
+                foreach (XmlNode node in nodeList)
+                {
+                    string arrivedItemBarcode = DomUtil.GetAttr(node, "arrivedItemBarcode");
+                    if (arrivedItemBarcode == reserItem.ItemBarcode)
                     {
-                        string arrivedItemBarcode = DomUtil.GetAttr(node, "arrivedItemBarcode");
-                        if (arrivedItemBarcode == strItemBarcode)
-                        {
-                            requestDate = DateTimeUtil.ToLocalTime(DomUtil.GetAttr(node, "requestDate"), "yyyy-MM-dd HH:mm:ss");
-                            arrivedDate = DateTimeUtil.ToLocalTime(DomUtil.GetAttr(node, "arrivedDate"), "yyyy-MM-dd HH:mm:ss");
-                            break;
-                        }
+                        reserItem.RequestDate = DateTimeUtil.ToLocalTime(DomUtil.GetAttr(node, "requestDate"), "yyyy-MM-dd HH:mm:ss");
+                        reserItem.ArrivedDate = DateTimeUtil.ToLocalTime(DomUtil.GetAttr(node, "arrivedDate"), "yyyy-MM-dd HH:mm:ss");
+                        break;
                     }
-
                 }
             }
 
-        END:
-
-            cols[0] = strPrintState; //备书状态
-            cols[1] = operState;
-            cols[2] = requestDate;
-            cols[3] = arrivedDate;
-            cols[4] = strItemBarcode;
-
-            cols[5] = strISBN;
-            cols[6] = strTitle;
-            cols[7] = strAuthor;
-
-            cols[8] = strAccessNo;
-            cols[9] = strLocation;
-
-            cols[10] = strReaderBarcode;
-            cols[11] = strName;
-            cols[12] = strDept;
-            cols[13] = strTel;
-
-            // 是否超过保留期
-            cols[14] = strState;
-
-
             return 0;
         }
-
-
 
         /// <summary>
         /// 在 ListView 最后追加一行
@@ -505,35 +400,56 @@ namespace dp2Mini
         /// <returns>新创建的 ListViewItem 对象</returns>
         public static ListViewItem AppendNewLine(
             ListView list,
-            string strID,
-            string[] others)
+            string strPath,
+            ReservationItem reserItem )
         {
-            if (others != null)
-            {
-                //确保列标题数量足够
-                ListViewUtil.EnsureColumns(list, others.Length + 1, 100);
-            }
-
-            ListViewItem item = new ListViewItem(strID, 0);
+            ListViewItem item = new ListViewItem(strPath, 0);
             list.Items.Add(item);
-            if (others != null)
-            {
-                for (int i = 0; i < others.Length; i++)
-                {
-                    item.SubItems.Add(others[i]);
-                }
-            }
+            /*
+            打印状态
+            备书结果
+            预约时间
+            到书时间
+            */
+            item.SubItems.Add(reserItem.PrintState);
+            item.SubItems.Add(reserItem.CheckState);
+            item.SubItems.Add(reserItem.RequestDate);
+            item.SubItems.Add(reserItem.ArrivedDate);
+            /*
+            册条码
+            ISBN
+            书名
+            作者
+            索取号
+            馆藏地点
+            */
+            item.SubItems.Add(reserItem.ItemBarcode);
+            item.SubItems.Add(reserItem.ISBN);
+            item.SubItems.Add(reserItem.Title);
+            item.SubItems.Add(reserItem.Author);
+            item.SubItems.Add(reserItem.AccessNo);
+            item.SubItems.Add(reserItem.Location);
+            /*
+            预约者证条码
+            预约者姓名
+            部门
+            电话
+            状态
+             */
+            item.SubItems.Add(reserItem.ReaderBarcode);
+            item.SubItems.Add(reserItem.ReaderName);
+            item.SubItems.Add(reserItem.Department);
+            item.SubItems.Add(reserItem.Tel);
+            item.SubItems.Add(reserItem.State);
 
-            // 如果是已打印过的预约记录，背景显示灰色
-            string strPrintState = ListViewUtil.GetItemText(item, 1);
-            if (strPrintState == "已打印")
+           // 如果是已打印过的预约记录，背景显示灰色
+            if (reserItem.PrintState == "已打印")
             {
                 item.BackColor = Color.Gray;
             }
 
             // 如果是超过保留期的，背景显示淡蓝
-            string strState = ListViewUtil.GetItemText(item, item.SubItems.Count - 1);
-            if (strState == "超过保留期")
+            if (reserItem.State == C_State_outof)
             {
                 item.BackColor = Color.SkyBlue;
             }
@@ -541,297 +457,50 @@ namespace dp2Mini
             return item;
         }
 
-        private string printFilename = "print.xml";
-
-        void outputPrintFile()
+        /// <summary>
+        /// 设置控件是否可用
+        /// </summary>
+        /// <param name="bEnable"></param>
+        void EnableControls(bool bEnable)
         {
-            using (StreamWriter writer = new StreamWriter(printFilename, false, Encoding.UTF8))
-            {
-                StringBuilder sb = new StringBuilder(256);
-                foreach (ListViewItem item in this.listView_results.SelectedItems)
-                {
-                    /*
-                                        string strPrintState = ListViewUtil.GetItemText(item, item.SubItems.Count - 1);
-                                        if (strPrintState == "已打印")
-                                            continue;
-                    */
-                    //foreach (ListViewItem.ListViewSubItem subItem in item.SubItems)
-                    for (int i = 0; i < item.SubItems.Count; i++)
-                    {
-                        ListViewItem.ListViewSubItem subItem = item.SubItems[i];
-                        string strText = subItem.Text;
-                        //if (string.IsNullOrEmpty(strText))
-                        //    continue;
-
-                        if (i == 2)
-                        {
-                            strText = "预约时间:" + strText;
-                        }
-                        else if (i == 3)
-                        {
-                            strText = "到书时间:" + strText;
-                        }
-                        else if (i == 4 || i == 8 || i == 13)
-                        {
-                            strText = "<strong><font size='10'>" + strText + "</font></strong>";
-                            // strText= "<span style='font-family:verdana;font-size:20px'>" + strText+"</span>";
-                        }
-
-
-                        sb.Append("<p>").Append(strText).Append("</p>").AppendLine();
-                    }
-                    sb.AppendLine("<p>-----------------------------------</p>");
-                }
-
-                writer.Write(WrapString(sb.ToString()));
-            }
-        }
-
-        static string WrapString(string strText)
-        {
-            string strPrefix = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n"
-                + "<root>\r\n"
-                + "<pageSetting width='190'>\r\n"
-                + "  <font name=\"微软雅黑\" size=\"8\" style=\"\" />\r\n"
-                + "  <p align=\"left\" indent='-60'/>\r\n"
-                + "</pageSetting>\\\r\n"
-                + "<document padding=\"0,0,0,0\">\r\n"
-                + "  <column width=\"auto\" padding='60,0,0,0'>\r\n";
-
-            string strPostfix = "</column></document></root>";
-
-            return strPrefix + strText + strPostfix;
+            this.button_search.Enabled = bEnable;
+            this.button_stop.Enabled = !(bEnable);
         }
 
         /// <summary>
-        /// 打印
+        /// 停止检索
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void toolStripMenuItem_print_Click(object sender, EventArgs e)
+        private void button_stop_Click(object sender, EventArgs e)
         {
-            // 鼠标设为等待状态
-            Cursor oldCursor = this.Cursor;
-            this.Cursor = Cursors.WaitCursor;
-
-            // 输入打印文件
-            outputPrintFile();
-
-            string strError = "";
-            CardPrintForm form = new CardPrintForm();
-            form.PrinterInfo = new PrinterInfo();
-            form.CardFilename = printFilename;  // 卡片文件名
-            form.ShowInTaskbar = false;
-
-            form.WindowState = FormWindowState.Minimized;
-            form.Show();
-            int nRet = form.PrintFromCardFile(false);
-            if (nRet == -1)
-            {
-                form.WindowState = FormWindowState.Normal;
-                strError = strError + "\r\n\r\n以下内容未能成功打印:\r\n";
-                goto ERROR1;
-            }
-            form.Close();
-
-            // 原来的打印功能
-            ListViewItem[] items = new ListViewItem[this.listView_results.SelectedItems.Count];
-            this.listView_results.SelectedItems.CopyTo(items, 0);
-            changeAcctiveItemPrintState(items, "已打印");
-
-            // 生成一个新的备书单
-            string paths = "";
-            foreach (ListViewItem item in this.listView_results.SelectedItems)
-            {
-                string onePath = item.SubItems[0].Text;
-                if (paths != "")
-                {
-                    paths += ",";
-                }
-                paths += onePath;
-
-                // 把预约到书列表中删除
-                this.listView_results.Items.Remove(item);
-            }
-
-            // 加到备书单
-            BookNote note = new BookNote();
-            note.id = Guid.NewGuid().ToString();
-            note.records = paths;
-            note.dateTime= DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-
-            this.AddNoteToListView(note);
-
-
-
-            this.Cursor = oldCursor;
-            return;
-        ERROR1:
-            MessageBox.Show(this, strError);
+            // 停止
+            this._cancel.Cancel();
         }
 
         /// <summary>
-        /// 打印预览，注意不能用打印预览中的打印按钮打印
+        /// 右键命令是否可用
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void toolStripMenuItem_printPreview_Click(object sender, EventArgs e)
-        {
-            Cursor oldCursor = this.Cursor;
-            this.Cursor = Cursors.WaitCursor;
-
-            outputPrintFile();
-            CardPrintForm dlg = new CardPrintForm();
-            dlg.CardFilename = printFilename;  // 卡片文件名
-            dlg.PrintPreviewFromCardFile();
-
-            this.Cursor = oldCursor;
-        }
-
         private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
         {
             if (this.listView_results.SelectedItems.Count <= 0)
             {
                 this.toolStripMenuItem_print.Enabled = false;
-                this.toolStripMenuItem_printPreview.Enabled = false;
-                //this.toolStripMenuItem_export.Enabled = false;
-                //this.toolStripMenuItem_remove.Enabled = false;
             }
             else
             {
                 this.toolStripMenuItem_print.Enabled = true;
-                this.toolStripMenuItem_printPreview.Enabled = true;
-                //this.toolStripMenuItem_export.Enabled = true;
-                //this.toolStripMenuItem_remove.Enabled = true;
             }
         }
-
-        /// <summary>
-        /// 导出excel
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void toolStripMenuItem_export_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show(this, "尚未实现");
-        }
-
-        /// <summary>
-        /// 移出行
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void toolStripMenuItem_remove_Click(object sender, EventArgs e)
-        {
-            Cursor oldCursor = this.Cursor;
-            this.Cursor = Cursors.WaitCursor;
-
-            this.listView_results.BeginUpdate();
-            for (int i = this.listView_results.SelectedIndices.Count - 1; i >= 0; i--)
-            {
-                this.listView_results.Items.RemoveAt(this.listView_results.SelectedIndices[i]);
-            }
-            this.listView_results.EndUpdate();
-
-            this.Cursor = oldCursor;
-        }
-
-        /// <summary>
-        /// 将状态修改为未打印
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void toolStripMenuItem_change_Click(object sender, EventArgs e)
-        {
-            ListViewItem[] listViews = new ListViewItem[this.listView_results.SelectedItems.Count];
-            this.listView_results.SelectedItems.CopyTo(listViews, 0);
-            changeAcctiveItemPrintState(listViews, "");
-        }
-
-
-        /// <summary>
-        /// 设置状态
-        /// </summary>
-        /// <param name="items"></param>
-        /// <param name="strChangeState"></param>
-        void changeAcctiveItemPrintState(ListViewItem[] items, string strChangeState)
-        {
-            if (items.Length == 0)
-                return;
-
-            MainForm mainForm = null;
-            if (this.MdiParent is MainForm)
-                mainForm = this.MdiParent as MainForm;
-
-            Debug.Assert(mainForm != null, "MdiParent 父窗口为 null");
-
-            LibraryChannel channel = mainForm.GetChannel();
-            try
-            {
-                string strResult = "";
-                string strMetaData = "";
-                byte[] baTimestamp = null;
-                string strOutputResPath = "";
-                string strError = "";
-                foreach (ListViewItem item in items)
-                {
-                    Application.DoEvents();
-
-                    string strResPath = item.Text;
-                    long lRet = channel.GetRes(strResPath,
-                        "content,data,metadata,timestamp,outputpath",
-                        out strResult,
-                        out strMetaData,
-                        out baTimestamp,
-                        out strOutputResPath,
-                        out strError);
-                    if (lRet == -1)
-                    {
-                        MessageBox.Show(this, strError);
-                        return;
-                    }
-
-                    XmlDocument dom = new XmlDocument();
-                    dom.LoadXml(strResult);
-
-                    string strPrintState = DomUtil.GetElementText(dom.DocumentElement, "printState");
-                    if (strPrintState == strChangeState)
-                        continue;
-
-                    DomUtil.SetElementText(dom.DocumentElement, "printState", strChangeState);
-
-                    byte[] baOutTimestamp = null;
-                    lRet = channel.WriteRes(strResPath,
-                        dom.DocumentElement.OuterXml,
-                        true,
-                        "",
-                        baTimestamp,
-                        out baOutTimestamp,
-                        out strOutputResPath,
-                        out strError);
-                    if (lRet == -1)
-                    {
-                        MessageBox.Show(this, strError);
-                        return;
-                    }
-
-                    ListViewUtil.ChangeItemText(item, 1, strChangeState);
-
-                    if (strChangeState == "已打印")
-                        item.BackColor = Color.Gray;
-                }
-            }
-            finally
-            {
-                mainForm.ReturnChannel(channel);
-            }
-        }
+        
+        #region 列表排序
 
         SortColumns SortColumns1 = new SortColumns();
 
         // 参与排序的列号数组
         SortColumns SortColumns2 = new SortColumns();
-
 
         private void listView_outof_ColumnClick(object sender, ColumnClickEventArgs e)
         {
@@ -875,73 +544,42 @@ namespace dp2Mini
             this.listView_results.ListViewItemSorter = null;
         }
 
-        // 设置控件是否可用
-        void EnableControls(bool bEnable)
+        #endregion
+
+
+        /// <summary>
+        /// 制作备书单
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void toolStripMenuItem_bs_Click(object sender, EventArgs e)
         {
-            this.button_search.Enabled = bEnable;
-            this.button_stop.Enabled = !(bEnable);
-        }
-
-        private void button_stop_Click(object sender, EventArgs e)
-        {
-            // 停止
-            this._cancel.Cancel();
-        }
-
-        private void 处理结果ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            /*
-            string state = "找到图书";
-            //string state = "未找到图书";
-
-            ListViewItem[] items = new ListViewItem[this.listView_results.SelectedItems.Count];
-            this.listView_results.SelectedItems.CopyTo(items, 0);
-
-            foreach (ListViewItem one in items)
+            // 生成一个新的备书单
+            string paths = "";
+            foreach (ListViewItem item in this.listView_results.SelectedItems)
             {
-                string recPath = one.SubItems[0].Text;
-
-                ReservationItem item = getItem(recPath);
-                if (item == null)
+                string onePath = item.SubItems[0].Text;
+                if (paths != "")
                 {
-                    item = new ReservationItem
-                    {
-                        RecPath = recPath,
-                        State = state,
-                    };
-                    this._list.Add(item);
+                    paths += ",";
                 }
-                this.listView_results.Items.Remove(one);
+                paths += onePath;
 
-                this.listView1.Items.Add(one);
-                
+                // 把预约到书列表中删除
+                this.listView_results.Items.Remove(item);
             }
-            */
-        }
 
-        public BookNote getOrder(string id)
-        {
-            foreach (BookNote order in this._list)
-            {
-                if (order.id == id)
-                    return order;
-            }
-            return null;
-        }
+            // 加到备书单
+            BookNote note = new BookNote();
+            note.id = Guid.NewGuid().ToString();
+            note.records = paths;
+            note.dateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
-        public BookNote getOrderByRecPath(string recPath)
-        {
-            foreach (BookNote order in this._list)
-            {
-                if (order.records.IndexOf(recPath) != -1)
-                    return order;
-            }
-            return null;
-        }
+            // todo
+            //this.AddNoteToListView(note);
 
-        private void label3_Click(object sender, EventArgs e)
-        {
 
+            return;
         }
     }
 
