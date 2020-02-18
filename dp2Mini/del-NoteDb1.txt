@@ -10,7 +10,7 @@ using System.Xml;
 
 namespace dp2Mini
 {
-    public class NoteDb
+    public class NoteDb1
     {
         string _fileName = "";
         List<BookNote> _list = new List<BookNote>();
@@ -35,9 +35,9 @@ namespace dp2Mini
                     BookNote order = new BookNote
                     {
                         id = id,
-                        records = records,
-                        noticeState = noticeState,
-                        dateTime = dateTime,
+                        Items = records,
+                        NoticeState = noticeState,
+                        CreateTime = dateTime,
                     };
 
                     this._list.Add(order);
@@ -62,7 +62,7 @@ namespace dp2Mini
 
             foreach (BookNote order in this._list)
             {
-                sb.AppendLine("<item id='" + order.id + "' records='" + order.records + "' noticeState='" + order.noticeState + "' dateTime='" + order.dateTime + "'/>");
+                sb.AppendLine("<item id='" + order.id + "' records='" + order.Items + "' noticeState='" + order.NoticeState + "' dateTime='" + order.CreateTime + "'/>");
             }
             sb.AppendLine("</root>");
 
@@ -80,10 +80,10 @@ namespace dp2Mini
             ListViewItem item = new ListViewItem(note.id, 0);
             listView.Items.Add(item);
 
-            item.SubItems.Add(note.dateTime);
-            item.SubItems.Add(note.records);
-            item.SubItems.Add(note.noticeState);
-            item.SubItems.Add(note.takeBoolState);
+            item.SubItems.Add(note.CreateTime);
+            item.SubItems.Add(note.Items);
+            item.SubItems.Add(note.NoticeState);
+            item.SubItems.Add(note.TakeoffState);
         }
 
 
@@ -101,7 +101,7 @@ namespace dp2Mini
         {
             foreach (BookNote order in this._list)
             {
-                if (order.records.IndexOf(recPath) != -1)
+                if (order.Items.IndexOf(recPath) != -1)
                     return order;
             }
             return null;

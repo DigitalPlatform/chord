@@ -570,10 +570,8 @@ namespace dp2Mini
             }
 
             // 加到备书单
-            BookNote note = new BookNote();
-            note.id = Guid.NewGuid().ToString();
-            note.records = paths;
-            note.dateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            Note note = new Note(paths);
+
 
             // todo
             //this.AddNoteToListView(note);
@@ -584,15 +582,5 @@ namespace dp2Mini
     }
 
 
-    public class BookNote
-    {
-        public string id = "";
 
-        public string records = "";
-
-        public string dateTime = "";
-
-        public string noticeState = "未通知";
-        public string takeBoolState = "未取书";
-    }
 }

@@ -10,6 +10,7 @@ using System.Text;
 using System.Windows.Forms;
 
 using DigitalPlatform.LibraryRestClient;
+using Microsoft.EntityFrameworkCore;
 
 namespace dp2Mini
 {
