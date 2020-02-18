@@ -22,6 +22,9 @@ namespace dp2Mini
 {
     public partial class PrepForm : Form
     {
+        string _fileName = "";
+        List<BookNote> _list = new List<BookNote>();
+
         public PrepForm()
         {
             InitializeComponent();
@@ -29,17 +32,74 @@ namespace dp2Mini
 
         private void PrepForm_Load(object sender, EventArgs e)
         {
+            this._list = new List<BookNote>();
 
+            this._fileName = Application.StartupPath + "\\records.xml";
+            if (File.Exists(this._fileName) == true)
+            {
+                XmlDocument dom = new XmlDocument();
+                dom.Load(this._fileName);
+                XmlNodeList nodeList = dom.DocumentElement.SelectNodes("item");
+                foreach (XmlNode node in nodeList)
+                {
+                    string id = DomUtil.GetAttr(node, "id");
+                    string records = DomUtil.GetAttr(node, "records");
+                    string noticeState = DomUtil.GetAttr(node, "noticeState");
+                    string dateTime = DomUtil.GetAttr(node, "dateTime");
+                    BookNote order = new BookNote
+                    {
+                        id = id,
+                        records = records,
+                        noticeState = noticeState,
+                        dateTime = dateTime,
+                    };
+
+                    this._list.Add(order);
+                }
+            }
+
+            foreach (BookNote note in this._list)
+            {
+                this.AddNoteToListView(note);
+            }
+
+
+        }
+
+        public void AddNoteToListView(BookNote note)
+        {
+            ListViewItem item = new ListViewItem(note.id, 0);
+            this.listView_bsd.Items.Add(item);
+
+            item.SubItems.Add(note.dateTime);
+            item.SubItems.Add(note.records);
+            item.SubItems.Add(note.noticeState);
+            item.SubItems.Add(note.takeBoolState);
         }
 
         private void PrepForm_FormClosing(object sender, FormClosingEventArgs e)
         {
+            if (this._list.Count == 0)
+                return;
 
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("<root>");
+
+            foreach (BookNote order in this._list)
+            {
+                sb.AppendLine("<item id='"+order.id+"' records='"+order.records+"' noticeState='"+order.noticeState + "' dateTime='"+order.dateTime+"'/>");
+            }
+            sb.AppendLine("</root>");
+
+            XmlDocument dom = new XmlDocument();
+            dom.LoadXml(sb.ToString());
+            dom.Save(this._fileName);
         }
+
 
         private void PrepForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-
+            string text = "";
         }
 
         // 名字以用途命名即可。TokenSource 这种类型名称可以不出现在名字中
@@ -182,10 +242,20 @@ namespace dp2Mini
                                 break;
 
                             string strPath = record.Path;
+                            // 检查这笔记录是否已经在配书单里了
+                            BookNote order = this.getOrderByRecPath(strPath);
+                            if (order != null)
+                            {
+                                //// 增加一行到超过保留期的
+                                //AppendNewLine(this.listView1, strPath, cols);
+                                continue;
+                            }
+
 
                             // 把一条记录，解析出各列
                             string[] cols = null;
                             int nRet = GetLineCols(channel,
+                                strPath,
                                 record.RecordBody.Xml,
                                 out cols,
                                 out strError);
@@ -194,23 +264,23 @@ namespace dp2Mini
 
                             this.Invoke((Action)(() =>
                             {
-                                if (cols[cols.Length - 1] == "超过保留期")
+                                 if (cols[cols.Length - 1] == "超过保留期")
                                 {
-                                // 增加一行到超过保留期的
-                                AppendNewLine(this.listView_outof, strPath, cols);
+                                    // 增加一行到超过保留期的
+                                    AppendNewLine(this.listView_outof, strPath, cols);
                                 }
                                 else
                                 {
-                                // 增加一行到预约到书
-                                AppendNewLine(this.listView_results, strPath, cols);
+                                    // 增加一行到预约到书
+                                    AppendNewLine(this.listView_results, strPath, cols);
                                 }
 
 
-                            // 设置状态栏信息
-                            mainForm.SetStatusMessage((lStart + i + 1).ToString() + " / " + lTotalCount);
+                                // 设置状态栏信息
+                                mainForm.SetStatusMessage((lStart + i + 1).ToString() + " / " + lTotalCount);
 
-                            // 数量加1
-                            i++;
+                                // 数量加1
+                                i++;
                             }
                         ));
 
@@ -258,12 +328,13 @@ namespace dp2Mini
         /// <param name="strError"></param>
         /// <returns></returns>
         int GetLineCols(LibraryChannel channel,
+            string strPath,
            string strRecord,
            out string[] cols,
            out string strError)
         {
             strError = "";
-            cols = new string[14]; //13列
+            cols = new string[15]; //13列
 
             XmlDocument dom = new XmlDocument();
             dom.LoadXml(strRecord);
@@ -289,12 +360,18 @@ namespace dp2Mini
             string requestDate = "";// 预约时间
             string arrivedDate = ""; // 到书时间
 
+            // 本地记录
+            string operState = "未知";
+            //ReservationItem localRecord = this.getItem(strPath);
+            //if (localRecord != null)
+            //    operState = localRecord.State;
+
             string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
             if ("arrived" == strState)
             {
                 strState = "图书在馆";
             }
-            else if ("outof" == strState)
+            else if ("outof" == strState) 
             {
                 strState = "超过保留期";
                 goto END;
@@ -390,27 +467,28 @@ namespace dp2Mini
                 }
             }
 
-            END:
+        END:
 
             cols[0] = strPrintState; //备书状态
-            cols[1] = requestDate;
-            cols[2] = arrivedDate;
-            cols[3] = strItemBarcode;
+            cols[1] = operState;
+            cols[2] = requestDate;
+            cols[3] = arrivedDate;
+            cols[4] = strItemBarcode;
 
-            cols[4] = strISBN;
-            cols[5] = strTitle;
-            cols[6] = strAuthor;
+            cols[5] = strISBN;
+            cols[6] = strTitle;
+            cols[7] = strAuthor;
 
-            cols[7] = strAccessNo;
-            cols[8] = strLocation;
+            cols[8] = strAccessNo;
+            cols[9] = strLocation;
 
-            cols[9] = strReaderBarcode;
-            cols[10] = strName;
-            cols[11] = strDept;
-            cols[12] = strTel;
+            cols[10] = strReaderBarcode;
+            cols[11] = strName;
+            cols[12] = strDept;
+            cols[13] = strTel;
 
             // 是否超过保留期
-            cols[13] = strState;
+            cols[14] = strState;
 
 
             return 0;
@@ -556,9 +634,35 @@ namespace dp2Mini
             }
             form.Close();
 
+            // 原来的打印功能
             ListViewItem[] items = new ListViewItem[this.listView_results.SelectedItems.Count];
             this.listView_results.SelectedItems.CopyTo(items, 0);
             changeAcctiveItemPrintState(items, "已打印");
+
+            // 生成一个新的备书单
+            string paths = "";
+            foreach (ListViewItem item in this.listView_results.SelectedItems)
+            {
+                string onePath = item.SubItems[0].Text;
+                if (paths != "")
+                {
+                    paths += ",";
+                }
+                paths += onePath;
+
+                // 把预约到书列表中删除
+                this.listView_results.Items.Remove(item);
+            }
+
+            // 加到备书单
+            BookNote note = new BookNote();
+            note.id = Guid.NewGuid().ToString();
+            note.records = paths;
+            note.dateTime= DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+            this.AddNoteToListView(note);
+
+
 
             this.Cursor = oldCursor;
             return;
@@ -776,9 +880,6 @@ namespace dp2Mini
         {
             this.button_search.Enabled = bEnable;
             this.button_stop.Enabled = !(bEnable);
-
-            
-
         }
 
         private void button_stop_Click(object sender, EventArgs e)
@@ -786,5 +887,74 @@ namespace dp2Mini
             // 停止
             this._cancel.Cancel();
         }
+
+        private void 处理结果ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            /*
+            string state = "找到图书";
+            //string state = "未找到图书";
+
+            ListViewItem[] items = new ListViewItem[this.listView_results.SelectedItems.Count];
+            this.listView_results.SelectedItems.CopyTo(items, 0);
+
+            foreach (ListViewItem one in items)
+            {
+                string recPath = one.SubItems[0].Text;
+
+                ReservationItem item = getItem(recPath);
+                if (item == null)
+                {
+                    item = new ReservationItem
+                    {
+                        RecPath = recPath,
+                        State = state,
+                    };
+                    this._list.Add(item);
+                }
+                this.listView_results.Items.Remove(one);
+
+                this.listView1.Items.Add(one);
+                
+            }
+            */
+        }
+
+        public BookNote getOrder(string id)
+        {
+            foreach (BookNote order in this._list)
+            {
+                if (order.id == id)
+                    return order;
+            }
+            return null;
+        }
+
+        public BookNote getOrderByRecPath(string recPath)
+        {
+            foreach (BookNote order in this._list)
+            {
+                if (order.records.IndexOf(recPath) != -1)
+                    return order;
+            }
+            return null;
+        }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+
+        }
+    }
+
+
+    public class BookNote
+    {
+        public string id = "";
+
+        public string records = "";
+
+        public string dateTime = "";
+
+        public string noticeState = "未通知";
+        public string takeBoolState = "未取书";
     }
 }

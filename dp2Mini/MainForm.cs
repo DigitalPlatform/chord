@@ -18,64 +18,86 @@ namespace dp2Mini
         // 主要的通道池，用于当前服务器
         public LibraryChannelPool _channelPool = new LibraryChannelPool();
 
-
-        /// <summary>
-        /// 当前连接的服务器的图书馆名
-        /// </summary>
+        // 当前连接的服务器的图书馆名
         public string LibraryName = "";
 
-
+        /// <summary>
+        /// 窗体构造函数
+        /// </summary>
         public MainForm()
         {
             InitializeComponent();
+
+            // 按需登录事件
+            this._channelPool.BeforeLogin -= _channelPool_BeforeLogin;
+            this._channelPool.BeforeLogin += _channelPool_BeforeLogin;
         }
 
+        /// <summary>
+        /// 窗体加载事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void MainForm_Load(object sender, EventArgs e)
         {
-            this._channelPool.BeforeLogin += _channelPool_BeforeLogin;
-
+            // 先弹出登录对话框
             LoginForm dlg = new LoginForm();
             if (dlg.ShowDialog(this) == DialogResult.Cancel)
             {
                 this.Close();
                 return;
             }
-
+            // 在窗口右下角设置当前登录帐户名称
             this.toolStripStatusLabel_loginName.Text = dlg.Username;
 
-            int nRet = GetLibraryInfo();
-            if (nRet == 0)
-                this.Text += "[" + this.LibraryName + "]";
-            else if (nRet == -1)
-                this.Close();
-
-            nRet = InitialArrivedDbProperties();
+            // 获取图书馆名称
+            string strError = "";
+            int nRet = GetLibraryInfo(out strError);
             if (nRet == -1)
+            {
+                MessageBox.Show(this, strError);
                 this.Close();
+                return;
+            }
+
+            // 把图书馆名称设到标题上
+            this.Text += "[" + this.LibraryName + "]";
+
+
+            // 初始化预约到库参数
+            nRet = InitialArrivedDbProperties(out strError);
+            if (nRet == -1)
+            {
+                MessageBox.Show(this, strError);
+                this.Close();
+                return;
+            }
         }
 
+        /// <summary>
+        /// 窗体关闭时
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-
+            this._channelPool.Close();
         }
 
-        private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
-        {
-
-        }
-
+        /// <summary>
+        /// 按需登录事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void _channelPool_BeforeLogin(object sender, BeforeLoginEventArgs e)
         {
             if (e.FirstTry == true)
             {
                 e.UserName = Properties.Settings.Default.cfg_library_username;
-
                 e.Password = Properties.Settings.Default.cfg_library_password;
-
                 if (!string.IsNullOrEmpty(e.UserName))
                     return;
             }
-
 
             if (!string.IsNullOrEmpty(e.ErrorInfo))
             {
@@ -83,7 +105,6 @@ namespace dp2Mini
             }
 
             IWin32Window owner = null;
-
             if (sender is IWin32Window)
                 owner = sender as IWin32Window;
             else
@@ -107,26 +128,26 @@ namespace dp2Mini
             e.Parameters = "type=worker,client=dp2Mini|" + Program.ClientVersion;
         }
 
+        /// <summary>
+        /// 设置缺省帐号
+        /// </summary>
+        /// <param name="strServerUrl"></param>
+        /// <param name="owner"></param>
+        /// <returns></returns>
         LoginForm SetDefaultAccount(string strServerUrl,
             IWin32Window owner)
         {
-            LoginForm loginForm = new LoginForm();
-
-            if (String.IsNullOrEmpty(strServerUrl))
-            {
-                loginForm.LibraryUrl = Properties.Settings.Default.cfg_library_url;
-            }
-            else
-            {
-                loginForm.LibraryUrl = strServerUrl;
-            }
-
             if (owner == null)
                 owner = this;
 
+            LoginForm loginForm = new LoginForm();
+            if (String.IsNullOrEmpty(strServerUrl))
+                loginForm.LibraryUrl = Properties.Settings.Default.cfg_library_url;
+            else
+                loginForm.LibraryUrl = strServerUrl;
+
             loginForm.Username = Properties.Settings.Default.cfg_library_username;
             loginForm.IsSavePassword = Properties.Settings.Default.cfg_savePassword;
-
             if (loginForm.IsSavePassword)
             {
                 loginForm.Password = Properties.Settings.Default.cfg_library_password;
@@ -137,7 +158,6 @@ namespace dp2Mini
             }
 
             loginForm.ShowDialog(owner);
-
             if (loginForm.DialogResult == DialogResult.Cancel)
                 return null;
 
@@ -145,8 +165,14 @@ namespace dp2Mini
         }
 
 
-        List<LibraryChannel> _channelList = new List<LibraryChannel>();
+        #region 创建和释放通道
 
+        /// <summary>
+        /// 获取通道
+        /// </summary>
+        /// <param name="strServerUrl"></param>
+        /// <param name="strUserName"></param>
+        /// <returns></returns>
         public LibraryChannel GetChannel(string strServerUrl = ".",
             string strUserName = ".")
         {
@@ -161,30 +187,31 @@ namespace dp2Mini
                 strUserName = Properties.Settings.Default.cfg_library_username;
 
             LibraryChannel channel = this._channelPool.GetChannel(strServerUrl, strUserName);
-            _channelList.Add(channel);
             return channel;
         }
 
+        /// <summary>
+        /// 释放通道
+        /// </summary>
+        /// <param name="channel"></param>
         public void ReturnChannel(LibraryChannel channel)
         {
             this._channelPool.ReturnChannel(channel);
-            _channelList.Remove(channel);
         }
-
+        #endregion
 
 
         /// <summary>
-        /// 获得图书名称
+        /// 获得图书馆名称
         /// </summary>
         /// <returns>
-        /// <para> -1: 出错，不希望继续以后的操作 </para>
-        /// <para> 0:  成功</para>
-        /// <para> 1:  出错，但希望继续后面的操作</para>
+        /// -1 出错
+        /// 0 成功
         /// </returns>
-        public int GetLibraryInfo()
+        public int GetLibraryInfo(out string strError)
         {
-            REDO:
-            string strError = "";
+            strError = "";
+
             LibraryChannel channel = this.GetChannel();
             try
             {
@@ -195,7 +222,7 @@ namespace dp2Mini
                 if (lRet == -1)
                 {
                     strError = "针对服务器 " + channel.Url + " 获得图书馆名称发生错误：" + strError;
-                    goto ERROR1;
+                    return -1;
                 }
 
                 this.LibraryName = response.strValue;
@@ -206,47 +233,38 @@ namespace dp2Mini
             }
 
             return 0;
-            ERROR1:
-            DialogResult result = MessageBox.Show(this,
-                strError + "\r\n\r\n是否重试?",
-                "dp2Circulation",
-                MessageBoxButtons.YesNoCancel,
-                MessageBoxIcon.Question,
-                MessageBoxDefaultButton.Button1);
-            if (result == System.Windows.Forms.DialogResult.Yes)
-                goto REDO;
-            if (result == DialogResult.No)
-                return 1;   // 出错，但希望继续后面的操作
-
-            return -1;  // 出错，不希望继续以后的操作
         }
 
-
+        /// <summary>
+        /// 预约数据库名称
+        /// </summary>
         public string ArrivedDbName
         {
             get;
             private set;
         }
 
-        // 初始化预约到书库的相关属性
-        public int InitialArrivedDbProperties()
+        /// <summary>
+        /// 获取预约到书数据库名称
+        /// </summary>
+        /// <param name="strError"></param>
+        /// <returns></returns>
+        public int InitialArrivedDbProperties(out string strError)
         {
-            REDO:
+             strError = "";
 
             LibraryChannel channel = this.GetChannel();
-
-            string strError = "";
-
             try
             {
-                GetSystemParameterResponse response = channel.GetSystemParameter("arrived", "dbname");
+                GetSystemParameterResponse response = channel.GetSystemParameter("arrived",
+                    "dbname");
 
                 long lRet = response.GetSystemParameterResult.Value;
                 strError = response.GetSystemParameterResult.ErrorInfo;
                 if (lRet == -1)
                 {
                     strError = "针对服务器 " + channel.Url + " 获得预约到书库名过程发生错误：" + strError;
-                    goto ERROR1;
+                    return -1;
                 }
 
                 this.ArrivedDbName = response.strValue;
@@ -255,42 +273,10 @@ namespace dp2Mini
             {
                 this.ReturnChannel(channel);
             }
+
             return 0;
-            ERROR1:
-            DialogResult result = MessageBox.Show(this,
-                strError + "\r\n\r\n是否重试?",
-                "dp2Mini",
-                MessageBoxButtons.YesNoCancel,
-                MessageBoxIcon.Question,
-                MessageBoxDefaultButton.Button1);
-            if (result == System.Windows.Forms.DialogResult.Yes)
-                goto REDO;
-            if (result == DialogResult.No)
-                return 1;   // 出错，但希望继续后面的操作
-
-            return -1;  // 出错，不希望继续以后的操作
         }
 
-        private void toolStripMenuItem_prep_Click(object sender, EventArgs e)
-        {
-            PrepForm prepForm = new PrepForm()
-            {
-                MdiParent = this,
-                Text = "备书"
-            };
-            prepForm.MdiParent = this;
-            prepForm.AutoSize = true;
-            prepForm.WindowState = FormWindowState.Maximized;
-            prepForm.Show();
-
-
-        }
-
-        private void toolStripMenuItem_setting_Click(object sender, EventArgs e)
-        {
-            SettingForm dlg = new SettingForm();
-            dlg.ShowDialog(this);
-        }
 
         /// <summary>
         /// 设置状态栏参数
@@ -301,33 +287,65 @@ namespace dp2Mini
             this.toolStripStatusLabel_message.Text = text;
         }
 
-        //private void toolStripButton_prep_Click(object sender, EventArgs e)
-        //{
-        //    
-        //}
-
-
-        private void toolStripButton1_Click(object sender, EventArgs e)
+        /// <summary>
+        /// 预约到书查询
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void toolStripMenuItem_prep_Click(object sender, EventArgs e)
         {
-            
+            PrepForm prepForm = new PrepForm()
+            {
+                MdiParent = this,
+                Text = "查询预约到书"
+            };
+            prepForm.MdiParent = this;
+            prepForm.AutoSize = true;
+            prepForm.WindowState = FormWindowState.Maximized;
+            prepForm.Show();
         }
 
-        static string WrapString(string strText)
+        // 登录参数设置
+        private void toolStripMenuItem_setting_Click(object sender, EventArgs e)
         {
-            string strPrefix = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n"
-                + "<root>\r\n"
-                + "<pageSetting width='190'>\r\n"
-                + "  <font name=\"微软雅黑\" size=\"8\" style=\"\" />\r\n"
-                + "  <p align=\"left\" indent='-60'/>\r\n"
-                + "</pageSetting>\\\r\n"
-                + "<document padding=\"0,0,0,0\">\r\n"
-                + "  <column width=\"auto\" padding='60,0,0,0'>\r\n";
-
-            string strPostfix = "</column></document></root>";
-
-            return strPrefix + strText + strPostfix;
+            SettingForm dlg = new SettingForm();
+            dlg.ShowDialog(this);
         }
 
+        /// <summary>
+        /// 预约到书查询
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void toolStripButton_prep_Click(object sender, EventArgs e)
+        {
+            this.toolStripMenuItem_prep_Click(sender, e);
+        }
+
+        /// <summary>
+        /// 备书单管理
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void toolStripLabel_noteManager_Click(object sender, EventArgs e)
+        {
+            NoteForm prepForm = new NoteForm()
+            {
+                MdiParent = this,
+                Text = "备书单管理"
+            };
+            prepForm.MdiParent = this;
+            prepForm.AutoSize = true;
+            prepForm.WindowState = FormWindowState.Maximized;
+            prepForm.Show();
+        }
+
+
+        /// <summary>
+        /// 测试打印
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ToolStripMenuItem_test_Click(object sender, EventArgs e)
         {
             string strError = "";
@@ -374,9 +392,25 @@ namespace dp2Mini
             MessageBox.Show(this, strError);
         }
 
-        private void toolStripButton_prep_Click(object sender, EventArgs e)
+        #region 静态函数
+
+        static string WrapString(string strText)
         {
-            this.toolStripMenuItem_prep_Click(sender, e);
+            string strPrefix = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n"
+                + "<root>\r\n"
+                + "<pageSetting width='190'>\r\n"
+                + "  <font name=\"微软雅黑\" size=\"8\" style=\"\" />\r\n"
+                + "  <p align=\"left\" indent='-60'/>\r\n"
+                + "</pageSetting>\\\r\n"
+                + "<document padding=\"0,0,0,0\">\r\n"
+                + "  <column width=\"auto\" padding='60,0,0,0'>\r\n";
+
+            string strPostfix = "</column></document></root>";
+
+            return strPrefix + strText + strPostfix;
         }
+        #endregion
+
+
     }
 }

@@ -41,6 +41,7 @@
             this.toolStripStatusLabel_loginName = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStrip_main = new System.Windows.Forms.ToolStrip();
             this.toolStripButton_prep = new System.Windows.Forms.ToolStripButton();
+            this.toolStripLabel_noteManager = new System.Windows.Forms.ToolStripLabel();
             this.menuStrip_main.SuspendLayout();
             this.statusStrip_main.SuspendLayout();
             this.toolStrip_main.SuspendLayout();
@@ -70,8 +71,8 @@
             // toolStripMenuItem_prep
             // 
             this.toolStripMenuItem_prep.Name = "toolStripMenuItem_prep";
-            this.toolStripMenuItem_prep.Size = new System.Drawing.Size(169, 34);
-            this.toolStripMenuItem_prep.Text = "备书(&P)";
+            this.toolStripMenuItem_prep.Size = new System.Drawing.Size(241, 34);
+            this.toolStripMenuItem_prep.Text = "预约到书查询(&P)";
             this.toolStripMenuItem_prep.Click += new System.EventHandler(this.toolStripMenuItem_prep_Click);
             // 
             // toolStripMenuItem_help
@@ -93,8 +94,8 @@
             // ToolStripMenuItem_test
             // 
             this.ToolStripMenuItem_test.Name = "ToolStripMenuItem_test";
-            this.ToolStripMenuItem_test.Size = new System.Drawing.Size(168, 34);
-            this.ToolStripMenuItem_test.Text = "测试";
+            this.ToolStripMenuItem_test.Size = new System.Drawing.Size(270, 34);
+            this.ToolStripMenuItem_test.Text = "测试打印";
             this.ToolStripMenuItem_test.Click += new System.EventHandler(this.ToolStripMenuItem_test_Click);
             // 
             // statusStrip_main
@@ -104,7 +105,7 @@
             this.toolStripStatusLabel_message,
             this.toolStripStatusLabel1,
             this.toolStripStatusLabel_loginName});
-            this.statusStrip_main.Location = new System.Drawing.Point(0, 408);
+            this.statusStrip_main.Location = new System.Drawing.Point(0, 452);
             this.statusStrip_main.Name = "statusStrip_main";
             this.statusStrip_main.Padding = new System.Windows.Forms.Padding(2, 0, 21, 0);
             this.statusStrip_main.RenderMode = System.Windows.Forms.ToolStripRenderMode.ManagerRenderMode;
@@ -138,7 +139,8 @@
             // 
             this.toolStrip_main.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.toolStrip_main.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripButton_prep});
+            this.toolStripButton_prep,
+            this.toolStripLabel_noteManager});
             this.toolStrip_main.Location = new System.Drawing.Point(0, 32);
             this.toolStrip_main.Name = "toolStrip_main";
             this.toolStrip_main.Padding = new System.Windows.Forms.Padding(0, 0, 3, 0);
@@ -152,15 +154,22 @@
             this.toolStripButton_prep.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton_prep.Image")));
             this.toolStripButton_prep.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButton_prep.Name = "toolStripButton_prep";
-            this.toolStripButton_prep.Size = new System.Drawing.Size(50, 28);
-            this.toolStripButton_prep.Text = "备书";
+            this.toolStripButton_prep.Size = new System.Drawing.Size(122, 28);
+            this.toolStripButton_prep.Text = "预约到书查询";
             this.toolStripButton_prep.Click += new System.EventHandler(this.toolStripButton_prep_Click);
+            // 
+            // toolStripLabel_noteManager
+            // 
+            this.toolStripLabel_noteManager.Name = "toolStripLabel_noteManager";
+            this.toolStripLabel_noteManager.Size = new System.Drawing.Size(100, 28);
+            this.toolStripLabel_noteManager.Text = "备书单管理";
+            this.toolStripLabel_noteManager.Click += new System.EventHandler(this.toolStripLabel_noteManager_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1201, 443);
+            this.ClientSize = new System.Drawing.Size(1201, 487);
             this.Controls.Add(this.toolStrip_main);
             this.Controls.Add(this.statusStrip_main);
             this.Controls.Add(this.menuStrip_main);
@@ -171,7 +180,6 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "馆员备书";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.menuStrip_main.ResumeLayout(false);
             this.menuStrip_main.PerformLayout();
@@ -198,6 +206,7 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_test;
         private System.Windows.Forms.ToolStripButton toolStripButton_prep;
+        private System.Windows.Forms.ToolStripLabel toolStripLabel_noteManager;
     }
 }
 
