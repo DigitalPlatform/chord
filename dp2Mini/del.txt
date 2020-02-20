@@ -1,4 +1,57 @@
-﻿        /// <summary>
+﻿
+
+
+            /*
+            打印状态
+            备书结果
+            预约时间
+            到书时间
+            */
+            item.SubItems.Add(reserItem.PrintState);
+            item.SubItems.Add(reserItem.CheckState);
+            item.SubItems.Add(reserItem.RequestDate);
+            item.SubItems.Add(reserItem.ArrivedDate);
+            /*
+            册条码
+            ISBN
+            书名
+            作者
+            索取号
+            馆藏地点
+            */
+            item.SubItems.Add(reserItem.ItemBarcode);
+            item.SubItems.Add(reserItem.ISBN);
+            item.SubItems.Add(reserItem.Title);
+            item.SubItems.Add(reserItem.Author);
+            item.SubItems.Add(reserItem.AccessNo);
+            item.SubItems.Add(reserItem.Location);
+            /*
+            预约者证条码
+            预约者姓名
+            部门
+            电话
+            状态
+             */
+            item.SubItems.Add(reserItem.ReaderBarcode);
+            item.SubItems.Add(reserItem.ReaderName);
+            item.SubItems.Add(reserItem.Department);
+            item.SubItems.Add(reserItem.Tel);
+            item.SubItems.Add(reserItem.State);
+
+           // 如果是已打印过的预约记录，背景显示灰色
+            if (reserItem.PrintState == "已打印")
+            {
+                item.BackColor = Color.Gray;
+            }
+
+            // 如果是超过保留期的，背景显示淡蓝
+            if (reserItem.State == C_State_outof)
+            {
+                item.BackColor = Color.SkyBlue;
+            }
+
+====
+        /// <summary>
         /// 设置状态
         /// </summary>
         /// <param name="items"></param>

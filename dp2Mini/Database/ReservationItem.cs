@@ -22,12 +22,14 @@ accessNo —— 所预约图书索取号。
 
     public class ReservationItem
     {
+
+
         // 以下字段是预约到书记录的字段
-        public string RecPath { get; set; }
+        public string RecPath { get; set; }  // 唯一键
         public string State { get; set; }  // arrive,outof(超过保留期)
         public string ItemBarcode { get; set; } 
         public string ItemRefID { get; set; } 
-        public string ReaderBarcode { get; set; }
+        public string PatronBarcode { get; set; }
         public string LibraryCode { get; set; }
         public string OnShelf { get; set; } //是否在架
         public string NotifyDate { get; set; }
@@ -44,18 +46,22 @@ accessNo —— 所预约图书索取号。
 
 
         // 以下字段是读者信息
-        public string ReaderName { get; set; }
+        public string PatronName { get; set; }
 
         public string Department { get; set; }
 
-        public string Tel { get; set; }
+        public string PatronTel { get; set; }
 
-        public string RequestDate { get; set; }
+        public string RequestTime { get; set; }
 
-        public string ArrivedDate { get; set; }
+        public string ArrivedTime { get; set; }
 
         // 备书产生的字段
         public string PrintState { get; set; }
         public string CheckState { get; set; }  // 是否找到图书，值为：找到/未找到
+
+
+        // 父亲备书单ID
+        public string NoteId { get; set; }
     }
 }

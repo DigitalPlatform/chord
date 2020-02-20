@@ -34,8 +34,6 @@
             this.label1 = new System.Windows.Forms.Label();
             this.listView_results = new System.Windows.Forms.ListView();
             this.columnHeader_path = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeader_isPrint = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeader_operState = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_requestTime = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_arrivedTime = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_itemBarcode = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -54,11 +52,11 @@
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage_arrived = new System.Windows.Forms.TabPage();
             this.tabPage_outof = new System.Windows.Forms.TabPage();
+            this.button_stop = new System.Windows.Forms.Button();
             this.listView_outof = new System.Windows.Forms.ListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeader_priteState = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeader15 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader5 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader6 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -69,9 +67,7 @@
             this.columnHeader11 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader12 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader13 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader14 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.button_stop = new System.Windows.Forms.Button();
             this.contextMenuStrip_prep.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage_arrived.SuspendLayout();
@@ -80,6 +76,7 @@
             // 
             // button_search
             // 
+            this.button_search.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.button_search.Location = new System.Drawing.Point(440, 13);
             this.button_search.Margin = new System.Windows.Forms.Padding(4);
             this.button_search.Name = "button_search";
@@ -91,19 +88,21 @@
             // 
             // textBox_queryWord
             // 
+            this.textBox_queryWord.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.textBox_queryWord.Location = new System.Drawing.Point(156, 16);
             this.textBox_queryWord.Margin = new System.Windows.Forms.Padding(4);
             this.textBox_queryWord.Name = "textBox_queryWord";
-            this.textBox_queryWord.Size = new System.Drawing.Size(272, 28);
+            this.textBox_queryWord.Size = new System.Drawing.Size(272, 31);
             this.textBox_queryWord.TabIndex = 1;
             // 
             // label1
             // 
             this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.label1.Location = new System.Drawing.Point(14, 20);
             this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(134, 18);
+            this.label1.Size = new System.Drawing.Size(157, 21);
             this.label1.TabIndex = 0;
             this.label1.Text = "读者证条码号：";
             // 
@@ -111,20 +110,18 @@
             // 
             this.listView_results.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader_path,
-            this.columnHeader_isPrint,
-            this.columnHeader_operState,
-            this.columnHeader_requestTime,
-            this.columnHeader_arrivedTime,
-            this.columnHeader_itemBarcode,
-            this.columnHeader_isbn,
-            this.columnHeader_title,
-            this.columnHeader_author,
-            this.columnHeader_accessNo,
-            this.columnHeader_location,
             this.columnHeader_readerBarcode,
             this.columnHeader_readerName,
-            this.columnHeader_department,
+            this.columnHeader_itemBarcode,
+            this.columnHeader_title,
+            this.columnHeader_accessNo,
+            this.columnHeader_location,
+            this.columnHeader_isbn,
+            this.columnHeader_author,
             this.columnHeader_tel,
+            this.columnHeader_department,
+            this.columnHeader_requestTime,
+            this.columnHeader_arrivedTime,
             this.columnHeader_state});
             this.listView_results.ContextMenuStrip = this.contextMenuStrip_prep;
             this.listView_results.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -134,7 +131,7 @@
             this.listView_results.Location = new System.Drawing.Point(3, 3);
             this.listView_results.Margin = new System.Windows.Forms.Padding(4);
             this.listView_results.Name = "listView_results";
-            this.listView_results.Size = new System.Drawing.Size(1188, 440);
+            this.listView_results.Size = new System.Drawing.Size(1188, 434);
             this.listView_results.TabIndex = 0;
             this.listView_results.UseCompatibleStateImageBehavior = false;
             this.listView_results.View = System.Windows.Forms.View.Details;
@@ -145,20 +142,10 @@
             this.columnHeader_path.Text = "路径";
             this.columnHeader_path.Width = 97;
             // 
-            // columnHeader_isPrint
-            // 
-            this.columnHeader_isPrint.Text = "打印状态";
-            this.columnHeader_isPrint.Width = 87;
-            // 
-            // columnHeader_operState
-            // 
-            this.columnHeader_operState.Text = "处理结果";
-            this.columnHeader_operState.Width = 87;
-            // 
             // columnHeader_requestTime
             // 
             this.columnHeader_requestTime.Text = "预约时间";
-            this.columnHeader_requestTime.Width = 109;
+            this.columnHeader_requestTime.Width = 97;
             // 
             // columnHeader_arrivedTime
             // 
@@ -173,12 +160,12 @@
             // columnHeader_isbn
             // 
             this.columnHeader_isbn.Text = "ISBN";
-            this.columnHeader_isbn.Width = 100;
+            this.columnHeader_isbn.Width = 77;
             // 
             // columnHeader_title
             // 
             this.columnHeader_title.Text = "书名";
-            this.columnHeader_title.Width = 150;
+            this.columnHeader_title.Width = 113;
             // 
             // columnHeader_author
             // 
@@ -196,26 +183,27 @@
             // 
             // columnHeader_readerBarcode
             // 
-            this.columnHeader_readerBarcode.Text = "预约者条码号";
-            this.columnHeader_readerBarcode.Width = 100;
+            this.columnHeader_readerBarcode.Text = "读者证条码";
+            this.columnHeader_readerBarcode.Width = 108;
             // 
             // columnHeader_readerName
             // 
-            this.columnHeader_readerName.Text = "预约者姓名";
+            this.columnHeader_readerName.Text = "读者姓名";
             this.columnHeader_readerName.Width = 100;
             // 
             // columnHeader_department
             // 
-            this.columnHeader_department.Text = "预约者部门";
-            this.columnHeader_department.Width = 100;
+            this.columnHeader_department.Text = "读者部门";
+            this.columnHeader_department.Width = 87;
             // 
             // columnHeader_tel
             // 
-            this.columnHeader_tel.Text = "电话";
+            this.columnHeader_tel.Text = "读者电话";
+            this.columnHeader_tel.Width = 94;
             // 
             // columnHeader_state
             // 
-            this.columnHeader_state.Text = "状态";
+            this.columnHeader_state.Text = "预约状态";
             this.columnHeader_state.Width = 100;
             // 
             // contextMenuStrip_prep
@@ -225,7 +213,6 @@
             this.toolStripMenuItem_print});
             this.contextMenuStrip_prep.Name = "contextMenuStrip1";
             this.contextMenuStrip_prep.Size = new System.Drawing.Size(194, 34);
-            this.contextMenuStrip_prep.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
             // 
             // toolStripMenuItem_print
             // 
@@ -241,19 +228,20 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControl1.Controls.Add(this.tabPage_arrived);
             this.tabControl1.Controls.Add(this.tabPage_outof);
-            this.tabControl1.Location = new System.Drawing.Point(12, 51);
+            this.tabControl1.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.tabControl1.Location = new System.Drawing.Point(12, 54);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(1202, 478);
+            this.tabControl1.Size = new System.Drawing.Size(1202, 475);
             this.tabControl1.TabIndex = 1;
             // 
             // tabPage_arrived
             // 
             this.tabPage_arrived.Controls.Add(this.listView_results);
-            this.tabPage_arrived.Location = new System.Drawing.Point(4, 28);
+            this.tabPage_arrived.Location = new System.Drawing.Point(4, 31);
             this.tabPage_arrived.Name = "tabPage_arrived";
             this.tabPage_arrived.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage_arrived.Size = new System.Drawing.Size(1194, 446);
+            this.tabPage_arrived.Size = new System.Drawing.Size(1194, 440);
             this.tabPage_arrived.TabIndex = 0;
             this.tabPage_arrived.Text = "预约到书";
             this.tabPage_arrived.UseVisualStyleBackColor = true;
@@ -269,13 +257,24 @@
             this.tabPage_outof.Text = "超过保留期";
             this.tabPage_outof.UseVisualStyleBackColor = true;
             // 
+            // button_stop
+            // 
+            this.button_stop.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.button_stop.Location = new System.Drawing.Point(560, 13);
+            this.button_stop.Margin = new System.Windows.Forms.Padding(4);
+            this.button_stop.Name = "button_stop";
+            this.button_stop.Size = new System.Drawing.Size(112, 34);
+            this.button_stop.TabIndex = 3;
+            this.button_stop.Text = "停止";
+            this.button_stop.UseVisualStyleBackColor = true;
+            this.button_stop.Click += new System.EventHandler(this.button_stop_Click);
+            // 
             // listView_outof
             // 
             this.listView_outof.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader1,
-            this.columnHeader_priteState,
-            this.columnHeader15,
             this.columnHeader2,
+            this.columnHeader3,
             this.columnHeader4,
             this.columnHeader5,
             this.columnHeader6,
@@ -286,7 +285,6 @@
             this.columnHeader11,
             this.columnHeader12,
             this.columnHeader13,
-            this.columnHeader3,
             this.columnHeader14});
             this.listView_outof.ContextMenuStrip = this.contextMenuStrip_prep;
             this.listView_outof.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -300,96 +298,75 @@
             this.listView_outof.TabIndex = 1;
             this.listView_outof.UseCompatibleStateImageBehavior = false;
             this.listView_outof.View = System.Windows.Forms.View.Details;
-            this.listView_outof.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.listView_outof_ColumnClick);
             // 
             // columnHeader1
             // 
             this.columnHeader1.Text = "路径";
-            this.columnHeader1.Width = 75;
-            // 
-            // columnHeader_priteState
-            // 
-            this.columnHeader_priteState.Text = "打印状态";
-            this.columnHeader_priteState.Width = 0;
-            // 
-            // columnHeader15
-            // 
-            this.columnHeader15.Text = "处理结果";
-            this.columnHeader15.Width = 1;
+            this.columnHeader1.Width = 97;
             // 
             // columnHeader2
             // 
-            this.columnHeader2.Text = "预约时间";
-            this.columnHeader2.Width = 0;
+            this.columnHeader2.Text = "读者证条码";
+            this.columnHeader2.Width = 108;
+            // 
+            // columnHeader3
+            // 
+            this.columnHeader3.Text = "读者姓名";
+            this.columnHeader3.Width = 100;
             // 
             // columnHeader4
             // 
-            this.columnHeader4.Text = "到书时间";
-            this.columnHeader4.Width = 101;
+            this.columnHeader4.Text = "册条码";
+            this.columnHeader4.Width = 100;
             // 
             // columnHeader5
             // 
-            this.columnHeader5.Text = "册条码";
-            this.columnHeader5.Width = 93;
+            this.columnHeader5.Text = "书名";
+            this.columnHeader5.Width = 113;
             // 
             // columnHeader6
             // 
-            this.columnHeader6.Text = "ISBN";
+            this.columnHeader6.Text = "索取号";
             this.columnHeader6.Width = 100;
             // 
             // columnHeader7
             // 
-            this.columnHeader7.Text = "书名";
-            this.columnHeader7.Width = 150;
+            this.columnHeader7.Text = "馆藏地点";
+            this.columnHeader7.Width = 100;
             // 
             // columnHeader8
             // 
-            this.columnHeader8.Text = "作者";
+            this.columnHeader8.Text = "ISBN";
+            this.columnHeader8.Width = 77;
             // 
             // columnHeader9
             // 
-            this.columnHeader9.Text = "索取号";
-            this.columnHeader9.Width = 100;
+            this.columnHeader9.Text = "作者";
             // 
             // columnHeader10
             // 
-            this.columnHeader10.Text = "馆藏地点";
-            this.columnHeader10.Width = 100;
+            this.columnHeader10.Text = "读者电话";
+            this.columnHeader10.Width = 94;
             // 
             // columnHeader11
             // 
-            this.columnHeader11.Text = "预约者条码号";
-            this.columnHeader11.Width = 100;
+            this.columnHeader11.Text = "读者部门";
+            this.columnHeader11.Width = 87;
             // 
             // columnHeader12
             // 
-            this.columnHeader12.Text = "预约者姓名";
-            this.columnHeader12.Width = 100;
+            this.columnHeader12.Text = "预约时间";
+            this.columnHeader12.Width = 97;
             // 
             // columnHeader13
             // 
-            this.columnHeader13.Text = "预约者部门";
-            this.columnHeader13.Width = 100;
-            // 
-            // columnHeader3
-            // 
-            this.columnHeader3.Text = "电话";
+            this.columnHeader13.Text = "到书时间";
+            this.columnHeader13.Width = 113;
             // 
             // columnHeader14
             // 
-            this.columnHeader14.Text = "状态";
+            this.columnHeader14.Text = "预约状态";
             this.columnHeader14.Width = 100;
-            // 
-            // button_stop
-            // 
-            this.button_stop.Location = new System.Drawing.Point(560, 13);
-            this.button_stop.Margin = new System.Windows.Forms.Padding(4);
-            this.button_stop.Name = "button_stop";
-            this.button_stop.Size = new System.Drawing.Size(112, 34);
-            this.button_stop.TabIndex = 3;
-            this.button_stop.Text = "停止";
-            this.button_stop.UseVisualStyleBackColor = true;
-            this.button_stop.Click += new System.EventHandler(this.button_stop_Click);
             // 
             // PrepForm
             // 
@@ -403,7 +380,7 @@
             this.Controls.Add(this.label1);
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "PrepForm";
-            this.Text = "PrepForm";
+            this.Text = "预约到书查询";
             this.Load += new System.EventHandler(this.PrepForm_Load);
             this.contextMenuStrip_prep.ResumeLayout(false);
             this.tabControl1.ResumeLayout(false);
@@ -430,7 +407,6 @@
         private System.Windows.Forms.ColumnHeader columnHeader_readerName;
         private System.Windows.Forms.ColumnHeader columnHeader_department;
         private System.Windows.Forms.ColumnHeader columnHeader_state;
-        private System.Windows.Forms.ColumnHeader columnHeader_isPrint;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip_prep;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_print;
         private System.Windows.Forms.ColumnHeader columnHeader_requestTime;
@@ -438,8 +414,12 @@
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPage_arrived;
         private System.Windows.Forms.TabPage tabPage_outof;
+        private System.Windows.Forms.ColumnHeader columnHeader_tel;
+        private System.Windows.Forms.Button button_stop;
         private System.Windows.Forms.ListView listView_outof;
         private System.Windows.Forms.ColumnHeader columnHeader1;
+        private System.Windows.Forms.ColumnHeader columnHeader2;
+        private System.Windows.Forms.ColumnHeader columnHeader3;
         private System.Windows.Forms.ColumnHeader columnHeader4;
         private System.Windows.Forms.ColumnHeader columnHeader5;
         private System.Windows.Forms.ColumnHeader columnHeader6;
@@ -451,12 +431,5 @@
         private System.Windows.Forms.ColumnHeader columnHeader12;
         private System.Windows.Forms.ColumnHeader columnHeader13;
         private System.Windows.Forms.ColumnHeader columnHeader14;
-        private System.Windows.Forms.ColumnHeader columnHeader_priteState;
-        private System.Windows.Forms.ColumnHeader columnHeader2;
-        private System.Windows.Forms.ColumnHeader columnHeader_tel;
-        private System.Windows.Forms.ColumnHeader columnHeader3;
-        private System.Windows.Forms.Button button_stop;
-        private System.Windows.Forms.ColumnHeader columnHeader_operState;
-        private System.Windows.Forms.ColumnHeader columnHeader15;
     }
 }

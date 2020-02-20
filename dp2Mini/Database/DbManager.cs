@@ -50,10 +50,35 @@ namespace dp2Mini
         /// 增加备书单
         /// </summary>
         /// <param name="note"></param>
-        public void AddNote(Note note)
+        public void AddNote(List<string> pathList,string patronName)
         {
-            this._dbclient.Add(note);
+            // 把预约记录的path组成一个字符串，创建一条备书单，
+            // 其实这个paths字段也不是必须，因为现在创建了一个本地预约表，
+            // 可以根据备书单id从本地预约表中检索，两者有一对多的关系
+            string strPaths = "";
+            foreach (string path in pathList)
+            {
+                if (strPaths != "")
+                    strPaths += ",";
+                strPaths += path;
+            }
+            Note note = new Note(strPaths,patronName);
+            this._dbclient.Notes.Add(note);
             this._dbclient.SaveChanges(true);
+
+
+            // 更新对应预约记录的备书单id
+            foreach (string path in pathList)
+            {
+                // item表中note用的是字符串格式
+                this.UpdateItem(path, DbManager.NumToString(note.Id));
+            }
+        }
+
+        public static string NumToString(int num)
+        {
+            // 将数字转成7位字符串，左边补0
+            return num.ToString().PadLeft(7, '0');
         }
 
         // 更新一条备书单
@@ -82,7 +107,50 @@ namespace dp2Mini
             return note;
         }
 
+        /// <summary>
+        /// 根据路径查找一项预约记录
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public ReservationItem GetItem(string path)
+        {
+            //ReservationItem item = this._dbclient.Items
+            //    .Single(p => p.RecPath == path);
 
+            List<ReservationItem> items = this._dbclient.Items
+                .Where(b => b.RecPath == path)
+                .OrderBy(b => b.RequestTime)
+                .ToList();
+
+            if (items.Count > 0)
+                return items[0];
+
+            return null;
+        }
+
+        /// <summary>
+        /// 给本地预约记录表中新增一行
+        /// </summary>
+        /// <param name="item"></param>
+        public void AddItem(ReservationItem item)
+        {
+            this._dbclient.Items.Add(item);
+            this._dbclient.SaveChanges(true);
+        }
+
+        public void UpdateItem(string path,string noteId)
+        {
+            ReservationItem item = this.GetItem(path);
+            if (item == null)
+                throw new Exception("在本地item表中未找到路径为"+path+"的记录。");
+
+            // 将备书库的单号更新到item到
+            item.NoteId = noteId;
+
+            // 保存到库中
+            this._dbclient.Items.Update(item);
+            this._dbclient.SaveChanges(true);
+        }
 
     }
 }

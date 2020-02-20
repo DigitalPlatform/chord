@@ -19,6 +19,8 @@ namespace dp2Mini
 
         public DbSet<Note> Notes { get; set; }
 
+        public DbSet<ReservationItem> Items { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -28,8 +30,16 @@ namespace dp2Mini
             {
                 b.HasKey(e => e.Id);
                 b.Property(e => e.Id).ValueGeneratedOnAdd();
-                b.ToTable("notes");
+                b.ToTable("note");
             });
+
+            modelBuilder.Entity<ReservationItem>(b =>
+            {
+                b.HasKey(e => e.RecPath);
+                b.ToTable("item");
+            });
+
+
         }
     }
 

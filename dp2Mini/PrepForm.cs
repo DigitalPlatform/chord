@@ -17,6 +17,7 @@ using DigitalPlatform.IO;
 using DigitalPlatform;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections;
 
 namespace dp2Mini
 {
@@ -173,43 +174,51 @@ namespace dp2Mini
                             break;
 
                         string strPath = record.Path;
-                        // 检查这笔记录是否已经在备书单里了
-                        //BookNote order = this.getOrderByRecPath(strPath);
-                        //if (order != null)
-                        //{
-                        //    continue;
-                        //}
 
-                        // 把一条记录，解析出各列
-                        //string[] cols = null;
-                        int nRet = GetLineCols(channel,
-                           strPath,
-                           record.RecordBody.Xml,
-                           out ReservationItem reserItem,
-                            out strError);
-                        if (nRet == -1)
-                            goto ERROR1;
-
-                        this.Invoke((Action)(() =>
+                        // 先检查一下本地库有没有记录，如果有从本地拉，如果没有服务器拉
+                        ReservationItem item = DbManager.Instance.GetItem(strPath);
+                        if (item == null)
                         {
-                            if (reserItem.State == C_State_outof)
-                            {
-                                // 增加一行到超过保留期的
-                                AppendNewLine(this.listView_outof, strPath, reserItem);
-                            }
-                            else
-                            {
-                                // 增加一行到预约到书
-                                AppendNewLine(this.listView_results, strPath, reserItem);
-                            }
+                            // 把一条记录，解析出各列
+                            //string[] cols = null;
+                            int nRet = GetDetailInfo(channel,
+                               strPath,
+                               record.RecordBody.Xml,
+                               out item,
+                                out strError);
+                            if (nRet == -1)
+                                goto ERROR1;
 
-                            // 设置状态栏信息
-                            this._mainForm.SetStatusMessage((lStart + i + 1).ToString() + " / " + lTotalCount);
-
-                            // 数量加1
-                            i++;
+                            // 先存到本地库，省得下次再获取详细信息
+                            DbManager.Instance.AddItem(item);
                         }
+
+                        // 如果这笔记录还没有做备书单，则在这里显示
+                        // 否则不在结果列表中显示，在备书单那儿显示
+                        if (String.IsNullOrEmpty(item.NoteId) == true)
+                        {
+                            this.Invoke((Action)(() =>
+                            {
+                                if (item.State == C_State_outof)
+                                {
+                                    // 增加一行到超过保留期的
+                                    AppendNewLine(this.listView_outof, item);
+                                }
+                                else
+                                {
+                                    // 增加一行到预约到书
+                                    AppendNewLine(this.listView_results, item);
+                                }
+
+                                // 设置状态栏信息
+                                this._mainForm.SetStatusMessage((lStart + i + 1).ToString() + " / " + lTotalCount);
+
+                                // 数量加1
+                                i++;
+                            }
                         ));
+                        }
+
                     }
 
                     lStart += searchresults.Length;
@@ -218,13 +227,11 @@ namespace dp2Mini
                 }
 
                 return;
-
-            ERROR1:
-                this.Invoke((Action)(() =>
-                {
-                    MessageBox.Show(strError);
-                }
-                ));
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                goto ERROR1;
             }
             finally
             {
@@ -238,6 +245,13 @@ namespace dp2Mini
                 }
                 ));
             }
+
+        ERROR1:
+            this.Invoke((Action)(() =>
+            {
+                MessageBox.Show(strError);
+            }
+            ));
         }
 
         /// <summary>
@@ -261,7 +275,7 @@ namespace dp2Mini
         /// <param name="cols"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        int GetLineCols(RestChannel channel,
+        int GetDetailInfo(RestChannel channel,
             string recPath,
             string strRecordXml,
             out ReservationItem reserItem,
@@ -280,7 +294,7 @@ namespace dp2Mini
             reserItem.State = DomUtil.GetElementText(nodeRoot, "state");
             reserItem.ItemBarcode = DomUtil.GetElementText(nodeRoot, "itemBarcode");
             reserItem.ItemRefID = DomUtil.GetElementText(nodeRoot, "itemRefID");
-            reserItem.ReaderBarcode = DomUtil.GetElementText(nodeRoot, "readerBarcode");
+            reserItem.PatronBarcode = DomUtil.GetElementText(nodeRoot, "readerBarcode");
             reserItem.LibraryCode = DomUtil.GetElementText(nodeRoot, "libraryCode");
             reserItem.OnShelf = DomUtil.GetElementText(nodeRoot, "onShelf");
             reserItem.NotifyDate = DateTimeUtil.ToLocalTime(DomUtil.GetAttr(nodeRoot, "notifyDate"), "yyyy-MM-dd HH:mm:ss");
@@ -293,15 +307,22 @@ namespace dp2Mini
             reserItem.Author = "";
 
             // 以下字段是读者信息
-            reserItem.ReaderName = "";
+            reserItem.PatronName = "";
             reserItem.Department = "";
-            reserItem.Tel = "";
-            reserItem.RequestDate = "";
-            reserItem.ArrivedDate = "";
+            reserItem.PatronTel = "";
+            reserItem.RequestTime = "";
+            reserItem.ArrivedTime = "";
 
             // 备书产生的字段
             reserItem.PrintState = DomUtil.GetElementText(nodeRoot, "printState");
             reserItem.CheckState = "";// 是否找到图书，值为：找到/未找到
+
+            // 过了保留期的数据，不再获取详细数据
+            if (reserItem.State == C_State_outof)
+            {
+                strError = "因为过了保留期，不必再获取详细数据了。";
+                return 0;
+            }
 
             // 获取册信息以及书目信息
             if (!string.IsNullOrEmpty(reserItem.ItemBarcode))
@@ -339,9 +360,9 @@ namespace dp2Mini
             }
 
             // 获取读者信息
-            if (string.IsNullOrEmpty(reserItem.ReaderBarcode) == false)
+            if (string.IsNullOrEmpty(reserItem.PatronBarcode) == false)
             {
-                GetReaderInfoResponse readerRet = channel.GetReaderInfo(reserItem.ReaderBarcode,
+                GetReaderInfoResponse readerRet = channel.GetReaderInfo(reserItem.PatronBarcode,
                     "xml:noborrowhistory");
                 if (readerRet.GetReaderInfoResult.Value == -1)
                 {
@@ -357,9 +378,9 @@ namespace dp2Mini
                 string strPatronXml = readerRet.results[0];
                 dom.LoadXml(strPatronXml);
                 XmlNode rootNode = dom.DocumentElement;
-                reserItem.ReaderName = DomUtil.GetElementText(rootNode, "name");
+                reserItem.PatronName = DomUtil.GetElementText(rootNode, "name");
                 reserItem.Department = DomUtil.GetElementText(rootNode, "department");
-                reserItem.Tel = DomUtil.GetElementText(rootNode, "tel");
+                reserItem.PatronTel = DomUtil.GetElementText(rootNode, "tel");
 
                 /*
                 - <root expireDate="">
@@ -381,8 +402,8 @@ namespace dp2Mini
                     string arrivedItemBarcode = DomUtil.GetAttr(node, "arrivedItemBarcode");
                     if (arrivedItemBarcode == reserItem.ItemBarcode)
                     {
-                        reserItem.RequestDate = DateTimeUtil.ToLocalTime(DomUtil.GetAttr(node, "requestDate"), "yyyy-MM-dd HH:mm:ss");
-                        reserItem.ArrivedDate = DateTimeUtil.ToLocalTime(DomUtil.GetAttr(node, "arrivedDate"), "yyyy-MM-dd HH:mm:ss");
+                        reserItem.RequestTime = DateTimeUtil.ToLocalTime(DomUtil.GetAttr(node, "requestDate"), "yyyy-MM-dd HH:mm:ss");
+                        reserItem.ArrivedTime = DateTimeUtil.ToLocalTime(DomUtil.GetAttr(node, "arrivedDate"), "yyyy-MM-dd HH:mm:ss");
                         break;
                     }
                 }
@@ -398,63 +419,49 @@ namespace dp2Mini
         /// <param name="strID">左边第一列内容</param>
         /// <param name="others">其余列内容</param>
         /// <returns>新创建的 ListViewItem 对象</returns>
-        public static ListViewItem AppendNewLine(
-            ListView list,
-            string strPath,
-            ReservationItem reserItem )
+        public static ListViewItem AppendNewLine(ListView list,
+            ReservationItem resItem)
         {
-            ListViewItem item = new ListViewItem(strPath, 0);
-            list.Items.Add(item);
+            ListViewItem viewItem = new ListViewItem(resItem.RecPath, 0);
+            list.Items.Add(viewItem);
+
             /*
-            打印状态
-            备书结果
-            预约时间
-            到书时间
+            路径
+            读者证条码
+            读者姓名
             */
-            item.SubItems.Add(reserItem.PrintState);
-            item.SubItems.Add(reserItem.CheckState);
-            item.SubItems.Add(reserItem.RequestDate);
-            item.SubItems.Add(reserItem.ArrivedDate);
+            viewItem.SubItems.Add(resItem.PatronBarcode);
+            viewItem.SubItems.Add(resItem.PatronName);
             /*
             册条码
-            ISBN
             书名
-            作者
             索取号
             馆藏地点
+            ISBN
+            作者
             */
-            item.SubItems.Add(reserItem.ItemBarcode);
-            item.SubItems.Add(reserItem.ISBN);
-            item.SubItems.Add(reserItem.Title);
-            item.SubItems.Add(reserItem.Author);
-            item.SubItems.Add(reserItem.AccessNo);
-            item.SubItems.Add(reserItem.Location);
+            viewItem.SubItems.Add(resItem.ItemBarcode);
+            viewItem.SubItems.Add(resItem.Title);
+            viewItem.SubItems.Add(resItem.AccessNo);
+            viewItem.SubItems.Add(resItem.Location);
+            viewItem.SubItems.Add(resItem.ISBN);
+            viewItem.SubItems.Add(resItem.Author);
             /*
-            预约者证条码
-            预约者姓名
-            部门
-            电话
-            状态
+            读者电话
+            读者部门
+            预约时间
+            到书时间
+            预约状态
              */
-            item.SubItems.Add(reserItem.ReaderBarcode);
-            item.SubItems.Add(reserItem.ReaderName);
-            item.SubItems.Add(reserItem.Department);
-            item.SubItems.Add(reserItem.Tel);
-            item.SubItems.Add(reserItem.State);
+            viewItem.SubItems.Add(resItem.PatronTel);
+            viewItem.SubItems.Add(resItem.Department);
+            viewItem.SubItems.Add(resItem.RequestTime);
+            viewItem.SubItems.Add(resItem.ArrivedTime);
+            viewItem.SubItems.Add(resItem.State);
 
-           // 如果是已打印过的预约记录，背景显示灰色
-            if (reserItem.PrintState == "已打印")
-            {
-                item.BackColor = Color.Gray;
-            }
 
-            // 如果是超过保留期的，背景显示淡蓝
-            if (reserItem.State == C_State_outof)
-            {
-                item.BackColor = Color.SkyBlue;
-            }
 
-            return item;
+            return viewItem;
         }
 
         /// <summary>
@@ -554,27 +561,55 @@ namespace dp2Mini
         /// <param name="e"></param>
         private void toolStripMenuItem_bs_Click(object sender, EventArgs e)
         {
-            // 生成一个新的备书单
-            string paths = "";
-            foreach (ListViewItem item in this.listView_results.SelectedItems)
+            if (this.listView_results.SelectedItems.Count == 0)
             {
-                string onePath = item.SubItems[0].Text;
-                if (paths != "")
-                {
-                    paths += ",";
-                }
-                paths += onePath;
-
-                // 把预约到书列表中删除
-                this.listView_results.Items.Remove(item);
+                MessageBox.Show(this, "尚未选择预约到书记录。");
+                return;
             }
 
-            // 加到备书单
-            Note note = new Note(paths);
 
+            // 按读者拆分，每个读者一个备书单
+            Hashtable patronTable = new Hashtable();
+            foreach (ListViewItem viewItem in this.listView_results.SelectedItems)
+            {
+                string path = viewItem.SubItems[0].Text;
+                string patronBarcode = viewItem.SubItems[1].Text;
+                string patronName = viewItem.SubItems[2].Text;
 
-            // todo
-            //this.AddNoteToListView(note);
+                string fullName = patronName + "("+patronBarcode+")";
+                // 检查是否已在hashtable 
+                if (patronTable.ContainsKey(fullName) == true)
+                {
+                    List<ListViewItem> items = (List<ListViewItem>)patronTable[fullName];
+                    items.Add(viewItem);
+                }
+                else
+                {
+                    List<ListViewItem> items = new List<ListViewItem>();
+                    items.Add(viewItem);
+                    patronTable[fullName] = items;
+                }
+            }
+
+            // 处理每一个备书单
+            //遍历方法一：遍历哈希表中的键
+            foreach (string key in patronTable.Keys)
+            {
+
+                List<string> pathList = new List<string>();
+                List<ListViewItem> items = (List<ListViewItem>)patronTable[key];
+                foreach (ListViewItem item in items)
+                {
+                    string path = item.SubItems[0].Text;
+                    pathList.Add(path);
+
+                    // 从预约到书列表中删除
+                    this.listView_results.Items.Remove(item);
+                }
+
+                // 存储到本地备书单库
+                DbManager.Instance.AddNote(pathList,key);
+            }
 
 
             return;

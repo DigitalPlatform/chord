@@ -77,6 +77,25 @@ namespace DigitalPlatform.Forms
         [DllImport("user32.dll")]
         public static extern bool GetWindowRect(HandleRef hwnd, out RECT lpRect);
 
+
+
+        /*
+ * GetWindow() Constants
+ */
+        public const int GW_HWNDFIRST = 0;
+        public const int GW_HWNDLAST = 1;
+        public const int GW_HWNDNEXT = 2;
+        public const int GW_HWNDPREV = 3;
+        public const int GW_OWNER = 4;
+        public const int GW_CHILD = 5;
+        public const int GW_ENABLEDPOPUP = 6;
+        public const int GW_MAX = 6;
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, EntryPoint = "GetWindow",
+     SetLastError = true)]
+        public static extern IntPtr GetWindow(
+    IntPtr hwnd,
+    [MarshalAs(UnmanagedType.U4)] int wFlag);
     }
 
 }

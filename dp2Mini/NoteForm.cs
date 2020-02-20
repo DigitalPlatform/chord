@@ -13,10 +13,71 @@ namespace dp2Mini
 {
     public partial class NoteForm : Form
     {
+        /// <summary>
+        /// 构造函数
+        /// </summary>
         public NoteForm()
         {
             InitializeComponent();
         }
+
+        /// <summary>
+        /// 窗体加载
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void NoteForm_Load(object sender, EventArgs e)
+        {
+            // 开一个新线程
+            Task.Run(() =>
+            {
+                LoadNotes();
+            });
+        }
+
+        public void LoadNotes()
+        {
+            //把本地库的备书单显示在列表中
+            List<Note> notes = DbManager.Instance.GetNotes();
+            foreach (Note note in notes)
+            {
+                string noteId = DbManager.NumToString(note.Id);
+                ListViewItem viewItem = new ListViewItem(noteId, 0);
+                this.Invoke((Action)(() =>
+                {
+                    this.listView_note.Items.Add(viewItem);
+
+                /*
+                单号
+                读者
+                包含的预约记录
+                创建日期
+                当前进度
+                */
+                viewItem.SubItems.Add(note.PatronName);
+                viewItem.SubItems.Add(note.Items);
+                viewItem.SubItems.Add(note.CreateTime);
+                viewItem.SubItems.Add(note.Step);
+                /*
+                打印
+                备书
+                通知
+                取书
+                 */
+                viewItem.SubItems.Add(note.PrintState);
+                viewItem.SubItems.Add(note.PrintTime);
+                viewItem.SubItems.Add(note.CheckResult);
+                viewItem.SubItems.Add(note.CheckedTime);
+                viewItem.SubItems.Add(note.NoticeState);
+                viewItem.SubItems.Add(note.NoticeTime);
+                viewItem.SubItems.Add(note.TakeoffState);
+                viewItem.SubItems.Add(note.TakeoffTime);
+                }
+                ));
+            }
+        }
+
+
 
         #region 打印功能
 
@@ -28,7 +89,7 @@ namespace dp2Mini
                 false, Encoding.UTF8))
             {
                 StringBuilder sb = new StringBuilder(256);
-                foreach (ListViewItem item in this.listView1.SelectedItems)  //todo修改
+                foreach (ListViewItem item in this.listView_items.SelectedItems)  //todo修改
                 {
                     /*
                                         string strPrintState = ListViewUtil.GetItemText(item, item.SubItems.Count - 1);
@@ -143,10 +204,23 @@ namespace dp2Mini
 
             this.Cursor = oldCursor;
         }
+
+
         #endregion
 
-        private void label3_Click(object sender, EventArgs e)
+        private void listView_note_SelectedIndexChanged(object sender, EventArgs e)
         {
+            // 先清空下方界面上次备书单的信息
+
+
+            // 选择一行，下方进度按钮变化，并且显示详细信息
+
+        }
+
+
+
+        public void SetOperateButton(string step)
+        { 
 
         }
     }

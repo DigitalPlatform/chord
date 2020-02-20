@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-
+using DigitalPlatform.Forms;
 using DigitalPlatform.LibraryRestClient;
 using Microsoft.EntityFrameworkCore;
 
@@ -295,6 +295,9 @@ namespace dp2Mini
         /// <param name="e"></param>
         private void toolStripMenuItem_prep_Click(object sender, EventArgs e)
         {
+            EnsureChildForm<PrepForm>(true);
+
+            /*
             PrepForm prepForm = new PrepForm()
             {
                 MdiParent = this,
@@ -304,6 +307,7 @@ namespace dp2Mini
             prepForm.AutoSize = true;
             prepForm.WindowState = FormWindowState.Maximized;
             prepForm.Show();
+            */
         }
 
         // 登录参数设置
@@ -330,6 +334,9 @@ namespace dp2Mini
         /// <param name="e"></param>
         private void toolStripLabel_noteManager_Click(object sender, EventArgs e)
         {
+            EnsureChildForm<NoteForm>(true);
+
+            /*
             NoteForm prepForm = new NoteForm()
             {
                 MdiParent = this,
@@ -339,6 +346,7 @@ namespace dp2Mini
             prepForm.AutoSize = true;
             prepForm.WindowState = FormWindowState.Maximized;
             prepForm.Show();
+            */
         }
 
 
@@ -412,6 +420,122 @@ namespace dp2Mini
         }
         #endregion
 
+        #region 只打开一个MDI子窗口
+
+        /// <summary>
+        /// 获得一个已经打开的 MDI 子窗口，如果没有，则新打开一个
+        /// </summary>
+        /// <typeparam name="T">子窗口类型</typeparam>
+        /// <returns>子窗口对象</returns>
+        public T EnsureChildForm<T>(bool bActivate = false)
+        {
+            T form = GetTopChildWindow<T>();
+            if (form == null)
+            {
+                form = Activator.CreateInstance<T>();
+                dynamic o = form;
+                o.MdiParent = this;
+
+                {
+                    try
+                    {
+                        // 2017/4/25
+                        if (o.MainForm == null)
+                            o.MainForm = this;
+                    }
+                    catch
+                    {
+                        // 等将来所有窗口类型的 MainForm 都是只读的以后，再修改这里
+                    }
+                }
+                o.Show();
+            }
+            else
+            {
+                if (bActivate == true)
+                {
+                    try
+                    {
+                        dynamic o = form;
+                        o.Activate();
+
+                        if (o.WindowState == FormWindowState.Minimized)
+                            o.WindowState = FormWindowState.Normal;
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+            return form;
+        }
+
+
+        // 
+        /// <summary>
+        /// 得到特定类型的顶层 MDI 子窗口
+        /// 注：不算 Fixed 窗口
+        /// </summary>
+        /// <typeparam name="T">子窗口类型</typeparam>
+        /// <returns>子窗口对象</returns>
+        public T GetTopChildWindow<T>()
+        {
+            if (ActiveMdiChild == null)
+                return default(T);
+
+            // 得到顶层的MDI Child
+            IntPtr hwnd = this.ActiveMdiChild.Handle;
+
+            if (hwnd == IntPtr.Zero)
+                return default(T);
+
+            while (hwnd != IntPtr.Zero)
+            {
+                Form child = null;
+                // 判断一个窗口句柄，是否为 MDI 子窗口？
+                // return:
+                //      null    不是 MDI 子窗口o
+                //      其他      返回这个句柄对应的 Form 对象
+                child = IsChildHwnd(hwnd);
+                if (child != null )//&& IsFixedMyForm(child) == false)  // 2016/12/16 跳过固定于左侧的 MyForm
+                {
+                    // if (child is T)
+                    if (child.GetType().Equals(typeof(T)) == true)
+                    {
+                        try
+                        {
+                            return (T)Convert.ChangeType(child, typeof(T));
+                        }
+                        catch (InvalidCastException ex)
+                        {
+                            throw new InvalidCastException("在将类型 '" + child.GetType().ToString() + "' 转换为类型 '" + typeof(T).ToString() + "' 的过程中出现异常: " + ex.Message, ex);
+                        }
+                    }
+                }
+
+                hwnd = API.GetWindow(hwnd, API.GW_HWNDNEXT);
+            }
+
+            return default(T);
+        }
+
+        // 判断一个窗口句柄，是否为 MDI 子窗口？
+        // 注：不处理 Visible == false 的窗口。因为取 Handle 会导致 Visible 变成 true
+        // return:
+        //      null    不是 MDI 子窗口o
+        //      其他      返回这个句柄对应的 Form 对象
+        Form IsChildHwnd(IntPtr hwnd)
+        {
+            foreach (Form child in this.MdiChildren)
+            {
+                if (child.Visible == true && hwnd == child.Handle)
+                    return child;
+            }
+
+            return null;
+        }
+
+        #endregion
 
     }
 }

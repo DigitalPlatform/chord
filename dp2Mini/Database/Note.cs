@@ -11,11 +11,13 @@ namespace dp2Mini
         public Note()
         { }
 
-        public Note(string items)
+        public Note(string itemPaths,string patronName)
         {
-            this.Items = items;
+            this.Items = itemPaths;
             this.CreateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            this.PatronName = patronName;
             this.Step = "create";
+
 
             this.CheckResult = "";
             this.CheckedTime = "";
@@ -35,6 +37,9 @@ namespace dp2Mini
 
         // 包含的预约记录
         public string Items { get; set; }
+
+        // 读者姓名
+        public string PatronName { get; set; }
 
         // 备书库创建时间
         public string CreateTime { get; set; }
