@@ -122,6 +122,12 @@ namespace dp2Mini
             SetOperateButton(note.Step);
 
             // 显示详细信息
+            this.ShowDetail(noteId);
+        }
+
+        public void ShowDetail(string noteId)
+        {
+            this.listView_items.Items.Clear();
             List<ReservationItem> items = DbManager.Instance.GetItemsByNoteId(noteId);
             foreach (ReservationItem item in items)
             {
@@ -321,6 +327,94 @@ namespace dp2Mini
             PrintPreview(note);
         }
 
+        private void 输出小票信息ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (this.listView_note.SelectedItems.Count == 0)
+            {
+                MessageBox.Show(this, "尚未选择备书单");
+                return;
+            }
+
+            ListViewItem viewItem = this.listView_note.SelectedItems[0];
+            string noteId = viewItem.SubItems[0].Text;
+            Note note = DbManager.Instance.GetNote(noteId);
+
+            StringBuilder sb = new StringBuilder();
+            // 备书单整体信息
+            sb.AppendLine("备书单号：" + noteId ); //备书单id
+            sb.AppendLine(note.PatronName ); //读者姓名
+            sb.AppendLine(note.PatronTel ); //读者电话
+            sb.AppendLine( note.PrintTime); //打印时间
+            sb.AppendLine("================="); //打印时间
+
+            // 预约记录详细信息
+            List<ReservationItem> items = DbManager.Instance.GetItemsByNoteId(noteId);
+            foreach (ReservationItem item in items)
+            {
+                sb.AppendLine( item.ItemBarcode);
+                sb.AppendLine(item.Title);
+                sb.AppendLine(item.Location);
+                sb.AppendLine(item.AccessNo);
+                sb.AppendLine( item.ISBN );
+                sb.AppendLine(item.Author );
+                sb.AppendLine( item.RequestTime);
+                sb.AppendLine("--------------------------");
+            }
+
+            textForm dlg = new textForm();
+            dlg.Info = sb.ToString();
+            dlg.ShowDialog(this);
+        }
+
+        private void 查看备书结果ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ListViewItem viewItem = this.listView_note.SelectedItems[0];
+            string noteId = viewItem.SubItems[0].Text;
+            Note note = DbManager.Instance.GetNote(noteId);
+
+            if (note.Step != Note.C_Step_Check
+                && note.Step != Note.C_Step_Notice
+                && note.Step != Note.C_Step_Takeoff)
+            {
+                MessageBox.Show(this, "本单尚未备书完成，备书完成才能查看备书结果信息");
+                return;
+            }
+
+            string info = this.GetResultInfo(noteId);
+
+            textForm dlg = new textForm();
+            dlg.Info = info;
+            dlg.ShowDialog(this);
+
+        }
+
+        public string GetResultInfo(string noteId)
+        {
+            Note note = DbManager.Instance.GetNote(noteId);
+            StringBuilder sb = new StringBuilder();
+            // 备书单整体信息
+            sb.AppendLine("备书单号：" + noteId); //备书单id
+            sb.AppendLine(note.PatronName); //读者姓名
+            sb.AppendLine(note.PatronTel); //读者电话
+            sb.AppendLine("备书完成时间：" + note.CheckedTime);
+            sb.AppendLine("================="); //打印时间
+
+            List<ReservationItem> items = DbManager.Instance.GetItemsByNoteId(noteId);
+            foreach (ReservationItem item in items)
+            {
+                sb.AppendLine(GetCheckResultText(item.CheckResult) + " " + item.ItemBarcode + " " + item.Title);
+            }
+            return sb.ToString();
+        }
+
+        public string GetCheckResultText(string checkResult)
+        {
+            if (checkResult.ToUpper() == "Y")
+                return "满足";
+            else
+                return "不满足";
+        }
+
         #region 打印功能
 
         // 打印文件
@@ -357,7 +451,7 @@ namespace dp2Mini
                     sb.AppendLine("<p>"+item.ISBN+"</p>");
                     sb.AppendLine("<p>"+item.Author+"</p>");
                     sb.AppendLine("<p>预约时间：" + item.RequestTime + "</p>");
-                    sb.AppendLine("<p>-----------------------------</p>");
+                    sb.AppendLine("<p>--------------------------</p>");
                 }
 
                 // 加打印内容加上格式
@@ -455,8 +549,163 @@ namespace dp2Mini
         }
 
 
+
+
         #endregion
 
+        private void contextMenuStrip_note_Opening(object sender, CancelEventArgs e)
+        {
+            if (this.listView_note.SelectedItems.Count <= 0)
+            {
+                this.打印小票预览ToolStripMenuItem.Enabled = false;
+                this.输出小票信息ToolStripMenuItem.Enabled = false;
+                this.查看备书结果ToolStripMenuItem.Enabled = false;
+            }
+            else
+            {
+                this.打印小票预览ToolStripMenuItem.Enabled = true;
+                this.输出小票信息ToolStripMenuItem.Enabled = true;
+                this.查看备书结果ToolStripMenuItem.Enabled = true;
+            }
+        }
 
+        /// <summary>
+        /// 准备图书完成
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void button_check_Click(object sender, EventArgs e)
+        {
+            if (this.listView_note.SelectedItems.Count == 0)
+            {
+                MessageBox.Show(this, "尚未选择备书单");
+                return;
+            }
+
+            ListViewItem viewItem = this.listView_note.SelectedItems[0];
+            string noteId = viewItem.SubItems[0].Text;
+            checkForm dlg = new checkForm();
+            dlg.NoteId = noteId;
+            DialogResult ret = dlg.ShowDialog(this);
+            if (ret == DialogResult.Cancel)
+            {
+                // 用户取消操作，则不做什么事情
+                return;
+            }
+
+            if (ret == DialogResult.OK)
+            {
+                // 找到的图书
+                string foundItems = dlg.FoundItems;
+                if (string.IsNullOrEmpty(foundItems) == false)
+                {
+                    string[] paths = foundItems.Split(new char[] {','});
+                    foreach (string path in paths)
+                    {
+                        // 更新数据库预约记录的备书结果
+                        ReservationItem item = DbManager.Instance.GetItem(path);
+                        item.CheckResult = "Y";
+                        DbManager.Instance.UpdateItem(item);
+                    }
+                }
+
+                // 未找到的图书
+                string notfoundItems = dlg.NotFoundItems;
+                if (string.IsNullOrEmpty(notfoundItems) == false)
+                {
+                    string[] paths = notfoundItems.Split(new char[] { ',' });
+                    foreach (string path in paths)
+                    {
+                        // 更新数据库预约记录的备书结果
+                        ReservationItem item = DbManager.Instance.GetItem(path);
+                        item.CheckResult = "N";
+                        DbManager.Instance.UpdateItem(item);
+                    }
+                }
+
+                string checkTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                Note note = DbManager.Instance.GetNote(noteId);
+                note.CheckedTime = checkTime;
+                note.CheckResult = "Y";
+                note.Step = Note.C_Step_Check;
+
+                // 更新本地数据库备书库打印状态和时间
+                DbManager.Instance.UpdateNote(note);
+
+                // 更新备书行的显示
+                this.LoadOneNote(note, viewItem);
+                this.SetOperateButton(note.Step);
+
+                // 显示详细信息
+                this.ShowDetail(noteId);
+            }
+
+        }
+
+        private void button_notice_Click(object sender, EventArgs e)
+        {
+            if (this.listView_note.SelectedItems.Count == 0)
+            {
+                MessageBox.Show(this, "尚未选择备书单");
+                return;
+            }
+
+            ListViewItem viewItem = this.listView_note.SelectedItems[0];
+            string noteId = viewItem.SubItems[0].Text;
+
+            string info = this.GetResultInfo(noteId);
+            noticeForm dlg = new noticeForm();
+            dlg.Info = info;
+            DialogResult ret= dlg.ShowDialog(this);
+            if (ret == DialogResult.Cancel)
+            {
+                // 用户取消操作，则不做什么事情
+                return;
+            }
+
+            Note note = DbManager.Instance.GetNote(noteId);
+            string noticeTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            note.NoticeTime = noticeTime;
+            note.NoticeState = "Y";
+            note.Step = Note.C_Step_Notice;
+
+            // 更新本地数据库备书库打印状态和时间
+            DbManager.Instance.UpdateNote(note);
+
+            // 更新备书行的显示
+            this.LoadOneNote(note, viewItem);
+            this.SetOperateButton(note.Step);
+        }
+
+        private void button_takeoff_Click(object sender, EventArgs e)
+        {
+            MessageBoxButtons messButton = MessageBoxButtons.OKCancel;
+
+            //"确定要退出吗？"是对话框的显示信息，"退出系统"是对话框的标题
+
+            //默认情况下，如MessageBox.Show("确定要退出吗？")只显示一个“确定”按钮。
+            DialogResult dlg = MessageBox.Show(this,"确定读者已取走图书?", "读者取书", messButton);
+
+            if (dlg == DialogResult.OK)//如果点击“确定”按钮
+            {
+                ListViewItem viewItem = this.listView_note.SelectedItems[0];
+                string noteId = viewItem.SubItems[0].Text;
+                Note note = DbManager.Instance.GetNote(noteId);
+                string takeoffTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                note.TakeoffTime = takeoffTime;
+                note.TakeoffState = "Y";
+                note.Step = Note.C_Step_Takeoff;
+
+                // 更新本地数据库备书库打印状态和时间
+                DbManager.Instance.UpdateNote(note);
+
+                // 更新备书行的显示
+                this.LoadOneNote(note, viewItem);
+                this.SetOperateButton(note.Step);
+
+                //
+                //viewItem.BackColor = Color.LightGray;
+            }
+        }
     }
 }

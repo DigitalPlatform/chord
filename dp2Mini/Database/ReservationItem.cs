@@ -59,9 +59,14 @@ accessNo —— 所预约图书索取号。
         // 备书产生的字段
         public string PrintState { get; set; }
         public string CheckResult { get; set; }  // 是否找到图书，值为：找到/未找到
+        // 未找到原因，预备字段
+        public string NotFoundReason { get; set; }
 
 
         // 父亲备书单ID
         public string NoteId { get; set; }
+
+        public string Other { get; set; } //xml格式，预备以后扩展内容
+
     }
 }

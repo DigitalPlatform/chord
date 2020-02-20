@@ -494,11 +494,11 @@ namespace dp2Mini
         {
             if (this.listView_results.SelectedItems.Count <= 0)
             {
-                this.toolStripMenuItem_print.Enabled = false;
+                this.toolStripMenuItem_createNote.Enabled = false;
             }
             else
             {
-                this.toolStripMenuItem_print.Enabled = true;
+                this.toolStripMenuItem_createNote.Enabled = true;
             }
         }
         

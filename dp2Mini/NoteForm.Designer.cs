@@ -41,6 +41,7 @@
             this.listView_note = new System.Windows.Forms.ListView();
             this.columnHeader_id = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_patron = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_items = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_createTime = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_step = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -52,6 +53,10 @@
             this.columnHeader_noticeTime = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_takeoff = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_takeoffTime = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.contextMenuStrip_note = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.打印小票预览ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.输出小票信息ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.查看备书结果ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.button_create = new System.Windows.Forms.Button();
             this.listView_items = new System.Windows.Forms.ListView();
@@ -70,15 +75,11 @@
             this.columnHeader_requestTime = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_arrivedTime = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_state = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.contextMenuStrip_note = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.打印小票预览ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.输出小票信息ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.contextMenuStrip_note.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
-            this.contextMenuStrip_note.SuspendLayout();
             this.SuspendLayout();
             // 
             // label7
@@ -102,6 +103,7 @@
             this.button_takeoff.TabIndex = 28;
             this.button_takeoff.Text = "读者取走书";
             this.button_takeoff.UseVisualStyleBackColor = true;
+            this.button_takeoff.Click += new System.EventHandler(this.button_takeoff_Click);
             // 
             // label6
             // 
@@ -124,6 +126,7 @@
             this.button_notice.TabIndex = 26;
             this.button_notice.Text = "电话通知读者";
             this.button_notice.UseVisualStyleBackColor = true;
+            this.button_notice.Click += new System.EventHandler(this.button_notice_Click);
             // 
             // label5
             // 
@@ -144,8 +147,9 @@
             this.button_check.Name = "button_check";
             this.button_check.Size = new System.Drawing.Size(180, 52);
             this.button_check.TabIndex = 24;
-            this.button_check.Text = "准备图书完成";
+            this.button_check.Text = "备书完成";
             this.button_check.UseVisualStyleBackColor = true;
+            this.button_check.Click += new System.EventHandler(this.button_check_Click);
             // 
             // label4
             // 
@@ -224,6 +228,11 @@
             this.columnHeader_patron.Text = "读者姓名";
             this.columnHeader_patron.Width = 104;
             // 
+            // columnHeader1
+            // 
+            this.columnHeader1.Text = "读者电话";
+            this.columnHeader1.Width = 101;
+            // 
             // columnHeader_items
             // 
             this.columnHeader_items.Text = "包含的预约记录";
@@ -278,6 +287,38 @@
             // 
             this.columnHeader_takeoffTime.Text = "取书时间";
             this.columnHeader_takeoffTime.Width = 68;
+            // 
+            // contextMenuStrip_note
+            // 
+            this.contextMenuStrip_note.ImageScalingSize = new System.Drawing.Size(24, 24);
+            this.contextMenuStrip_note.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.打印小票预览ToolStripMenuItem,
+            this.输出小票信息ToolStripMenuItem,
+            this.查看备书结果ToolStripMenuItem});
+            this.contextMenuStrip_note.Name = "contextMenuStrip_note";
+            this.contextMenuStrip_note.Size = new System.Drawing.Size(189, 94);
+            this.contextMenuStrip_note.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip_note_Opening);
+            // 
+            // 打印小票预览ToolStripMenuItem
+            // 
+            this.打印小票预览ToolStripMenuItem.Name = "打印小票预览ToolStripMenuItem";
+            this.打印小票预览ToolStripMenuItem.Size = new System.Drawing.Size(188, 30);
+            this.打印小票预览ToolStripMenuItem.Text = "小票打印预览";
+            this.打印小票预览ToolStripMenuItem.Click += new System.EventHandler(this.打印小票预览ToolStripMenuItem_Click);
+            // 
+            // 输出小票信息ToolStripMenuItem
+            // 
+            this.输出小票信息ToolStripMenuItem.Name = "输出小票信息ToolStripMenuItem";
+            this.输出小票信息ToolStripMenuItem.Size = new System.Drawing.Size(188, 30);
+            this.输出小票信息ToolStripMenuItem.Text = "查看小票信息";
+            this.输出小票信息ToolStripMenuItem.Click += new System.EventHandler(this.输出小票信息ToolStripMenuItem_Click);
+            // 
+            // 查看备书结果ToolStripMenuItem
+            // 
+            this.查看备书结果ToolStripMenuItem.Name = "查看备书结果ToolStripMenuItem";
+            this.查看备书结果ToolStripMenuItem.Size = new System.Drawing.Size(188, 30);
+            this.查看备书结果ToolStripMenuItem.Text = "查看备书结果";
+            this.查看备书结果ToolStripMenuItem.Click += new System.EventHandler(this.查看备书结果ToolStripMenuItem_Click);
             // 
             // splitContainer1
             // 
@@ -426,33 +467,6 @@
             this.columnHeader_state.Text = "预约状态";
             this.columnHeader_state.Width = 100;
             // 
-            // columnHeader1
-            // 
-            this.columnHeader1.Text = "读者电话";
-            this.columnHeader1.Width = 101;
-            // 
-            // contextMenuStrip_note
-            // 
-            this.contextMenuStrip_note.ImageScalingSize = new System.Drawing.Size(24, 24);
-            this.contextMenuStrip_note.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.打印小票预览ToolStripMenuItem,
-            this.输出小票信息ToolStripMenuItem});
-            this.contextMenuStrip_note.Name = "contextMenuStrip_note";
-            this.contextMenuStrip_note.Size = new System.Drawing.Size(241, 97);
-            // 
-            // 打印小票预览ToolStripMenuItem
-            // 
-            this.打印小票预览ToolStripMenuItem.Name = "打印小票预览ToolStripMenuItem";
-            this.打印小票预览ToolStripMenuItem.Size = new System.Drawing.Size(240, 30);
-            this.打印小票预览ToolStripMenuItem.Text = "打印小票预览";
-            this.打印小票预览ToolStripMenuItem.Click += new System.EventHandler(this.打印小票预览ToolStripMenuItem_Click);
-            // 
-            // 输出小票信息ToolStripMenuItem
-            // 
-            this.输出小票信息ToolStripMenuItem.Name = "输出小票信息ToolStripMenuItem";
-            this.输出小票信息ToolStripMenuItem.Size = new System.Drawing.Size(240, 30);
-            this.输出小票信息ToolStripMenuItem.Text = "输出小票信息";
-            // 
             // NoteForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
@@ -462,12 +476,12 @@
             this.Name = "NoteForm";
             this.Text = "备书单管理";
             this.Load += new System.EventHandler(this.NoteForm_Load);
+            this.contextMenuStrip_note.ResumeLayout(false);
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
             this.splitContainer1.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
-            this.contextMenuStrip_note.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -517,7 +531,8 @@
         private System.Windows.Forms.ColumnHeader columnHeader_checkResult;
         private System.Windows.Forms.ColumnHeader columnHeader1;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip_note;
-        private System.Windows.Forms.ToolStripMenuItem 打印小票预览ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 输出小票信息ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 查看备书结果ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 打印小票预览ToolStripMenuItem;
     }
 }

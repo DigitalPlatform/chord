@@ -215,6 +215,12 @@
     <Compile Include="Control\PrintCardDocument.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="checkForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="checkForm.Designer.cs">
+      <DependentUpon>checkForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="LoginForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -226,6 +232,18 @@
     </Compile>
     <Compile Include="MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="noticeForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="noticeForm.Designer.cs">
+      <DependentUpon>noticeForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="textForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="textForm.Designer.cs">
+      <DependentUpon>textForm.cs</DependentUpon>
     </Compile>
     <Content Include="del-NoteDb1.txt" />
     <Compile Include="NoteForm.cs">
@@ -254,6 +272,9 @@
     <EmbeddedResource Include="Control\CardPrintForm.resx">
       <DependentUpon>CardPrintForm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="checkForm.resx">
+      <DependentUpon>checkForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="LoginForm.resx">
       <DependentUpon>LoginForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -262,6 +283,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="NoteForm.resx">
       <DependentUpon>NoteForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="noticeForm.resx">
+      <DependentUpon>noticeForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="PrepForm.resx">
       <DependentUpon>PrepForm.cs</DependentUpon>
@@ -278,6 +302,9 @@
     </Compile>
     <EmbeddedResource Include="SettingForm.resx">
       <DependentUpon>SettingForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="textForm.resx">
+      <DependentUpon>textForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="app.config">
       <SubType>Designer</SubType>

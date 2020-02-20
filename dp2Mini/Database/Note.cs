@@ -67,6 +67,7 @@ namespace dp2Mini
         // 通知读者
         public string NoticeState { get; set; }
         public string NoticeTime { get; set; }
+        public string NoticeType { get; set; }//通知方式
 
         // 读者取书
         public string TakeoffState { get; set; }
@@ -76,5 +77,8 @@ namespace dp2Mini
         // 当前步骤
         public string Step { get; set; }  //create/print/check/notice/takeoff
 
+
+        public string Other { get; set; } //xml格式，预备以后扩展内容
+             
     }
 }

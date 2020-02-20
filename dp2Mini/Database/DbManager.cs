@@ -165,5 +165,12 @@ namespace dp2Mini
             this._dbclient.SaveChanges(true);
         }
 
+        public void UpdateItem(ReservationItem item)
+        {
+            // 保存到库中
+            this._dbclient.Items.Update(item);
+            this._dbclient.SaveChanges(true);
+        }
+
     }
 }

@@ -48,7 +48,7 @@
             this.columnHeader_tel = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_state = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.contextMenuStrip_prep = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.toolStripMenuItem_print = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem_createNote = new System.Windows.Forms.ToolStripMenuItem();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage_arrived = new System.Windows.Forms.TabPage();
             this.tabPage_outof = new System.Windows.Forms.TabPage();
@@ -210,16 +210,17 @@
             // 
             this.contextMenuStrip_prep.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.contextMenuStrip_prep.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripMenuItem_print});
+            this.toolStripMenuItem_createNote});
             this.contextMenuStrip_prep.Name = "contextMenuStrip1";
             this.contextMenuStrip_prep.Size = new System.Drawing.Size(241, 67);
+            this.contextMenuStrip_prep.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
             // 
-            // toolStripMenuItem_print
+            // toolStripMenuItem_createNote
             // 
-            this.toolStripMenuItem_print.Name = "toolStripMenuItem_print";
-            this.toolStripMenuItem_print.Size = new System.Drawing.Size(240, 30);
-            this.toolStripMenuItem_print.Text = "创建备书单(&P)";
-            this.toolStripMenuItem_print.Click += new System.EventHandler(this.toolStripMenuItem_bs_Click);
+            this.toolStripMenuItem_createNote.Name = "toolStripMenuItem_createNote";
+            this.toolStripMenuItem_createNote.Size = new System.Drawing.Size(240, 30);
+            this.toolStripMenuItem_createNote.Text = "创建备书单(&P)";
+            this.toolStripMenuItem_createNote.Click += new System.EventHandler(this.toolStripMenuItem_bs_Click);
             // 
             // tabControl1
             // 
@@ -408,7 +409,7 @@
         private System.Windows.Forms.ColumnHeader columnHeader_department;
         private System.Windows.Forms.ColumnHeader columnHeader_state;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip_prep;
-        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_print;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_createNote;
         private System.Windows.Forms.ColumnHeader columnHeader_requestTime;
         private System.Windows.Forms.ColumnHeader columnHeader_arrivedTime;
         private System.Windows.Forms.TabControl tabControl1;
