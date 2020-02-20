@@ -79,9 +79,11 @@ namespace ilovelibrary.Server
             }
 
             // 执行这个命令
-            LibraryChannel channel = ilovelibraryServer.Instance.ChannelPool.GetChannel(ilovelibraryServer.Instance.dp2LibraryUrl, this.UserName);
-            channel.Password = this.Password;
-            channel.Parameters = this.Parameters;
+            RestChannel channel = ilovelibraryServer.Instance.ChannelPool.GetChannel(ilovelibraryServer.Instance.dp2LibraryUrl, this.UserName);
+            //2020/2/20 channel类不包括密码和参数，所以改在本地表中
+            ilovelibraryServer.Instance._sessionTable[this.UserName] = this;
+            //channel.Password = this.Password;
+            //channel.Parameters = this.Parameters;
             try
             {
                 long lRet = -1;

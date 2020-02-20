@@ -17,7 +17,7 @@ namespace dp2Mini
     public partial class MainForm : Form
     {
         // 主要的通道池，用于当前服务器
-        public LibraryChannelPool _channelPool = new LibraryChannelPool();
+        public RestChannelPool _channelPool = new RestChannelPool();
 
         // 当前连接的服务器的图书馆名
         public string LibraryName = "";
@@ -174,7 +174,7 @@ namespace dp2Mini
         /// <param name="strServerUrl"></param>
         /// <param name="strUserName"></param>
         /// <returns></returns>
-        public LibraryChannel GetChannel(string strServerUrl = ".",
+        public RestChannel GetChannel(string strServerUrl = ".",
             string strUserName = ".")
         {
             if (strServerUrl == ".")
@@ -187,7 +187,7 @@ namespace dp2Mini
             if (strUserName == ".")
                 strUserName = Properties.Settings.Default.cfg_library_username;
 
-            LibraryChannel channel = this._channelPool.GetChannel(strServerUrl, strUserName);
+            RestChannel channel = this._channelPool.GetChannel(strServerUrl, strUserName);
             return channel;
         }
 
@@ -195,7 +195,7 @@ namespace dp2Mini
         /// 释放通道
         /// </summary>
         /// <param name="channel"></param>
-        public void ReturnChannel(LibraryChannel channel)
+        public void ReturnChannel(RestChannel channel)
         {
             this._channelPool.ReturnChannel(channel);
         }
@@ -213,7 +213,7 @@ namespace dp2Mini
         {
             strError = "";
 
-            LibraryChannel channel = this.GetChannel();
+            RestChannel channel = this.GetChannel();
             try
             {
                 GetSystemParameterResponse response = channel.GetSystemParameter("library", "name");
@@ -254,7 +254,7 @@ namespace dp2Mini
         {
              strError = "";
 
-            LibraryChannel channel = this.GetChannel();
+            RestChannel channel = this.GetChannel();
             try
             {
                 GetSystemParameterResponse response = channel.GetSystemParameter("arrived",

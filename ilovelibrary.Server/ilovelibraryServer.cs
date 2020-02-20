@@ -18,7 +18,9 @@ namespace ilovelibrary.Server
 {
     public class ilovelibraryServer
     {
-        //=================
+
+        #region 单一实例
+
         // 设为单一实例
         static ilovelibraryServer _instance;
         private ilovelibraryServer()
@@ -40,7 +42,9 @@ namespace ilovelibrary.Server
                 return _instance;
             }
         }
-        //===========
+        #endregion
+
+        public Hashtable _sessionTable = new Hashtable();
 
         // dp2服务器地址
         public string dp2LibraryUrl = "";//"http://dp2003.com/dp2library/rest/"; //"http://localhost:8001/dp2library/rest/";//
@@ -48,7 +52,7 @@ namespace ilovelibrary.Server
         public string dp2OpacUrl = "";
 
         // dp2通道池
-        public LibraryChannelPool ChannelPool = null;
+        public RestChannelPool ChannelPool = null;
 
         // 背景图管理器
         public string TodayUrl="";
@@ -65,7 +69,7 @@ namespace ilovelibrary.Server
             PathUtil.CreateDirIfNeed(this.dataDir);	// 确保目录创建
 
             // 通道池对象
-            ChannelPool = new LibraryChannelPool();
+            ChannelPool = new RestChannelPool();
             ChannelPool.BeforeLogin -= new BeforeLoginEventHandle(Channel_BeforeLogin);
             ChannelPool.BeforeLogin += new BeforeLoginEventHandle(Channel_BeforeLogin);            
 
@@ -91,11 +95,11 @@ namespace ilovelibrary.Server
 
             // 这里赋上通道自己的账号，而不是使用全局变量。
             // 因为从池中征用通道后，都给通道设了密码。账号密码是通道的属性。
-            LibraryChannel channel = sender as LibraryChannel;
+            RestChannel channel = sender as RestChannel;
             e.LibraryServerUrl = channel.Url;
             e.UserName = channel.UserName;
-            e.Password = channel.Password;
-            e.Parameters = channel.Parameters;
+            e.Password = ((SessionInfo)this._sessionTable[channel.UserName]).Password;    //channel.Password;
+            e.Parameters = ((SessionInfo)this._sessionTable[channel.UserName]).Parameters;//channel.Parameters;
         }
 
         //      result.Value 0: 不是合法的条码号 1:合法的读者证条码号 2:合法的册条码号
@@ -106,10 +110,13 @@ namespace ilovelibrary.Server
             string strError = "";
             ApiResult result = new ApiResult();
 
-            LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl,
+            RestChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl,
                 sessionInfo.UserName);
-            channel.Password = sessionInfo.Password;
-            channel.Parameters = sessionInfo.Parameters;
+
+            //2020/2/20 channel类不包括密码和参数，所以改在本地表中
+            this._sessionTable[sessionInfo.UserName] = sessionInfo;
+            //channel.Password = sessionInfo.Password;
+            //channel.Parameters = sessionInfo.Parameters;
             try
             {
                 // todo 这里传的工作人员的libraryCode对吗？
@@ -157,8 +164,8 @@ namespace ilovelibrary.Server
             strError = "";
             rights = "";
 
-            LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, strUserName);
-            channel.Password = strPassword;
+            RestChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, strUserName);
+            //channel.Password = strPassword;
             try
             {
                 string strParam = "";
@@ -202,6 +209,9 @@ namespace ilovelibrary.Server
                 sessionInfo.LibraryCode = ret.strLibraryCode;
                 sessionInfo.isReader = isReader;
                 sessionInfo.PersonalLibrary = "";
+                //2020/2/20 channel类不包括密码和参数，所以改在本地表中
+                this._sessionTable[sessionInfo.UserName] = sessionInfo;
+
 
                 // 初始一下可用的书目数据库
                 int nRet = this.GetBiblioDbNames(channel, out this.strBiblioDbNames, out strError);
@@ -509,9 +519,11 @@ namespace ilovelibrary.Server
             }
 
 
-            LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, sessionInfo.UserName);
-            channel.Password = sessionInfo.Password;
-            channel.Parameters = sessionInfo.Parameters;
+            RestChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, sessionInfo.UserName);
+            //2020/2/20 channel类不包括密码和参数，所以改在本地表中
+            this._sessionTable[sessionInfo.UserName] = sessionInfo;
+            //channel.Password = sessionInfo.Password;
+            //channel.Parameters = sessionInfo.Parameters;
             try
             {
                 // 先根据barcode检索出来,得到原记录与时间戳
@@ -571,7 +583,7 @@ namespace ilovelibrary.Server
             }
         }
 
-        public int ReaderMulPath2Html(LibraryChannel channel, 
+        public int ReaderMulPath2Html(RestChannel channel, 
             string strRecPath, 
             out string strHtml,
             out string strError)
@@ -805,9 +817,12 @@ namespace ilovelibrary.Server
                 return result;
             }
 
-            LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, sessionInfo.UserName);
-            channel.Password = sessionInfo.Password;
-            channel.Parameters = sessionInfo.Parameters;
+            RestChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, sessionInfo.UserName);
+
+            //2020/2/20 channel类不包括密码和参数，所以改在本地表中
+            this._sessionTable[sessionInfo.UserName] = sessionInfo;
+            //channel.Password = sessionInfo.Password;
+            //channel.Parameters = sessionInfo.Parameters;
             try
             {
                 string strSummary = "";
@@ -841,7 +856,7 @@ namespace ilovelibrary.Server
             }
         }
 
-        private int GetPatronSummary(LibraryChannel channel, string strReaderBarcode,
+        private int GetPatronSummary(RestChannel channel, string strReaderBarcode,
             bool isContainDept,
             out string strSummary,
             out string strError)
@@ -897,9 +912,11 @@ namespace ilovelibrary.Server
             if (sessionInfo == null)
                 throw new Exception("尚未登录");
 
-            LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, sessionInfo.UserName);
-            channel.Password = sessionInfo.Password;
-            channel.Parameters = sessionInfo.Parameters;
+            RestChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, sessionInfo.UserName);
+            //2020/2/20 channel类不包括密码和参数，所以改在本地表中
+            this._sessionTable[sessionInfo.UserName] = sessionInfo;
+            //channel.Password = sessionInfo.Password;
+            //channel.Parameters = sessionInfo.Parameters;
             try
             {
                 GetBiblioSummaryResponse result = channel.GetBiblioSummary(strItemBarcode,"");
@@ -945,9 +962,11 @@ namespace ilovelibrary.Server
                 string strBiblioRecPath = "";
 
                 // 2012/3/28
-                LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, sessionInfo.UserName);
-                channel.Password = sessionInfo.Password;
-                channel.Parameters = sessionInfo.Parameters;
+                RestChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, sessionInfo.UserName);
+                //2020/2/20 channel类不包括密码和参数，所以改在本地表中
+                this._sessionTable[sessionInfo.UserName] = sessionInfo;
+                //channel.Password = sessionInfo.Password;
+                //channel.Parameters = sessionInfo.Parameters;
                 try
                 {
                     GetBiblioSummaryResponse result = channel.GetBiblioSummary(strBarcode,strPrevBiblioRecPath);
@@ -1013,7 +1032,7 @@ namespace ilovelibrary.Server
         /// </summary>
         /// <param name="bPrepareSearch">是否要准备通道</param>
         /// <returns>-1: 出错，不希望继续以后的操作; 0: 成功; 1: 出错，但希望继续后面的操作</returns>
-        public int GetBiblioDbNames(LibraryChannel channel,
+        public int GetBiblioDbNames(RestChannel channel,
             out string strDbNames,
             out string strError)
         {
@@ -1097,9 +1116,11 @@ namespace ilovelibrary.Server
             }
 
 
-            LibraryChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, sessionInfo.UserName);
-            channel.Password = sessionInfo.Password;
-            channel.Parameters = sessionInfo.Parameters;
+            RestChannel channel = this.ChannelPool.GetChannel(this.dp2LibraryUrl, sessionInfo.UserName);
+            //2020/2/20 channel类不包括密码和参数，所以改在本地表中
+            this._sessionTable[sessionInfo.UserName] = sessionInfo;
+            //channel.Password = sessionInfo.Password;
+            //channel.Parameters = sessionInfo.Parameters;
             try
             {
                 string strMatchStyle = "left"; 
@@ -1237,7 +1258,7 @@ namespace ilovelibrary.Server
         //      -2  用户中断
         //      -1  出错
         //      >=0 装入的册记录条数
-        int LoadBiblioSubItems(LibraryChannel channel,
+        int LoadBiblioSubItems(RestChannel channel,
             SessionInfo sessionInfo,
             string functionType,
             string strBiblioRecPath,
@@ -1391,7 +1412,7 @@ namespace ilovelibrary.Server
 
                     // 书目摘要
                     string strSummary = "";
-                    if (entity.ErrorCode != ErrorCodeValue.NoError)
+                    if (entity.ErrorCode != ErrorCode.NoError)
                     {
                         strSummary = entity.ErrorInfo;
                     }

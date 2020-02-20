@@ -108,7 +108,7 @@ namespace dp2Mini
             }
 
 
-            LibraryChannel channel = mainForm.GetChannel();
+            RestChannel channel = mainForm.GetChannel();
             try
             {
                 string pureUrl = LibraryUrl.Substring(5);

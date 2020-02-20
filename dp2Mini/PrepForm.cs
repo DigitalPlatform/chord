@@ -101,7 +101,7 @@ namespace dp2Mini
             }
             ));
 
-            LibraryChannel channel = this._mainForm.GetChannel();
+            RestChannel channel = this._mainForm.GetChannel();
             try
             {
                 string strFrom = "读者证条码号"; // 检索途径
@@ -261,7 +261,7 @@ namespace dp2Mini
         /// <param name="cols"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        int GetLineCols(LibraryChannel channel,
+        int GetLineCols(RestChannel channel,
             string recPath,
             string strRecordXml,
             out ReservationItem reserItem,
