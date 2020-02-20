@@ -50,7 +50,7 @@ namespace dp2Mini
         /// 增加备书单
         /// </summary>
         /// <param name="note"></param>
-        public void AddNote(List<string> pathList,string patronName)
+        public void AddNote(List<string> pathList,string patronName,string patronTel)
         {
             // 把预约记录的path组成一个字符串，创建一条备书单，
             // 其实这个paths字段也不是必须，因为现在创建了一个本地预约表，
@@ -62,7 +62,7 @@ namespace dp2Mini
                     strPaths += ",";
                 strPaths += path;
             }
-            Note note = new Note(strPaths,patronName);
+            Note note = new Note(strPaths,patronName, patronTel);
             this._dbclient.Notes.Add(note);
             this._dbclient.SaveChanges(true);
 
@@ -99,8 +99,11 @@ namespace dp2Mini
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public Note GetNote(int id)
+        public Note GetNote(string strId)
         {
+            // 先将0去掉
+            int id = Convert.ToInt32(strId);
+
             Note note = this._dbclient.Notes
                 .Single(b => b.Id == id);
 
@@ -126,6 +129,16 @@ namespace dp2Mini
                 return items[0];
 
             return null;
+        }
+
+        public List<ReservationItem> GetItemsByNoteId(string noteId)
+        {
+            List<ReservationItem> items = this._dbclient.Items
+                .Where(b => b.NoteId == noteId)
+                .OrderBy(b => b.RequestTime)
+                .ToList();
+
+            return items;
         }
 
         /// <summary>

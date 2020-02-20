@@ -315,7 +315,7 @@ namespace dp2Mini
 
             // 备书产生的字段
             reserItem.PrintState = DomUtil.GetElementText(nodeRoot, "printState");
-            reserItem.CheckState = "";// 是否找到图书，值为：找到/未找到
+            reserItem.CheckResult = "";// 是否找到图书，值为：找到/未找到
 
             // 过了保留期的数据，不再获取详细数据
             if (reserItem.State == C_State_outof)
@@ -595,7 +595,7 @@ namespace dp2Mini
             //遍历方法一：遍历哈希表中的键
             foreach (string key in patronTable.Keys)
             {
-
+                string patronTel = "";
                 List<string> pathList = new List<string>();
                 List<ListViewItem> items = (List<ListViewItem>)patronTable[key];
                 foreach (ListViewItem item in items)
@@ -603,12 +603,17 @@ namespace dp2Mini
                     string path = item.SubItems[0].Text;
                     pathList.Add(path);
 
+                    if (patronTel == "")
+                    {
+                        patronTel = item.SubItems[9].Text;
+                    }
+
                     // 从预约到书列表中删除
                     this.listView_results.Items.Remove(item);
                 }
 
                 // 存储到本地备书单库
-                DbManager.Instance.AddNote(pathList,key);
+                DbManager.Instance.AddNote(pathList,key, patronTel);
             }
 
 

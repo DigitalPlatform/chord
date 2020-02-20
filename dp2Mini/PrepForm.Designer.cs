@@ -212,13 +212,13 @@
             this.contextMenuStrip_prep.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripMenuItem_print});
             this.contextMenuStrip_prep.Name = "contextMenuStrip1";
-            this.contextMenuStrip_prep.Size = new System.Drawing.Size(194, 34);
+            this.contextMenuStrip_prep.Size = new System.Drawing.Size(241, 67);
             // 
             // toolStripMenuItem_print
             // 
             this.toolStripMenuItem_print.Name = "toolStripMenuItem_print";
-            this.toolStripMenuItem_print.Size = new System.Drawing.Size(193, 30);
-            this.toolStripMenuItem_print.Text = "制作备书单(&P)";
+            this.toolStripMenuItem_print.Size = new System.Drawing.Size(240, 30);
+            this.toolStripMenuItem_print.Text = "创建备书单(&P)";
             this.toolStripMenuItem_print.Click += new System.EventHandler(this.toolStripMenuItem_bs_Click);
             // 
             // tabControl1

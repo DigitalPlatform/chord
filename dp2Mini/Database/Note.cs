@@ -8,14 +8,22 @@ namespace dp2Mini
 {
     public class Note
     {
+        //create/print/check/notice/takeoff
+        public const string C_Step_Create = "create";
+        public const string C_Step_Print = "print";
+        public const string C_Step_Check = "check";
+        public const string C_Step_Notice = "notice";
+        public const string C_Step_Takeoff = "takeoff";
+
         public Note()
         { }
 
-        public Note(string itemPaths,string patronName)
+        public Note(string itemPaths,string patronName,string patronTel)
         {
             this.Items = itemPaths;
             this.CreateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
             this.PatronName = patronName;
+            this.PatronTel = patronTel;
             this.Step = "create";
 
 
@@ -40,6 +48,8 @@ namespace dp2Mini
 
         // 读者姓名
         public string PatronName { get; set; }
+
+        public string PatronTel { get; set; }
 
         // 备书库创建时间
         public string CreateTime { get; set; }
