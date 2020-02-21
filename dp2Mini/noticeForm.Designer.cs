@@ -80,7 +80,7 @@
             this.Controls.Add(this.button_ok);
             this.Controls.Add(this.textBox_info);
             this.Name = "noticeForm";
-            this.Text = "noticeForm";
+            this.Text = "通知读者";
             this.ResumeLayout(false);
             this.PerformLayout();
 

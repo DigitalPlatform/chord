@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DigitalPlatform.LibraryRestClient;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -21,14 +22,16 @@ namespace dp2Mini
         {
             InitializeComponent();
 
-            // 接管Note变化事件
-            DbManager.Instance.NotesChangedHandler -= new NotesChangedDelegate(this.UpdateNotedToListView);
-            DbManager.Instance.NotesChangedHandler += new NotesChangedDelegate(this.UpdateNotedToListView);
+            // 接管增加Note事件
+            DbManager.Instance.AddNoteHandler -= new AddNoteDelegate(this.AddNoteToListView);
+            DbManager.Instance.AddNoteHandler += new AddNoteDelegate(this.AddNoteToListView);
         }
 
         // 名字以用途命名即可。TokenSource 这种类型名称可以不出现在名字中
         CancellationTokenSource _cancel = new CancellationTokenSource();
 
+        // mid父窗口
+        MainForm _mainForm = null;
         /// <summary>
         /// 窗体加载
         /// </summary>
@@ -36,6 +39,8 @@ namespace dp2Mini
         /// <param name="e"></param>
         private void NoteForm_Load(object sender, EventArgs e)
         {
+            this._mainForm = this.MdiParent as MainForm;
+
             // 每次开头都重新 new 一个。这样避免受到上次遗留的 _cancel 对象的状态影响
             this._cancel.Dispose();
             this._cancel = new CancellationTokenSource();
@@ -49,8 +54,21 @@ namespace dp2Mini
         private void NoteForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             // 取消Note变化事件
-            DbManager.Instance.NotesChangedHandler -= new NotesChangedDelegate(this.UpdateNotedToListView);
+            DbManager.Instance.AddNoteHandler -= new AddNoteDelegate(this.AddNoteToListView);
 
+        }
+
+        /// <summary>
+        /// 处理外部增加备书单的事件
+        /// </summary>
+        /// <param name="note"></param>
+        public void AddNoteToListView(Note note)
+        {
+            string noteId = DbManager.NumToString(note.Id);
+            ListViewItem viewItem = new ListViewItem(noteId, 0);
+
+            this.listView_note.Items.Insert(0, viewItem);
+            this.LoadOneNote(note, viewItem);
         }
 
         /// <summary>
@@ -113,14 +131,6 @@ namespace dp2Mini
         }
 
 
-        public void UpdateNotedToListView(Note note)
-        {
-            string noteId = DbManager.NumToString(note.Id);
-            ListViewItem viewItem = new ListViewItem(noteId, 0);
-
-            this.listView_note.Items.Insert(0,viewItem);
-            this.LoadOneNote(note, viewItem);
-        }
 
 
         private void listView_note_SelectedIndexChanged(object sender, EventArgs e)
@@ -174,7 +184,7 @@ namespace dp2Mini
             读者证条码
             读者姓名
             */
-            viewItem.SubItems.Add(resItem.CheckResult);
+            viewItem.SubItems.Add(this.GetCheckResultText(resItem.CheckResult));
             viewItem.SubItems.Add(resItem.PatronBarcode);
             viewItem.SubItems.Add(resItem.PatronName);
             /*
@@ -382,6 +392,7 @@ namespace dp2Mini
             }
 
             textForm dlg = new textForm();
+            dlg.StartPosition = FormStartPosition.CenterScreen;
             dlg.Info = sb.ToString();
             dlg.ShowDialog(this);
         }
@@ -403,6 +414,7 @@ namespace dp2Mini
             string info = this.GetResultInfo(noteId);
 
             textForm dlg = new textForm();
+            dlg.StartPosition = FormStartPosition.CenterScreen;
             dlg.Info = info;
             dlg.ShowDialog(this);
 
@@ -607,6 +619,7 @@ namespace dp2Mini
             ListViewItem viewItem = this.listView_note.SelectedItems[0];
             string noteId = viewItem.SubItems[0].Text;
             checkForm dlg = new checkForm();
+            dlg.StartPosition = FormStartPosition.CenterScreen;
             dlg.NoteId = noteId;
             DialogResult ret = dlg.ShowDialog(this);
             if (ret == DialogResult.Cancel)
@@ -660,9 +673,67 @@ namespace dp2Mini
 
                 // 显示详细信息
                 this.ShowDetail(noteId);
+
+
+                // 从服务器上取消预约，预约记录的状态会从arrived变为outof
+                // 开一个新线程
+                Task.Run(() =>
+                {
+                    DeleteReservation(noteId);
+                });
             }
 
         }
+
+        public void DeleteReservation(string noteId)
+        {
+
+            RestChannel channel = this._mainForm.GetChannel();
+            try
+            {
+                string strError = "";
+
+                List<ReservationItem> items = DbManager.Instance.GetItemsByNoteId(noteId);
+                foreach (ReservationItem item in items)
+                {
+                    //this.AppendNewLine(this.listView_items, item);
+
+                    ReservationResponse response = channel.Reservation("delete",
+                        item.PatronBarcode,
+                        item.ItemBarcode);
+                    if (response.ReservationResult.ErrorCode != ErrorCode.NoError)
+                    {
+                        strError += response.ReservationResult.ErrorInfo + "\r\n";
+                    }
+
+                    // 更新一下本地库的预约记录状态，与服务器保持一致，
+                    // 但界面还不会立即反应出来，需要点一下上方的备书单，再显示出来的详细信息就为outof状态了
+                    item.State = "outof";
+                    DbManager.Instance.UpdateItem(item);
+                }
+
+
+                if (strError != "")
+                {
+                    // 用Invoke线程安全的方式来调
+                    this.Invoke((Action)(() =>
+                    {
+                        MessageBox.Show(this, "调服务器取消预约出错:" + strError);
+                        return;
+                    }
+                    ));
+                }
+
+            }
+            finally
+            {
+
+                this._mainForm.ReturnChannel(channel);
+            }
+            
+        }
+
+
 
         private void button_notice_Click(object sender, EventArgs e)
         {
@@ -677,6 +748,7 @@ namespace dp2Mini
 
             string info = this.GetResultInfo(noteId);
             noticeForm dlg = new noticeForm();
+            dlg.StartPosition = FormStartPosition.CenterScreen;
             dlg.Info = info;
             DialogResult ret= dlg.ShowDialog(this);
             if (ret == DialogResult.Cancel)
@@ -752,13 +824,13 @@ namespace dp2Mini
                 buttons);
             if (dlg == DialogResult.OK)
             {
-                // 将下级item的noteId置空
-                List<ReservationItem> items = DbManager.Instance.GetItemsByNoteId(noteId);
-                foreach (ReservationItem item in items)
-                {
-                    item.NoteId = "";
-                    DbManager.Instance.UpdateItem(item);
-                }
+                //// 将下级item的noteId置空
+                //List<ReservationItem> items = DbManager.Instance.GetItemsByNoteId(noteId);
+                //foreach (ReservationItem item in items)
+                //{
+                //    item.NoteId = "";
+                //    DbManager.Instance.UpdateItem(item);
+                //}
 
                 // 从本地备书表中删除
                 DbManager.Instance.RemoveNote(noteId);

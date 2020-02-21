@@ -34,7 +34,9 @@ namespace dp2Mini
         #endregion
 
         //声明事件
-        public event NotesChangedDelegate NotesChangedHandler;
+        public event AddNoteDelegate AddNoteHandler;
+        public event RemoveNoteDelegate RemoveNoteHandler;
+
 
         // 数据库对象
         NoteDB _dbclient = null;
@@ -78,9 +80,9 @@ namespace dp2Mini
             }
 
             // 通知接管了该事件的外面调用者
-            if (NotesChangedHandler != null)
+            if (AddNoteHandler != null)
             {
-                NotesChangedHandler(note);
+                AddNoteHandler(note);
             }
         }
 
@@ -102,6 +104,26 @@ namespace dp2Mini
             Note note = this.GetNote(noteId);
             this._dbclient.Notes.Remove(note);
             this._dbclient.SaveChanges();
+
+
+            string itemPaths = "";
+            // 将下级item的noteId置空
+            List<ReservationItem> items = DbManager.Instance.GetItemsByNoteId(noteId);
+            foreach (ReservationItem item in items)
+            {
+                if (itemPaths != "")
+                    itemPaths += ",";
+                itemPaths += item.RecPath;
+
+                item.NoteId = "";
+                DbManager.Instance.UpdateItem(item);
+            }
+
+            // 通知接管了该事件的外面调用者
+            if (this.RemoveNoteHandler != null)
+            {
+                RemoveNoteHandler(noteId,itemPaths);
+            }
         }
 
         // 获取全部
@@ -190,6 +212,11 @@ namespace dp2Mini
 
     }
 
-    // 定义委托协议
-    public delegate void NotesChangedDelegate(Note note);
+    // 增加备书单委托
+    public delegate void AddNoteDelegate(Note note);
+
+    // 撤消备书单委托
+    public delegate void RemoveNoteDelegate(string noteId,string itemPaths);
+
+    
 }

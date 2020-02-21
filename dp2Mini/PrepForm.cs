@@ -38,6 +38,45 @@ namespace dp2Mini
         public PrepForm()
         {
             InitializeComponent();
+
+            // 接管增加Note事件
+            DbManager.Instance.RemoveNoteHandler -= new RemoveNoteDelegate(this.RemoveNote);
+            DbManager.Instance.RemoveNoteHandler += new RemoveNoteDelegate(this.RemoveNote);
+
+        }
+
+        private void RemoveNote(string noteId,string itemPaths)
+        {
+
+            //List<ReservationItem> items = DbManager.Instance.GetItemsByNoteId(noteId);
+            //foreach (ReservationItem item in items)
+            //{
+            //    //this.AppendNewLine(this.listView_items, item);
+            //    AppendNewLine(this.listView_results, item);
+            //}
+
+            string[] paths = itemPaths.Split(new char[] {','});
+            if (paths.Length > 0)
+            {
+                this.listView_results.BeginUpdate();
+                try
+                {
+                    // 加到预约查询界面，省得用户再次检索
+                    foreach (string path in paths)
+                    {
+                        ReservationItem item = DbManager.Instance.GetItem(path);
+                        AppendNewLine(this.listView_results, item);
+                    }
+
+                    // 按证条码号排序
+                    this.SortCol(1);
+                    this.SortCol(1);  // 点两次才是原来的序
+                }
+                finally
+                {
+                    this.listView_results.EndUpdate();
+                }
+            }
         }
 
         /// <summary>
@@ -141,6 +180,8 @@ namespace dp2Mini
                     goto ERROR1;
                 }
 
+                long todoCount = 0;
+
                 // 获取结果集记录
                 long lTotalCount = lRet;
                 long lStart = 0;
@@ -199,7 +240,9 @@ namespace dp2Mini
                         {
                             this.Invoke((Action)(() =>
                             {
-                                if (item.State == C_State_outof)
+                                // 状态为outof且未创建地预约单的记录，加到保留期列表中
+                                if (item.State == C_State_outof 
+                                && string.IsNullOrEmpty(item.NoteId)==true)
                                 {
                                     // 增加一行到超过保留期的
                                     AppendNewLine(this.listView_outof, item);
@@ -208,6 +251,7 @@ namespace dp2Mini
                                 {
                                     // 增加一行到预约到书
                                     AppendNewLine(this.listView_results, item);
+                                    todoCount++;
                                 }
 
                                 // 设置状态栏信息 todo需要弄清楚这里怎么理解合理 2020/2/21
@@ -225,6 +269,15 @@ namespace dp2Mini
                     if (lStart >= lTotalCount)
                         break;
                 }
+                this.Invoke((Action)(() =>
+                {
+                    if (todoCount > 0)
+                    {
+                        // 按证条码号排序
+                        this.SortCol(1);
+                    }
+                }
+                ));
 
                 return;
             }
@@ -459,7 +512,8 @@ namespace dp2Mini
             viewItem.SubItems.Add(resItem.ArrivedTime);
             viewItem.SubItems.Add(resItem.State);
 
-
+            if (resItem.State == C_State_outof)
+                viewItem.BackColor = Color.LightGray;
 
             return viewItem;
         }
@@ -534,6 +588,11 @@ namespace dp2Mini
         {
             int nClickColumn = e.Column;
 
+            this.SortCol(nClickColumn);
+        }
+
+        public void SortCol(int nClickColumn)
+        {
             ColumnSortStyle sortStyle = ColumnSortStyle.LeftAlign;
 
             // 第一列为记录路径，排序风格特殊
