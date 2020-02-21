@@ -32,7 +32,7 @@ accessNo —— 所预约图书索取号。
         public string PatronBarcode { get; set; }
         public string LibraryCode { get; set; }
         public string OnShelf { get; set; } //是否在架
-        public string NotifyDate { get; set; }
+        public string NotifyTime { get; set; }
         public string Location { get; set; }
         public string AccessNo { get; set; }
 

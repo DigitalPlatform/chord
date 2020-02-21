@@ -37,17 +37,18 @@
             // label1
             // 
             this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.label1.Location = new System.Drawing.Point(23, 19);
             this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(178, 21);
+            this.label1.Size = new System.Drawing.Size(572, 21);
             this.label1.TabIndex = 1;
-            this.label1.Text = "请勾选找到的图书";
+            this.label1.Text = "请在找到的图书前面打勾,在未找到的图书下面输入原因。";
             // 
             // button_ok
             // 
             this.button_ok.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button_ok.Location = new System.Drawing.Point(319, 411);
+            this.button_ok.Location = new System.Drawing.Point(351, 423);
             this.button_ok.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.button_ok.Name = "button_ok";
             this.button_ok.Size = new System.Drawing.Size(101, 41);
@@ -59,7 +60,7 @@
             // button_cancel
             // 
             this.button_cancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button_cancel.Location = new System.Drawing.Point(437, 411);
+            this.button_cancel.Location = new System.Drawing.Point(469, 423);
             this.button_cancel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.button_cancel.Name = "button_cancel";
             this.button_cancel.Size = new System.Drawing.Size(101, 41);
@@ -70,9 +71,13 @@
             // 
             // groupBox1
             // 
-            this.groupBox1.Location = new System.Drawing.Point(27, 59);
+            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.groupBox1.Location = new System.Drawing.Point(27, 43);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(494, 316);
+            this.groupBox1.Size = new System.Drawing.Size(543, 365);
             this.groupBox1.TabIndex = 5;
             this.groupBox1.TabStop = false;
             // 
@@ -80,7 +85,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(11F, 21F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(551, 464);
+            this.ClientSize = new System.Drawing.Size(583, 476);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.button_cancel);
             this.Controls.Add(this.button_ok);
@@ -88,7 +93,7 @@
             this.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.Name = "checkForm";
-            this.Text = "Form_checkResult";
+            this.Text = "备书结果";
             this.Load += new System.EventHandler(this.Form_checkResult_Load);
             this.ResumeLayout(false);
             this.PerformLayout();

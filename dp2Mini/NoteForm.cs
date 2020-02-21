@@ -185,6 +185,7 @@ namespace dp2Mini
             读者姓名
             */
             viewItem.SubItems.Add(this.GetCheckResultText(resItem.CheckResult));
+            viewItem.SubItems.Add(resItem.NotFoundReason);
             viewItem.SubItems.Add(resItem.PatronBarcode);
             viewItem.SubItems.Add(resItem.PatronName);
             /*
@@ -434,7 +435,11 @@ namespace dp2Mini
             List<ReservationItem> items = DbManager.Instance.GetItemsByNoteId(noteId);
             foreach (ReservationItem item in items)
             {
-                sb.AppendLine(GetCheckResultText(item.CheckResult) + " " + item.ItemBarcode + " " + item.Title);
+                sb.AppendLine(item.ItemBarcode + " " + item.Title);
+                sb.AppendLine(GetCheckResultText(item.CheckResult));
+                if (item.CheckResult=="N")
+                    sb.AppendLine("原因："+item.NotFoundReason);
+                sb.AppendLine("----------------------------"); //打印时间
             }
             return sb.ToString();
         }
@@ -443,8 +448,9 @@ namespace dp2Mini
         {
             if (checkResult.ToUpper() == "Y")
                 return "满足";
-            else
+            else if (checkResult.ToUpper() == "N")
                 return "不满足";
+            return checkResult;
         }
 
         #region 打印功能
@@ -654,6 +660,10 @@ namespace dp2Mini
                         // 更新数据库预约记录的备书结果
                         ReservationItem item = DbManager.Instance.GetItem(path);
                         item.CheckResult = "N";
+
+                        string strReason = (string)dlg.NotFoundReasonHt[path];
+                        item.NotFoundReason = strReason;
+
                         DbManager.Instance.UpdateItem(item);
                     }
                 }

@@ -47,14 +47,6 @@ namespace dp2Mini
 
         private void RemoveNote(string noteId,string itemPaths)
         {
-
-            //List<ReservationItem> items = DbManager.Instance.GetItemsByNoteId(noteId);
-            //foreach (ReservationItem item in items)
-            //{
-            //    //this.AppendNewLine(this.listView_items, item);
-            //    AppendNewLine(this.listView_results, item);
-            //}
-
             string[] paths = itemPaths.Split(new char[] {','});
             if (paths.Length > 0)
             {
@@ -68,9 +60,9 @@ namespace dp2Mini
                         AppendNewLine(this.listView_results, item);
                     }
 
-                    // 按证条码号排序
-                    this.SortCol(1);
-                    this.SortCol(1);  // 点两次才是原来的序
+                    //// 按证条码号排序
+                    //this.SortCol(1);
+                    //this.SortCol(1);  // 点两次才是原来的序
                 }
                 finally
                 {
@@ -176,7 +168,7 @@ namespace dp2Mini
                 }
                 if (lRet == 0)
                 {
-                    strError = "读者'" + strQueryWord + "'没有到书信息";
+                    strError = "未命中";
                     goto ERROR1;
                 }
 
@@ -350,7 +342,7 @@ namespace dp2Mini
             reserItem.PatronBarcode = DomUtil.GetElementText(nodeRoot, "readerBarcode");
             reserItem.LibraryCode = DomUtil.GetElementText(nodeRoot, "libraryCode");
             reserItem.OnShelf = DomUtil.GetElementText(nodeRoot, "onShelf");
-            reserItem.NotifyDate = DateTimeUtil.ToLocalTime(DomUtil.GetAttr(nodeRoot, "notifyDate"), "yyyy-MM-dd HH:mm:ss");
+            reserItem.NotifyTime = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(nodeRoot, "notifyDate"), "yyyy-MM-dd HH:mm:ss");
             reserItem.Location = DomUtil.GetElementText(nodeRoot, "location");
             reserItem.AccessNo = DomUtil.GetElementText(nodeRoot, "accessNo");
 
@@ -509,7 +501,7 @@ namespace dp2Mini
             viewItem.SubItems.Add(resItem.PatronTel);
             viewItem.SubItems.Add(resItem.Department);
             viewItem.SubItems.Add(resItem.RequestTime);
-            viewItem.SubItems.Add(resItem.ArrivedTime);
+            viewItem.SubItems.Add(resItem.NotifyTime);
             viewItem.SubItems.Add(resItem.State);
 
             if (resItem.State == C_State_outof)
