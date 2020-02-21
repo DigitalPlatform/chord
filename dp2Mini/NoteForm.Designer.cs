@@ -75,6 +75,7 @@
             this.columnHeader_requestTime = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_arrivedTime = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_state = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.撤消备书单ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip_note.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -147,7 +148,7 @@
             this.button_check.Name = "button_check";
             this.button_check.Size = new System.Drawing.Size(180, 52);
             this.button_check.TabIndex = 24;
-            this.button_check.Text = "备书完成";
+            this.button_check.Text = "找书完成";
             this.button_check.UseVisualStyleBackColor = true;
             this.button_check.Click += new System.EventHandler(this.button_check_Click);
             // 
@@ -191,11 +192,11 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.listView_note.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader_id,
+            this.columnHeader_step,
             this.columnHeader_patron,
             this.columnHeader1,
             this.columnHeader_items,
             this.columnHeader_createTime,
-            this.columnHeader_step,
             this.columnHeader_prite,
             this.columnHeader_printTime,
             this.columnHeader_check,
@@ -294,9 +295,10 @@
             this.contextMenuStrip_note.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.打印小票预览ToolStripMenuItem,
             this.输出小票信息ToolStripMenuItem,
-            this.查看备书结果ToolStripMenuItem});
+            this.查看备书结果ToolStripMenuItem,
+            this.撤消备书单ToolStripMenuItem});
             this.contextMenuStrip_note.Name = "contextMenuStrip_note";
-            this.contextMenuStrip_note.Size = new System.Drawing.Size(189, 94);
+            this.contextMenuStrip_note.Size = new System.Drawing.Size(241, 157);
             this.contextMenuStrip_note.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip_note_Opening);
             // 
             // 打印小票预览ToolStripMenuItem
@@ -467,6 +469,13 @@
             this.columnHeader_state.Text = "预约状态";
             this.columnHeader_state.Width = 100;
             // 
+            // 撤消备书单ToolStripMenuItem
+            // 
+            this.撤消备书单ToolStripMenuItem.Name = "撤消备书单ToolStripMenuItem";
+            this.撤消备书单ToolStripMenuItem.Size = new System.Drawing.Size(240, 30);
+            this.撤消备书单ToolStripMenuItem.Text = "撤消备书单";
+            this.撤消备书单ToolStripMenuItem.Click += new System.EventHandler(this.撤消备书单ToolStripMenuItem_Click);
+            // 
             // NoteForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
@@ -475,6 +484,7 @@
             this.Controls.Add(this.splitContainer1);
             this.Name = "NoteForm";
             this.Text = "备书单管理";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.NoteForm_FormClosing);
             this.Load += new System.EventHandler(this.NoteForm_Load);
             this.contextMenuStrip_note.ResumeLayout(false);
             this.splitContainer1.Panel1.ResumeLayout(false);
@@ -534,5 +544,6 @@
         private System.Windows.Forms.ToolStripMenuItem 输出小票信息ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 查看备书结果ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 打印小票预览ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 撤消备书单ToolStripMenuItem;
     }
 }

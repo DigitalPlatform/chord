@@ -20,6 +20,10 @@ namespace dp2Mini
         public NoteForm()
         {
             InitializeComponent();
+
+            // 接管Note变化事件
+            DbManager.Instance.NotesChangedHandler -= new NotesChangedDelegate(this.UpdateNotedToListView);
+            DbManager.Instance.NotesChangedHandler += new NotesChangedDelegate(this.UpdateNotedToListView);
         }
 
         // 名字以用途命名即可。TokenSource 这种类型名称可以不出现在名字中
@@ -40,6 +44,13 @@ namespace dp2Mini
             {
                 LoadNotes(this._cancel.Token);
             });
+        }
+
+        private void NoteForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // 取消Note变化事件
+            DbManager.Instance.NotesChangedHandler -= new NotesChangedDelegate(this.UpdateNotedToListView);
+
         }
 
         /// <summary>
@@ -71,19 +82,20 @@ namespace dp2Mini
             viewItem.SubItems.Clear();
             /*
                     单号
+                    当前进度
                     读者
                     包含的预约记录
                     创建日期
-                    当前进度
+
                     */
             string noteId = DbManager.NumToString(note.Id);
             viewItem.Text = noteId;
-
+            viewItem.SubItems.Add(Note.GetStepCaption( note.Step));
             viewItem.SubItems.Add(note.PatronName);
             viewItem.SubItems.Add(note.PatronTel);
             viewItem.SubItems.Add(note.Items);
             viewItem.SubItems.Add(note.CreateTime);
-            viewItem.SubItems.Add(note.Step);
+
             /*
             打印
             备书
@@ -101,6 +113,14 @@ namespace dp2Mini
         }
 
 
+        public void UpdateNotedToListView(Note note)
+        {
+            string noteId = DbManager.NumToString(note.Id);
+            ListViewItem viewItem = new ListViewItem(noteId, 0);
+
+            this.listView_note.Items.Insert(0,viewItem);
+            this.LoadOneNote(note, viewItem);
+        }
 
 
         private void listView_note_SelectedIndexChanged(object sender, EventArgs e)
@@ -560,12 +580,14 @@ namespace dp2Mini
                 this.打印小票预览ToolStripMenuItem.Enabled = false;
                 this.输出小票信息ToolStripMenuItem.Enabled = false;
                 this.查看备书结果ToolStripMenuItem.Enabled = false;
+                this.撤消备书单ToolStripMenuItem.Enabled = false;
             }
             else
             {
                 this.打印小票预览ToolStripMenuItem.Enabled = true;
                 this.输出小票信息ToolStripMenuItem.Enabled = true;
                 this.查看备书结果ToolStripMenuItem.Enabled = true;
+                this.撤消备书单ToolStripMenuItem.Enabled = true;
             }
         }
 
@@ -679,14 +701,11 @@ namespace dp2Mini
 
         private void button_takeoff_Click(object sender, EventArgs e)
         {
-            MessageBoxButtons messButton = MessageBoxButtons.OKCancel;
-
-            //"确定要退出吗？"是对话框的显示信息，"退出系统"是对话框的标题
-
-            //默认情况下，如MessageBox.Show("确定要退出吗？")只显示一个“确定”按钮。
-            DialogResult dlg = MessageBox.Show(this,"确定读者已取走图书?", "读者取书", messButton);
-
-            if (dlg == DialogResult.OK)//如果点击“确定”按钮
+            MessageBoxButtons buttons = MessageBoxButtons.OKCancel;
+            DialogResult dlg = MessageBox.Show(this,"确定读者已取走图书?", 
+                "读者取书",
+                buttons);
+            if (dlg == DialogResult.OK)
             {
                 ListViewItem viewItem = this.listView_note.SelectedItems[0];
                 string noteId = viewItem.SubItems[0].Text;
@@ -706,6 +725,52 @@ namespace dp2Mini
                 //
                 //viewItem.BackColor = Color.LightGray;
             }
+        }
+
+        private void 撤消备书单ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (this.listView_note.SelectedItems.Count == 0)
+            {
+                MessageBox.Show(this, "尚未选择备书单");
+                return;
+            }
+
+            ListViewItem viewItem = this.listView_note.SelectedItems[0];
+            string noteId = viewItem.SubItems[0].Text;
+            Note note = DbManager.Instance.GetNote(noteId);
+            if (note.Step == Note.C_Step_Check
+                || note.Step == Note.C_Step_Notice
+                || note.Step == Note.C_Step_Takeoff)
+            {
+                MessageBox.Show(this, "此单已到找书完成阶段，不能撤消。");
+                return;
+            }
+
+            MessageBoxButtons buttons = MessageBoxButtons.OKCancel;
+            DialogResult dlg = MessageBox.Show(this, "您确定要撤消备书单吗？撤消的书单所包含的预约记录将回到预约到书界面，需重新创建备书单。",
+                "dp2mini",
+                buttons);
+            if (dlg == DialogResult.OK)
+            {
+                // 将下级item的noteId置空
+                List<ReservationItem> items = DbManager.Instance.GetItemsByNoteId(noteId);
+                foreach (ReservationItem item in items)
+                {
+                    item.NoteId = "";
+                    DbManager.Instance.UpdateItem(item);
+                }
+
+                // 从本地备书表中删除
+                DbManager.Instance.RemoveNote(noteId);
+
+                // 从界面删除
+                this.listView_note.Items.Remove(viewItem);
+
+
+            }
+
+            
+                
         }
     }
 }

@@ -14,6 +14,21 @@ namespace dp2Mini
         public const string C_Step_Check = "check";
         public const string C_Step_Notice = "notice";
         public const string C_Step_Takeoff = "takeoff";
+        public static string GetStepCaption(string step)
+        {
+            if (step == C_Step_Create)
+                return "等待打印小票";
+            else if (step == C_Step_Print)
+                return "等待找书";
+            else if (step == C_Step_Check)
+                return "等待通知读者";
+            else if (step == C_Step_Notice)
+                return "等待读者取书";
+            else if (step == C_Step_Takeoff)
+                return "备书结束";
+
+            return step;
+        }
 
         public Note()
         { }
@@ -79,6 +94,9 @@ namespace dp2Mini
 
 
         public string Other { get; set; } //xml格式，预备以后扩展内容
+
+
+        
              
     }
 }

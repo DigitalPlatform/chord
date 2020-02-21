@@ -210,8 +210,8 @@ namespace dp2Mini
                                     AppendNewLine(this.listView_results, item);
                                 }
 
-                                // 设置状态栏信息
-                                this._mainForm.SetStatusMessage((lStart + i + 1).ToString() + " / " + lTotalCount);
+                                // 设置状态栏信息 todo需要弄清楚这里怎么理解合理 2020/2/21
+                                //this._mainForm.SetStatusMessage((lStart + i + 1).ToString() + " / " + lTotalCount);
 
                                 // 数量加1
                                 i++;
@@ -616,8 +616,21 @@ namespace dp2Mini
                 DbManager.Instance.AddNote(pathList,key, patronTel);
             }
 
-
+            MessageBox.Show(this, "创建备书单完成，请到'备书单管理'界面查看。");
             return;
+        }
+
+        /// <summary>
+        /// 全选
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void 全选AToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            foreach (ListViewItem item in this.listView_results.Items)
+            {
+                item.Selected = true;
+            }
         }
     }
 

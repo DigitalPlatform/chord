@@ -33,6 +33,9 @@ namespace dp2Mini
         }
         #endregion
 
+        //声明事件
+        public event NotesChangedDelegate NotesChangedHandler;
+
         // 数据库对象
         NoteDB _dbclient = null;
 
@@ -73,6 +76,12 @@ namespace dp2Mini
                 // item表中note用的是字符串格式
                 this.UpdateItem(path, DbManager.NumToString(note.Id));
             }
+
+            // 通知接管了该事件的外面调用者
+            if (NotesChangedHandler != null)
+            {
+                NotesChangedHandler(note);
+            }
         }
 
         public static string NumToString(int num)
@@ -86,6 +95,13 @@ namespace dp2Mini
         {
             this._dbclient.Notes.Update(note);
             this._dbclient.SaveChanges(true);
+        }
+
+        public void RemoveNote(string noteId)
+        {
+            Note note = this.GetNote(noteId);
+            this._dbclient.Notes.Remove(note);
+            this._dbclient.SaveChanges();
         }
 
         // 获取全部
@@ -173,4 +189,7 @@ namespace dp2Mini
         }
 
     }
+
+    // 定义委托协议
+    public delegate void NotesChangedDelegate(Note note);
 }
