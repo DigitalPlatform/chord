@@ -283,6 +283,9 @@ namespace dp2Mini
                 this.FinishButton(this.button_notice);
                 this.FinishButton(this.button_takeoff);
             }
+
+            // 让打印按钮一直可以按
+            //this.button_print.Enabled
         }
 
         #endregion
@@ -469,6 +472,20 @@ namespace dp2Mini
             {
                 StringBuilder sb = new StringBuilder(1024);// 256);
 
+                string[] reasons = this._mainForm.GetSettings().ReasonArray;
+                string reasonText = "";
+                foreach (string r in reasons)
+                {
+                    if (reasonText != "")
+                        reasonText += "<br/>";
+                    
+                    reasonText += "□ " + r;
+                }
+                if (reasonText !="")
+                {
+                    reasonText = "<p>未找到原因：<br/>" + reasonText+"</p>";
+                }
+
 
                 // 备书单整体信息
                 string noteId = DbManager.NumToString(note.Id);
@@ -489,6 +506,7 @@ namespace dp2Mini
                     sb.AppendLine("<p>"+item.ISBN+"</p>");
                     sb.AppendLine("<p>"+item.Author+"</p>");
                     sb.AppendLine("<p>预约时间：" + item.RequestTime + "</p>");
+                    sb.AppendLine(reasonText);
                     sb.AppendLine("<p>--------------------------</p>");
                 }
 
