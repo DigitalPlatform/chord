@@ -63,6 +63,7 @@
             this.listView_items = new System.Windows.Forms.ListView();
             this.columnHeader_path = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_checkResult = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader_reason = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_readerBarcode = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_readerName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_itemBarcode = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -76,7 +77,6 @@
             this.columnHeader_requestTime = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_arrivedTime = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_state = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeader_reason = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.contextMenuStrip_note.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -89,7 +89,7 @@
             this.label7.AutoSize = true;
             this.label7.Enabled = false;
             this.label7.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.label7.Location = new System.Drawing.Point(970, 32);
+            this.label7.Location = new System.Drawing.Point(911, 35);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(62, 31);
             this.label7.TabIndex = 29;
@@ -99,11 +99,11 @@
             // 
             this.button_takeoff.Enabled = false;
             this.button_takeoff.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button_takeoff.Location = new System.Drawing.Point(1040, 21);
+            this.button_takeoff.Location = new System.Drawing.Point(979, 3);
             this.button_takeoff.Name = "button_takeoff";
-            this.button_takeoff.Size = new System.Drawing.Size(180, 52);
+            this.button_takeoff.Size = new System.Drawing.Size(241, 110);
             this.button_takeoff.TabIndex = 28;
-            this.button_takeoff.Text = "读者取走书";
+            this.button_takeoff.Text = "结束备书单\r\n（读者取走图书或不需要取书）";
             this.button_takeoff.UseVisualStyleBackColor = true;
             this.button_takeoff.Click += new System.EventHandler(this.button_takeoff_Click);
             // 
@@ -112,7 +112,7 @@
             this.label6.AutoSize = true;
             this.label6.Enabled = false;
             this.label6.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.label6.Location = new System.Drawing.Point(716, 32);
+            this.label6.Location = new System.Drawing.Point(684, 35);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(62, 31);
             this.label6.TabIndex = 27;
@@ -122,11 +122,11 @@
             // 
             this.button_notice.Enabled = false;
             this.button_notice.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button_notice.Location = new System.Drawing.Point(784, 21);
+            this.button_notice.Location = new System.Drawing.Point(752, 24);
             this.button_notice.Name = "button_notice";
-            this.button_notice.Size = new System.Drawing.Size(180, 52);
+            this.button_notice.Size = new System.Drawing.Size(153, 52);
             this.button_notice.TabIndex = 26;
-            this.button_notice.Text = "电话通知读者";
+            this.button_notice.Text = "通知读者";
             this.button_notice.UseVisualStyleBackColor = true;
             this.button_notice.Click += new System.EventHandler(this.button_notice_Click);
             // 
@@ -135,7 +135,7 @@
             this.label5.AutoSize = true;
             this.label5.Enabled = false;
             this.label5.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.label5.Location = new System.Drawing.Point(460, 32);
+            this.label5.Location = new System.Drawing.Point(460, 35);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(62, 31);
             this.label5.TabIndex = 25;
@@ -145,9 +145,9 @@
             // 
             this.button_check.Enabled = false;
             this.button_check.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button_check.Location = new System.Drawing.Point(528, 21);
+            this.button_check.Location = new System.Drawing.Point(528, 24);
             this.button_check.Name = "button_check";
-            this.button_check.Size = new System.Drawing.Size(180, 52);
+            this.button_check.Size = new System.Drawing.Size(150, 52);
             this.button_check.TabIndex = 24;
             this.button_check.Text = "找书完成";
             this.button_check.UseVisualStyleBackColor = true;
@@ -158,7 +158,7 @@
             this.label4.AutoSize = true;
             this.label4.Enabled = false;
             this.label4.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.label4.Location = new System.Drawing.Point(204, 32);
+            this.label4.Location = new System.Drawing.Point(204, 35);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(62, 31);
             this.label4.TabIndex = 23;
@@ -168,7 +168,7 @@
             // 
             this.button_print.Enabled = false;
             this.button_print.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button_print.Location = new System.Drawing.Point(272, 21);
+            this.button_print.Location = new System.Drawing.Point(272, 24);
             this.button_print.Name = "button_print";
             this.button_print.Size = new System.Drawing.Size(180, 52);
             this.button_print.TabIndex = 22;
@@ -299,34 +299,34 @@
             this.查看备书结果ToolStripMenuItem,
             this.撤消备书单ToolStripMenuItem});
             this.contextMenuStrip_note.Name = "contextMenuStrip_note";
-            this.contextMenuStrip_note.Size = new System.Drawing.Size(241, 157);
+            this.contextMenuStrip_note.Size = new System.Drawing.Size(189, 124);
             this.contextMenuStrip_note.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip_note_Opening);
             // 
             // 打印小票预览ToolStripMenuItem
             // 
             this.打印小票预览ToolStripMenuItem.Name = "打印小票预览ToolStripMenuItem";
-            this.打印小票预览ToolStripMenuItem.Size = new System.Drawing.Size(240, 30);
+            this.打印小票预览ToolStripMenuItem.Size = new System.Drawing.Size(188, 30);
             this.打印小票预览ToolStripMenuItem.Text = "小票打印预览";
             this.打印小票预览ToolStripMenuItem.Click += new System.EventHandler(this.打印小票预览ToolStripMenuItem_Click);
             // 
             // 输出小票信息ToolStripMenuItem
             // 
             this.输出小票信息ToolStripMenuItem.Name = "输出小票信息ToolStripMenuItem";
-            this.输出小票信息ToolStripMenuItem.Size = new System.Drawing.Size(240, 30);
+            this.输出小票信息ToolStripMenuItem.Size = new System.Drawing.Size(188, 30);
             this.输出小票信息ToolStripMenuItem.Text = "查看小票信息";
             this.输出小票信息ToolStripMenuItem.Click += new System.EventHandler(this.输出小票信息ToolStripMenuItem_Click);
             // 
             // 查看备书结果ToolStripMenuItem
             // 
             this.查看备书结果ToolStripMenuItem.Name = "查看备书结果ToolStripMenuItem";
-            this.查看备书结果ToolStripMenuItem.Size = new System.Drawing.Size(240, 30);
+            this.查看备书结果ToolStripMenuItem.Size = new System.Drawing.Size(188, 30);
             this.查看备书结果ToolStripMenuItem.Text = "查看备书结果";
             this.查看备书结果ToolStripMenuItem.Click += new System.EventHandler(this.查看备书结果ToolStripMenuItem_Click);
             // 
             // 撤消备书单ToolStripMenuItem
             // 
             this.撤消备书单ToolStripMenuItem.Name = "撤消备书单ToolStripMenuItem";
-            this.撤消备书单ToolStripMenuItem.Size = new System.Drawing.Size(240, 30);
+            this.撤消备书单ToolStripMenuItem.Size = new System.Drawing.Size(188, 30);
             this.撤消备书单ToolStripMenuItem.Text = "撤消备书单";
             this.撤消备书单ToolStripMenuItem.Click += new System.EventHandler(this.撤消备书单ToolStripMenuItem_Click);
             // 
@@ -363,7 +363,7 @@
             // 
             this.button_create.Enabled = false;
             this.button_create.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button_create.Location = new System.Drawing.Point(16, 21);
+            this.button_create.Location = new System.Drawing.Point(16, 24);
             this.button_create.Name = "button_create";
             this.button_create.Size = new System.Drawing.Size(180, 52);
             this.button_create.TabIndex = 31;
@@ -413,6 +413,10 @@
             // 
             this.columnHeader_checkResult.Text = "备书结果";
             this.columnHeader_checkResult.Width = 101;
+            // 
+            // columnHeader_reason
+            // 
+            this.columnHeader_reason.Text = "原因";
             // 
             // columnHeader_readerBarcode
             // 
@@ -477,10 +481,6 @@
             // 
             this.columnHeader_state.Text = "预约状态";
             this.columnHeader_state.Width = 100;
-            // 
-            // columnHeader_reason
-            // 
-            this.columnHeader_reason.Text = "原因";
             // 
             // NoteForm
             // 

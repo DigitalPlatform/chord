@@ -13,8 +13,11 @@ namespace dp2Mini
 {
     public partial class checkForm : Form
     {
-        public checkForm()
+        MainForm _mainFrom = null;
+
+        public checkForm(MainForm mainForm)
         {
+            this._mainFrom = mainForm;
             InitializeComponent();
         }
 
@@ -22,6 +25,46 @@ namespace dp2Mini
         public string FoundItems = "";
         public string NotFoundItems = "";
         public Hashtable NotFoundReasonHt = new Hashtable();
+
+        Hashtable _htable = new Hashtable();
+        private void Form_checkResult_Load(object sender, EventArgs e)
+        {
+           SettingInfo info= this._mainFrom.GetSettings();
+            string[] reasons = info.ReasonArray;
+
+            int x = 10, y = 20;
+
+            List<ReservationItem> items = DbManager.Instance.GetItemsByNoteId(this.NoteId);
+            foreach (ReservationItem item in items)
+            {
+                CheckBox cb = new CheckBox();
+                cb.Text = "[" + item.ItemBarcode + "]" + item.Title;
+                cb.Tag = item.RecPath;
+                cb.AutoSize = true;
+                cb.Location = new Point(x, y);
+                cb.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
+
+                this.groupBox1.Controls.Add(cb);
+
+                y += 30;
+
+                //TextBox tb = new TextBox();
+                //tb.Size = new Size(400, 30);
+                //tb.Location = new Point(x, y);
+                //this.groupBox1.Controls.Add(tb);
+
+                ComboBox combo = new ComboBox();
+                combo.Size = new Size(300, 30);
+                combo.Location = new Point(x, y);
+                combo.Items.AddRange(reasons);
+                this.groupBox1.Controls.Add(combo);
+
+                // 建立关联
+                this._htable[cb] = combo;
+
+                y += 50;
+            }
+        }
 
         private void button_ok_Click(object sender, EventArgs e)
         {
@@ -52,16 +95,28 @@ namespace dp2Mini
 
                         NotFoundItems += path;
 
-                        TextBox tb = (TextBox)this.ht[cb];
-                        if (tb != null)
+                        //TextBox tb = (TextBox)this.ht[cb];
+                        //if (tb != null)
+                        //{
+                        //    if (tb.Text.Trim() == "")
+                        //    {
+                        //        strError+=cb.Text + "，尚未输入未找到原因。\r\n";
+                        //        continue;
+                        //    }
+
+                        //    this.NotFoundReasonHt[path] = tb.Text.Trim();
+                        //}
+
+                        ComboBox combo = (ComboBox)this._htable[cb];
+                        if (combo != null)
                         {
-                            if (tb.Text.Trim() == "")
+                            if (combo.Text.Trim() == "")
                             {
-                                strError+=cb.Text + "，尚未输入未找到原因。\r\n";
+                                strError += cb.Text + "，尚未输入未找到原因。\r\n";
                                 continue;
                             }
 
-                            this.NotFoundReasonHt[path] = tb.Text.Trim();
+                            this.NotFoundReasonHt[path] = combo.Text.Trim();
                         }
                     }
                 }
@@ -78,38 +133,7 @@ namespace dp2Mini
             this.Close();
         }
 
-        Hashtable ht = new Hashtable();
 
-        private void Form_checkResult_Load(object sender, EventArgs e)
-        {
-
-            int x = 10, y = 20;
-
-            List<ReservationItem> items = DbManager.Instance.GetItemsByNoteId(this.NoteId);
-            foreach (ReservationItem item in items)
-            {
-                CheckBox cb = new CheckBox();
-                cb.Text = "["+item.ItemBarcode+"]"+item.Title;
-                cb.Tag = item.RecPath;
-                cb.AutoSize = true;
-                cb.Location = new Point(x, y);
-                cb.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
-
-                this.groupBox1.Controls.Add(cb);
-
-                y += 30;
-
-                TextBox tb = new TextBox();
-                tb.Size = new Size(400, 30);
-                tb.Location = new Point(x, y);
-                this.groupBox1.Controls.Add(tb);
-
-                // 建立关联
-                this.ht[cb] = tb;
-
-                y += 50;
-            }
-        }
 
         private void button_cancel_Click(object sender, EventArgs e)
         {
@@ -121,7 +145,7 @@ namespace dp2Mini
         {
             CheckBox cb =(CheckBox)sender;
 
-            TextBox tb = (TextBox)this.ht[cb];
+            TextBox tb = (TextBox)this._htable[cb];
             if (tb != null)
             {
                 if (cb.Checked == true)

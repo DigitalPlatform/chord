@@ -35,7 +35,6 @@ namespace dp2Mini
 
         //声明事件
         public event AddNoteDelegate AddNoteHandler;
-        public event RemoveNoteDelegate RemoveNoteHandler;
 
 
         // 数据库对象
@@ -55,28 +54,39 @@ namespace dp2Mini
         /// 增加备书单
         /// </summary>
         /// <param name="note"></param>
-        public void AddNote(List<string> pathList,string patronName,string patronTel)
+        public void AddNote(string patronName,List<ReservationItem> items)
         {
-            // 把预约记录的path组成一个字符串，创建一条备书单，
+            if (items == null || items.Count == 0)
+                throw new Exception("items不应为空");
+
+
             // 其实这个paths字段也不是必须，因为现在创建了一个本地预约表，
             // 可以根据备书单id从本地预约表中检索，两者有一对多的关系
             string strPaths = "";
-            foreach (string path in pathList)
+            string patronTel = "";
+            foreach (ReservationItem item in items)
             {
                 if (strPaths != "")
                     strPaths += ",";
-                strPaths += path;
+                strPaths += item.RecPath;
+
+                if (patronTel == "")
+                    patronTel = item.PatronTel;
             }
-            Note note = new Note(strPaths,patronName, patronTel);
+
+            // 增加一个备书单
+            Note note = new Note(strPaths, patronName, patronTel);
             this._dbclient.Notes.Add(note);
             this._dbclient.SaveChanges(true);
 
 
-            // 更新对应预约记录的备书单id
-            foreach (string path in pathList)
+            // 给本地库保存item
+            string noteId = DbManager.NumToString(note.Id); //item表中note用的是字符串格式
+            foreach (ReservationItem item in items)
             {
-                // item表中note用的是字符串格式
-                this.UpdateItem(path, DbManager.NumToString(note.Id));
+                // 在item里用noteId与备书单建立关联
+                item.NoteId = noteId;
+                this.AddItem(item);
             }
 
             // 通知接管了该事件的外面调用者
@@ -119,11 +129,6 @@ namespace dp2Mini
                 DbManager.Instance.UpdateItem(item);
             }
 
-            // 通知接管了该事件的外面调用者
-            if (this.RemoveNoteHandler != null)
-            {
-                RemoveNoteHandler(noteId,itemPaths);
-            }
         }
 
         // 获取全部
@@ -189,11 +194,11 @@ namespace dp2Mini
             this._dbclient.SaveChanges(true);
         }
 
-        public void UpdateItem(string path,string noteId)
+        public void UpdateItem(string path, string noteId)
         {
             ReservationItem item = this.GetItem(path);
             if (item == null)
-                throw new Exception("在本地item表中未找到路径为"+path+"的记录。");
+                throw new Exception("在本地item表中未找到路径为" + path + "的记录。");
 
             // 将备书库的单号更新到item到
             item.NoteId = noteId;
@@ -210,13 +215,15 @@ namespace dp2Mini
             this._dbclient.SaveChanges(true);
         }
 
+        // 删除item
+        public void RemoveItem(ReservationItem item)
+        {
+            this._dbclient.Items.Remove(item);
+            this._dbclient.SaveChanges();
+        }
+
     }
 
     // 增加备书单委托
     public delegate void AddNoteDelegate(Note note);
-
-    // 撤消备书单委托
-    public delegate void RemoveNoteDelegate(string noteId,string itemPaths);
-
-    
 }

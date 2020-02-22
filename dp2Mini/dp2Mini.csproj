@@ -12,6 +12,8 @@
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <IsWebBootstrapper>true</IsWebBootstrapper>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
     <PublishUrl>C:\publish\dp2mini\v1\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Web</InstallFrom>
@@ -35,8 +37,6 @@
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -86,6 +86,9 @@
   <PropertyGroup />
   <PropertyGroup />
   <ItemGroup>
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.1.1.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
@@ -204,6 +207,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ClientInfo.cs" />
     <Compile Include="Database\DbManager.cs" />
     <Compile Include="Database\Note.cs" />
     <Compile Include="Control\CardPrintForm.cs">
@@ -239,6 +243,7 @@
     <Compile Include="noticeForm.Designer.cs">
       <DependentUpon>noticeForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="SettingInfo.cs" />
     <Compile Include="textForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -324,6 +329,10 @@
     <ProjectReference Include="..\DigitalPlatform.Forms\DigitalPlatform.Forms.csproj">
       <Project>{2dd0618d-c554-46d0-91a2-353f2f8ea2f2}</Project>
       <Name>DigitalPlatform.Forms</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DigitalPlatform.IO\DigitalPlatform.IO.csproj">
+      <Project>{441cb814-af78-4503-91ef-dce5f3269502}</Project>
+      <Name>DigitalPlatform.IO</Name>
     </ProjectReference>
     <ProjectReference Include="..\DigitalPlatform.MarcKernel\DigitalPlatform.MarcKernel.csproj">
       <Project>{74242530-ef96-457e-852d-5c21a3ea8449}</Project>

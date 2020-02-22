@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DigitalPlatform.CirculationClient;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +15,8 @@ namespace dp2Mini
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             //Set the filename of the database to be created
-            optionsBuilder.UseSqlite("Data Source=db.sqlite");
+            string filePath = ClientInfo.UserDir + "/db.sqlite";
+            optionsBuilder.UseSqlite("Data Source="+ filePath);
         }
 
         public DbSet<Note> Notes { get; set; }

@@ -32,44 +32,16 @@ namespace dp2Mini
         public const string C_State_outof = "outof";
         public const string C_State_arrived = "arrived";
 
+        public Hashtable ItemHt = new Hashtable();
+
         /// <summary>
         ///  构造函数
         /// </summary>
         public PrepForm()
         {
             InitializeComponent();
-
-            // 接管增加Note事件
-            DbManager.Instance.RemoveNoteHandler -= new RemoveNoteDelegate(this.RemoveNote);
-            DbManager.Instance.RemoveNoteHandler += new RemoveNoteDelegate(this.RemoveNote);
-
         }
 
-        private void RemoveNote(string noteId,string itemPaths)
-        {
-            string[] paths = itemPaths.Split(new char[] {','});
-            if (paths.Length > 0)
-            {
-                this.listView_results.BeginUpdate();
-                try
-                {
-                    // 加到预约查询界面，省得用户再次检索
-                    foreach (string path in paths)
-                    {
-                        ReservationItem item = DbManager.Instance.GetItem(path);
-                        AppendNewLine(this.listView_results, item);
-                    }
-
-                    //// 按证条码号排序
-                    //this.SortCol(1);
-                    //this.SortCol(1);  // 点两次才是原来的序
-                }
-                finally
-                {
-                    this.listView_results.EndUpdate();
-                }
-            }
-        }
 
         /// <summary>
         /// 窗体装载
@@ -172,7 +144,9 @@ namespace dp2Mini
                     goto ERROR1;
                 }
 
-                long todoCount = 0;
+                long todoCount = 0;   // 待做的
+                long outofCount = 0;  // 超过保留期的
+                long inNoteCount = 0;  // 已创建到备书单的记录
 
                 // 获取结果集记录
                 long lTotalCount = lRet;
@@ -208,52 +182,56 @@ namespace dp2Mini
 
                         string strPath = record.Path;
 
-                        // 先检查一下本地库有没有记录，如果有从本地拉，如果没有服务器拉
+                        // 2020/2/22 先检查一下这笔预约记录在本地库是否存在，
+                        // 如果存在则表示是创建过备书单，不需要显示在这里了。
                         ReservationItem item = DbManager.Instance.GetItem(strPath);
-                        if (item == null)
+                        if (item != null)
                         {
-                            // 把一条记录，解析出各列
-                            //string[] cols = null;
-                            int nRet = GetDetailInfo(channel,
-                               strPath,
-                               record.RecordBody.Xml,
-                               out item,
-                                out strError);
-                            if (nRet == -1)
-                                goto ERROR1;
-
-                            // 先存到本地库，省得下次再获取详细信息
-                            DbManager.Instance.AddItem(item);
+                            inNoteCount++;
+                            this._mainForm.SetStatusMessage((lStart + i + 1).ToString() + " / " + lTotalCount);
+                            continue;
                         }
 
-                        // 如果这笔记录还没有做备书单，则在这里显示
-                        // 否则不在结果列表中显示，在备书单那儿显示
-                        if (String.IsNullOrEmpty(item.NoteId) == true)
+
+                        // 把一条记录，解析成一个详细信息
+                        // 注意此时不会保存临时信息，只有在创建预约单时才会在本地存储，因为中间可能读者会自己取消了预约，所以还是以实时查询出来的准
+                        int nRet = GetDetailInfo(channel,
+                           strPath,
+                           record.RecordBody.Xml,
+                           out item,
+                            out strError);
+                        if (nRet == -1)
+                            goto ERROR1;
+
+                        this.Invoke((Action)(() =>
                         {
-                            this.Invoke((Action)(() =>
+                            // 状态为outof加到超过保存期时，注意有两种情况：一种是确实超过保留期的，一种是读者取消预约的情况。
+                            if (item.State == C_State_outof)
                             {
-                                // 状态为outof且未创建地预约单的记录，加到保留期列表中
-                                if (item.State == C_State_outof 
-                                && string.IsNullOrEmpty(item.NoteId)==true)
-                                {
-                                    // 增加一行到超过保留期的
-                                    AppendNewLine(this.listView_outof, item);
-                                }
-                                else
-                                {
-                                    // 增加一行到预约到书
-                                    AppendNewLine(this.listView_results, item);
-                                    todoCount++;
-                                }
+                                // 增加一行到超过保留期的
+                                AppendNewLine(this.listView_outof, item);
 
-                                // 设置状态栏信息 todo需要弄清楚这里怎么理解合理 2020/2/21
-                                //this._mainForm.SetStatusMessage((lStart + i + 1).ToString() + " / " + lTotalCount);
-
-                                // 数量加1
-                                i++;
+                                outofCount++;
                             }
-                        ));
-                        }
+                            else
+                            {
+                                // 增加一行到预约到书
+                                AppendNewLine(this.listView_results, item);
+
+                                // 为预约到书记录建议hashtable，方便后面保留到本地库。因为listviewitem的信息不全。
+                                // 未处理的预约记录一般量不太大，放在内存hashtable应该可以的。
+                                this.ItemHt[strPath] = item;
+
+                                // 方便决定后面是否自动排序
+                                todoCount++;
+                            }
+
+                            this._mainForm.SetStatusMessage((lStart + i + 1).ToString() + " / " + lTotalCount);
+
+                            // 数量加1
+                            i++;
+                        }));
+
 
                     }
 
@@ -268,9 +246,12 @@ namespace dp2Mini
                         // 按证条码号排序
                         this.SortCol(1);
                     }
-                }
-                ));
-
+                    // 任务栏显示信息
+                this._mainForm.SetStatusMessage("命中总数'"+lTotalCount+"'条，"
+                    +"其中预约到书'"+todoCount+"'条，"
+                    +"超过保留期或读者自己取消'"+outofCount+"'条，"
+                    +"已创建到备书单'"+inNoteCount+"'条。");
+                }));
                 return;
             }
             catch (Exception ex)
@@ -642,34 +623,37 @@ namespace dp2Mini
                 }
             }
 
-            // 处理每一个备书单
+            // 每个姓名创建一个备书单
             //遍历方法一：遍历哈希表中的键
-            foreach (string key in patronTable.Keys)
+            foreach (string patronName in patronTable.Keys)
             {
                 string patronTel = "";
-                List<string> pathList = new List<string>();
-                List<ListViewItem> items = (List<ListViewItem>)patronTable[key];
-                foreach (ListViewItem item in items)
-                {
-                    string path = item.SubItems[0].Text;
-                    pathList.Add(path);
+                List<ReservationItem> items = new List<ReservationItem>();
 
-                    if (patronTel == "")
-                    {
-                        patronTel = item.SubItems[9].Text;
-                    }
+
+                List<ListViewItem> viewItems = (List<ListViewItem>)patronTable[patronName];
+                foreach (ListViewItem viewItem in viewItems)
+                {
+                    string path = viewItem.SubItems[0].Text;
+
+                    // 从hashtable中找到对应的resItem
+                    ReservationItem resItem = (ReservationItem)this.ItemHt[path];
+                    items.Add(resItem);
+
 
                     // 从预约到书列表中删除
-                    this.listView_results.Items.Remove(item);
+                    this.listView_results.Items.Remove(viewItem);
                 }
 
                 // 存储到本地备书单库
-                DbManager.Instance.AddNote(pathList,key, patronTel);
+                DbManager.Instance.AddNote(patronName, items);
             }
 
             MessageBox.Show(this, "创建备书单完成，请到'备书单管理'界面查看。");
             return;
         }
+
+
 
         /// <summary>
         /// 全选

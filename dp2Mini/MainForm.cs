@@ -8,8 +8,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using DigitalPlatform;
+using DigitalPlatform.CirculationClient;
 using DigitalPlatform.Forms;
 using DigitalPlatform.LibraryRestClient;
+using DigitalPlatform.Text;
 using Microsoft.EntityFrameworkCore;
 
 namespace dp2Mini
@@ -27,6 +30,9 @@ namespace dp2Mini
         /// </summary>
         public MainForm()
         {
+            ClientInfo.ProgramName = "dp2mini";
+            ClientInfo.MainForm = this;
+
             InitializeComponent();
 
             // 按需登录事件
@@ -41,8 +47,12 @@ namespace dp2Mini
         /// <param name="e"></param>
         private void MainForm_Load(object sender, EventArgs e)
         {
+            //
+            ClientInfo.Initial("dp2mini");
+
+
             // 先弹出登录对话框
-            LoginForm dlg = new LoginForm();
+            LoginForm dlg = new LoginForm(this);
             if (dlg.ShowDialog(this) == DialogResult.Cancel)
             {
                 this.Close();
@@ -75,6 +85,8 @@ namespace dp2Mini
             }
         }
 
+
+
         /// <summary>
         /// 窗体关闭时
         /// </summary>
@@ -84,6 +96,52 @@ namespace dp2Mini
         {
             this._channelPool.Close();
         }
+
+
+
+        public void SaveSettings(SettingInfo settingInfo,bool isSaveReasons)
+        {
+
+            if (settingInfo.IsSavePassword == false)
+                settingInfo.Password = "";
+
+            // 登录帐号信息
+            ClientInfo.Config?.Set("global", "url", settingInfo.Url);
+            ClientInfo.Config?.Set("global", "userName", settingInfo.UserName);
+            ClientInfo.Config?.Set("global", "password", MainForm.EncryptPassword(settingInfo.Password));
+            ClientInfo.Config?.Set("global", "isSavePassword", settingInfo.IsSavePassword.ToString());
+
+            if (isSaveReasons == true)
+            {
+                // 未找到原因
+                ClientInfo.Config?.Set("global", "notFoundReasons", settingInfo.NotFoundReasons);
+            }
+
+            
+            ClientInfo.Finish();
+        }
+
+        public SettingInfo GetSettings()
+        {
+
+            SettingInfo info = new SettingInfo();
+
+            info.Url= ClientInfo.Config.Get("global", "url", "");
+            info.UserName = ClientInfo.Config.Get("global", "userName", "");
+            info.Password = MainForm.DecryptPasssword( ClientInfo.Config.Get("global", "password", ""));
+
+           string isSavePassword = ClientInfo.Config.Get("global", "isSavePassword", "");
+            if (string.IsNullOrEmpty(isSavePassword) ==false)
+                 info.IsSavePassword = Convert.ToBoolean(isSavePassword);
+
+
+            // 未找到原因
+            info.NotFoundReasons = ClientInfo.Config.Get("global", "notFoundReasons", "");
+
+
+            return info;
+        }
+
 
         /// <summary>
         /// 按需登录事件
@@ -126,7 +184,7 @@ namespace dp2Mini
 
             e.UserName = dlg.Username;
             e.Password = dlg.Password;
-            e.Parameters = "type=worker,client=dp2Mini|" + Program.ClientVersion;
+            e.Parameters = "type=worker,client=dp2mini|" + ClientInfo.ClientVersion;//Program.ClientVersion;
         }
 
         /// <summary>
@@ -141,22 +199,22 @@ namespace dp2Mini
             if (owner == null)
                 owner = this;
 
-            LoginForm loginForm = new LoginForm();
-            if (String.IsNullOrEmpty(strServerUrl))
-                loginForm.LibraryUrl = Properties.Settings.Default.cfg_library_url;
-            else
-                loginForm.LibraryUrl = strServerUrl;
+            LoginForm loginForm = new LoginForm(this);
+            //if (String.IsNullOrEmpty(strServerUrl))
+            //    loginForm.LibraryUrl = Properties.Settings.Default.cfg_library_url;
+            //else
+            //    loginForm.LibraryUrl = strServerUrl;
 
-            loginForm.Username = Properties.Settings.Default.cfg_library_username;
-            loginForm.IsSavePassword = Properties.Settings.Default.cfg_savePassword;
-            if (loginForm.IsSavePassword)
-            {
-                loginForm.Password = Properties.Settings.Default.cfg_library_password;
-            }
-            else
-            {
-                loginForm.Password = "";
-            }
+            //loginForm.Username = Properties.Settings.Default.cfg_library_username;
+            //loginForm.IsSavePassword = Properties.Settings.Default.cfg_savePassword;
+            //if (loginForm.IsSavePassword)
+            //{
+            //    loginForm.Password = Properties.Settings.Default.cfg_library_password;
+            //}
+            //else
+            //{
+            //    loginForm.Password = "";
+            //}
 
             loginForm.ShowDialog(owner);
             if (loginForm.DialogResult == DialogResult.Cancel)
@@ -313,8 +371,10 @@ namespace dp2Mini
         // 登录参数设置
         private void toolStripMenuItem_setting_Click(object sender, EventArgs e)
         {
-            SettingForm dlg = new SettingForm();
+            SettingForm dlg = new SettingForm(this);
+            dlg.StartPosition = FormStartPosition.CenterScreen;
             dlg.ShowDialog(this);
+            // 不需要判断确认还是取消
         }
 
         /// <summary>
@@ -537,5 +597,73 @@ namespace dp2Mini
 
         #endregion
 
+        #region 打开各种文件夹
+
+        private void UToolStripMenuItem_openUserFolder_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(ClientInfo.UserDir);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ExceptionUtil.GetAutoText(ex));
+            }
+        }
+
+        private void ToolStripMenuItem_openDataFolder_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(ClientInfo.DataDir);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ExceptionUtil.GetAutoText(ex));
+            }
+        }
+
+        private void ToolStripMenuItem_openProgramFolder_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(Environment.CurrentDirectory);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ExceptionUtil.GetAutoText(ex));
+            }
+        }
+
+        #endregion
+
+
+        #region 密码加密
+        static string EncryptKey = "dp2mini_key";
+        internal static string DecryptPasssword(string strEncryptedText)
+        {
+            if (String.IsNullOrEmpty(strEncryptedText) == false)
+            {
+                try
+                {
+                    string strPassword = Cryptography.Decrypt(
+        strEncryptedText,
+        EncryptKey);
+                    return strPassword;
+                }
+                catch
+                {
+                    return "errorpassword";
+                }
+            }
+
+            return "";
+        }
+        internal static string EncryptPassword(string strPlainText)
+        {
+            return Cryptography.Encrypt(strPlainText, EncryptKey);
+        }
+        #endregion
     }
+
 }

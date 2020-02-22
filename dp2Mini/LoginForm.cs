@@ -1,4 +1,5 @@
-﻿using DigitalPlatform.LibraryRestClient;
+﻿using DigitalPlatform.CirculationClient;
+using DigitalPlatform.LibraryRestClient;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,19 +14,22 @@ namespace dp2Mini
 {
     public partial class LoginForm : Form
     {
-        public LoginForm()
+        MainForm _mainFrom = null;
+
+        public LoginForm(MainForm mainForm)
         {
+            this._mainFrom = mainForm;
+
             InitializeComponent();
         }
 
-
+        
         public string LibraryUrl
         {
             get
             {
                 return this.textBox_libraryUrl.Text;
             }
-
             set
             {
                 this.textBox_libraryUrl.Text = value;
@@ -70,26 +74,27 @@ namespace dp2Mini
                 this.checkBox_savePassword.Checked = value;
             }
         }
-
+        
 
         private void SettingForm_Load(object sender, EventArgs e)
         {
-            LibraryUrl = Properties.Settings.Default.cfg_library_url;
-            Username = Properties.Settings.Default.cfg_library_username;
-            Password = Properties.Settings.Default.cfg_library_password;
-            IsSavePassword = Properties.Settings.Default.cfg_savePassword;
+            //LibraryUrl = Properties.Settings.Default.cfg_library_url;
+            //Username = Properties.Settings.Default.cfg_library_username;
+            //Password = Properties.Settings.Default.cfg_library_password;
+            //IsSavePassword = Properties.Settings.Default.cfg_savePassword;
+
+            SettingInfo info = this._mainFrom.GetSettings();
+            LibraryUrl = info.Url;
+            Username = info.UserName;
+            Password = info.Password;
+            IsSavePassword = info.IsSavePassword;
         }
 
-        private void LoginForm_FormClosing(object sender, FormClosingEventArgs e)
-        {
-
-        }
-
-        private void LoginForm_FormClosed(object sender, FormClosedEventArgs e)
-        {
-
-        }
-
+        /// <summary>
+        /// 登录
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void button_login_Click(object sender, EventArgs e)
         {
             MainForm mainForm = null;
@@ -114,32 +119,31 @@ namespace dp2Mini
                 string pureUrl = LibraryUrl.Substring(5);
                 channel.Url = pureUrl;
                 string strParameters = "type=worker"
-                    +",client=dp2Mini|" + Program.ClientVersion;
-
-                //// 以手机短信验证方式登录
-                //string phoneNumber = this.textBox_phone.Text.Trim();
-                //if (string.IsNullOrEmpty(phoneNumber) == false)
-                //    strParameters += ",phoneNumber=" + phoneNumber;
-
-                //// 验证码
-                //string tempCode = this.textBox_tempCode.Text.Trim();
-                //if (string.IsNullOrEmpty(tempCode) == false)
-                //    strParameters += ",tempCode=" + tempCode;
-
-                LoginResponse response = channel.Login(Username, Password, strParameters);
+                    + ",client=dp2mini|" + ClientInfo.ClientVersion; //Program.ClientVersion;
+                LoginResponse response = channel.Login(Username,
+                    Password, 
+                    strParameters);
                 if (response.LoginResult.Value == -1 || response.LoginResult.Value == 0)
                 {
                     MessageBox.Show(this, response.LoginResult.ErrorInfo);
                     return;
                 }
 
-                Properties.Settings.Default.cfg_library_url = LibraryUrl;
-                Properties.Settings.Default.cfg_library_username = Username;
-                Properties.Settings.Default.cfg_savePassword = IsSavePassword;
+                // 保存配置信息
+                SettingInfo info = new SettingInfo();
+                info.Url = LibraryUrl;
+                info.UserName = Username;
+                info.Password = Password;
+                info.IsSavePassword = IsSavePassword;
+                this._mainFrom.SaveSettings(info,false);
 
-                if (IsSavePassword)
-                    Properties.Settings.Default.cfg_library_password = Password;
-                Properties.Settings.Default.Save();
+                //Properties.Settings.Default.cfg_library_url = LibraryUrl;
+                //Properties.Settings.Default.cfg_library_username = Username;
+                //Properties.Settings.Default.cfg_savePassword = IsSavePassword;
+
+                //if (IsSavePassword)
+                //    Properties.Settings.Default.cfg_library_password = Password;
+                //Properties.Settings.Default.Save();
 
                 this.DialogResult = DialogResult.OK;
                 this.Close();
@@ -154,22 +158,16 @@ namespace dp2Mini
             }
         }
 
+        /// <summary>
+        /// 取消
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void button_cancel_Click(object sender, EventArgs e)
         {
             this.DialogResult = DialogResult.Cancel;
             this.Close();
         }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            string text = "aaa";
-            test(out text);
-            MessageBox.Show(this, text);
-        }
-
-        private void test(out string text)
-        {
-            text = "bbb";
-        }
     }
 }

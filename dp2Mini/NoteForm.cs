@@ -624,7 +624,7 @@ namespace dp2Mini
 
             ListViewItem viewItem = this.listView_note.SelectedItems[0];
             string noteId = viewItem.SubItems[0].Text;
-            checkForm dlg = new checkForm();
+            checkForm dlg = new checkForm(this._mainForm);
             dlg.StartPosition = FormStartPosition.CenterScreen;
             dlg.NoteId = noteId;
             DialogResult ret = dlg.ShowDialog(this);
@@ -685,12 +685,12 @@ namespace dp2Mini
                 this.ShowDetail(noteId);
 
 
-                // 从服务器上取消预约，预约记录的状态会从arrived变为outof
-                // 开一个新线程
-                Task.Run(() =>
-                {
-                    DeleteReservation(noteId);
-                });
+                //// 从服务器上取消预约，预约记录的状态会从arrived变为outof
+                //// 开一个新线程
+                //Task.Run(() =>
+                //{
+                //    DeleteReservation(noteId);
+                //});
             }
 
         }
@@ -784,8 +784,8 @@ namespace dp2Mini
         private void button_takeoff_Click(object sender, EventArgs e)
         {
             MessageBoxButtons buttons = MessageBoxButtons.OKCancel;
-            DialogResult dlg = MessageBox.Show(this,"确定读者已取走图书?", 
-                "读者取书",
+            DialogResult dlg = MessageBox.Show(this,"确认关闭备书单吗?", 
+                "dp2mini",
                 buttons);
             if (dlg == DialogResult.OK)
             {
@@ -804,6 +804,14 @@ namespace dp2Mini
                 this.LoadOneNote(note, viewItem);
                 this.SetOperateButton(note.Step);
 
+                // 2020/2/22 改在最后一步从服务器取消预约，因为做了这一步会修改服务上预约到书记录的状态为outof，
+                // 从服务器上取消预约，预约记录的状态会从arrived变为outof
+                // 开一个新线程
+                Task.Run(() =>
+                {
+                    DeleteReservation(noteId);
+                });
+
                 //
                 //viewItem.BackColor = Color.LightGray;
             }
@@ -820,27 +828,24 @@ namespace dp2Mini
             ListViewItem viewItem = this.listView_note.SelectedItems[0];
             string noteId = viewItem.SubItems[0].Text;
             Note note = DbManager.Instance.GetNote(noteId);
-            if (note.Step == Note.C_Step_Check
-                || note.Step == Note.C_Step_Notice
-                || note.Step == Note.C_Step_Takeoff)
+            if (note.Step == Note.C_Step_Takeoff)
             {
-                MessageBox.Show(this, "此单已到找书完成阶段，不能撤消。");
+                MessageBox.Show(this, "此备书单已结束，不能撤消。");
                 return;
             }
 
             MessageBoxButtons buttons = MessageBoxButtons.OKCancel;
-            DialogResult dlg = MessageBox.Show(this, "您确定要撤消备书单吗？撤消的书单所包含的预约记录将回到预约到书界面，需重新创建备书单。",
+            DialogResult dlg = MessageBox.Show(this, "您确定要撤消备书单吗？",
                 "dp2mini",
                 buttons);
             if (dlg == DialogResult.OK)
             {
-                //// 将下级item的noteId置空
-                //List<ReservationItem> items = DbManager.Instance.GetItemsByNoteId(noteId);
-                //foreach (ReservationItem item in items)
-                //{
-                //    item.NoteId = "";
-                //    DbManager.Instance.UpdateItem(item);
-                //}
+                // 将下级item的删除
+                List<ReservationItem> items = DbManager.Instance.GetItemsByNoteId(noteId);
+                foreach (ReservationItem item in items)
+                {
+                    DbManager.Instance.RemoveItem(item);
+                }
 
                 // 从本地备书表中删除
                 DbManager.Instance.RemoveNote(noteId);
