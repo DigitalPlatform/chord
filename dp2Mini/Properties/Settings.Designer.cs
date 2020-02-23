@@ -22,53 +22,5 @@ namespace dp2Mini.Properties {
                 return defaultInstance;
             }
         }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("http://localhost/dp2library/xe/rest")]
-        public string cfg_library_url {
-            get {
-                return ((string)(this["cfg_library_url"]));
-            }
-            set {
-                this["cfg_library_url"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("supervisor")]
-        public string cfg_library_username {
-            get {
-                return ((string)(this["cfg_library_username"]));
-            }
-            set {
-                this["cfg_library_username"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string cfg_library_password {
-            get {
-                return ((string)(this["cfg_library_password"]));
-            }
-            set {
-                this["cfg_library_password"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool cfg_savePassword {
-            get {
-                return ((bool)(this["cfg_savePassword"]));
-            }
-            set {
-                this["cfg_savePassword"] = value;
-            }
-        }
     }
 }

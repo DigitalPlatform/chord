@@ -145,13 +145,13 @@ namespace dp2Mini
         {
             CheckBox cb =(CheckBox)sender;
 
-            TextBox tb = (TextBox)this._htable[cb];
-            if (tb != null)
+            ComboBox combo = (ComboBox)this._htable[cb];
+            if (combo != null)
             {
                 if (cb.Checked == true)
-                    tb.Visible = false;
+                    combo.Visible = false;
                 else
-                    tb.Visible = true;
+                    combo.Visible = true;
             }
         }
     }

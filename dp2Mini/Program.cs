@@ -23,8 +23,8 @@ namespace dp2Mini
         {
             ClientInfo.TypeOfProgram = typeof(Program);
 
-            if (StringUtil.IsDevelopMode() == false)
-                ClientInfo.PrepareCatchException();
+            //if (StringUtil.IsDevelopMode() == false)
+            //    ClientInfo.PrepareCatchException();
 
             //ClientVersion = Assembly.GetAssembly(typeof(Program)).GetName().Version.ToString();
 

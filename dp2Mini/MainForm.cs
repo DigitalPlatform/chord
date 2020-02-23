@@ -25,6 +25,8 @@ namespace dp2Mini
         // 当前连接的服务器的图书馆名
         public string LibraryName = "";
 
+        public SettingInfo Setting = new SettingInfo();
+
         /// <summary>
         /// 窗体构造函数
         /// </summary>
@@ -49,6 +51,7 @@ namespace dp2Mini
         {
             //
             ClientInfo.Initial("dp2mini");
+            this.Setting = this.GetSettings();
 
 
             // 先弹出登录对话框
@@ -119,6 +122,9 @@ namespace dp2Mini
 
             
             ClientInfo.Finish();
+
+            // 缓存起来
+            this.Setting = this.GetSettings();
         }
 
         public SettingInfo GetSettings()
@@ -152,8 +158,8 @@ namespace dp2Mini
         {
             if (e.FirstTry == true)
             {
-                e.UserName = Properties.Settings.Default.cfg_library_username;
-                e.Password = Properties.Settings.Default.cfg_library_password;
+                e.UserName = this.Setting.UserName;
+                e.Password = this.Setting.Password;
                 if (!string.IsNullOrEmpty(e.UserName))
                     return;
             }
@@ -236,14 +242,15 @@ namespace dp2Mini
             string strUserName = ".")
         {
             if (strServerUrl == ".")
-                strServerUrl = Properties.Settings.Default.cfg_library_url;
+                strServerUrl = this.Setting.Url;//Properties.Settings.Default.cfg_library_url;
+
             if (strServerUrl.Length >= 5 && strServerUrl.Substring(0, 5).ToLower() == "rest.")
             {
                 strServerUrl = strServerUrl.Substring(5);
             }
 
             if (strUserName == ".")
-                strUserName = Properties.Settings.Default.cfg_library_username;
+                strUserName = this.Setting.UserName;//Properties.Settings.Default.cfg_library_username;
 
             RestChannel channel = this._channelPool.GetChannel(strServerUrl, strUserName);
             return channel;
