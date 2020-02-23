@@ -89,7 +89,7 @@
             this.label7.AutoSize = true;
             this.label7.Enabled = false;
             this.label7.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.label7.Location = new System.Drawing.Point(911, 35);
+            this.label7.Location = new System.Drawing.Point(867, 41);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(62, 31);
             this.label7.TabIndex = 29;
@@ -98,10 +98,10 @@
             // button_takeoff
             // 
             this.button_takeoff.Enabled = false;
-            this.button_takeoff.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button_takeoff.Location = new System.Drawing.Point(979, 3);
+            this.button_takeoff.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.button_takeoff.Location = new System.Drawing.Point(928, 15);
             this.button_takeoff.Name = "button_takeoff";
-            this.button_takeoff.Size = new System.Drawing.Size(241, 110);
+            this.button_takeoff.Size = new System.Drawing.Size(319, 83);
             this.button_takeoff.TabIndex = 28;
             this.button_takeoff.Text = "结束备书单\r\n（读者取走图书或不需要取书）";
             this.button_takeoff.UseVisualStyleBackColor = true;
@@ -112,7 +112,7 @@
             this.label6.AutoSize = true;
             this.label6.Enabled = false;
             this.label6.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.label6.Location = new System.Drawing.Point(684, 35);
+            this.label6.Location = new System.Drawing.Point(651, 41);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(62, 31);
             this.label6.TabIndex = 27;
@@ -122,7 +122,7 @@
             // 
             this.button_notice.Enabled = false;
             this.button_notice.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button_notice.Location = new System.Drawing.Point(752, 24);
+            this.button_notice.Location = new System.Drawing.Point(711, 30);
             this.button_notice.Name = "button_notice";
             this.button_notice.Size = new System.Drawing.Size(153, 52);
             this.button_notice.TabIndex = 26;
@@ -135,7 +135,7 @@
             this.label5.AutoSize = true;
             this.label5.Enabled = false;
             this.label5.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.label5.Location = new System.Drawing.Point(460, 35);
+            this.label5.Location = new System.Drawing.Point(436, 41);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(62, 31);
             this.label5.TabIndex = 25;
@@ -145,7 +145,7 @@
             // 
             this.button_check.Enabled = false;
             this.button_check.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button_check.Location = new System.Drawing.Point(528, 24);
+            this.button_check.Location = new System.Drawing.Point(499, 30);
             this.button_check.Name = "button_check";
             this.button_check.Size = new System.Drawing.Size(150, 52);
             this.button_check.TabIndex = 24;
@@ -158,7 +158,7 @@
             this.label4.AutoSize = true;
             this.label4.Enabled = false;
             this.label4.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.label4.Location = new System.Drawing.Point(204, 35);
+            this.label4.Location = new System.Drawing.Point(185, 41);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(62, 31);
             this.label4.TabIndex = 23;
@@ -168,7 +168,7 @@
             // 
             this.button_print.Enabled = false;
             this.button_print.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button_print.Location = new System.Drawing.Point(272, 24);
+            this.button_print.Location = new System.Drawing.Point(250, 30);
             this.button_print.Name = "button_print";
             this.button_print.Size = new System.Drawing.Size(180, 52);
             this.button_print.TabIndex = 22;
@@ -180,7 +180,7 @@
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.label2.Location = new System.Drawing.Point(12, 102);
+            this.label2.Location = new System.Drawing.Point(9, 102);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(388, 21);
             this.label2.TabIndex = 20;
@@ -214,7 +214,7 @@
             this.listView_note.Location = new System.Drawing.Point(12, 12);
             this.listView_note.MultiSelect = false;
             this.listView_note.Name = "listView_note";
-            this.listView_note.Size = new System.Drawing.Size(1200, 252);
+            this.listView_note.Size = new System.Drawing.Size(1233, 260);
             this.listView_note.TabIndex = 18;
             this.listView_note.UseCompatibleStateImageBehavior = false;
             this.listView_note.View = System.Windows.Forms.View.Details;
@@ -355,7 +355,7 @@
             this.splitContainer1.Panel2.Controls.Add(this.button_check);
             this.splitContainer1.Panel2.Controls.Add(this.button_notice);
             this.splitContainer1.Panel2.Controls.Add(this.label5);
-            this.splitContainer1.Size = new System.Drawing.Size(1225, 563);
+            this.splitContainer1.Size = new System.Drawing.Size(1258, 563);
             this.splitContainer1.SplitterDistance = 275;
             this.splitContainer1.TabIndex = 30;
             // 
@@ -363,9 +363,9 @@
             // 
             this.button_create.Enabled = false;
             this.button_create.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button_create.Location = new System.Drawing.Point(16, 24);
+            this.button_create.Location = new System.Drawing.Point(16, 30);
             this.button_create.Name = "button_create";
-            this.button_create.Size = new System.Drawing.Size(180, 52);
+            this.button_create.Size = new System.Drawing.Size(169, 52);
             this.button_create.TabIndex = 31;
             this.button_create.Text = "创建备书单";
             this.button_create.UseVisualStyleBackColor = true;
@@ -399,7 +399,7 @@
             this.listView_items.Location = new System.Drawing.Point(12, 127);
             this.listView_items.Margin = new System.Windows.Forms.Padding(4);
             this.listView_items.Name = "listView_items";
-            this.listView_items.Size = new System.Drawing.Size(1199, 144);
+            this.listView_items.Size = new System.Drawing.Size(1232, 144);
             this.listView_items.TabIndex = 30;
             this.listView_items.UseCompatibleStateImageBehavior = false;
             this.listView_items.View = System.Windows.Forms.View.Details;
@@ -486,7 +486,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1225, 563);
+            this.ClientSize = new System.Drawing.Size(1258, 563);
             this.Controls.Add(this.splitContainer1);
             this.Name = "NoteForm";
             this.Text = "备书单管理";

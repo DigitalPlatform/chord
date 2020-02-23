@@ -34,6 +34,9 @@
             this.toolStripMenuItem_prep = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem_help = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem_setting = new System.Windows.Forms.ToolStripMenuItem();
+            this.UToolStripMenuItem_openUserFolder = new System.Windows.Forms.ToolStripMenuItem();
+            this.ToolStripMenuItem_openDataFolder = new System.Windows.Forms.ToolStripMenuItem();
+            this.ToolStripMenuItem_openProgramFolder = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip_main = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel_message = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
@@ -41,9 +44,7 @@
             this.toolStrip_main = new System.Windows.Forms.ToolStrip();
             this.toolStripButton_prep = new System.Windows.Forms.ToolStripButton();
             this.toolStripLabel_noteManager = new System.Windows.Forms.ToolStripLabel();
-            this.UToolStripMenuItem_openUserFolder = new System.Windows.Forms.ToolStripMenuItem();
-            this.ToolStripMenuItem_openProgramFolder = new System.Windows.Forms.ToolStripMenuItem();
-            this.ToolStripMenuItem_openDataFolder = new System.Windows.Forms.ToolStripMenuItem();
+            this.备书单管理ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip_main.SuspendLayout();
             this.statusStrip_main.SuspendLayout();
             this.toolStrip_main.SuspendLayout();
@@ -59,14 +60,15 @@
             this.menuStrip_main.Location = new System.Drawing.Point(0, 0);
             this.menuStrip_main.Name = "menuStrip_main";
             this.menuStrip_main.Padding = new System.Windows.Forms.Padding(11, 3, 0, 3);
-            this.menuStrip_main.Size = new System.Drawing.Size(1468, 34);
+            this.menuStrip_main.Size = new System.Drawing.Size(1121, 34);
             this.menuStrip_main.TabIndex = 1;
             this.menuStrip_main.Text = "menuStrip_main";
             // 
             // toolStripMenuItem_file
             // 
             this.toolStripMenuItem_file.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripMenuItem_prep});
+            this.toolStripMenuItem_prep,
+            this.备书单管理ToolStripMenuItem});
             this.toolStripMenuItem_file.Name = "toolStripMenuItem_file";
             this.toolStripMenuItem_file.Size = new System.Drawing.Size(84, 28);
             this.toolStripMenuItem_file.Text = "文件(&F)";
@@ -74,8 +76,8 @@
             // toolStripMenuItem_prep
             // 
             this.toolStripMenuItem_prep.Name = "toolStripMenuItem_prep";
-            this.toolStripMenuItem_prep.Size = new System.Drawing.Size(241, 34);
-            this.toolStripMenuItem_prep.Text = "预约到书查询(&P)";
+            this.toolStripMenuItem_prep.Size = new System.Drawing.Size(270, 34);
+            this.toolStripMenuItem_prep.Text = "预约到书查询(&S)";
             this.toolStripMenuItem_prep.Click += new System.EventHandler(this.toolStripMenuItem_prep_Click);
             // 
             // toolStripMenuItem_help
@@ -93,8 +95,29 @@
             // 
             this.toolStripMenuItem_setting.Name = "toolStripMenuItem_setting";
             this.toolStripMenuItem_setting.Size = new System.Drawing.Size(270, 34);
-            this.toolStripMenuItem_setting.Text = "设置(&S)";
+            this.toolStripMenuItem_setting.Text = "参数设置(&S)";
             this.toolStripMenuItem_setting.Click += new System.EventHandler(this.toolStripMenuItem_setting_Click);
+            // 
+            // UToolStripMenuItem_openUserFolder
+            // 
+            this.UToolStripMenuItem_openUserFolder.Name = "UToolStripMenuItem_openUserFolder";
+            this.UToolStripMenuItem_openUserFolder.Size = new System.Drawing.Size(262, 34);
+            this.UToolStripMenuItem_openUserFolder.Text = "打开用户文件夹(&U)";
+            this.UToolStripMenuItem_openUserFolder.Click += new System.EventHandler(this.UToolStripMenuItem_openUserFolder_Click);
+            // 
+            // ToolStripMenuItem_openDataFolder
+            // 
+            this.ToolStripMenuItem_openDataFolder.Name = "ToolStripMenuItem_openDataFolder";
+            this.ToolStripMenuItem_openDataFolder.Size = new System.Drawing.Size(262, 34);
+            this.ToolStripMenuItem_openDataFolder.Text = "打开数据文件夹(&D)";
+            this.ToolStripMenuItem_openDataFolder.Click += new System.EventHandler(this.ToolStripMenuItem_openDataFolder_Click);
+            // 
+            // ToolStripMenuItem_openProgramFolder
+            // 
+            this.ToolStripMenuItem_openProgramFolder.Name = "ToolStripMenuItem_openProgramFolder";
+            this.ToolStripMenuItem_openProgramFolder.Size = new System.Drawing.Size(262, 34);
+            this.ToolStripMenuItem_openProgramFolder.Text = "打开程序文件夹(&P)";
+            this.ToolStripMenuItem_openProgramFolder.Click += new System.EventHandler(this.ToolStripMenuItem_openProgramFolder_Click);
             // 
             // statusStrip_main
             // 
@@ -107,7 +130,7 @@
             this.statusStrip_main.Name = "statusStrip_main";
             this.statusStrip_main.Padding = new System.Windows.Forms.Padding(2, 0, 26, 0);
             this.statusStrip_main.RenderMode = System.Windows.Forms.ToolStripRenderMode.ManagerRenderMode;
-            this.statusStrip_main.Size = new System.Drawing.Size(1468, 35);
+            this.statusStrip_main.Size = new System.Drawing.Size(1121, 35);
             this.statusStrip_main.TabIndex = 3;
             this.statusStrip_main.Text = "statusStrip_main";
             // 
@@ -142,7 +165,7 @@
             this.toolStrip_main.Location = new System.Drawing.Point(0, 34);
             this.toolStrip_main.Name = "toolStrip_main";
             this.toolStrip_main.Padding = new System.Windows.Forms.Padding(0, 0, 4, 0);
-            this.toolStrip_main.Size = new System.Drawing.Size(1468, 33);
+            this.toolStrip_main.Size = new System.Drawing.Size(1121, 33);
             this.toolStrip_main.TabIndex = 5;
             this.toolStrip_main.Text = "toolStrip1";
             // 
@@ -163,32 +186,18 @@
             this.toolStripLabel_noteManager.Text = "备书单管理";
             this.toolStripLabel_noteManager.Click += new System.EventHandler(this.toolStripLabel_noteManager_Click);
             // 
-            // UToolStripMenuItem_openUserFolder
+            // 备书单管理ToolStripMenuItem
             // 
-            this.UToolStripMenuItem_openUserFolder.Name = "UToolStripMenuItem_openUserFolder";
-            this.UToolStripMenuItem_openUserFolder.Size = new System.Drawing.Size(270, 34);
-            this.UToolStripMenuItem_openUserFolder.Text = "打开用户文件夹(&U)";
-            this.UToolStripMenuItem_openUserFolder.Click += new System.EventHandler(this.UToolStripMenuItem_openUserFolder_Click);
-            // 
-            // ToolStripMenuItem_openProgramFolder
-            // 
-            this.ToolStripMenuItem_openProgramFolder.Name = "ToolStripMenuItem_openProgramFolder";
-            this.ToolStripMenuItem_openProgramFolder.Size = new System.Drawing.Size(270, 34);
-            this.ToolStripMenuItem_openProgramFolder.Text = "打开程序文件夹(&P)";
-            this.ToolStripMenuItem_openProgramFolder.Click += new System.EventHandler(this.ToolStripMenuItem_openProgramFolder_Click);
-            // 
-            // ToolStripMenuItem_openDataFolder
-            // 
-            this.ToolStripMenuItem_openDataFolder.Name = "ToolStripMenuItem_openDataFolder";
-            this.ToolStripMenuItem_openDataFolder.Size = new System.Drawing.Size(270, 34);
-            this.ToolStripMenuItem_openDataFolder.Text = "打开数据文件夹(&D)";
-            this.ToolStripMenuItem_openDataFolder.Click += new System.EventHandler(this.ToolStripMenuItem_openDataFolder_Click);
+            this.备书单管理ToolStripMenuItem.Name = "备书单管理ToolStripMenuItem";
+            this.备书单管理ToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
+            this.备书单管理ToolStripMenuItem.Text = "备书单管理(&N)";
+            this.备书单管理ToolStripMenuItem.Click += new System.EventHandler(this.备书单管理ToolStripMenuItem_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(11F, 21F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1468, 568);
+            this.ClientSize = new System.Drawing.Size(1121, 568);
             this.Controls.Add(this.toolStrip_main);
             this.Controls.Add(this.statusStrip_main);
             this.Controls.Add(this.menuStrip_main);
@@ -229,6 +238,7 @@
         private System.Windows.Forms.ToolStripMenuItem UToolStripMenuItem_openUserFolder;
         private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_openDataFolder;
         private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_openProgramFolder;
+        private System.Windows.Forms.ToolStripMenuItem 备书单管理ToolStripMenuItem;
     }
 }
 

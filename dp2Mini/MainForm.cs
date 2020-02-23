@@ -416,6 +416,12 @@ namespace dp2Mini
             */
         }
 
+        private void 备书单管理ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            EnsureChildForm<NoteForm>(true);
+
+        }
+
 
         /// <summary>
         /// 测试打印
@@ -671,6 +677,8 @@ namespace dp2Mini
             return Cryptography.Encrypt(strPlainText, EncryptKey);
         }
         #endregion
+
+
     }
 
 }

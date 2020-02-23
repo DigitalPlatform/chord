@@ -373,6 +373,20 @@ namespace dp2Mini
             string noteId = viewItem.SubItems[0].Text;
             Note note = DbManager.Instance.GetNote(noteId);
 
+            string[] reasons = this._mainForm.GetSettings().ReasonArray;
+            string reasonText = "";
+            foreach (string r in reasons)
+            {
+                if (reasonText != "")
+                    reasonText += "\r\n";
+
+                reasonText += "□ " + r;
+            }
+            if (reasonText != "")
+            {
+                reasonText = "未找到原因：\r\n" + reasonText;
+            }
+
             StringBuilder sb = new StringBuilder();
             // 备书单整体信息
             sb.AppendLine("备书单号：" + noteId ); //备书单id
@@ -392,6 +406,7 @@ namespace dp2Mini
                 sb.AppendLine( item.ISBN );
                 sb.AppendLine(item.Author );
                 sb.AppendLine( item.RequestTime);
+                sb.AppendLine(reasonText);
                 sb.AppendLine("--------------------------");
             }
 
