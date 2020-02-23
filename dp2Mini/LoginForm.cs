@@ -1,4 +1,5 @@
-﻿using DigitalPlatform.CirculationClient;
+﻿using DigitalPlatform;
+using DigitalPlatform.CirculationClient;
 using DigitalPlatform.LibraryRestClient;
 using System;
 using System.Collections.Generic;
@@ -169,5 +170,16 @@ namespace dp2Mini
             this.Close();
         }
 
+        private void button1_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(ClientInfo.DataDir);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ExceptionUtil.GetAutoText(ex));
+            }
+        }
     }
 }

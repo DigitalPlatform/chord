@@ -37,6 +37,7 @@
             this.textBox_libraryUrl = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.checkBox_savePassword = new System.Windows.Forms.CheckBox();
+            this.button1 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // button_cancel
@@ -127,11 +128,23 @@
             this.checkBox_savePassword.Text = "记住密码";
             this.checkBox_savePassword.UseVisualStyleBackColor = true;
             // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(13, 285);
+            this.button1.Margin = new System.Windows.Forms.Padding(4);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(169, 34);
+            this.button1.TabIndex = 9;
+            this.button1.Text = "打开数据文件夹";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
             // LoginForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(717, 323);
+            this.ClientSize = new System.Drawing.Size(717, 332);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.checkBox_savePassword);
             this.Controls.Add(this.button_cancel);
             this.Controls.Add(this.button_login);
@@ -163,5 +176,6 @@
         private System.Windows.Forms.TextBox textBox_libraryUrl;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.CheckBox checkBox_savePassword;
+        private System.Windows.Forms.Button button1;
     }
 }

@@ -151,10 +151,9 @@ namespace DigitalPlatform.CirculationClient
             log4net.Config.XmlConfigurator.Configure(repository);
 
             //LibraryChannelManager.Log = LogManager.GetLogger("main", "channellib");
-            //_log = LogManager.GetLogger("main",
-            //    product_name
-            //    // "fingerprintcenter"
-            //    );
+            _log = LogManager.GetLogger("main",
+                "dp2mini"  // product_name
+                );
 
             // 启动时在日志中记载当前 .exe 版本号
             // 此举也能尽早发现日志目录无法写入的问题，会抛出异常

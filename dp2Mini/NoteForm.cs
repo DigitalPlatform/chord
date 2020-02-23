@@ -493,12 +493,12 @@ namespace dp2Mini
                 {
                     if (reasonText != "")
                         reasonText += "<br/>";
-                    
-                    reasonText += "□ " + r;
+
+                    reasonText += "<font size='10'>□</font> " + r;
                 }
                 if (reasonText !="")
                 {
-                    reasonText = "<p>未找到原因：<br/>" + reasonText+"</p>";
+                    reasonText = "<p>图书未找到原因：<br/>" + reasonText+"</p>";
                 }
 
 
