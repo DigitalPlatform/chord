@@ -32,6 +32,7 @@
             this.menuStrip_main = new System.Windows.Forms.MenuStrip();
             this.toolStripMenuItem_file = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem_prep = new System.Windows.Forms.ToolStripMenuItem();
+            this.备书单管理ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem_help = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem_setting = new System.Windows.Forms.ToolStripMenuItem();
             this.UToolStripMenuItem_openUserFolder = new System.Windows.Forms.ToolStripMenuItem();
@@ -43,8 +44,7 @@
             this.toolStripStatusLabel_loginName = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStrip_main = new System.Windows.Forms.ToolStrip();
             this.toolStripButton_prep = new System.Windows.Forms.ToolStripButton();
-            this.toolStripLabel_noteManager = new System.Windows.Forms.ToolStripLabel();
-            this.备书单管理ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripButton_note = new System.Windows.Forms.ToolStripButton();
             this.menuStrip_main.SuspendLayout();
             this.statusStrip_main.SuspendLayout();
             this.toolStrip_main.SuspendLayout();
@@ -70,15 +70,22 @@
             this.toolStripMenuItem_prep,
             this.备书单管理ToolStripMenuItem});
             this.toolStripMenuItem_file.Name = "toolStripMenuItem_file";
-            this.toolStripMenuItem_file.Size = new System.Drawing.Size(84, 28);
+            this.toolStripMenuItem_file.Size = new System.Drawing.Size(84, 30);
             this.toolStripMenuItem_file.Text = "文件(&F)";
             // 
             // toolStripMenuItem_prep
             // 
             this.toolStripMenuItem_prep.Name = "toolStripMenuItem_prep";
-            this.toolStripMenuItem_prep.Size = new System.Drawing.Size(270, 34);
+            this.toolStripMenuItem_prep.Size = new System.Drawing.Size(240, 34);
             this.toolStripMenuItem_prep.Text = "预约到书查询(&S)";
             this.toolStripMenuItem_prep.Click += new System.EventHandler(this.toolStripMenuItem_prep_Click);
+            // 
+            // 备书单管理ToolStripMenuItem
+            // 
+            this.备书单管理ToolStripMenuItem.Name = "备书单管理ToolStripMenuItem";
+            this.备书单管理ToolStripMenuItem.Size = new System.Drawing.Size(240, 34);
+            this.备书单管理ToolStripMenuItem.Text = "备书单管理(&N)";
+            this.备书单管理ToolStripMenuItem.Click += new System.EventHandler(this.备书单管理ToolStripMenuItem_Click);
             // 
             // toolStripMenuItem_help
             // 
@@ -88,13 +95,13 @@
             this.ToolStripMenuItem_openDataFolder,
             this.ToolStripMenuItem_openProgramFolder});
             this.toolStripMenuItem_help.Name = "toolStripMenuItem_help";
-            this.toolStripMenuItem_help.Size = new System.Drawing.Size(88, 28);
+            this.toolStripMenuItem_help.Size = new System.Drawing.Size(88, 30);
             this.toolStripMenuItem_help.Text = "帮助(&H)";
             // 
             // toolStripMenuItem_setting
             // 
             this.toolStripMenuItem_setting.Name = "toolStripMenuItem_setting";
-            this.toolStripMenuItem_setting.Size = new System.Drawing.Size(270, 34);
+            this.toolStripMenuItem_setting.Size = new System.Drawing.Size(262, 34);
             this.toolStripMenuItem_setting.Text = "参数设置(&S)";
             this.toolStripMenuItem_setting.Click += new System.EventHandler(this.toolStripMenuItem_setting_Click);
             // 
@@ -138,7 +145,7 @@
             // 
             this.toolStripStatusLabel_message.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Right;
             this.toolStripStatusLabel_message.Name = "toolStripStatusLabel_message";
-            this.toolStripStatusLabel_message.Size = new System.Drawing.Size(1300, 28);
+            this.toolStripStatusLabel_message.Size = new System.Drawing.Size(953, 28);
             this.toolStripStatusLabel_message.Spring = true;
             this.toolStripStatusLabel_message.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
@@ -161,7 +168,7 @@
             this.toolStrip_main.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.toolStrip_main.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripButton_prep,
-            this.toolStripLabel_noteManager});
+            this.toolStripButton_note});
             this.toolStrip_main.Location = new System.Drawing.Point(0, 34);
             this.toolStrip_main.Name = "toolStrip_main";
             this.toolStrip_main.Padding = new System.Windows.Forms.Padding(0, 0, 4, 0);
@@ -179,19 +186,15 @@
             this.toolStripButton_prep.Text = "预约到书查询";
             this.toolStripButton_prep.Click += new System.EventHandler(this.toolStripButton_prep_Click);
             // 
-            // toolStripLabel_noteManager
+            // toolStripButton_note
             // 
-            this.toolStripLabel_noteManager.Name = "toolStripLabel_noteManager";
-            this.toolStripLabel_noteManager.Size = new System.Drawing.Size(100, 28);
-            this.toolStripLabel_noteManager.Text = "备书单管理";
-            this.toolStripLabel_noteManager.Click += new System.EventHandler(this.toolStripLabel_noteManager_Click);
-            // 
-            // 备书单管理ToolStripMenuItem
-            // 
-            this.备书单管理ToolStripMenuItem.Name = "备书单管理ToolStripMenuItem";
-            this.备书单管理ToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
-            this.备书单管理ToolStripMenuItem.Text = "备书单管理(&N)";
-            this.备书单管理ToolStripMenuItem.Click += new System.EventHandler(this.备书单管理ToolStripMenuItem_Click);
+            this.toolStripButton_note.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.toolStripButton_note.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton_note.Image")));
+            this.toolStripButton_note.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButton_note.Name = "toolStripButton_note";
+            this.toolStripButton_note.Size = new System.Drawing.Size(104, 33);
+            this.toolStripButton_note.Text = "备书单管理";
+            this.toolStripButton_note.Click += new System.EventHandler(this.toolStripButton_note_Click);
             // 
             // MainForm
             // 
@@ -234,11 +237,11 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel_loginName;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.ToolStripButton toolStripButton_prep;
-        private System.Windows.Forms.ToolStripLabel toolStripLabel_noteManager;
         private System.Windows.Forms.ToolStripMenuItem UToolStripMenuItem_openUserFolder;
         private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_openDataFolder;
         private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_openProgramFolder;
         private System.Windows.Forms.ToolStripMenuItem 备书单管理ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripButton toolStripButton_note;
     }
 }
 

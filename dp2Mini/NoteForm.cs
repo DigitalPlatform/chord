@@ -249,6 +249,7 @@ namespace dp2Mini
             this.DisableButton(this.button_notice);
             this.DisableButton(this.button_takeoff);
 
+
             if (step == Note.C_Step_Create)
             {
                 this.FinishButton(this.button_create);
@@ -284,8 +285,9 @@ namespace dp2Mini
                 this.FinishButton(this.button_takeoff);
             }
 
-            // 让打印按钮一直可以按
-            //this.button_print.Enabled
+            // 打印小票永远可以点击打印
+            this.button_print.Enabled = true;
+
         }
 
         #endregion
@@ -307,26 +309,30 @@ namespace dp2Mini
                 return;
             }
 
-            string printTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-            note.PrintTime = printTime;
-            note.PrintState = "Y";
-            note.Step = Note.C_Step_Print;
+            // 因为打印小票可以反复打印，所以只有当步骤是创建备书票时，才需要修改订票的状态
+            if (note.Step == Note.C_Step_Create)
+            {
+                string printTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                note.PrintTime = printTime;
+            }
 
             // 实际打印
             this.Print(note);
 
-            // 更新本地数据库备书库打印状态和时间
-            DbManager.Instance.UpdateNote(note);
+            // 因为打印小票可以反复打印，所以只有当步骤是创建备书票时，才需要修改订票的状态
+            if (note.Step == Note.C_Step_Create )
+            {
+                note.PrintState = "Y";
+                note.Step = Note.C_Step_Print;
 
-            // 更新备书行的显示
-            this.LoadOneNote(note, viewItem);
-            this.SetOperateButton(note.Step);
-            //viewItem.Selected = true;
+                // 更新本地数据库备书库打印状态和时间
+                DbManager.Instance.UpdateNote(note);
 
-            //viewItem.SubItems[5].Text=""
-            //viewItem.SubItems[6].Text = GetStepStateText(note.PrintState);
-            //viewItem.SubItems[7].Text = note.PrintTime;
-            //this.listView_note.Update();
+                // 更新备书行的显示
+                this.LoadOneNote(note, viewItem);
+                this.SetOperateButton(note.Step);
+
+            }
         }
 
 
@@ -638,7 +644,17 @@ namespace dp2Mini
                 this.打印小票预览ToolStripMenuItem.Enabled = true;
                 this.输出小票信息ToolStripMenuItem.Enabled = true;
                 this.查看备书结果ToolStripMenuItem.Enabled = true;
-                this.撤消备书单ToolStripMenuItem.Enabled = true;
+
+                ListViewItem viewItem = this.listView_note.SelectedItems[0];
+                Note note = DbManager.Instance.GetNote(viewItem.SubItems[0].Text);
+                if (note != null && note.Step != Note.C_Step_Takeoff)
+                {
+                    this.撤消备书单ToolStripMenuItem.Enabled = true;
+                }
+                else
+                {
+                    this.撤消备书单ToolStripMenuItem.Enabled = false;
+                }
             }
         }
 
@@ -870,7 +886,9 @@ namespace dp2Mini
             MessageBoxButtons buttons = MessageBoxButtons.OKCancel;
             DialogResult dlg = MessageBox.Show(this, "您确定要撤消备书单吗？",
                 "dp2mini",
-                buttons);
+                buttons,
+                MessageBoxIcon.Information,
+                MessageBoxDefaultButton.Button2);
             if (dlg == DialogResult.OK)
             {
                 // 将下级item的删除

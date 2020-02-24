@@ -686,9 +686,14 @@ namespace dp2Mini
         {
             return Cryptography.Encrypt(strPlainText, EncryptKey);
         }
+
         #endregion
 
 
+        private void toolStripButton_note_Click(object sender, EventArgs e)
+        {
+            EnsureChildForm<NoteForm>(true);
+        }
     }
 
 }
