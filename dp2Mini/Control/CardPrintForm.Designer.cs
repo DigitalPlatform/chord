@@ -29,13 +29,13 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(CardPrintForm));
-            this.printDialog1 = new System.Windows.Forms.PrintDialog();
+            this._printDialog = new System.Windows.Forms.PrintDialog();
             this.printPreviewDialog1 = new System.Windows.Forms.PrintPreviewDialog();
             this.SuspendLayout();
             // 
             // printDialog1
             // 
-            this.printDialog1.UseEXDialog = true;
+            this._printDialog.UseEXDialog = true;
             // 
             // printPreviewDialog1
             // 
@@ -60,7 +60,7 @@
 
         #endregion
 
-        private System.Windows.Forms.PrintDialog printDialog1;
+        private System.Windows.Forms.PrintDialog _printDialog;
         private System.Windows.Forms.PrintPreviewDialog printPreviewDialog1;
     }
 }

@@ -317,7 +317,18 @@ namespace dp2Mini
             }
 
             // 实际打印
-            this.Print(note);
+            string strError = "";
+            int nRet = this.Print(note,out strError);
+            if (nRet == -1)
+            {
+                MessageBox.Show(this, strError);
+                return;
+            }
+            if (nRet == 0)
+            {
+                MessageBox.Show(this, "您取消了打印");
+                return;
+            }
 
             // 因为打印小票可以反复打印，所以只有当步骤是创建备书票时，才需要修改订票的状态
             if (note.Step == Note.C_Step_Create )
@@ -564,9 +575,12 @@ namespace dp2Mini
         /// 打印
         /// </summary>
         /// <param name="noteId"></param>
-        private void Print(Note note)
+        /// -1 出错
+        /// 0 取消打印
+        /// 1 成功
+        private int Print(Note note,out string strError)
         {
-            string strError = "";
+            strError = "";
 
             // 鼠标设为等待状态
             Cursor oldCursor = this.Cursor;
@@ -583,28 +597,14 @@ namespace dp2Mini
             form.Show();  // 必须这样写 2020/2/21 增加备注
             try
             {
-                int nRet = form.PrintFromCardFile(false);
-                if (nRet == -1)
-                {
-                    form.WindowState = FormWindowState.Normal;
-                    strError = strError + "\r\n\r\n以下内容未能成功打印:\r\n";
-                    MessageBox.Show(this, strError);
-                    return;
-                }
+                return form.PrintFromCardFile(false,
+                    out strError);
             }
             finally
             {
                 form.Close();
                 this.Cursor = oldCursor;
             }
-
-            
-            // 更新note的打印状态和时间
-
-            //// 原来的打印功能
-            //ListViewItem[] items = new ListViewItem[this.listView_results.SelectedItems.Count];
-            //this.listView_results.SelectedItems.CopyTo(items, 0);
-            //changeAcctiveItemPrintState(items, "已打印");
         }
 
         /// <summary>

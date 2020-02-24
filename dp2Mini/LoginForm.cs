@@ -109,7 +109,7 @@ namespace dp2Mini
             if (url.Length < 5
                 || (url.Substring(0, 5).ToLower() != "rest."))
             {
-                MessageBox.Show(this,"服务器必须仅支持rest.开头的地址，请重新输入服务器地址或咨询管理员");
+                MessageBox.Show(this,"服务器仅支持rest.开头的地址，请重新输入服务器地址或咨询管理员");
                 return;
             }
 

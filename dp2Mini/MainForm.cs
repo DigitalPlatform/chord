@@ -58,6 +58,7 @@ namespace dp2Mini
                 ClientInfo.WriteInfoLog("发现存在user.config文件，自动删除。");
                 File.Delete(path);
             }
+            ClientInfo.WriteInfoLog(ClientInfo.ClientVersion);
 
 
             this.Setting = this.GetSettings();
@@ -166,6 +167,14 @@ namespace dp2Mini
         /// <param name="e"></param>
         private void _channelPool_BeforeLogin(object sender, BeforeLoginEventArgs e)
         {
+            e.LibraryServerUrl = this.Setting.Url;
+            e.UserName = this.Setting.UserName;
+            e.Password = this.Setting.Password;
+            e.Parameters = "type=worker,client=dp2mini|" + ClientInfo.ClientVersion;//Program.ClientVersion;
+
+
+            /*
+
             if (e.FirstTry == true)
             {
                 e.UserName = this.Setting.UserName;
@@ -178,6 +187,7 @@ namespace dp2Mini
             {
                 MessageBox.Show(this, e.ErrorInfo);
             }
+
 
             IWin32Window owner = null;
             if (sender is IWin32Window)
@@ -201,8 +211,10 @@ namespace dp2Mini
             e.UserName = dlg.Username;
             e.Password = dlg.Password;
             e.Parameters = "type=worker,client=dp2mini|" + ClientInfo.ClientVersion;//Program.ClientVersion;
+        */
         }
 
+        /*
         /// <summary>
         /// 设置缺省帐号
         /// </summary>
@@ -238,7 +250,7 @@ namespace dp2Mini
 
             return loginForm;
         }
-
+        */
 
         #region 创建和释放通道
 
@@ -471,7 +483,7 @@ namespace dp2Mini
 
             form.WindowState = FormWindowState.Minimized;
             form.Show();
-            int nRet = form.PrintFromCardFile(false);
+            int nRet = form.PrintFromCardFile(false,out strError);
             if (nRet == -1)
             {
                 form.WindowState = FormWindowState.Normal;
