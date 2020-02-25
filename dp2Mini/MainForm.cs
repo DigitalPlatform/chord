@@ -108,7 +108,15 @@ namespace dp2Mini
         /// <param name="e"></param>
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            this._channelPool.Close();
+            try
+            {
+                this._channelPool.Close();
+            }
+            catch(Exception ex)
+            {
+                ClientInfo.WriteErrorLog("关闭通道时出错：" + ex.Message);
+                return;
+            }
         }
 
 

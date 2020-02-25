@@ -138,20 +138,14 @@ namespace dp2Mini
                 info.IsSavePassword = IsSavePassword;
                 this._mainFrom.SaveSettings(info,false);
 
-                //Properties.Settings.Default.cfg_library_url = LibraryUrl;
-                //Properties.Settings.Default.cfg_library_username = Username;
-                //Properties.Settings.Default.cfg_savePassword = IsSavePassword;
-
-                //if (IsSavePassword)
-                //    Properties.Settings.Default.cfg_library_password = Password;
-                //Properties.Settings.Default.Save();
-
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }
             catch (Exception ex)
             {
                 MessageBox.Show(this, ex.Message);
+                this.DialogResult = DialogResult.Cancel;
+                this.Close();
             }
             finally
             {
