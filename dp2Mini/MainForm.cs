@@ -121,7 +121,7 @@ namespace dp2Mini
 
 
 
-        public void SaveSettings(SettingInfo settingInfo,bool isSaveReasons)
+        public void SaveSettings(SettingInfo settingInfo)
         {
 
             if (settingInfo.IsSavePassword == false)
@@ -133,17 +133,22 @@ namespace dp2Mini
             ClientInfo.Config?.Set("global", "password", MainForm.EncryptPassword(settingInfo.Password));
             ClientInfo.Config?.Set("global", "isSavePassword", settingInfo.IsSavePassword.ToString());
 
-            if (isSaveReasons == true)
-            {
-                // 未找到原因
-                ClientInfo.Config?.Set("global", "notFoundReasons", settingInfo.NotFoundReasons);
-            }
-
-            
+            // 保存到配置文件
             ClientInfo.Finish();
 
             // 缓存起来
             this.Setting = this.GetSettings();
+        }
+
+        public void SaveNotFoundReason(string reasons)
+        {
+            // 保存到配置文件
+            ClientInfo.Config?.Set("global", "notFoundReasons", reasons);
+            ClientInfo.Finish();
+
+            //更新内存
+            this.Setting.NotFoundReasons = reasons;
+
         }
 
         public SettingInfo GetSettings()
@@ -175,25 +180,30 @@ namespace dp2Mini
         /// <param name="e"></param>
         private void _channelPool_BeforeLogin(object sender, BeforeLoginEventArgs e)
         {
-            e.LibraryServerUrl = this.Setting.Url;
+
+            e.LibraryServerUrl = this.GetPurlUrl(this.Setting.Url);
             e.UserName = this.Setting.UserName;
             e.Password = this.Setting.Password;
             e.Parameters = "type=worker,client=dp2mini|" + ClientInfo.ClientVersion;//Program.ClientVersion;
+            return;
 
 
             /*
-
             if (e.FirstTry == true)
             {
+                e.LibraryServerUrl = this.GetPurlUrl(this.Setting.Url);
                 e.UserName = this.Setting.UserName;
                 e.Password = this.Setting.Password;
-                if (!string.IsNullOrEmpty(e.UserName))
-                    return;
+                e.Parameters = "type=worker,client=dp2mini|" + ClientInfo.ClientVersion;//Program.ClientVersion;
+                return;
             }
+
+
 
             if (!string.IsNullOrEmpty(e.ErrorInfo))
             {
                 MessageBox.Show(this, e.ErrorInfo);
+
             }
 
 
@@ -216,12 +226,14 @@ namespace dp2Mini
                 return;
             }
 
+            e.LibraryServerUrl= this.GetPurlUrl(dlg.LibraryUrl);
             e.UserName = dlg.Username;
             e.Password = dlg.Password;
             e.Parameters = "type=worker,client=dp2mini|" + ClientInfo.ClientVersion;//Program.ClientVersion;
         */
         }
 
+        
         /*
         /// <summary>
         /// 设置缺省帐号
@@ -262,6 +274,17 @@ namespace dp2Mini
 
         #region 创建和释放通道
 
+        public string GetPurlUrl(string restUrl)
+        {
+            string url = restUrl;
+            if (restUrl.Length >= 5 && restUrl.Substring(0, 5).ToLower() == "rest.")
+            {
+                url = restUrl.Substring(5);
+            }
+
+            return url;
+        }
+
         /// <summary>
         /// 获取通道
         /// </summary>
@@ -274,10 +297,7 @@ namespace dp2Mini
             if (strServerUrl == ".")
                 strServerUrl = this.Setting.Url;//Properties.Settings.Default.cfg_library_url;
 
-            if (strServerUrl.Length >= 5 && strServerUrl.Substring(0, 5).ToLower() == "rest.")
-            {
-                strServerUrl = strServerUrl.Substring(5);
-            }
+            strServerUrl = this.GetPurlUrl(strServerUrl);
 
             if (strUserName == ".")
                 strUserName = this.Setting.UserName;//Properties.Settings.Default.cfg_library_username;

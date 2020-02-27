@@ -117,7 +117,7 @@ namespace dp2Mini
             RestChannel channel = mainForm.GetChannel();
             try
             {
-                string pureUrl = LibraryUrl.Substring(5);
+                string pureUrl = this._mainFrom.GetPurlUrl(this.LibraryUrl);// LibraryUrl.Substring(5);
                 channel.Url = pureUrl;
                 string strParameters = "type=worker"
                     + ",client=dp2mini|" + ClientInfo.ClientVersion; //Program.ClientVersion;
@@ -136,7 +136,7 @@ namespace dp2Mini
                 info.UserName = Username;
                 info.Password = Password;
                 info.IsSavePassword = IsSavePassword;
-                this._mainFrom.SaveSettings(info,false);
+                this._mainFrom.SaveSettings(info);
 
                 this.DialogResult = DialogResult.OK;
                 this.Close();
