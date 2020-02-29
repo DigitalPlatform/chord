@@ -14,40 +14,6 @@ namespace dp2weixinWeb.Controllers
     {
 
         /// <summary>
-        /// 读者自助注册功能
-        /// </summary>
-        /// <param name="code"></param>
-        /// <param name="state"></param>
-        /// <returns></returns>
-        public ActionResult NewParton(string code, string state)
-        {
-            string strError = "";
-            int nRet = 0;
-
-            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
-            // -1 出错
-            // 0 成功
-            nRet = this.GetSessionInfo(code, 
-                state,
-                out SessionInfo sessionInfo,
-                out strError);
-            if (nRet == -1)
-            {
-                ViewBag.Error = strError;
-                return View();
-            }
-
-            // 如果尚未选择图书馆，不存在当前帐号，出现绑定帐号链接
-            if (sessionInfo.ActiveUser == null)
-            {
-                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Account/NewParton");
-                return View();
-            }
-
-            return View();
-        }
-
-        /// <summary>
         /// 账户管理
         /// </summary>
         /// <param name="code"></param>

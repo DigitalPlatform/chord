@@ -150,6 +150,45 @@ namespace dp2weixin.service
         }
     }
 
+    /*
+    
+{{first.DATA}}
+申请人：{{keyword1.DATA}}
+手机号码：{{keyword2.DATA}}
+申请进度：{{keyword3.DATA}}
+申请时间：{{keyword4.DATA}}
+{{remark.DATA}}
+     */
+    public class ReviewPatronTemplateData : Template4Data
+    {
+        public ReviewPatronTemplateData(string first, string first_color,
+            string k1, string k2, string k3, string k4,
+            string remark)
+            : base(first, first_color, k1, k2, k3, k4, remark)
+        { }
+    }
+
+    /*
+超期图书停借期满
+书刊名称：剪面包的男孩
+到期事项：B000001,B000002
+到期日期：2017-10-25
+证条码号：B0000003
+张三，您的2册超期图书停借期满，可以继续借书了。
+*/
+
+
+
+    /*
+尊敬的读者，您的图书即将超期，请及时还书，避免超期违约。
+书刊摘要：C#开发教程
+册条码号：XZ000004
+借书日期：2019/12/1
+应还日期：2019/12/31
+超期说明：即将超期
+王小，您借出的图书即将超期，请及时还书，避免超期违约。 
+     */
+
     //您好，您已借书成功。
     //书刊摘要：中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00
     //册条码号：C0000001

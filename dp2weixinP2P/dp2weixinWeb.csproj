@@ -270,7 +270,7 @@
     <Compile Include="ApiControllers\BiblioController.cs" />
     <Compile Include="ApiControllers\BorrowInfoController.cs" />
     <Compile Include="ApiControllers\LibrarySettingController.cs" />
-    <Compile Include="ApiControllers\PatronController.cs" />
+    <Compile Include="ApiControllers\PatronApiController.cs" />
     <Compile Include="ApiControllers\ReservationController.cs" />
     <Compile Include="ApiControllers\WxUserController.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
@@ -365,7 +365,7 @@
     <Content Include="Views\Biblio\ViewPDF-V.cshtml" />
     <Content Include="Scripts\jquery-3.4.1.slim.min.map" />
     <Content Include="Scripts\jquery-3.4.1.min.map" />
-    <Content Include="Views\Account\NewParton.cshtml" />
+    <Content Include="Views\Patron\NewPatron.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

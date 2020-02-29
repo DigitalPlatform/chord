@@ -31,7 +31,7 @@ namespace dp2weixinWeb.ApiControllers
             }
 
 
-            string file = dp2WeiXinService.Instance.weiXinDataDir 
+            string file = dp2WeiXinService.Instance._weiXinDataDir 
                 + "/lib/" + "template"//lib.capoUserName 
                 + "/home/" 
                 + subject+".txt";

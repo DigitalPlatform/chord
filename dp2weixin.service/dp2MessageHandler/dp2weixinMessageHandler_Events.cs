@@ -24,7 +24,7 @@ namespace dp2weixin
         /// <returns></returns>
         public override IResponseMessageBase OnEvent_SubscribeRequest(RequestMessageEvent_Subscribe requestMessage)
         {
-            GzhCfg gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppId(this.AppId);
+            GzhCfg gzh = dp2WeiXinService.Instance._gzhContainer.GetByAppId(this.AppId);
             if (gzh == null)
             {
                 return this.CreateTextResponseMessage("未找到" + this.AppId + "对应的公众号配置");

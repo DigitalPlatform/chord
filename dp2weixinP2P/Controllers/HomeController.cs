@@ -80,7 +80,7 @@ namespace dp2weixinWeb.Controllers
                 return Redirect("~/Home/Login?returnUrl=" + HttpUtility.UrlEncode("~/Home/Manager"));
             }
 
-            GzhCfg gzh = dp2WeiXinService.Instance.gzhContainer.GetDefault();
+            GzhCfg gzh = dp2WeiXinService.Instance._gzhContainer.GetDefault();
             ViewBag.AppName = gzh.appNameCN;
 
             return View();
@@ -97,11 +97,11 @@ namespace dp2weixinWeb.Controllers
             ViewBag.success = false;
 
             SettingModel model = new SettingModel();
-            model.dp2MserverUrl = dp2WeiXinService.Instance.dp2MServerUrl;// "";// dp2MServerUrl;
-            model.userName = dp2WeiXinService.Instance.userNameWeixin;// "";//userName;
-            model.password = dp2WeiXinService.Instance.password;// "";//password;
-            model.mongoDbConnection = dp2WeiXinService.Instance.monodbConnectionString;
-            model.mongoDbPrefix = dp2WeiXinService.Instance.monodbPrefixString;
+            model.dp2MserverUrl = dp2WeiXinService.Instance._dp2MServerUrl;// "";// dp2MServerUrl;
+            model.userName = dp2WeiXinService.Instance._userNameWeixin;// "";//userName;
+            model.password = dp2WeiXinService.Instance._password;// "";//password;
+            model.mongoDbConnection = dp2WeiXinService.Instance._monodbConnectionString;
+            model.mongoDbPrefix = dp2WeiXinService.Instance._monodbPrefixString;
 
             return View(model);
         }

@@ -400,80 +400,10 @@ namespace dp2weixinWeb.Controllers
         /// -1 出错
         /// 0 成功
         /// </returns>
-        private int InitViewBag(SessionInfo sessionInfo, 
+        private int InitViewBag(SessionInfo sessionInfo,
             out string strError)
         {
             strError = "";
-
-            ViewBag.AppName = sessionInfo.gzh.appNameCN;
-            ViewBag.weixinId = sessionInfo.WeixinId;
-
-            if (sessionInfo.ActiveUser != null)
-            {
-                //  取出上次记住的图书推荐栏目
-                if (Request.Path == "/Library/Book")
-                {
-                    ViewBag.remeberBookSubject = sessionInfo.ActiveUser.bookSubject;
-                }
-
-                //设到ViewBag里
-                string userName = "";
-                string userNameInfo = "";
-                if (sessionInfo.ActiveUser.type == WxUserDatabase.C_Type_Worker)
-                {
-                    userName = sessionInfo.ActiveUser.userName;
-                    userNameInfo = userName;
-                    ViewBag.isPatron = 0;
-                }
-                else
-                {
-                    userName = sessionInfo.ActiveUser.readerBarcode;
-                    userNameInfo = sessionInfo.ActiveUser.readerName;// +"["+sessionInfo.Active.readerBarcode+"]";
-                    ViewBag.isPatron = 1;
-                }
-                ViewBag.userName = userName;
-                ViewBag.userNameInfo = userNameInfo;
-                ViewBag.userId = sessionInfo.ActiveUser.id;
-
-                string libName = sessionInfo.ActiveUser.libName;//sessionInfo.CurrentLib.Entity.libName;
-                if (string.IsNullOrEmpty(sessionInfo.ActiveUser.bindLibraryCode) == false)
-                {
-                    //libName = sessionInfo.Active.bindLibraryCode;
-                    // 2019/05/06 显示的名称依据libcfg.xml的配置
-                    libName = dp2WeiXinService.Instance.areaMgr.GetLibCfgName(sessionInfo.ActiveUser.libId, sessionInfo.ActiveUser.bindLibraryCode);
-                }
-
-                    
-
-                string libId = sessionInfo.ActiveUser.libId;
-
-                ViewBag.LibName = "[" + libName + "]";
-                ViewBag.PureLibName = libName;
-                ViewBag.LibId = libId;
-                ViewBag.LibraryCode = sessionInfo.ActiveUser.bindLibraryCode;  //这里用绑定的图书馆 20180313
-
-                LibEntity libEntity = sessionInfo.CurrentLib.Entity;//dp2WeiXinService.Instance.GetLibById(libId);
-                if (libEntity != null && libEntity.state == "到期"
-                    && Request.Path.Contains("/Patron/SelectLib") == false) //选择图书馆界面除外
-                {
-                    strError = "服务已到期，请联系图书馆工作人员。";
-                    return -1;
-                }
-
-                ViewBag.showPhoto = sessionInfo.ActiveUser.showPhoto;
-                ViewBag.showCover = sessionInfo.ActiveUser.showCover;
-
-                ViewBag.LibState = sessionInfo.CurrentLib.IsHangup.ToString();
-                if (sessionInfo.CurrentLib.IsHangup == true)  //checkLibState == true && 
-                {
-                    string warn = LibraryManager.GetLibHungWarn(sessionInfo.CurrentLib,true);
-                    if (string.IsNullOrEmpty(warn) == false)
-                    {
-                        strError = warn;
-                        return -1;
-                    }
-                }
-            }
 
             // 书目查询 与 借还 使用 JSSDK
             try
@@ -496,6 +426,84 @@ namespace dp2weixinWeb.Controllers
             }
             catch (Exception ex)
             { }
+
+
+            ViewBag.AppName = sessionInfo.gzh.appNameCN;
+            ViewBag.weixinId = sessionInfo.WeixinId;
+
+            // 没有当前帐户时，直接返回
+            if (sessionInfo.ActiveUser == null)
+                return 0;
+
+
+            //=====
+            //  取出上次记住的图书推荐栏目
+            if (Request.Path == "/Library/Book")
+            {
+                ViewBag.remeberBookSubject = sessionInfo.ActiveUser.bookSubject;
+            }
+
+            //设到ViewBag里
+            string userName = "";
+            string userNameInfo = "";
+            if (sessionInfo.ActiveUser.type == WxUserDatabase.C_Type_Worker)
+            {
+                userName = sessionInfo.ActiveUser.userName;
+                userNameInfo = userName;
+                ViewBag.isPatron = 0;
+            }
+            else
+            {
+                userName = sessionInfo.ActiveUser.readerBarcode;
+                userNameInfo = sessionInfo.ActiveUser.readerName;// +"["+sessionInfo.Active.readerBarcode+"]";
+                ViewBag.isPatron = 1;
+            }
+            ViewBag.userName = userName;
+            ViewBag.userNameInfo = userNameInfo;
+            ViewBag.userId = sessionInfo.ActiveUser.id;
+
+            // 2020-2-29 在配置文件中增加读者库配置
+            string patronDbName = "";
+            string libName = sessionInfo.ActiveUser.libName;//sessionInfo.CurrentLib.Entity.libName;
+            // 2019/05/06 显示的名称依据libcfg.xml的配置
+            LibModel libCfg = dp2WeiXinService.Instance._areaMgr.GetLibCfg(sessionInfo.ActiveUser.libId,
+                sessionInfo.ActiveUser.bindLibraryCode);
+            if (libCfg != null)
+            {
+                libName = libCfg.name;
+                patronDbName = libCfg.patronDbName;
+            }
+            ViewBag.PatronDbName = patronDbName;
+
+            ViewBag.LibName = "[" + libName + "]";
+            ViewBag.PureLibName = libName;
+            ViewBag.LibId = sessionInfo.ActiveUser.libId;
+            ViewBag.LibraryCode = sessionInfo.ActiveUser.bindLibraryCode;  //这里用绑定的图书馆 20180313
+
+            // 到期的图书馆应该不会显示出来，所以这一段后面可以删除 2020-2-29
+            {
+                LibEntity libEntity = sessionInfo.CurrentLib.Entity;//dp2WeiXinService.Instance.GetLibById(libId);
+                if (libEntity != null && libEntity.state == "到期"
+                    && Request.Path.Contains("/Patron/SelectLib") == false) //选择图书馆界面除外
+                {
+                    strError = "服务已到期，请联系图书馆工作人员。";
+                    return -1;
+                }
+            }
+
+            ViewBag.showPhoto = sessionInfo.ActiveUser.showPhoto;
+            ViewBag.showCover = sessionInfo.ActiveUser.showCover;
+
+            ViewBag.LibState = sessionInfo.CurrentLib.IsHangup.ToString();
+            if (sessionInfo.CurrentLib.IsHangup == true)  //checkLibState == true && 
+            {
+                string warn = LibraryManager.GetLibHungWarn(sessionInfo.CurrentLib, true);
+                if (string.IsNullOrEmpty(warn) == false)
+                {
+                    strError = warn;
+                    return -1;
+                }
+            }
 
             return 0;
         }

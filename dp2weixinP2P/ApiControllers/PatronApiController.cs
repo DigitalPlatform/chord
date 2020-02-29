@@ -11,51 +11,20 @@ using System.Web.Http;
 
 namespace dp2weixinWeb.ApiControllers
 {
-    public class PatronController : ApiController
+    public class PatronApiController : ApiController
     {
         // 参数值常量
         public const string C_format_summary = "summary";
         public const string C_format_verifyBarcode = "verifyBarcode";
 
-#if no
+
         /// <summary>
-        /// 获得读者基本信息
+        /// 获取读者信息
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="libId">图书馆id</param>
+        /// <param name="userName">用户名</param>
+        /// <param name="patronBarcode">读者证条码</param>
         /// <returns></returns>
-        public ApiResult GetPatron(string libId,
-            string userName,
-            bool isPatron,
-            string patronBarcode,
-            string style)
-        {
-            ApiResult result = new ApiResult();
-
-            string strError="";
-            string info="";
-            Patron patron= null;
-            int nRet = dp2WeiXinService.Instance.GetPatronInfo(libId,
-                userName,
-                isPatron,
-                patronBarcode,
-                style,
-                "advancexml",
-                out patron,
-                out info,
-                out strError);
-            if (nRet == -1 || nRet == 0)
-            {
-                result.errorCode = -1;
-                result.errorInfo = strError;
-            }
-
-            result.obj = patron;
-            result.info = info;
-
-            return result;
-        }
-#endif
-
         public SetReaderInfoResult GetPatron(string libId,
            string userName,
            string patronBarcode)
@@ -97,6 +66,18 @@ namespace dp2weixinWeb.ApiControllers
             return result;
         }
 
+        /// <summary>
+        /// 设置读者信息
+        /// </summary>
+        /// <param name="libId"></param>
+        /// <param name="userName"></param>
+        /// <param name="action"></param>
+        /// <param name="recPath"></param>
+        /// <param name="timestamp"></param>
+        /// <param name="weixinId"></param>
+        /// <param name="patron"></param>
+        /// <param name="bMergeInfo"></param>
+        /// <returns></returns>
         [HttpPost]
         public SetReaderInfoResult SetPatron(string libId,
             string userName,
@@ -131,15 +112,48 @@ namespace dp2weixinWeb.ApiControllers
                 result.errorInfo = strError;
             }
             
-            
 
             result.recPath = outputRecPath;
             result.timestamp = outputTimestamp;
 
+            // 初始化sesson
+            string error = "";
+            if (string.IsNullOrEmpty(weixinId) ==false)
+            {
+                if (HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo] == null)
+                {
+                    error = "session失效。";
+                    goto ERROR1;
+                }
+                SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
+                if (sessionInfo == null)
+                {
+                    error = "session失效2。";
+                    goto ERROR1;
+                }
+                nRet = sessionInfo.GetActiveUser(weixinId, out error);
+                if (nRet == -1)
+                    goto ERROR1;
+            }
+            
 
+
+
+            return result;
+
+
+        ERROR1:
+            result.errorCode = -1;
+            result.errorInfo = error;
             return result;
         }
 
+        /// <summary>
+        /// 发送验证码
+        /// </summary>
+        /// <param name="libId"></param>
+        /// <param name="tel"></param>
+        /// <returns></returns>
         public GetVerifyCodeResult GetVerifyCode(string libId, 
             string tel)
         {
@@ -161,6 +175,8 @@ namespace dp2weixinWeb.ApiControllers
 
             return result;
         }
+
+
 
     }
 

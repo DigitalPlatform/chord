@@ -6,8 +6,9 @@
 @section Scripts {
     <script>
 
+        /*
         // 获取全部选中的馆藏地
-        function getLib() {
+        function getLibLoc() {
             var xml = "";
 
             $(".library:checked").each(function () {
@@ -32,6 +33,7 @@
 
             return xml
         }
+        */
 
         // 展开关闭分馆
         function expand(obj, name) {
@@ -49,7 +51,7 @@
             }
         }
 
-        //保存选择的馆藏地到服务器
+        //保存选择的图书馆到服务器
         function saveLib() {
 
             //alert("走到saveLib");
@@ -64,8 +66,6 @@
             if (lib == null || lib == "") {
                 alert("lib未设置");
                 return;
-
-
             }
             //alert("[" + lib + "]");
 
@@ -97,8 +97,8 @@
                     if (returnUrl != null && returnUrl != "") {
                         gotoUrl(returnUrl);
                     }
-                    else {
-
+                    else
+                    {
                         // 重新加载页面
                         window.location.reload();
                     }
@@ -154,7 +154,7 @@ else
                 <div style="padding-left:10px">
                     <label>@area.name &nbsp;<span style="color:#cccccc;font-size:18pt" onclick="expand(this,'area-@area.name')">-</span></label>
                     <div style="padding-left:10px" id="area-@area.name">
-                        @foreach (dp2weixin.service.libModel lib in area.libs)
+                        @foreach (dp2weixin.service.LibModel lib in area.libs)
                         {
 
                             <div class="mui-input-row mui-radio mui-left">

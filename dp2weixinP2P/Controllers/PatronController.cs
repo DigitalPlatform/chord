@@ -20,6 +20,54 @@ namespace dp2weixinWeb.Controllers
 {
     public class PatronController : BaseController
     {
+        /// <summary>
+        /// 读者自助注册功能
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="state"></param>
+        /// <returns></returns>
+        public ActionResult NewPatron(string code, string state)
+        {
+            string strError = "";
+            int nRet = 0;
+
+            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
+            // -1 出错
+            // 0 成功
+            nRet = this.GetSessionInfo(code,
+                state,
+                out SessionInfo sessionInfo,
+                out strError);
+            if (nRet == -1)
+            {
+                ViewBag.Error = strError;
+                return View();
+            }
+
+            // 如果尚未选择图书馆，不存在当前帐号，出现绑定帐号链接
+            if (sessionInfo.ActiveUser == null)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Patron/NewPatron");
+                return View();
+            }
+
+            if (ViewBag.PatronDbName == "")
+            {
+                ViewBag.Error = "尚未配置读者库，请联系管理员。";
+                return View();
+            }
+
+            ViewBag.PatronRecPath = ViewBag.PatronDbName+ "/?";  
+            return View();
+        }
+
+        /// <summary>
+        /// 选择图书馆
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="state"></param>
+        /// <param name="returnUrl"></param>
+        /// <returns></returns>
         public ActionResult SelectLib(string code, string state, string returnUrl)
         {
             string strError = "";
@@ -37,27 +85,23 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
 
-
+             // 选择完返回的页面
             ViewBag.returnUrl = returnUrl;
 
-            // 2017-10-1 只列出可访问的图书馆
+            // 获取可访问的图书馆
             List<Library> avaiblelibList = dp2WeiXinService.Instance.LibManager.GetLibraryByIds(sessionInfo.libIds);
 
-
-            // 绑定的帐户
+            // 获取该微信帐户绑定了哪些图书馆帐户
             List<WxUserItem> list = WxUserDatabase.Current.Get(sessionInfo.WeixinId, null, -1);
 
-            // 可显示的域区
+            // 可显示的区域
             List<Area> areaList = new List<Area>();
-            foreach(Area area in dp2WeiXinService.Instance.areaMgr.areas)
+            // 从所有区域中查找
+            foreach(Area area in dp2WeiXinService.Instance._areaMgr._areas)
             {
-                //area.visible = true;
-                //int disVisibleCout = 0;
-
-                List<libModel> libList = new List<libModel>();
-                foreach (libModel lib in area.libs)
+                List<LibModel> libList = new List<LibModel>();
+                foreach (LibModel lib in area.libs)
                 {
-                   // lib.visible = true;
                     lib.Checked = "";
                     lib.bindFlag = "";
 
@@ -74,15 +118,22 @@ namespace dp2weixinWeb.Controllers
                         continue;
                     }
 
-                    // 2019/08/05加，如果不加这一句，会把一些到期的图书馆列出来
+                    // 如果从mongodb库没有找到图书馆，不显示
+                    // 有可能是mongodb库删除，但配置文件还没有删除
                     if (thisLib == null)
+                    {
+                        dp2WeiXinService.Instance.WriteDebug("选择图书馆时，根据[" + lib.libId + "]未找到对应的图书馆");
                         continue;
+                    }
 
+                    // 加到显示列表
                     libList.Add(lib);
-                    //
+
+                    // 检查微信用户是否绑定了这个图书馆
                     if (this.CheckIsBind(list, lib) == true)  //libs.Contains(lib.libId)
                         lib.bindFlag = " * ";
 
+                    // 当前绑定帐户的图书馆显示为勾中状态
                     if (sessionInfo.ActiveUser != null)
                     {
                         if (lib.libId == sessionInfo.ActiveUser.libId
@@ -93,7 +144,7 @@ namespace dp2weixinWeb.Controllers
                     }
                 }
 
-
+                // 只有当有下级图书馆时，才显示地区
                 if (libList.Count > 0)
                 {
                     Area newArea = new Area();
@@ -104,13 +155,19 @@ namespace dp2weixinWeb.Controllers
 
             }
 
+            // 放到界面上
             ViewBag.areaList = areaList;
 
             return View();
-
         }
 
-        public bool CheckIsBind(List<WxUserItem> list, libModel lib)
+        /// <summary>
+        /// 检查一个图书馆是否在绑定列表中
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="lib"></param>
+        /// <returns></returns>
+        public bool CheckIsBind(List<WxUserItem> list, LibModel lib)
         {
             foreach (WxUserItem user in list)
             {
@@ -125,6 +182,14 @@ namespace dp2weixinWeb.Controllers
             return false;
         }
 
+
+        /// <summary>
+        /// 设置
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="state"></param>
+        /// <param name="returnUrl"></param>
+        /// <returns></returns>
         public ActionResult Setting(string code, string state, string returnUrl)
         {
             string strError = "";
@@ -152,21 +217,23 @@ namespace dp2weixinWeb.Controllers
             // 返回url
             ViewBag.returnUrl = returnUrl;
 
+            // 是否显示头像
             string photoChecked = "";
             if (ViewBag.showPhoto == 1)
                 photoChecked = " checked='checked' ";
             ViewBag.photoChecked = photoChecked;
 
+            // 是否显示图书封面
             string coverChecked = "";
             if (ViewBag.showCover == 1)
                 coverChecked = " checked='checked' ";
             ViewBag.coverChecked = coverChecked;
 
-            // 检查是否绑定工作人员，决定界面上是否出现 打开监控功能
+            // 检查是否绑定工作人员，决定界面上是否出现 监控消息
             ViewBag.info = "监控本馆消息";
             string tracingChecked = "";
             string maskChecked = "";
-
+            // 工作人员且不是public时，出现监控消息选项
             if (sessionInfo.ActiveUser.type == WxUserDatabase.C_Type_Worker 
                 && sessionInfo.ActiveUser.userName!="public")
             {
@@ -175,18 +242,21 @@ namespace dp2weixinWeb.Controllers
                 {
                     tracingChecked = " checked='checked' ";
                     maskChecked = " checked='checked' ";
-                    if (sessionInfo.ActiveUser.tracing == "on -mask")
+                    if (sessionInfo.ActiveUser.tracing == "on -mask")  // 是否马赛克敏感消息
                         maskChecked = " ";
                 }
             }
             ViewBag.tracingChecked = tracingChecked;
             ViewBag.maskChecked = maskChecked;
+
+            // 如果当前馆是数字平台，数字平台维护人员可以监控所有图书馆消息
             if (ViewBag.LibName == "[" + WeiXinConst.C_Dp2003LibName + "]")
             {
                 ViewBag.info = "监控所有图书馆的消息";
             }
 
             ViewBag.subLibGray = "";
+
             // 未绑定帐户 ，todo 普通读者一样可选择关注馆藏地
             if (sessionInfo.ActiveUser == null 
                 || sessionInfo.ActiveUser.userName =="public")
@@ -195,6 +265,7 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
 
+            // 当前帐户信息显示在界面上
             string accountInfo = "";
             if (sessionInfo.ActiveUser.type == WxUserDatabase.C_Type_Worker)
             {
@@ -211,6 +282,7 @@ namespace dp2weixinWeb.Controllers
             ViewBag.accountInfo = accountInfo;
             ViewBag.userId = sessionInfo.ActiveUser.id;
 
+            // 如果location为空，从服务器获取馆藏地信息
             string locationXml = sessionInfo.ActiveUser.location;
             if(String.IsNullOrEmpty(sessionInfo.ActiveUser.location)==true 
                 && sessionInfo.ActiveUser.userName!="public")
@@ -776,15 +848,18 @@ namespace dp2weixinWeb.Controllers
             // 登录人是读者自己
             string loginUserName = activeUser.readerBarcode;
             bool isPatron = true;
+            LoginInfo loginInfo = new LoginInfo(loginUserName, isPatron);
 
-            string searchWord = patronBarcode;
+
+            string searchWord = patronBarcode;  //检索不支持@refid，只支持@path:格式
             if (patronBarcode.Length > 7 && patronBarcode.Substring(0, 7) == "@refid:")
             {
-                searchWord ="@path:"+ activeUser.recPath;
+                searchWord = "@path:" + activeUser.recPath;
+                // 采用代理帐户
+                loginInfo = new LoginInfo("", false);
             }
 
             // 获取读者记录
-            LoginInfo loginInfo = new LoginInfo("", false);//new LoginInfo(loginUserName, isPatron);
             string timestamp = "";
             nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
                 loginInfo,

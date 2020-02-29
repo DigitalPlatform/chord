@@ -79,26 +79,28 @@ namespace dp2weixin.service
         public int LogLevel = 3;
 
         // 微信数据目录
-        public string weiXinDataDir = "";
-        public string weiXinLogDir = "";
+        public string _weiXinDataDir = "";
+        public string _weiXinLogDir = "";
         public string _cfgFile = "";      // 配置文件
-        public string libCfgFile = "";
-        public AreaManager areaMgr = null;
+        
+        // 图书馆配置文件
+        public string _libCfgFile = "";
+        public AreaManager _areaMgr = null;
 
         // dp2服务器地址与代理账号
-        public string dp2MServerUrl = "";
-        public string userNameWeixin = "";
-        public string password = "";
+        public string _dp2MServerUrl = "";
+        public string _userNameWeixin = "";
+        public string _password = "";
 
-        public string monodbConnectionString = "";
-        public string monodbPrefixString = "";
-        public bool bTrace = false;
+        public string _monodbConnectionString = "";
+        public string _monodbPrefixString = "";
+        public bool _bTrace = false;
 
         // 密码钥匙
         public  string EncryptKey = "dp2weixinPassword";
 
         // 微信信息
-        public GzhContainer gzhContainer = null;
+        public GzhContainer _gzhContainer = null;
 
 
         // dp2消息处理类
@@ -252,7 +254,7 @@ namespace dp2weixin.service
                 out strError);
         }
 
- 
+
 
         public int GetLocation(string libId,
             WxUserItem user,
@@ -280,7 +282,13 @@ namespace dp2weixin.service
                 userName = user.readerBarcode;
                 isPatron = true;
             }
-            LoginInfo loginInfo = new LoginInfo(userName,isPatron);
+            LoginInfo loginInfo = new LoginInfo(userName, isPatron);
+
+            // todo,这里不一定正确，因为还是需要按对应的帐户来获取，因为管辖范围不一样。2020-2-29
+            if (userName.IndexOf("@refid:") != -1)
+            {
+                loginInfo = new LoginInfo("", false);
+            }
 
 
             List<string> dataList = null;
@@ -352,9 +360,9 @@ namespace dp2weixin.service
             string strError = "";
             int nRet = 0;
 
-            this.weiXinDataDir = dataDir;
+            this._weiXinDataDir = dataDir;
 
-            this._cfgFile = this.weiXinDataDir + "\\" + "weixin.xml";
+            this._cfgFile = this._weiXinDataDir + "\\" + "weixin.xml";
             if (File.Exists(this._cfgFile) == false)
             {
                 throw new Exception("配置文件" + this._cfgFile + "不存在。");
@@ -363,10 +371,10 @@ namespace dp2weixin.service
 
 
             // 日志目录
-            this.weiXinLogDir = this.weiXinDataDir + "/log";
-            if (!Directory.Exists(weiXinLogDir))
+            this._weiXinLogDir = this._weiXinDataDir + "/log";
+            if (!Directory.Exists(_weiXinLogDir))
             {
-                Directory.CreateDirectory(weiXinLogDir);
+                Directory.CreateDirectory(_weiXinLogDir);
             }
 
 
@@ -376,34 +384,34 @@ namespace dp2weixin.service
 
             // 取出mserver服务器配置信息
             XmlNode nodeDp2mserver = root.SelectSingleNode("//dp2mserver");
-            this.dp2MServerUrl = DomUtil.GetAttr(nodeDp2mserver, "url");// WebConfigurationManager.AppSettings["dp2MServerUrl"];
-            this.userNameWeixin = DomUtil.GetAttr(nodeDp2mserver, "username");//WebConfigurationManager.AppSettings["userName"];
-            this.password = DomUtil.GetAttr(nodeDp2mserver, "password");//WebConfigurationManager.AppSettings["password"];
+            this._dp2MServerUrl = DomUtil.GetAttr(nodeDp2mserver, "url");// WebConfigurationManager.AppSettings["dp2MServerUrl"];
+            this._userNameWeixin = DomUtil.GetAttr(nodeDp2mserver, "username");//WebConfigurationManager.AppSettings["userName"];
+            this._password = DomUtil.GetAttr(nodeDp2mserver, "password");//WebConfigurationManager.AppSettings["password"];
             this.EncryptKey= DomUtil.GetAttr(nodeDp2mserver, "EncryptKey");
 
-            if (string.IsNullOrEmpty(this.password) == false)// 解密
-                this.password = Cryptography.Decrypt(this.password, this.EncryptKey);
+            if (string.IsNullOrEmpty(this._password) == false)// 解密
+                this._password = Cryptography.Decrypt(this._password, this.EncryptKey);
 
             string trace = DomUtil.GetAttr(nodeDp2mserver, "trace");
             if (trace.ToLower() == "true")
-                this.bTrace = true;
+                this._bTrace = true;
 
             // 取出微信配置信息
-            this.gzhContainer = new GzhContainer(dom);
+            this._gzhContainer = new GzhContainer(dom);
 
             // mongo配置
             XmlNode nodeMongoDB = root.SelectSingleNode("mongoDB");
-            this.monodbConnectionString = DomUtil.GetAttr(nodeMongoDB, "connectionString");
-            if (String.IsNullOrEmpty(this.monodbConnectionString) == true)
+            this._monodbConnectionString = DomUtil.GetAttr(nodeMongoDB, "connectionString");
+            if (String.IsNullOrEmpty(this._monodbConnectionString) == true)
             {
                 throw new Exception("尚未配置mongoDB节点的connectionString属性");
             }
-            this.monodbPrefixString = DomUtil.GetAttr(nodeMongoDB, "instancePrefix");
+            this._monodbPrefixString = DomUtil.GetAttr(nodeMongoDB, "instancePrefix");
 
             // 打开图书馆账号库与用户库 todo是放在这里打开 还是 在LibraryManager类中打开？
-            WxUserDatabase.Current.Open(this.monodbConnectionString, this.monodbPrefixString);
-            LibDatabase.Current.Open(this.monodbConnectionString, this.monodbPrefixString);
-            UserMessageDb.Current.Open(this.monodbConnectionString, this.monodbPrefixString);
+            WxUserDatabase.Current.Open(this._monodbConnectionString, this._monodbPrefixString);
+            LibDatabase.Current.Open(this._monodbConnectionString, this._monodbPrefixString);
+            UserMessageDb.Current.Open(this._monodbConnectionString, this._monodbPrefixString);
 
             // 挂上登录事件
             _channels.Login -= _channels_Login;
@@ -414,17 +422,17 @@ namespace dp2weixin.service
             if (nRet == -1)
                 throw new Exception("加载图书馆到内存出错：" + strError);
 
-            //libcfg.xml
-            this.libCfgFile = this.weiXinDataDir + "\\" + "libcfg.xml";
-            if (File.Exists(this.libCfgFile) == false)
+            //装载libcfg.xml，初始化地区和图书馆关系
+            this._libCfgFile = this._weiXinDataDir + "\\" + "libcfg.xml";
+            if (File.Exists(this._libCfgFile) == false)
             {
                 XmlDocument dom1 = new XmlDocument();
                 dom1.LoadXml("<root/>");
-                dom1.Save(this.libCfgFile);
+                dom1.Save(this._libCfgFile);
                 //throw new Exception("配置文件" + this.libCfgFile + "不存在。");
             }
-            this.areaMgr = new AreaManager();
-            nRet = areaMgr.init(this.libCfgFile, out strError);
+            this._areaMgr = new AreaManager();
+            nRet = _areaMgr.init(this._libCfgFile, out strError);
             if (nRet == -1)
                 throw new Exception(strError);
 
@@ -441,11 +449,11 @@ namespace dp2weixin.service
             ////全局只需注册一次
             //AccessTokenContainer.Register(this.weiXinAppId, this.weiXinSecret);
 
-            if (bTrace == true)
+            if (_bTrace == true)
             {
                 if (this.Channels.TraceWriter != null)
                     this.Channels.TraceWriter.Close();
-                StreamWriter sw = new StreamWriter(Path.Combine(this.weiXinDataDir, "trace.txt"));
+                StreamWriter sw = new StreamWriter(Path.Combine(this._weiXinDataDir, "trace.txt"));
                 sw.AutoFlush = true;
                 _channels.TraceWriter = sw;
             }
@@ -454,7 +462,7 @@ namespace dp2weixin.service
             this._msgRouter.SendMessageEvent -= _msgRouter_SendMessageEvent;
             this._msgRouter.SendMessageEvent += _msgRouter_SendMessageEvent;
             this._msgRouter.Start(this._channels,
-                this.dp2MServerUrl,
+                this._dp2MServerUrl,
                 C_Group_PatronNotity);
 
             // 启动管理线程
@@ -632,11 +640,11 @@ namespace dp2weixin.service
 
         string GetUserName()
         {
-            return this.userNameWeixin;
+            return this._userNameWeixin;
         }
         string GetPassword()
         {
-            return this.password;
+            return this._password;
         }
 
         #endregion
@@ -653,13 +661,13 @@ namespace dp2weixin.service
             strError = "";
 
             string oldUserName = this.GetUserName();
-            string oldPassword = this.password;
+            string oldPassword = this._password;
 
             // 先检查下地址与密码是否可用，如不可用，不保存
             try
             {
-                this.userNameWeixin = userName;
-                this.password = password;
+                this._userNameWeixin = userName;
+                this._password = password;
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                   dp2mserverUrl,
                     Guid.NewGuid().ToString()).Result;
@@ -693,16 +701,16 @@ namespace dp2weixin.service
             dom.Save(this._cfgFile);
 
             // 更新内存的信息
-            this.dp2MServerUrl = dp2mserverUrl;
-            this.userNameWeixin = userName;
-            this.password = password;
+            this._dp2MServerUrl = dp2mserverUrl;
+            this._userNameWeixin = userName;
+            this._password = password;
 
             return 0;
 
         ERROR1:
             // 还原原来的值
-            this.userNameWeixin = oldUserName;
-            this.password = oldPassword;
+            this._userNameWeixin = oldUserName;
+            this._password = oldPassword;
             return -1;
         }
 
@@ -730,7 +738,7 @@ namespace dp2weixin.service
                 userName = DomUtil.GetAttr(nodeDp2mserver, "username");
                 password = DomUtil.GetAttr(nodeDp2mserver, "password");
                 if (string.IsNullOrEmpty(password) == false)// 解密
-                    password = Cryptography.Decrypt(this.password, this.EncryptKey);
+                    password = Cryptography.Decrypt(this._password, this.EncryptKey);
             }
 
             // 设置mongoDB
@@ -1202,13 +1210,13 @@ namespace dp2weixin.service
                         string gzhAppId = oneWeixinId.Substring(nIndex + 1);
                         if (gzhAppId != "")
                         {
-                            gzh = this.gzhContainer.GetByAppId(gzhAppId);
+                            gzh = this._gzhContainer.GetByAppId(gzhAppId);
                         }
                     }
                     // 如果微信id中没带appid，取默认公众号设置
                     if (gzh == null)
                     {
-                        gzh = this.gzhContainer.GetDefault();
+                        gzh = this._gzhContainer.GetDefault();
                     }
                     if (gzh == null)
                     {
@@ -2896,7 +2904,7 @@ namespace dp2weixin.service
                 并不是意味着微信公众号和 dp2Capo “直连”了。
                  */
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
-                    this.dp2MServerUrl,
+                    this._dp2MServerUrl,
                     C_ConnName_CheckOfflineLibs).Result;//lib.capoUserName 2016/10/16 jane 改为一根通道了
 
                 SearchResult result = connection.SearchTaskAsync(
@@ -3438,7 +3446,7 @@ ErrorInfo成员里可能会有报错信息。
             try
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
-                    this.dp2MServerUrl,
+                    this._dp2MServerUrl,
                     lib.capoUserName).Result;
                 CirculationResult result = connection.CirculationTaskAsync(
                     lib.capoUserName,
@@ -3594,7 +3602,7 @@ ErrorInfo成员里可能会有报错信息。
             try
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
-                    this.dp2MServerUrl,
+                    this._dp2MServerUrl,
                     lib.capoUserName).Result;
                 CirculationResult result = connection.CirculationTaskAsync(
                     lib.capoUserName,
@@ -3645,6 +3653,87 @@ ErrorInfo成员里可能会有报错信息。
 
         #region 找回密码，修改密码，二维码
 
+        /// <summary>
+        /// 合并读者信息，主要用于馆员登记读者信息
+        /// 因为界面上只有几个简单信息，几个简单信息要跟读者原有信息进行合并
+        /// </summary>
+        /// <param name="patron"></param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
+        public int MergePatronXml(string libId,
+            string recPath,
+            SimplePatron patron,
+            out string patronXml,
+            out string strError)
+        {
+            strError = "";
+            patronXml = "";
+
+            // 统一用代理帐户检索,从服务器检索读者原来信息
+            LoginInfo loginInfo = new LoginInfo("", false);
+            string strOldXml = "";
+            string word = "@path:" + recPath;
+            string tempPath = "";
+            string tempTimestamp = "";
+            int nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
+                loginInfo,
+                word,
+                "xml",
+                out tempPath,
+                out tempTimestamp,
+                out strOldXml,
+                out strError);
+            if (nRet == -1 || nRet == 0)
+                return -1;
+
+            // 把原始读者信息装载到dom
+            XmlDocument dom = new XmlDocument();
+            dom.LoadXml(strOldXml);
+            XmlNode root = dom.DocumentElement;
+
+            // 读者证条码号
+            XmlNode barcodeNode = root.SelectSingleNode("barcode");
+            if (barcodeNode == null)
+                barcodeNode = DomUtil.CreateNodeByPath(root, "barcode");
+            DomUtil.SetNodeText(barcodeNode, patron.barcode);
+
+            // 读者类型
+            XmlNode readerTypeNode = root.SelectSingleNode("readerType");
+            if (readerTypeNode == null)
+                readerTypeNode = DomUtil.CreateNodeByPath(root, "readerType");
+            DomUtil.SetNodeText(readerTypeNode, patron.readerType);
+
+            // 姓名
+            XmlNode nameNode = root.SelectSingleNode("name");
+            if (nameNode == null)
+                nameNode = DomUtil.CreateNodeByPath(root, "name");
+            DomUtil.SetNodeText(nameNode, patron.name);
+
+            // 性别
+            XmlNode genderNode = root.SelectSingleNode("gender");
+            if (genderNode == null)
+                genderNode = DomUtil.CreateNodeByPath(root, "gender");
+            DomUtil.SetNodeText(genderNode, patron.gender);
+
+            // 部门
+            XmlNode departmentNode = root.SelectSingleNode("department");
+            if (departmentNode == null)
+                departmentNode = DomUtil.CreateNodeByPath(root, "department");
+            DomUtil.SetNodeText(departmentNode, patron.department);
+
+            // 手机号
+            XmlNode telNode = root.SelectSingleNode("tel");
+            if (telNode == null)
+                telNode = DomUtil.CreateNodeByPath(root, "tel");
+            DomUtil.SetNodeText(telNode, patron.tel);
+
+            StringWriter textWrite = new StringWriter();
+            XmlTextWriter xmlTextWriter = new XmlTextWriter(textWrite);
+            dom.Save(xmlTextWriter);
+            patronXml = textWrite.ToString();
+
+            return 0;
+        }
 
           /// <summary>
           /// 
@@ -3676,7 +3765,9 @@ ErrorInfo成员里可能会有报错信息。
             strError = "";
             outputRecPath = "";
             outputTimestamp = "";
+            int nRet = 0;
 
+            // 根据id找到图书馆对象
             LibEntity lib = this.GetLibById(libId);
             if (lib == null)
             {
@@ -3691,119 +3782,75 @@ ErrorInfo成员里可能会有报错信息。
                 loginInfo = new LoginInfo(userName, false);
             }
 
-
-            /*
-public class Entity
-{
-public string Action { get; set; }
-public string RefID { get; set; }
-public Record OldRecord { get; set; }
-public Record NewRecord { get; set; }
-public string Style { get; set; }
-public string ErrorInfo { get; set; }
-public string ErrorCode { get; set; }
-}
-*/
-            List<Entity> entities = new List<Entity>();
-            Entity entity = new Entity();
-            entity.Action = action;
-            entities.Add(entity);
-
-            /*
-                public class Record
-                {
-                    public string RecPath { get; set; }
-                    public string Format { get; set; }
-                    public string Data { get; set; }
-                    public string Timestamp { get; set; }
-                }
-             */
-            Record newRecord = new Record();
-            newRecord.RecPath = recPath;
-            newRecord.Format = "xml";
-            string xml = "";
-
+            string patronXml = "";
+            // 是否需要合并读者信息，当馆员编辑读者信息时，需要合并读者信息
             if (bMergeInfo == false)
             {
-                //string wxAppId = "wx57aa3682c59d16c2";
                 string email = "";
+
+                // 如果传入weixinid，则表示是读者自助注册，需要给email字段设上weixinId
                 if (string.IsNullOrEmpty(weixinId) == false)
                 {
-                    email = "weixinid:" + weixinId;//带着后缀 + "@" + wxAppId;
+                    email = "weixinid:" + weixinId;//传入的weixinId带着后缀 + "@" + wxAppId;
                 }
-                xml = "<root>"
+
+                patronXml = "<root>"
                        + "<barcode>" + patron.barcode + "</barcode>"
                        + "<state>临时</state> "
                        + "<readerType>" + patron.readerType + "</readerType>"
                        + "<name>" + patron.name + "</name>"
                        + "<gender>" + patron.gender + "</gender>"
                        + "<department>" + patron.department + "</department>"
-                       +"<tel>"+patron.tel+"</tel>"
-                       + "<email>"+email+"</email>"
+                       + "<tel>" + patron.tel + "</tel>"
+                       + "<email>" + email + "</email>"
                        + "</root>";
             }
             else
             {
-                // 因为界面上只有几个简单信息，几个简单信息要跟读者原有信息进行合并
-                string strOldXml = "";
-                string word = "@path:" + recPath;
-                string tempPath = "";
-                string tempTimestamp = "";
-                int nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
-                    loginInfo,
-                    word,
-                    "xml",
-                    out tempPath,
-                    out tempTimestamp,
-                    out strOldXml,
+                // 将dp2服务器的读者信息与界面提交的信息合并
+                nRet = this.MergePatronXml(libId,
+                    recPath,
+                    patron,
+                    out patronXml,
                     out strError);
-                if (nRet == -1 || nRet == 0)
+                if (nRet == -1)
                     return -1;
-
-                XmlDocument dom = new XmlDocument();
-                dom.LoadXml(strOldXml);
-                XmlNode root = dom.DocumentElement;
-                XmlNode barcodeNode = root.SelectSingleNode("barcode");
-                if (barcodeNode ==null)
-                    barcodeNode=DomUtil.CreateNodeByPath(root, "barcode");
-                DomUtil.SetNodeText(barcodeNode, patron.barcode);
-
-
-                XmlNode readerTypeNode = root.SelectSingleNode("readerType");
-                if (readerTypeNode == null)
-                    readerTypeNode = DomUtil.CreateNodeByPath(root, "readerType");
-                DomUtil.SetNodeText(readerTypeNode, patron.readerType);
-
-                XmlNode nameNode = root.SelectSingleNode("name");
-                if (nameNode == null)
-                    nameNode = DomUtil.CreateNodeByPath(root, "name");
-                DomUtil.SetNodeText(nameNode, patron.name);
-
-                XmlNode genderNode = root.SelectSingleNode("gender");
-                if (genderNode == null)
-                    genderNode = DomUtil.CreateNodeByPath(root, "gender");
-                DomUtil.SetNodeText(genderNode, patron.gender);
-
-                XmlNode departmentNode = root.SelectSingleNode("department");
-                if (departmentNode == null)
-                    departmentNode = DomUtil.CreateNodeByPath(root, "department");
-                DomUtil.SetNodeText(departmentNode, patron.department);
-
-                XmlNode telNode = root.SelectSingleNode("tel");
-                if (telNode == null)
-                    telNode = DomUtil.CreateNodeByPath(root, "tel");
-                DomUtil.SetNodeText(telNode, patron.tel);
-
-                StringWriter textWrite = new StringWriter();
-                XmlTextWriter xmlTextWriter = new XmlTextWriter(textWrite);
-
-                dom.Save(xmlTextWriter);
-
-                xml = textWrite.ToString();
             }
-            newRecord.Data = xml;
+
+            // 点对点消息实体
+            /*
+            public class Entity
+            {
+                public string Action { get; set; }
+                public string RefID { get; set; }
+                public Record OldRecord { get; set; }
+                public Record NewRecord { get; set; }
+                public string Style { get; set; }
+                public string ErrorInfo { get; set; }
+                public string ErrorCode { get; set; }
+            }
+
+            public class Record
+            {
+                public string RecPath { get; set; }
+                public string Format { get; set; }
+                public string Data { get; set; }
+                public string Timestamp { get; set; }
+            }
+            */
+            Record newRecord = new Record();
+            newRecord.RecPath = recPath;
+            newRecord.Format = "xml";
+            newRecord.Data = patronXml;
+
+            Entity entity = new Entity();
+            entity.Action = action;
             entity.NewRecord = newRecord;
 
+            List<Entity> entities = new List<Entity>();
+            entities.Add(entity);
+
+            // 修改读者记录的情况
             if (action == "change")
             {
                 Record oldRecord = new Record();
@@ -3811,8 +3858,10 @@ public string ErrorCode { get; set; }
                 entity.OldRecord = oldRecord;
             }
 
-            CancellationToken cancel_token = new CancellationToken();
+            string outputPatronXml = "";
 
+            // 调点对点接口
+            CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             SetInfoRequest request = new SetInfoRequest(id,
                 loginInfo,
@@ -3822,7 +3871,7 @@ public string ErrorCode { get; set; }
             try
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
-                    this.dp2MServerUrl,
+                    this._dp2MServerUrl,
                     "").Result;
 
                 SetInfoResult result = connection.SetInfoTaskAsync(
@@ -3833,59 +3882,41 @@ public string ErrorCode { get; set; }
 
                 if (result.Value == -1)
                 {
-                    strError = "图书馆 " + lib.libName + " 的桥接服务器出错:" + result.ErrorInfo;
-                    //strError = this.GetFriendlyErrorInfo(result, lib.libName); //result.ErrorInfo;
+                    strError = "图书馆 " + lib.libName + " 的保存读者信息时出错:" + result.ErrorInfo;
                     return -1;
                 }
 
+                // 取出读者信息
                 if (result.Entities.Count > 0)
                 {
                     outputRecPath = result.Entities[0].NewRecord.RecPath;
                     outputTimestamp = result.Entities[0].NewRecord.Timestamp;
+                    outputPatronXml = result.Entities[0].NewRecord.Data;
                 }
 
             }
             catch (AggregateException ex)
             {
                 strError = MessageConnection.GetExceptionText(ex);
-                goto ERROR1;
+                return -1;
             }
             catch (Exception ex)
             {
                 strError = ex.Message;
-                goto ERROR1;
+                return -1;
             }
-
-
 
             // 如果是读者自助的情况，给本地mongodb创建一笔绑定记录
             if (string.IsNullOrEmpty(weixinId) == false)
             {
-                // outputRecPath
-                string partonRecPath = "@path:" + outputRecPath;
-                string strPartonXml = "";
-                int nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
-                    loginInfo,
-                    partonRecPath,
-                    "xml,timestamp",
-                    out recPath,
-                    out timestamp,
-                    out strPartonXml,
-                    out strError);
-                if (nRet == -1 || nRet == 0)
-                {
-                    return -1;
-                }
-
-                //result.recPath = recPath;
-                //result.timestamp = timestamp;
-
+                // 要使用返回的读者信息，因为前端组装的xml没有refID
                 string bindLibraryCode = "";
                 nRet = this.SaveUserToLocal(weixinId,
                     libId,
                     bindLibraryCode,
                     C_TYPE_READER,
-                    strPartonXml,
+                    outputRecPath,
+                    outputPatronXml,
                     "new",
                     out WxUserItem userItem,
                     out strError);
@@ -3893,12 +3924,13 @@ public string ErrorCode { get; set; }
                 {
                     return -1;
                 }
+
+                // 给馆员发送微信通知（需要馆员先绑定微信帐户，然后监控本馆消息），
+                // 同时消息也发给打开了监控数字平台工作
             }
 
             return 0;
 
-        ERROR1:
-            return -1;
         }
 
         /// <summary>
@@ -3951,7 +3983,7 @@ public string ErrorCode { get; set; }
             try
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
-                    this.dp2MServerUrl,
+                    this._dp2MServerUrl,
                     lib.capoUserName).Result;
                 CirculationResult result = connection.CirculationTaskAsync(
                     lib.capoUserName,
@@ -4116,6 +4148,14 @@ public string ErrorCode { get; set; }
             return vc;
         }
 
+        /// <summary>
+        /// 发送短信验证码
+        /// </summary>
+        /// <param name="libId"></param>
+        /// <param name="tel"></param>
+        /// <param name="verifyCode"></param>
+        /// <param name="error"></param>
+        /// <returns></returns>
         public int GetVerifyCode(string libId, 
             string tel, 
             out string verifyCode,
@@ -4130,14 +4170,15 @@ public string ErrorCode { get; set; }
             string strMessageText = "您好！注册验证码为" + verifyCode + "。";// 一小时内有效。";
 
 
+            // todo 正常版本打开
             // 发送短信
-             nRet = this.SendSMS("~temp",//patronBarcode,
-                tel,
-                strMessageText,
-                libId,
-                out error);
-            if (nRet == -1)
-                return -1;
+            // nRet = this.SendSMS("~temp",//patronBarcode,
+            //    tel,
+            //    strMessageText,
+            //    libId,
+            //    out error);
+            //if (nRet == -1)
+            //    return -1;
 
             return nRet;
         }
@@ -4191,7 +4232,7 @@ public string ErrorCode { get; set; }
             try
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
-                    this.dp2MServerUrl,
+                    this._dp2MServerUrl,
                     lib.capoUserName).Result;
                 CirculationResult result = connection.CirculationTaskAsync(
                     lib.capoUserName,
@@ -4319,7 +4360,7 @@ public string ErrorCode { get; set; }
             try
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
-                    this.dp2MServerUrl,
+                    this._dp2MServerUrl,
                     lib.capoUserName).Result;
                 BindPatronResult result = connection.BindPatronTaskAsync(
                      lib.capoUserName,
@@ -4334,14 +4375,16 @@ public string ErrorCode { get; set; }
 
                 // 把帐户信息保存到本地
                 string partonXml = result.Results[0];
-                nRet =this.SaveUserToLocal(weixinId,
+                string recPath = result.RecPath;
+                nRet = this.SaveUserToLocal(weixinId,
                     libId,
                     bindLibraryCode,
                     type,
+                    recPath,
                     partonXml,
                     strFullWord,
                     out userItem,
-                    out strError);
+                    out strError) ;
                 if (nRet == -1)
                     return -1;
 
@@ -4360,10 +4403,23 @@ public string ErrorCode { get; set; }
             }
         }
 
+        /// <summary>
+        /// 保存帐户信息到本地数据库
+        /// </summary>
+        /// <param name="weixinId"></param>
+        /// <param name="libId"></param>
+        /// <param name="bindLibraryCode"></param>
+        /// <param name="type"></param>
+        /// <param name="partonXml"></param>
+        /// <param name="bindFromWord"></param>
+        /// <param name="userItem"></param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
         public int SaveUserToLocal(string weixinId,
             string libId,
             string bindLibraryCode,
             int type,
+            string recPath,
             string partonXml,
             string bindFromWord,
             out WxUserItem userItem,
@@ -4526,6 +4582,7 @@ public string ErrorCode { get; set; }
             // 输出调试信息
             //this.WriteDebugUserInfo(weixinId, "检索后");
 
+            userItem.recPath = recPath;//2020-2/28 增加recPath
 
             userItem.weixinId = weixinId;
             userItem.libName = thislibName;
@@ -4567,13 +4624,13 @@ public string ErrorCode { get; set; }
             userItem.bookSubject = "";
 
             //如果是微信来源，从微信id中拆出来公众号的appId
-            bool isWeb = false;
+            bool isWeb = true;
             string appId = "";
             int tempIndex = weixinId.IndexOf('@');
             if (tempIndex > 0)
             {
                 appId = weixinId.Substring(tempIndex + 1);
-                isWeb = true;
+                isWeb = false;
             }
             userItem.appId = appId;
 
@@ -4748,7 +4805,7 @@ public string ErrorCode { get; set; }
             {
                 // 得到连接
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
-                    this.dp2MServerUrl,
+                    this._dp2MServerUrl,
                     lib.capoUserName).Result;
 
                 BindPatronResult result = connection.BindPatronTaskAsync(
@@ -5144,7 +5201,7 @@ public string ErrorCode { get; set; }
                 //this.WriteErrorLog1("走进SearchBiblioInternal-7");
 
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
-                    this.dp2MServerUrl,
+                    this._dp2MServerUrl,
                     lib.capoUserName).Result;
 
                 SearchResult result = connection.SearchTaskAsync(
@@ -6287,7 +6344,7 @@ public string ErrorCode { get; set; }
             try
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
-                    this.dp2MServerUrl,
+                    this._dp2MServerUrl,
                     lib.capoUserName).Result;
                 SearchResult result = connection.SearchTaskAsync(
                     lib.capoUserName,
@@ -6373,7 +6430,7 @@ public string ErrorCode { get; set; }
             try
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
-                    this.dp2MServerUrl,
+                    this._dp2MServerUrl,
                     lib.capoUserName).Result;  //+ "-1"
 
                 SearchResult result = connection.SearchTaskAsync(
@@ -6447,7 +6504,7 @@ public string ErrorCode { get; set; }
             try
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
-                    this.dp2MServerUrl,
+                    this._dp2MServerUrl,
                     lib.capoUserName).Result;
 
                 SearchResult result = connection.SearchTaskAsync(
@@ -7276,8 +7333,16 @@ public string ErrorCode { get; set; }
             dom.LoadXml(strPatronXml);
 
             // 证条码号
+            string refID = DomUtil.GetElementText(dom.DocumentElement, "refID");
+            patron.refID = refID;
+
+            // 证条码号
             string strBarcode = DomUtil.GetElementText(dom.DocumentElement, "barcode");
             patron.barcode = strBarcode;
+            if (string.IsNullOrEmpty(patron.barcode) == true)
+            {
+                patron.barcode = "@refId:" + patron.refID;
+            }
 
             // 显示名
             string strDisplayName = DomUtil.GetElementText(dom.DocumentElement, "displayName");
@@ -7378,9 +7443,14 @@ public string ErrorCode { get; set; }
             patron.foregift = strForegift;
 
             // 二维码
+            // 2020-2-28加
+            //string temp = patron.barcode;
+            //if (string.IsNullOrEmpty(temp) == true)
+            //    temp = "@path:" + recPath;
+
             string qrcodeUrl = "../patron/getphoto?libId=" + HttpUtility.UrlEncode(libId)
                 + "&type=pqri"
-                + "&barcode=" + HttpUtility.UrlEncode(strBarcode);
+                + "&barcode=" + HttpUtility.UrlEncode(patron.barcode);
             patron.qrcodeUrl = qrcodeUrl;
 
             //头像
@@ -7888,7 +7958,7 @@ public string ErrorCode { get; set; }
             try
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
-                    this.dp2MServerUrl,
+                    this._dp2MServerUrl,
                     lib.capoUserName).Result;
 
                 SearchResult result = connection.SearchTaskAsync(
@@ -8037,7 +8107,7 @@ public string ErrorCode { get; set; }
 
 
             // 根据传进来的参数，得到公众号配置信息
-            gzh = this.gzhContainer.GetByAppName(gzhName); //函数内会处理空的情况
+            gzh = this._gzhContainer.GetByAppName(gzhName); //函数内会处理空的情况
             if (gzh == null)
             {
                 strError = "验证失败：非正规途径[" + state + "]进入！";
@@ -8192,7 +8262,7 @@ public string ErrorCode { get; set; }
             try
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
-                    this.dp2MServerUrl,
+                    this._dp2MServerUrl,
                     lib.capoUserName).Result;
 
                 CirculationResult result = connection.CirculationTaskAsync(
@@ -8261,7 +8331,7 @@ public string ErrorCode { get; set; }
             try
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
-                    this.dp2MServerUrl,
+                    this._dp2MServerUrl,
                     lib.capoUserName).Result;
 
                 CirculationResult result = connection.CirculationTaskAsync(
@@ -8365,7 +8435,7 @@ public string ErrorCode { get; set; }
             try
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
-                    this.dp2MServerUrl,
+                    this._dp2MServerUrl,
                     lib.capoUserName).Result;
 
                 CirculationResult result = connection.CirculationTaskAsync(
@@ -8596,7 +8666,7 @@ tempRemark);
 
             if (logLevel <= this.LogLevel)
             {
-                var logDir = this.weiXinLogDir;
+                var logDir = this._weiXinLogDir;
                 string strFilename = string.Format(logDir + "/log_{0}.txt", DateTime.Now.ToString("yyyyMMdd"));
                 dp2WeiXinService.WriteLog(strFilename, strText, "dp2weixin");
             }
@@ -8679,8 +8749,8 @@ tempRemark);
             string patron = "!getpatrontempid:" + patronBarcode;
 
 
-            // 使用读者账号 20161024 jane
-            LoginInfo loginInfo = new LoginInfo(patronBarcode, true);
+            // 2020-2-28,因为读者可以自己注册，但读者注册完还没证条码，所以不能登录  //new LoginInfo("", false); //
+            LoginInfo loginInfo =  new LoginInfo("", false); //new LoginInfo(patronBarcode, true);// 使用读者账号 20161024 jane
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
@@ -8696,7 +8766,7 @@ tempRemark);
             try
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
-                    this.dp2MServerUrl,
+                    this._dp2MServerUrl,
                     lib.capoUserName).Result;
                 CirculationResult result = connection.CirculationTaskAsync(
                     lib.capoUserName,
@@ -8836,7 +8906,7 @@ tempRemark);
             try
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
-                    this.dp2MServerUrl,
+                    this._dp2MServerUrl,
                     lib.capoUserName).Result;
                 GetResResponse result = connection.GetResTaskAsync(
                    lib.capoUserName,
@@ -8929,7 +8999,7 @@ tempRemark);
             try
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
-                    this.dp2MServerUrl,
+                    this._dp2MServerUrl,
                     lib.capoUserName).Result;
 
                 MemoryStream s = new MemoryStream();
@@ -9443,7 +9513,7 @@ tempRemark);
                 100);  // todo 如果超过100条，要做成递归来调
             try
             {
-                MessageConnection connection = this.Channels.GetConnectionTaskAsync(this.dp2MServerUrl,
+                MessageConnection connection = this.Channels.GetConnectionTaskAsync(this._dp2MServerUrl,
                     connName).Result;
                 GetMessageResult result = connection.GetMessage(request,
                     new TimeSpan(0, 0, 10),
@@ -9597,7 +9667,7 @@ tempRemark);
             try
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
-                    this.dp2MServerUrl,
+                    this._dp2MServerUrl,
                     connName).Result;
                 SetMessageRequest param = new SetMessageRequest(style,
                     "",
@@ -9791,7 +9861,7 @@ tempRemark);
                     -1);
 
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
-                    this.dp2MServerUrl,
+                    this._dp2MServerUrl,
                     lib.capoUserName).Result;
 
                 SearchResult result = connection.SearchTaskAsync(
@@ -9917,7 +9987,7 @@ tempRemark);
             if (group == dp2WeiXinService.C_Group_HomePage)
             {
                 LibEntity lib = this.GetLibById(libId);
-                string dir = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + "template/home";// +lib.capoUserName + "/home";
+                string dir = dp2WeiXinService.Instance._weiXinDataDir + "/lib/" + "template/home";// +lib.capoUserName + "/home";
                 if (Directory.Exists(dir) == true)
                 {
                     string[] files = Directory.GetFiles(dir, "*.txt");
@@ -10321,7 +10391,7 @@ tempRemark);
             try
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
-                    this.dp2MServerUrl,
+                    this._dp2MServerUrl,
                     lib.capoUserName).Result;
 
                 SearchResult result = connection.SearchTaskAsync(
@@ -10641,7 +10711,7 @@ tempRemark);
         {
             List<string> weixinIds = new List<string>();
 
-            GzhCfg gzh=this.gzhContainer.GetDefault();
+            GzhCfg gzh=this._gzhContainer.GetDefault();
 
             if (String.IsNullOrEmpty(text) == false)
             {
@@ -10669,7 +10739,7 @@ tempRemark);
 
         private List<string> AddAppIdForWeixinId(List<string> weixinIds)
         {
-            GzhCfg gzh=dp2WeiXinService.Instance.gzhContainer.GetDefault();
+            GzhCfg gzh=dp2WeiXinService.Instance._gzhContainer.GetDefault();
 
             for (int i = 0; i < weixinIds.Count; i++)
             {
@@ -11056,7 +11126,7 @@ tempRemark);
                 try
                 {
                     //创建对应的图书馆介绍配置目录
-                    string libDir = dp2WeiXinService.Instance.weiXinDataDir + "/lib/" + lib.capoUserName;// +"/home";
+                    string libDir = dp2WeiXinService.Instance._weiXinDataDir + "/lib/" + lib.capoUserName;// +"/home";
                     if (Directory.Exists(libDir) == true)
                         Directory.Delete(libDir, true);
                 }
@@ -11074,8 +11144,8 @@ tempRemark);
             LibDatabase.Current.Delete(id);
             this.LibManager.DeleteLib(id);
 
-            this.areaMgr.DelLib(id, lib.libName);
-            this.areaMgr.Save2Xml();
+            this._areaMgr.DelLib(id, lib.libName);
+            this._areaMgr.Save2Xml();
 
             return result;
 
@@ -11300,7 +11370,7 @@ tempRemark);
                 channels.Login += channels_LoginSupervisor;
 
                 MessageConnection connection = channels.GetConnectionTaskAsync(
-                    dp2MServerUrl,
+                    _dp2MServerUrl,
                     "supervisor-weixin").Result;
 
                 CancellationToken cancel_token = new CancellationToken();
@@ -11401,7 +11471,7 @@ tempRemark);
                 channels.Login += channels_LoginUser;
 
                 MessageConnection connection = channels.GetConnectionTaskAsync(
-        this.dp2MServerUrl,
+        this._dp2MServerUrl,
         "").Result;
                 CancellationToken cancel_token = new CancellationToken();
 

@@ -63,7 +63,7 @@ namespace dp2weixinWeb.Controllers
             if (String.IsNullOrEmpty(state) == false)
             {
                 dp2WeiXinService.Instance.WriteDebug("url参数state=" + state);
-                gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppName(state);
+                gzh = dp2WeiXinService.Instance._gzhContainer.GetByAppName(state);
                 if (gzh == null)
                 {
                     string tempError = "Get未找到公众号[" + state + "]的配置信息。";
@@ -73,12 +73,12 @@ namespace dp2weixinWeb.Controllers
             }
             else
             {
-                gzh = dp2WeiXinService.Instance.gzhContainer.GetDefault();
+                gzh = dp2WeiXinService.Instance._gzhContainer.GetDefault();
             }
 
             if (string.IsNullOrEmpty(postModel.AppId) == false)
             {
-                gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppId(postModel.AppId);
+                gzh = dp2WeiXinService.Instance._gzhContainer.GetByAppId(postModel.AppId);
                 dp2WeiXinService.Instance.WriteErrorLog("惊喜Get中有appId=" + postModel.AppId);
             }
 
@@ -124,10 +124,10 @@ namespace dp2weixinWeb.Controllers
         [ActionName("Index")]
         public async Task<ActionResult> Post(PostModel postModel)
         {
-            GzhCfg gzh=dp2WeiXinService.Instance.gzhContainer.GetDefault();
+            GzhCfg gzh=dp2WeiXinService.Instance._gzhContainer.GetDefault();
             if (string.IsNullOrEmpty(postModel.AppId) == false)
             { 
-                gzh = dp2WeiXinService.Instance.gzhContainer.GetByAppId(postModel.AppId);
+                gzh = dp2WeiXinService.Instance._gzhContainer.GetByAppId(postModel.AppId);
                 dp2WeiXinService.Instance.WriteErrorLog("惊喜post中有appId=" + postModel.AppId);
             }
 
@@ -158,7 +158,7 @@ namespace dp2weixinWeb.Controllers
             var maxRecordCount = 10;
 
             // 日志总目录,使用前请确保App_Data文件夹存在，且有读写权限。
-            var logDir = dp2WeiXinService.Instance.weiXinLogDir;
+            var logDir = dp2WeiXinService.Instance._weiXinLogDir;
 
             //自定义MessageHandler，对微信请求的详细判断操作都在这里面。
             var messageHandler = new dp2weixinMessageHandler(Request.InputStream, postModel, maxRecordCount);

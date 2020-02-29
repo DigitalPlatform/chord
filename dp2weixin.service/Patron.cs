@@ -65,6 +65,8 @@ namespace dp2weixin.service
     /// </summary>
     public class Patron:SimplePatron
     {
+        public string refID { get; set; }
+
         // 显示名
         public string displayName { get; set; }
 

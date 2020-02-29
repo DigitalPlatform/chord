@@ -640,9 +640,6 @@ namespace dp2weixinWeb.ApiControllers
             //设为活动账户
             WxUserDatabase.Current.SetActivePatron1(user.weixinId, user.id);
 
-
-
-
             //更新session
             int nRet = sessionInfo.GetActiveUser(weixinId,out error);
             if (nRet == -1)

@@ -130,6 +130,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AreaLib.cs" />
     <Compile Include="ChargeCommand.cs" />
     <Compile Include="ChargeCommandContainer.cs" />
     <Compile Include="GzhCfg.cs" />
