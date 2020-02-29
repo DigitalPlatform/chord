@@ -11,7 +11,7 @@ using System.Web.Http;
 
 namespace dp2weixinWeb.ApiControllers
 {
-    public class PatronApiController : ApiController
+    public class PatronApiController : ApiController  //BaseApiController//
     {
         // 参数值常量
         public const string C_format_summary = "summary";
@@ -89,12 +89,12 @@ namespace dp2weixinWeb.ApiControllers
             bool bMergeInfo)
         {
             SetReaderInfoResult result = new SetReaderInfoResult();
-
             string strError="";
 
             string outputRecPath = "";
             string outputTimestamp = "";
 
+            WxUserItem userItem = null;
             int nRet = dp2WeiXinService.Instance.SetReaderInfo(libId,
                 userName,
                 action,
@@ -105,48 +105,37 @@ namespace dp2weixinWeb.ApiControllers
                 bMergeInfo,
                 out outputRecPath,
                 out outputTimestamp,
+                out userItem,
                 out  strError);
             if (nRet == -1)
             {
                 result.errorCode = -1;
                 result.errorInfo = strError;
+                return result;
             }
             
-
+            // 返回读者路径和时间戳
             result.recPath = outputRecPath;
             result.timestamp = outputTimestamp;
 
-            // 初始化sesson
-            string error = "";
+            // 如果是读者自助注册过来的，需要把注册的这个帐户设置为当前帐户
             if (string.IsNullOrEmpty(weixinId) ==false)
             {
-                if (HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo] == null)
-                {
-                    error = "session失效。";
-                    goto ERROR1;
-                }
-                SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
-                if (sessionInfo == null)
-                {
-                    error = "session失效2。";
-                    goto ERROR1;
-                }
-                nRet = sessionInfo.GetActiveUser(weixinId, out error);
+                nRet = ApiHelper.ActiveUser(userItem, out strError);
                 if (nRet == -1)
-                    goto ERROR1;
+                {
+                    result.errorCode = -1;
+                    result.errorInfo = strError;
+                    return result;
+                }
             }
             
 
-
-
-            return result;
-
-
-        ERROR1:
-            result.errorCode = -1;
-            result.errorInfo = error;
             return result;
         }
+
+
+
 
         /// <summary>
         /// 发送验证码

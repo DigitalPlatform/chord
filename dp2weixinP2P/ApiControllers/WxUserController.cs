@@ -521,19 +521,6 @@ namespace dp2weixinWeb.ApiControllers
             // 返回对象
             WxUserResult result = new WxUserResult();
 
-            if (HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo] == null)
-            {
-                error = "session失效。";
-                goto ERROR1;
-            }
-            SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
-            if (sessionInfo == null)
-            {
-                error = "session失效2。";
-                goto ERROR1;
-            }
-
-
             // 前端有时传上来是这个值
             if (item.prefix == "null")
                 item.prefix = "";
@@ -549,37 +536,61 @@ namespace dp2weixinWeb.ApiControllers
                 out error);
             if (nRet == -1)
             {
-                goto ERROR1;
+                result.errorCode = -1;
+                result.errorInfo = error;
+                return result;
             }
             result.users = new List<WxUserItem>();
             result.users.Add(userItem);
 
-            if (sessionInfo.ActiveUser != null)
-            {
-                dp2WeiXinService.Instance.WriteDebug("原来session中的user对象id=["+sessionInfo.ActiveUser.id+"],weixinid=["+sessionInfo.WeixinId+"]");
-            }
-            else
-            {
-                dp2WeiXinService.Instance.WriteDebug("原来session中无user对象");
-            }
-
-            //dp2WeiXinService.Instance.WriteDebugUserInfo(item.weixinId, "bind返回后");
-
-
-            //更新session信息
-            nRet = sessionInfo.GetActiveUser(item.weixinId, out error);
+            // 将绑定的帐户设为当前帐户
+            nRet = ApiHelper.ActiveUser(userItem, out error);
             if (nRet == -1)
-                goto ERROR1;
+            {
+                result.errorCode = -1;
+                result.errorInfo = error;
+                return result;
+            }
 
-            //dp2WeiXinService.Instance.WriteDebugUserInfo(item.weixinId, "session.init后");
 
-            return result;
 
-            ERROR1:
-            result.errorCode = -1;
-            result.errorInfo = error;
+            //if (HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo] == null)
+            //{
+            //    error = "session失效。";
+            //    goto ERROR1;
+            //}
+            //SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
+            //if (sessionInfo == null)
+            //{
+            //    error = "session失效2。";
+            //    goto ERROR1;
+            //}
+            //if (sessionInfo.ActiveUser != null)
+            //{
+            //    dp2WeiXinService.Instance.WriteDebug("原来session中的user对象id=["+sessionInfo.ActiveUser.id+"],weixinid=["+sessionInfo.WeixinId+"]");
+            //}
+            //else
+            //{
+            //    dp2WeiXinService.Instance.WriteDebug("原来session中无user对象");
+            //}
+
+            //// 设置当前活动帐号
+            //{
+            //    // 置为活动状态 2020-3-1,改在外面函数设，不再SaveUserToLocal函数里
+            //    WxUserDatabase.Current.SetActivePatron1(userItem.weixinId, userItem.id);
+
+            //    //更新session信息
+            //    nRet = sessionInfo.GetActiveUser(item.weixinId, out error);
+            //    if (nRet == -1)
+            //        goto ERROR1;
+            //}
+
+
             return result;
         }
+
+
+
 
 
 
@@ -663,7 +674,10 @@ namespace dp2weixinWeb.ApiControllers
 
             ApiResult result = new ApiResult();
             string error = "";
-            int nRet = dp2WeiXinService.Instance.Unbind(id, out error);
+            WxUserItem newActiveUser = null;
+            int nRet = dp2WeiXinService.Instance.Unbind(id, 
+                out newActiveUser,
+                out error);
             if (nRet == -1)
             {
                 goto ERROR1;
@@ -673,23 +687,32 @@ namespace dp2weixinWeb.ApiControllers
             if (String.IsNullOrEmpty(error) == false)
                 result.errorInfo = error;
 
-            //======================
-            // 更新session信息
-            if (HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo] == null)
+
+            // 设置当前活动帐户，更新session信息
+            if (newActiveUser != null)  //如果当前删除不是活动帐户，则返回的newActiveUser为null
             {
-                error = "session失效。";
-                goto ERROR1;
-            }
-            SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
-            if (sessionInfo == null)
-            {
-                error = "session失效2。";
-                goto ERROR1;
+                nRet = ApiHelper.ActiveUser(newActiveUser, out error);
+                if (nRet == -1)
+                {
+                    goto ERROR1;
+                }
             }
 
-            nRet = sessionInfo.GetActiveUser(sessionInfo.WeixinId, out error);
-            if (nRet == -1)
-                goto ERROR1;
+            //if (HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo] == null)
+            //{
+            //    error = "session失效。";
+            //    goto ERROR1;
+            //}
+            //SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
+            //if (sessionInfo == null)
+            //{
+            //    error = "session失效2。";
+            //    goto ERROR1;
+            //}
+
+            //nRet = sessionInfo.GetActiveUser(sessionInfo.WeixinId, out error);
+            //if (nRet == -1)
+            //    goto ERROR1;
 
 
             //===================

@@ -265,6 +265,7 @@
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApiControllers\ApiHelper.cs" />
     <Compile Include="ApiControllers\ChargeCommandController.cs" />
     <Compile Include="ApiControllers\LibMessageController.cs" />
     <Compile Include="ApiControllers\BiblioController.cs" />

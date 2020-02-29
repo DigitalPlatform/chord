@@ -429,9 +429,9 @@ namespace dp2weixin.service
 
         /// 删除账户
         /// 如果删除的是读者账户，自动将对应图书馆第一个读者账户设为默认的
-        public void Delete(String id,out WxUserItem newActivePatron)
+        public void Delete1(String id,out WxUserItem newActiveUser)
         {
-            newActivePatron = null;
+            newActiveUser = null;
 
             dp2WeiXinService.Instance.WriteDebug("走进WxUserDatabase.Delete() id=" + id);
 
@@ -468,31 +468,31 @@ namespace dp2weixin.service
             // 如果删除的是读者账户且是激活的，自动将本馆第一个读者账户设为默认的
             if (isActive == 1)
             {
-                // 先取本馆的
+                // 先取本馆的绑定帐户
                 List<WxUserItem> list = this.Get(weixinId, libId,-1);
                 if (list != null && list.Count > 0)
                 {
-                    newActivePatron = list[0];
+                    newActiveUser = list[0];
                 }
 
                 // 如果本馆帐户没找到，则把该微信号绑定的第一个帐户设为活动的
-                if (newActivePatron == null)
+                if (newActiveUser == null)
                 {
                     list = this.Get(weixinId, "", -1);
                     if (list != null && list.Count > 0)
                     {
-                        newActivePatron = list[0];
+                        newActiveUser = list[0];
                     }
                 }
 
                 // 没有一个绑定帐户时，为刚才的馆创建一个public
-                if (newActivePatron == null)
+                if (newActiveUser == null)
                 {
-                    newActivePatron = this.CreatePublic(weixinId, libId,bindLibraryCode);
+                    newActiveUser = this.CreatePublic(weixinId, libId,bindLibraryCode);
                 }
 
-                // 设为活动状态
-                this.SetActivePatron1(newActivePatron.weixinId, newActivePatron.id);
+                // 设为活动状态，让外面调的函数设置，因为刚设数据库不行，也要更新当前session，这样外面一起做
+                //this.SetActivePatron1(newActivePatron.weixinId, newActivePatron.id);
             }
 
             //// 如果是工作人员,且打开监控功能
