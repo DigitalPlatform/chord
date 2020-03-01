@@ -369,6 +369,7 @@
     <Content Include="Scripts\jquery-3.4.1.min.map" />
     <Content Include="Views\Patron\PatronRegister.cshtml" />
     <Content Include="Views\Patron\PatronReview.cshtml" />
+    <Content Include="Views\Patron\PatronList.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

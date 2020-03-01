@@ -3987,7 +3987,11 @@ ErrorInfo成员里可能会有报错信息。
                     }
                     string linkUrl = "";//dp2WeiXinService.Instance.OAuth2_Url_AccountIndex,//详情转到账户管理界面
                     linkUrl = dp2WeiXinService.Instance.GetOAuth2Url(gzh,
-                        "Patron/PatronReview?libId=" + userItem.libId+"&patronBarcode="+userItem.readerBarcode);
+                        "Patron/PatronReview?libId=" + userItem.libId
+                        + "&patronLibCode=" + HttpUtility.UrlEncode(userItem.bindLibraryCode)
+                        + "&patronPath=" + HttpUtility.UrlEncode(userItem.recPath)
+                        + "&f=notice"
+                        );
 
 
                     //// 本人
@@ -4035,6 +4039,131 @@ ErrorInfo成员里可能会有报错信息。
             }
 
             return 0;
+
+        }
+
+
+        /// <summary>
+        /// 获取临时读者
+        /// </summary>
+        /// <param name="libId"></param>
+        /// <param name="patronList"></param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
+        public int GetTempPatrons(string libId,
+            out List<Patron> patronList,
+            out string strError)
+        {
+            strError = "";
+            patronList = new List<Patron>();
+
+            // 根据id找到图书馆对象
+            LibEntity lib = this.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为[" + libId + "]的图书馆定义。";
+                return -1;
+            }
+
+            // 使用代理账号
+            LoginInfo loginInfo = new LoginInfo("", false);
+
+            // 从远程dp2library中查
+            string strWord = "临时";
+            CancellationToken cancel_token = new CancellationToken();
+            string id = Guid.NewGuid().ToString();
+            SearchRequest request = new SearchRequest(id,
+                loginInfo,
+                "searchPatron",
+                "<全部>",  //todo 这里后面考虑是否指定总分馆对应的数据库
+                strWord,
+                "state",
+                "left",
+                "temp-patron",
+                "id,xml",
+                1000,
+                0,
+                WeiXinConst.C_Search_MaxCount);
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
+                    this._dp2MServerUrl,
+                    lib.capoUserName).Result;
+
+                SearchResult result = connection.SearchTaskAsync(
+                    lib.capoUserName,
+                    request,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token).Result;
+                if (result.ResultCount == -1)
+                {
+                    strError = "图书馆 " + lib.libName + "检索临时读者出错:" + result.ErrorInfo;
+                    return -1;
+                }
+                if (result.ResultCount == 0)
+                    return 0;
+                foreach (Record record in result.Records)// int i = 0; i < result.ResultCount; i++)
+                {
+
+                    id = Guid.NewGuid().ToString();
+                    request = new SearchRequest(id,
+                       loginInfo,
+                       "getPatronInfo",
+                       "",
+                       "@path:" + this.GetPurePath(record.RecPath),//patronBarocde,
+                       "",
+                       "",
+                       "",
+                       "xml",
+                       1,
+                       0,
+                       -1);
+
+                    result = connection.SearchTaskAsync(
+                       lib.capoUserName,
+                       request,
+                       new TimeSpan(0, 0, 15),  //改为15秒
+                       cancel_token).Result;
+
+                    if (result.ResultCount == -1)
+                    {
+                        strError = "图书馆 " + lib.libName + " 获取读者记录出错:" + result.ErrorInfo;
+                        return -1;
+                    }
+                    if (result.ResultCount == 0)
+                    {
+                        strError = result.ErrorInfo;
+                        return 0;
+                    }
+
+
+                    string xml = result.Records[0].Data;
+
+
+                    // string xml = record.Data;
+
+                    Patron patron = this.ParsePatronXml(libId,
+                         xml,
+                         this.GetPurePath(record.RecPath),
+                         0,
+                         false);
+
+                    patronList.Add(patron);
+                }
+
+
+                return (int)result.ResultCount;
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                return -1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                return -1;
+            }
 
         }
 
@@ -7439,6 +7568,8 @@ ErrorInfo成员里可能会有报错信息。
         {
             // 取出个人信息
             Patron patron = new Patron();
+            patron.recPath = recPath;
+
             XmlDocument dom = new XmlDocument();
             dom.LoadXml(strPatronXml);
 

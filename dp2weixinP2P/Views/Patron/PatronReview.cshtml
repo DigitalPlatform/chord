@@ -168,17 +168,12 @@
                     $("#_recPath").text(result.recPath);
                     $("#_timestamp").text(result.timestamp);
 
-                    if (action == "new") {
-                        $("#btnSave").attr("disabled", false);
-                        $("#_bLoad").text("0");
-                        alert("新增读者成功");
-                    }
+                    alert("提交成功");
+                    $("#btnPass").attr("disabled", true);
+                    $("#btnReject").attr("disabled", true);
 
-                    if (action == "change") {
-                        alert("保存读者成功");
-                    }
-
-                    //清空编辑界面信息,todo
+                    var returnUrl = "/Patron/PatronList"; 
+                    gotoUrl(returnUrl);
 
                 },
                 function (xhq, textStatus, errorThrown) {
@@ -271,11 +266,11 @@ else
             <table style="width:100%">
                 <tr>
                     <td>
-                        <button id='btnAdd' class="mui-btn mui-btn-block mui-btn-default" onclick="save('y')">通过</button>
+                        <button id='btnPass' class="mui-btn mui-btn-block mui-btn-default" onclick="save('y')">通过</button>
                     </td>
                     <td width="10px">&nbsp;</td>
                     <td>
-                        <button id='btnSave' class="mui-btn mui-btn-block mui-btn-default" onclick="save('n')">不通过</button>
+                        <button id='btnReject' class="mui-btn mui-btn-block mui-btn-default" onclick="save('n')">不通过</button>
                     </td>
                 </tr>
             </table>

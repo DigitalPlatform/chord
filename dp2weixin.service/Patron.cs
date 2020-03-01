@@ -72,6 +72,8 @@ namespace dp2weixin.service
     /// </summary>
     public class Patron:SimplePatron
     {
+        public string recPath { get; set; }
+
         public string refID { get; set; }
 
         // 显示名
@@ -98,7 +100,7 @@ namespace dp2weixin.service
 
 
         // 证状态
-        public string state { get; set; }
+       // public string state { get; set; }
 
         // 发证日期
         public string createDate { get; set; }

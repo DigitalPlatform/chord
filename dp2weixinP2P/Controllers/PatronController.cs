@@ -26,9 +26,66 @@ namespace dp2weixinWeb.Controllers
         /// <param name="code"></param>
         /// <param name="state"></param>
         /// <returns></returns>
-        public ActionResult PatronReview(string code, string state, 
+        public ActionResult PatronList(string code, string state)
+        {
+            string strError = "";
+            int nRet = 0;
+
+
+            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
+            // -1 出错
+            // 0 成功
+            nRet = this.GetSessionInfo(code, state,
+                out SessionInfo sessionInfo,
+                out strError);
+            if (nRet == -1)
+            {
+                ViewBag.Error = strError;
+                return View();
+            }
+
+            // 当前帐号不存在，尚未选择图书馆
+            if (sessionInfo.ActiveUser == null)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Patron/PatronList");
+                return View();
+            }
+
+            // 必须是工作人员，且不能为public
+            if (sessionInfo.ActiveUser.type != WxUserDatabase.C_Type_Worker
+                || sessionInfo.ActiveUser.userName == "public")
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("读者审核", "/Patron/PatronList", true);
+                return View();
+            }
+
+
+            List<Patron> patronList = new List<Patron>();
+             nRet = dp2WeiXinService.Instance.GetTempPatrons(sessionInfo.ActiveUser.libId,
+                out patronList,
+                out strError);
+            if (nRet == -1)
+            {
+                ViewBag.Error = strError;
+                return View();
+            }
+
+
+
+            return View(patronList);
+        }
+
+
+            /// <summary>
+            /// 审核主界面
+            /// </summary>
+            /// <param name="code"></param>
+            /// <param name="state"></param>
+            /// <returns></returns>
+            public ActionResult PatronReview(string code, string state, 
             string libId, string patronLibCode,
-            string patronPath)
+            string patronPath,
+            string f)
         {
             string strError = "";
             int nRet = 0;
@@ -70,7 +127,7 @@ namespace dp2weixinWeb.Controllers
             if (sessionInfo.ActiveUser.type != WxUserDatabase.C_Type_Worker
                 || sessionInfo.ActiveUser.userName == "public")
             {
-                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("读者审核", "/Patron/PatronEdit", true);
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("读者审核", "/Patron/PatronReview", true);
                 return View();
             }
 
@@ -157,6 +214,8 @@ namespace dp2weixinWeb.Controllers
             // 读者类别
             ViewBag.readerTypeHtml = this.GetReaderTypeHtml(sessionInfo.ReaderTypes, patron.readerType);// typesHtml;
 
+            // 来源
+            ViewBag.From = f;
             return View(patron);
         }
 
@@ -172,8 +231,14 @@ namespace dp2weixinWeb.Controllers
                 string[] typeList = types.Split(new char[] { ',' });
                 foreach (string type in typeList)
                 {
+                    string temp = type;
+                    int nIndex = type.IndexOf("}");
+                    if (nIndex != -1) {
+                        temp = type.Substring(nIndex + 1).Trim();
+                    }
+
                     string sel = "";
-                    if (currentPatronType == type)
+                    if (currentPatronType == temp)
                         sel = " selected ";
                     typesHtml += "<option value='" + type + "' " + sel + ">" + type + "</option>";
                 }
@@ -186,6 +251,63 @@ namespace dp2weixinWeb.Controllers
             return typesHtml;
         }
 
+        /// <summary>
+        /// 读者自助注册功能
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="state"></param>
+        /// <returns></returns>
+        public ActionResult PatronRegister(string code, string state)
+        {
+            string strError = "";
+            int nRet = 0;
+
+            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
+            // -1 出错
+            // 0 成功
+            nRet = this.GetSessionInfo(code,
+                state,
+                out SessionInfo sessionInfo,
+                out strError);
+            if (nRet == -1)
+            {
+                ViewBag.Error = strError;
+                return View();
+            }
+
+            //// 如果尚未选择图书馆，不存在当前帐号，出现绑定帐号链接
+            //if (sessionInfo.ActiveUser == null)
+            //{
+            //    ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Patron/PatronRegister");
+            //    return View();
+            //}
+
+            if (string.IsNullOrEmpty(ViewBag.PatronDbName) == false)
+            {
+                ViewBag.PatronRecPath = ViewBag.PatronDbName + "/?";
+            }
+
+            // 检查一下是否已经有了读者帐户，如果已经绑定过读者帐户，则不允许再注册
+            if (sessionInfo.ActiveUser !=null)
+            {
+                List<WxUserItem> patrons = WxUserDatabase.Current.GetPatron(sessionInfo.ActiveUser.weixinId,
+                    sessionInfo.ActiveUser.libId, "");
+                if (patrons.Count > 0)
+                {
+                    string bindUrl = "/Account/Index";
+                    string bindLink = "请点击<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>这里</a>进行查看。";
+
+                    string strRedirectInfo = "<div class='mui-content-padded' style='color:#666666'>"
+                        + "您已存在读者帐户，不能重复注册。" + bindLink
+                        + "</div>";
+
+                    ViewBag.RedirectInfo = strRedirectInfo;
+                    return View();
+                }
+            }
+
+            return View();
+        }
 
         /// <summary>
         /// 工作人员登记读者 或者 编辑读者信息
@@ -310,46 +432,7 @@ namespace dp2weixinWeb.Controllers
         }
 
 
-        /// <summary>
-        /// 读者自助注册功能
-        /// </summary>
-        /// <param name="code"></param>
-        /// <param name="state"></param>
-        /// <returns></returns>
-        public ActionResult PatronRegister(string code, string state)
-        {
-            string strError = "";
-            int nRet = 0;
 
-            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
-            // -1 出错
-            // 0 成功
-            nRet = this.GetSessionInfo(code,
-                state,
-                out SessionInfo sessionInfo,
-                out strError);
-            if (nRet == -1)
-            {
-                ViewBag.Error = strError;
-                return View();
-            }
-
-            // 如果尚未选择图书馆，不存在当前帐号，出现绑定帐号链接
-            if (sessionInfo.ActiveUser == null)
-            {
-                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Patron/PatronRegister");
-                return View();
-            }
-
-            if (ViewBag.PatronDbName == "")
-            {
-                ViewBag.Error = "尚未配置读者库，请联系管理员。";
-                return View();
-            }
-
-            ViewBag.PatronRecPath = ViewBag.PatronDbName+ "/?";  
-            return View();
-        }
 
         
 

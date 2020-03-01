@@ -1,0 +1,80 @@
+﻿@model List<dp2weixin.service.Patron>
+@{
+    ViewBag.Title = "PatronList";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section header {
+    <h1 class="mui-title">待审核读者列表</h1>
+}
+@section style {
+    <link href="@Url.Content("~/Content/message.css?a=1")" rel="stylesheet">
+}
+
+
+@section Scripts {
+    <script>
+
+
+
+
+    </script>
+}
+<span id="_userName" style="display:none">@ViewBag.userName</span>
+<span id="_recPath" style="display:none">@ViewBag.recPath</span>
+<span id="_timestamp" style="display:none">@ViewBag.timestamp</span>
+
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
+}
+else
+{
+    if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
+    {
+        @Html.Raw(ViewBag.RedirectInfo);
+    }
+    else
+    {
+
+        // 警告提示
+        if (String.IsNullOrEmpty(ViewBag.Warn) == false)
+        {
+            <div class="mui-content-padded">
+                <span class="errorinfo">
+                    @Html.Raw(ViewBag.Warn)
+                </span>
+            </div>
+        }
+
+        if (Model == null || Model.Count == 0)
+        {
+            <div class="mui-card" id="divNo" style="margin-top:10px;">
+                <center>
+                    <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
+                    <div>目前没有待审核读者。</div>
+                </center>
+            </div>
+        }
+
+        foreach (dp2weixin.service.Patron patron in Model)
+        {
+            string url = "/Patron/PatronReview?libId=" + ViewBag.LibId 
+                + "&patronLibCode=" + HttpUtility.UrlEncode(patron.libraryCode) 
+                + "&patronPath=" + HttpUtility.UrlEncode(patron.recPath)
+                +"&f=list";
+
+            <ul class="mui-table-view">
+                <li class="mui-table-view-cell">
+                    <a class="mui-navigate-right" href="@url">
+                        @patron.name  @patron.tel  @patron.department
+                    </a>
+                </li>
+            </ul>
+        }
+    }
+}
+

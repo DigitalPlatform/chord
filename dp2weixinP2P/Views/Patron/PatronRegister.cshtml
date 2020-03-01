@@ -99,6 +99,21 @@
         // 保存读者信息
         function save() {
 
+
+
+
+            // 图书馆ID
+            var libId = getLibId();
+            if (libId == "") {
+                alert("请先选择图书馆，点击右侧的...按钮。");
+                return;
+            }
+
+            var libraryCode = $("#libraryCode").text();
+            if (libraryCode == null)
+                libraryCode = "";
+
+
             // 新增读者的记录路径,这里是写死的，要改为配置的数据库名称todo
             var recPath = $("#_recPath").text();//"读者/?";
             if (recPath == "") {
@@ -107,66 +122,54 @@
             }
             //alert(recPath);
 
-
-            // 图书馆ID
-            var libId = getLibId();
-            if (libId == "") {
-                alert("异常情况：libId为空，请联系管理员。");
-                return;
-            }
-
-            var libraryCode = $("#libraryCode").text();
-            if (libraryCode == null)
-                libraryCode = "";
-
             //姓名
             var name = $("#txtName").val();
             if (name == "") {
-                alert("姓名不能为空！");
+                alert("请输入姓名。");
                 return;
             }
 
             //性别
             var gender = $('#selGender option:checked').val();
             if (gender == "") {
-                alert("您尚未选择性别。");
+                alert("请选择性别。");
                 return;
             }
 
             // 部门
             var department = $("#txtDepartment").val();
             if (department == "") {
-                alert("部门不能为空！");
+                alert("请输入部门。");
                 return;
             }
 
             // 手机号
             var tel = $("#txtTel").val();
             if (tel == "") {
-                alert("手机号不能为空！");
+                alert("请输入手机号");
                 return;
             }
             if (tel.length != 11) {
-                alert("手机号必须是11位数字！");
+                alert("手机号格式不正确。");
                 return;
             }
 
             var txtVC = $("#txtVerifyCode").val();
             if (txtVC == "") {
-                alert("尚未输入验证码！");
+                alert("请输入短信验证码。");
                 return;
             }
 
             var realVC = $("#_verifyCode").text();
             if (txtVC != realVC) {
-                alert("验证码不正确！");
+                alert("验证码不正确。");
                 return;
             }
 
             // 微信id
             var weixinId = $("#_weixinId").text();
             if (weixinId == "") {
-                alert("weixinId不能为空。");
+                alert("异常：weixinId不能为空。");
                 return;
             }
             //alert(weixinId);
@@ -208,10 +211,14 @@
                     $("#_verifyCode").text("");
 
                     var tempBarcode = result.info;
-                    var returnUrl = "/Patron/PatronReview?libId=" + libId
-                        + "&patronPath=" + encodeURIComponent(result.recPath)
-                        +"&patronLibCode="+encodeURIComponent(libraryCode);//"/Patron/PersonalInfo"; 
+
+                    //var returnUrl = "/Patron/PatronReview?libId=" + libId
+                    //    + "&patronPath=" + encodeURIComponent(result.recPath)
+                    //    +"&patronLibCode="+encodeURIComponent(libraryCode);//"/Patron/PersonalInfo"; 
                     //alert(returnUrl);
+
+                    // 转到个人信息
+                    var returnUrl = "/Patron/PersonalInfo";
                     gotoUrl(returnUrl);
                 },
                 function (xhq, textStatus, errorThrown) {
