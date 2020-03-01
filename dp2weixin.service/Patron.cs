@@ -58,6 +58,13 @@ namespace dp2weixin.service
 
         public string libraryCode { get; set; }
 
+        // 状态
+        public string state { get; set; }
+
+
+        // 不通过原因
+        public string reason { get; set; }
+
     }
 
     /// <summary>

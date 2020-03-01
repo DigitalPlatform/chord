@@ -262,6 +262,7 @@
     <Content Include="Scripts\weixin.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="del.txt" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>

@@ -1,0 +1,50 @@
+﻿// 管理的分馆
+            string[] libraryList = sessionInfo.ActiveUser.libraryCode.Split(new[] { ',' });
+
+            // 读者类别
+            string types = sessionInfo.ReaderTypes;
+            string typesHtml = "";
+            if (String.IsNullOrEmpty(types) == false)
+            {
+                string[] typeList = types.Split(new char[] { ',' });
+                foreach (string type in typeList)
+                {
+                    // 如果这个类型的分馆 是当前帐户可用的分馆，才列出来
+                    if (sessionInfo.ActiveUser.libraryCode != "")
+                    {
+                        int nIndex = type.LastIndexOf("}");
+                        if (nIndex > 0)
+                        {
+                            string left = type.Substring(0, nIndex);
+                            nIndex = left.IndexOf("{");
+                            if (nIndex != -1)
+                            {
+                                left = left.Substring(nIndex + 1);
+
+                                if (libraryList.Contains(left) == true)
+                                {
+                                    string sel = "";
+                                    if (patron.readerType == left)
+                                        sel = " selected ";
+
+
+                                    typesHtml += "<option value='" + type + "' "+ sel +">" + type + "</option>";
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        string sel = "";
+                        if (patron.readerType == type)
+                            sel = " selected ";
+
+                        typesHtml += "<option value='" + type + "' "+sel+">" + type + "</option>";
+                    }
+                }
+            }
+            typesHtml = "<select id='selReaderType' name='selReaderType' class='selArrowRight'>"
+                    + "<option value=''>请选择</option>"
+                    + typesHtml
+                    + "</select>";
+            ViewBag.readerTypeHtml = typesHtml;

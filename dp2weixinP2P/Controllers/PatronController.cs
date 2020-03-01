@@ -26,10 +26,14 @@ namespace dp2weixinWeb.Controllers
         /// <param name="code"></param>
         /// <param name="state"></param>
         /// <returns></returns>
-        public ActionResult PatronReview(string code, string state, string libId, string patronPath)
+        public ActionResult PatronReview(string code, string state, 
+            string libId, string patronLibCode,
+            string patronPath)
         {
             string strError = "";
             int nRet = 0;
+            if (patronLibCode == null)
+                patronLibCode = "";
 
             if (string.IsNullOrEmpty(libId) == true)
             {
@@ -66,7 +70,7 @@ namespace dp2weixinWeb.Controllers
             if (sessionInfo.ActiveUser.type != WxUserDatabase.C_Type_Worker
                 || sessionInfo.ActiveUser.userName == "public")
             {
-                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("读者登记", "/Patron/PatronEdit", true);
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("读者审核", "/Patron/PatronEdit", true);
                 return View();
             }
 
@@ -78,6 +82,25 @@ namespace dp2weixinWeb.Controllers
             {
                 Library lib = dp2WeiXinService.Instance.LibManager.GetLibrary(libId);
                 ViewBag.Error = "读者注册的图书馆是[" + lib.Entity.libName + "]，请先绑定该图书馆的工作人员帐户，才能审核。";
+                return View();
+            }
+
+            if (sessionInfo.ActiveUser.bindLibraryCode != patronLibCode)
+            {
+                string patronLib = patronLibCode;
+                if (patronLib == "")
+                {
+                    Library lib1 = dp2WeiXinService.Instance.LibManager.GetLibrary(libId);
+                    patronLib = lib1.Entity.libName;
+                }
+
+                string workerLib = sessionInfo.ActiveUser.bindLibraryCode;
+                if (string.IsNullOrEmpty(workerLib) == true)
+                {
+                    Library lib2 = dp2WeiXinService.Instance.LibManager.GetLibrary(sessionInfo.ActiveUser.libId);
+                    workerLib = lib2.Entity.libName;
+                }
+                ViewBag.Error = "读者注册的图书馆是[" + patronLib + "]，与当前工作人员帐户绑定的["+ workerLib + "]不一致，请先绑定["+ patronLib + "]的工作人员帐户，才能审核。";
                 return View();
             }
 
@@ -105,13 +128,23 @@ namespace dp2weixinWeb.Controllers
             ViewBag.recPath = recPath;
             ViewBag.timestamp = timestamp;
 
-
+            // 把读者xml解析成对象
             Patron patron = null;
             patron = dp2WeiXinService.Instance.ParsePatronXml(libId,
                     patronXml,
                     recPath,
-                    ViewBag.showPhoto);
+                    ViewBag.showPhoto,
+                    false);
 
+            string patronBarcode = patron.barcode;
+            // 如果是临时id则置空
+            if (patronBarcode.Length>=7 && patronBarcode.Substring(0, 7).ToLower() == "@refid:")
+            {
+                patronBarcode = "";
+            }
+            ViewBag.patronBarcode = patronBarcode;
+
+            // 当前读者性别
             if (patron.gender == "男")
             {
                 ViewBag.manSel = " selected ";
@@ -121,59 +154,36 @@ namespace dp2weixinWeb.Controllers
                 ViewBag.womanSel = " selected ";
             }
 
-            
-            // 管理的分馆
-            string[] libraryList = sessionInfo.ActiveUser.libraryCode.Split(new[] { ',' });
             // 读者类别
-            string types = sessionInfo.ReaderTypes;
+            ViewBag.readerTypeHtml = this.GetReaderTypeHtml(sessionInfo.ReaderTypes, patron.readerType);// typesHtml;
+
+            return View(patron);
+        }
+
+
+        // 得到读者类型字符串
+        public string GetReaderTypeHtml(string readerTypes,string currentPatronType)
+        {
+            // 读者类别
+            string types = readerTypes;
             string typesHtml = "";
             if (String.IsNullOrEmpty(types) == false)
             {
                 string[] typeList = types.Split(new char[] { ',' });
                 foreach (string type in typeList)
                 {
-                    // 如果这个类型的分馆 是当前帐户可用的分馆，才列出来
-                    if (sessionInfo.ActiveUser.libraryCode != "")
-                    {
-                        int nIndex = type.LastIndexOf("}");
-                        if (nIndex > 0)
-                        {
-                            string left = type.Substring(0, nIndex);
-                            nIndex = left.IndexOf("{");
-                            if (nIndex != -1)
-                            {
-                                left = left.Substring(nIndex + 1);
-
-                                if (libraryList.Contains(left) == true)
-                                {
-                                    string sel = "";
-                                    if (patron.readerType == left)
-                                        sel = " selected ";
-
-
-                                    typesHtml += "<option value='" + type + "' "+ sel +">" + type + "</option>";
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        string sel = "";
-                        if (patron.readerType == type)
-                            sel = " selected ";
-
-                        typesHtml += "<option value='" + type + "' "+sel+">" + type + "</option>";
-                    }
+                    string sel = "";
+                    if (currentPatronType == type)
+                        sel = " selected ";
+                    typesHtml += "<option value='" + type + "' " + sel + ">" + type + "</option>";
                 }
             }
             typesHtml = "<select id='selReaderType' name='selReaderType' class='selArrowRight'>"
                     + "<option value=''>请选择</option>"
                     + typesHtml
                     + "</select>";
-            ViewBag.readerTypeHtml = typesHtml;
 
-            return View(patron);
-
+            return typesHtml;
         }
 
 
@@ -224,6 +234,7 @@ namespace dp2weixinWeb.Controllers
             string[] libraryList = sessionInfo.ActiveUser.libraryCode.Split(new[] { ',' });
 
             // 读者类别
+            /*
             string types = sessionInfo.ReaderTypes;
             string typesHtml = "";
             if (String.IsNullOrEmpty(types) == false)
@@ -260,8 +271,19 @@ namespace dp2weixinWeb.Controllers
                     + "<option value=''>请选择</option>"
                     + typesHtml
                     + "</select>";
-            ViewBag.readerTypeHtml = typesHtml;
+            */
+            ViewBag.readerTypeHtml = this.GetReaderTypeHtml(sessionInfo.ReaderTypes, "");//typesHtml;
 
+
+            // 新增时，统一使用配置的数据库
+            if (ViewBag.PatronDbName == "")
+            {
+                ViewBag.Error = "尚未配置读者库，请联系管理员。";
+                return View();
+            }
+            ViewBag.PatronRecPath = ViewBag.PatronDbName + "/?";
+
+            /*
             // 目标数据库
             string dbs = sessionInfo.ReaderDbnames;
             string dbsHtml = "";
@@ -281,6 +303,8 @@ namespace dp2weixinWeb.Controllers
                     + "</select>";
             }
             ViewBag.readerDbnamesHtml = dbsHtml;
+            */
+
 
             return View();
         }
@@ -392,7 +416,8 @@ namespace dp2weixinWeb.Controllers
             patron = dp2WeiXinService.Instance.ParsePatronXml(libId,
                     patronXml,
                     recPath,
-                    ViewBag.showPhoto);
+                    ViewBag.showPhoto,
+                    true);
             return View(patron);
 
         }

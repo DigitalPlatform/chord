@@ -508,7 +508,7 @@ namespace dp2weixin.service
                 patron = dp2WeiXinService.Instance.ParsePatronXml(libId,
                     patronXml,
                     patronRecPath,
-                    showPhoto);
+                    showPhoto,true);
                 cmd.patronBarcode = patron.barcode;
             }
 

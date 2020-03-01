@@ -59,7 +59,8 @@ namespace dp2weixinWeb.ApiControllers
             Patron patron = dp2WeiXinService.Instance.ParsePatronXml(libId,
                 strXml,
                 recPath,
-                showPhoto);
+                showPhoto,
+                true);
 
             result.obj = patron;
 

@@ -39,7 +39,7 @@
 
         // 选择图书馆
         function gotoSelectLib() {
-            var url = "/Patron/SelectLib?returnUrl=" + encodeURIComponent("/Account/NewParton");
+            var url = "/Patron/SelectLib?returnUrl=" + encodeURIComponent("/Patron/PatronRegister");
             gotoUrl(url);
         }
 
@@ -208,8 +208,10 @@
                     $("#_verifyCode").text("");
 
                     var tempBarcode = result.info;
-                    var returnUrl = "/Patron/PatronReview?libId=" + libId + "&patronPath=" + encodeURIComponent(result.recPath);//"/Patron/PersonalInfo"; 
-                    alert(returnUrl);
+                    var returnUrl = "/Patron/PatronReview?libId=" + libId
+                        + "&patronPath=" + encodeURIComponent(result.recPath)
+                        +"&patronLibCode="+encodeURIComponent(libraryCode);//"/Patron/PersonalInfo"; 
+                    //alert(returnUrl);
                     gotoUrl(returnUrl);
                 },
                 function (xhq, textStatus, errorThrown) {
@@ -223,7 +225,8 @@
                     name: name,
                     gender: gender,
                     department: department,
-                    tel: tel
+                    tel: tel,
+                    libraryCode: libraryCode
                 }
             );
         }

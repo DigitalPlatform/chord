@@ -3727,6 +3727,18 @@ ErrorInfo成员里可能会有报错信息。
                 telNode = DomUtil.CreateNodeByPath(root, "tel");
             DomUtil.SetNodeText(telNode, patron.tel);
 
+            // 状态 state
+            XmlNode stateNode = root.SelectSingleNode("state");
+            if (stateNode == null)
+                stateNode = DomUtil.CreateNodeByPath(root, "state");
+            DomUtil.SetNodeText(stateNode, patron.state);
+
+            // 把不通过的原因放在注释里
+            XmlNode commentNode = root.SelectSingleNode("comment");
+            if (commentNode == null)
+                commentNode = DomUtil.CreateNodeByPath(root, "comment");
+            DomUtil.SetNodeText(commentNode, patron.reason);
+
             StringWriter textWrite = new StringWriter();
             XmlTextWriter xmlTextWriter = new XmlTextWriter(textWrite);
             dom.Save(xmlTextWriter);
@@ -3912,14 +3924,32 @@ ErrorInfo成员里可能会有报错信息。
             // 如果是读者自助的情况，给本地mongodb创建一笔绑定记录
             if (string.IsNullOrEmpty(weixinId) == false)
             {
+                string bindLibraryCode = patron.libraryCode;
+
+                // 注，这里必须得重新获取一下，上面返回的outputPatronXml没有返回分馆代码 2020-3-1
+                LoginInfo loginInfo1 = new LoginInfo("", false);
+                string strXml = "";
+                string word = "@path:" + outputRecPath;
+                string tempPath = "";
+                string tempTimestamp = "";
+                 nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
+                    loginInfo1,
+                    word,
+                    "xml",
+                    out tempPath,
+                    out tempTimestamp,
+                    out strXml,
+                    out strError);
+                if (nRet == -1 || nRet == 0)
+                    return -1;
+
                 // 要使用返回的读者信息，因为前端组装的xml没有refID
-                string bindLibraryCode = "";
                 nRet = this.SaveUserToLocal1(weixinId,
                     libId,
                     bindLibraryCode,
                     C_TYPE_READER,
                     outputRecPath,
-                    outputPatronXml,
+                    strXml,//outputPatronXml,
                     "new",
                     out userItem,
                     out strError);
@@ -7401,7 +7431,11 @@ ErrorInfo成员里可能会有报错信息。
             return 1;
         }
 
-        public Patron ParsePatronXml(string libId, string strPatronXml, string recPath, int showPhoto)
+        public Patron ParsePatronXml(string libId, 
+            string strPatronXml, 
+            string recPath, 
+            int showPhoto,
+            bool bMaskPhone)
         {
             // 取出个人信息
             Patron patron = new Patron();
@@ -7462,7 +7496,7 @@ ErrorInfo成员里可能会有报错信息。
             // 电话
             string strTel = DomUtil.GetElementText(dom.DocumentElement, "tel");
             patron.tel = strTel;
-            if (strTel.Length > 4)
+            if (strTel.Length > 4 && bMaskPhone==true)
             {
                 string left = strTel.Substring(0, strTel.Length - 4);
                 left = "".PadLeft( left.Length, '*');

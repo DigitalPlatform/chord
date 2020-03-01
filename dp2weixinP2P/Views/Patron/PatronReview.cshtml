@@ -41,6 +41,24 @@
         // 保存读者信息
         function save(action) {
 
+            var pass = true;
+            if (action == "n")
+                pass = false;
+
+            var state = "";  // 通过的时候，把状态置为空就可以了。
+
+            var reason = $("#txtReason").val();
+            if (pass == false) {
+                // 证条码号
+                if (reason == "") {
+                    alert("请输入审核不通过原因！");
+                    return;
+                }
+
+                state = "不通过";
+            }
+
+
             var libId = getLibId(); 
             if (libId == "") {
                 alert("异常情况：libId为空。");
@@ -70,16 +88,25 @@
 
             // 证条码号
             var readerBarcord = $("#txtBarcode").val();
-            if (readerBarcord == "") {
-                alert("读者证条码号不能为空！");
-                return;
+            if (pass == true) {
+                if (readerBarcord == "") {
+                    alert("读者证条码号不能为空。");
+                    return;
+                }
             }
 
             //读者类型
             var readerType = $('#selReaderType option:checked').val();
-            if (readerType == "") {
-                alert("您尚未选择读者类别。");
-                return;
+            if (pass == true) {
+                if (readerType == "") {
+                    alert("您尚未选择读者类别。");
+                    return;
+                }
+
+                if (readerType.indexOf("临时读者") != -1) {
+                    alert("审核通过时，需为读者选择正式的读者类型。");
+                    return;
+                }
             }
             var nIndex = readerType.indexOf("}");
             if (nIndex != -1) {
@@ -96,21 +123,21 @@
             //性别
             var gender = $('#selGender option:checked').val();
             if (gender == "") {
-                alert("您尚未选择性别。");
+                alert("尚未选择性别。");
                 return;
             }
 
             // 单位
             var department = $("#txtDepartment").val();
             if (department == "") {
-                alert("单位不能为空！");
+                alert("单位不能为空。");
                 return;
             }
 
             // 手机号
             var tel = $("#txtTel").val();
             if (tel == "") {
-                alert("手机号不能为空！");
+                alert("手机号不能为空。");
                 return;
             }
 
@@ -167,7 +194,9 @@
                     name: name,
                     gender: gender,
                     department: department,
-                    tel: tel
+                    tel: tel,
+                    reason: reason,
+                    state:state
                 }
             );
         }
@@ -199,7 +228,7 @@ else
 
     <div class="mui-input-row ">
         <label id="lblName" style="color:#cccccc">证条码号</label>
-        <input id='txtBarcode' type="text" class="mui-input mui-input-clear" placeholder="请输入 账号" value="@Model.barcode">
+        <input id='txtBarcode' type="text" class="mui-input mui-input-clear" placeholder="请输入 证条码号" value="@ViewBag.patronBarcode">
     </div>
 
     <div class="mui-input-row selArrowRightContainer">

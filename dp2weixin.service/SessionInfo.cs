@@ -24,7 +24,9 @@ namespace dp2weixin.service
 
         // 当前图书馆配置的读者类型和读者库，用于读者登记
         public string ReaderTypes = "";
-        public string ReaderDbnames = "";
+        
+        // 2020-3-1 ryh注释掉，新增时统一使用配置文件定义的读者库，与读者注册一致。编辑时原来是哪个库是保存到原来的库
+        //public string ReaderDbnames = "";
 
         // 当前公众号配置信息
         public GzhCfg  gzh = null;
@@ -165,9 +167,48 @@ namespace dp2weixin.service
                     }
                     if (dataList != null && dataList.Count > 0)
                     {
-                        this.ReaderTypes = dataList[0];
+                        string tempReaderTypes = dataList[0];
+                        string[] typeList = tempReaderTypes.Trim().Split(new char[] { ',' });
+
+                        string types = "";
+                        //这里要把不与当前馆匹配的 总馆或分馆的读者类型过滤掉，只剩下有用的类型
+                        // 为什么要用bindLibraryCode参数，而不用libraryCode，
+                        // 是因为libraryCode可能是多个分馆也可能是空，但绑定的只能选择一个范围内的馆，所以用bindLibraryCode表示当前馆更准备，而且是一个
+                        if (string.IsNullOrEmpty(this.ActiveUser.bindLibraryCode) == true)
+                        {
+                            foreach (string type in typeList)
+                            {
+                                if (type.Length >= 1 && type.Substring(0, 1) == "{")
+                                    continue;
+
+                                if (types != "")
+                                    types += ",";
+
+                                types += type;
+                            }
+                        }
+                        else
+                        {
+                            string fullLibCode = "{" + this.ActiveUser.bindLibraryCode + "}";
+                            foreach (string type in typeList)
+                            {
+                                if (type.IndexOf(fullLibCode) == -1)
+                                    continue;
+
+                                if (types != "")
+                                    types += ",";
+
+                                types += type;
+                            }
+
+                        }
+
+                        this.ReaderTypes = types;
                     }
 
+
+                    // 2020-3-1觉得让馆员选择可能搞不清楚，还是统一使用配置文件设置的吧，与读者自助注册一样
+                    /*
                     LoginInfo loginInfo = new LoginInfo(this.ActiveUser.userName, false);
                     nRet = dp2WeiXinService.Instance.GetInfo(this.CurrentLib.Entity,
                         loginInfo,
@@ -185,6 +226,7 @@ namespace dp2weixin.service
                     {
                         this.ReaderDbnames = dataList[0];
                     }
+                    */
 
                 }
             }

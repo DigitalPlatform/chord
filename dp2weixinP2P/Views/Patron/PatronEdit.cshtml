@@ -3,7 +3,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 @section header {
-    <h1 class="mui-title">读者登记</h1>
+    <h1 class="mui-title">馆员登记读者</h1>
 }
 
 @section style {
@@ -31,9 +31,6 @@
                     padding-right: 5px;
                     text-align: right;
                 }
-
-
-
     </style>
 }
 
@@ -73,7 +70,7 @@
             showLoading();
 
             // 调GetPatron
-            var url = "/api/patron?libId=" + encodeURIComponent(libId)
+            var url = "/api/patronapi?libId=" + encodeURIComponent(libId)
                 + "&userName=" + encodeURIComponent(userName)
                 + "&patronBarcode=" + encodeURIComponent(patronBarcode)
             //alert(url);
@@ -102,7 +99,7 @@
                     var tempRecPath = result.recPath;
                     var nIndex = tempRecPath.indexOf("/");
                     if (nIndex != -1) {
-                        tempRecPath = tempRecPath.substring(0,nIndex);
+                        tempRecPath = tempRecPath.substring(0, nIndex);
                     }
                     $('#selDbName').val(tempRecPath);
 
@@ -202,6 +199,15 @@
 
             //新增时读者路径
             if (action == "new") {
+
+                // 使用配置的数据库
+                var recPath = $("#_recPath").text();//"读者/?";
+                if (recPath == "") {
+                    alert("尚未配置读者数据库名称，请联系管理员。");
+                    return;
+                }
+
+                /*
                 // 读者库
                 var dbName = $('#selDbName option:checked').val();
                 if (dbName == "") {
@@ -209,19 +215,20 @@
                     return;
                 }
                 var recPath = dbName + "/?";
+                */
             }
 
             //显示等待图层
             showMaskLayer();
 
             // 调Patron的SetPatron()
-            var url = "/api/Patron?libId=" + libId
+            var url = "/api/PatronApi?libId=" + libId
                 + "&userName=" + encodeURIComponent(userName)
                 + "&action=" + encodeURIComponent(action)
                 + "&recPath=" + encodeURIComponent(recPath)
                 + "&timestamp=" + encodeURIComponent(timestamp)
-                +"&weixinId="
-            + "&bMergeInfo=" + bMergeInfo;
+                + "&weixinId="
+                + "&bMergeInfo=" + bMergeInfo;
 
             sendAjaxRequest(url, "POST",
                 function (result) {
@@ -272,7 +279,7 @@
     </script>
 }
 <span id="_userName" style="display:none">@ViewBag.userName</span>
-<span id="_recPath" style="display:none"></span>
+<span id="_recPath" style="display:none">@ViewBag.PatronRecPath</span>
 <span id="_timestamp" style="display:none"></span>
 <span id="_bLoad" style="display:none">0</span>
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)
@@ -315,7 +322,7 @@ else
                 <input id='txtName' type="text" class="mui-input mui-input-clear">
             </div>
 
-            <div class="mui-input-row selArrowRightContainer" >
+            <div class="mui-input-row selArrowRightContainer">
                 <label id="lblGender" style="color:#cccccc">性别</label>
                 <select id="selGender" name="selGender" class='selArrowRight'>
                     <option value=''>请选择</option>"
@@ -334,10 +341,12 @@ else
                 <input id='txtTel' type="text" class="mui-input mui-input-clear">
             </div>
 
+            <!--
             <div class="mui-input-row selArrowRightContainer" >
                 <label id="lblType" style="color:#cccccc">目标读者库</label>
                 @Html.Raw(ViewBag.readerDbnamesHtml)
             </div>
+                -->
         </div>
         <div class="mui-content-padded">
             <table style="width:100%">

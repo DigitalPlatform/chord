@@ -110,7 +110,11 @@ namespace dp2weixin.service
 
                 foreach (LibModel lib in area.libs)
                 {
-                    xml += "<lib id='" + lib.libId + "' name='" + lib.name + "' libraryCode='" + lib.libraryCode + "'/>";
+                    xml += "<lib id='" + lib.libId +"'"
+                        + " name='" + lib.name + "'"
+                        + " libraryCode='" + lib.libraryCode + "'"
+                        + " patronDbName='" + lib.patronDbName + "'"
+                        + " />";
                 }
                 xml += "</area>";
             }
