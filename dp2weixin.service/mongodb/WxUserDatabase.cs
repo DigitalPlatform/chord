@@ -329,6 +329,7 @@ namespace dp2weixin.service
             userItem.readerBarcode = "";
             userItem.readerName = "";
             userItem.department = "";
+            userItem.phone = "";
             userItem.xml = "";
             userItem.refID = "";
             userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
@@ -632,6 +633,7 @@ namespace dp2weixin.service
                 .Set("readerBarcode", item.readerBarcode)
                 .Set("readerName", item.readerName)
                 .Set("department", item.department)
+                .Set("phone", item.phone)
                 .Set("xml", item.xml)
                 .Set("recPath", item.recPath)
 
@@ -720,6 +722,8 @@ namespace dp2weixin.service
 
         //单位
         public string department { get; set; }  //部门，二维码下方显示 // 2016-6-16 新增
+
+        public string phone { get; set; } // 读者手机号 2020-3-1 新增
 
         // 读者记录xml
         public string xml { get; set; }        
@@ -813,6 +817,7 @@ namespace dp2weixin.service
             sb.AppendLine("readerBarcode=[" + this.readerBarcode + "] ");
             sb.AppendLine("readerName=[" + this.readerName + "] ");
             sb.AppendLine("department=[" + this.department + "] ");
+            sb.AppendLine("phone=[" + this.phone + "] ");
             sb.AppendLine("refID=[" + this.refID + "] ");
             sb.AppendLine("isActive=[" + this.isActive + "] ");
             sb.AppendLine("userName=[" + this.userName + "] ");

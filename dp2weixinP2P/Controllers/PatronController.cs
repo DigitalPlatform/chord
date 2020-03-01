@@ -21,12 +21,278 @@ namespace dp2weixinWeb.Controllers
     public class PatronController : BaseController
     {
         /// <summary>
+        /// 审核主界面
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="state"></param>
+        /// <returns></returns>
+        public ActionResult PatronReview(string code, string state, string libId, string patronPath)
+        {
+            string strError = "";
+            int nRet = 0;
+
+            if (string.IsNullOrEmpty(libId) == true)
+            {
+                ViewBag.Error = "libId参数不能为空。";
+                return View();
+            }
+
+            if (string.IsNullOrEmpty(patronPath) == true)
+            {
+                ViewBag.Error = "patronPath参数不能为空。";
+                return View();
+            }
+
+            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
+            // -1 出错
+            // 0 成功
+            nRet = this.GetSessionInfo(code, state,
+                out SessionInfo sessionInfo,
+                out strError);
+            if (nRet == -1)
+            {
+                ViewBag.Error = strError;
+                return View();
+            }
+
+            // 当前帐号不存在，尚未选择图书馆
+            if (sessionInfo.ActiveUser == null)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Patron/PatronReview");
+                return View();
+            }
+
+            // 必须是工作人员，且不能为public
+            if (sessionInfo.ActiveUser.type != WxUserDatabase.C_Type_Worker
+                || sessionInfo.ActiveUser.userName == "public")
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("读者登记", "/Patron/PatronEdit", true);
+                return View();
+            }
+
+            // 2020-3-1
+            // 如果传入了libId和patronBarcode表示是从读者注册通知过来的审核
+            // 需要当前绑定帐户的图书馆与传过来的图书馆一致
+
+            if (sessionInfo.ActiveUser.libId != libId)
+            {
+                Library lib = dp2WeiXinService.Instance.LibManager.GetLibrary(libId);
+                ViewBag.Error = "读者注册的图书馆是[" + lib.Entity.libName + "]，请先绑定该图书馆的工作人员帐户，才能审核。";
+                return View();
+            }
+
+            // 装载读者帐号信息
+            string patronXml = "";
+            string recPath = "";
+            LoginInfo loginInfo = new LoginInfo("", false);  // todo，这里是用工作人员帐户还是用代理帐户
+
+            // 获取读者记录
+            string timestamp = "";
+            nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
+                loginInfo,
+                "@path:"+ patronPath,
+                "advancexml,timestamp",  // 格式
+                out recPath,
+                out timestamp,
+                out patronXml,
+                out strError);
+            if (nRet == -1 || nRet == 0)
+            {
+                ViewBag.Error = strError;
+                return View();
+            }
+
+            ViewBag.recPath = recPath;
+            ViewBag.timestamp = timestamp;
+
+
+            Patron patron = null;
+            patron = dp2WeiXinService.Instance.ParsePatronXml(libId,
+                    patronXml,
+                    recPath,
+                    ViewBag.showPhoto);
+
+            if (patron.gender == "男")
+            {
+                ViewBag.manSel = " selected ";
+            }
+            else if (patron.gender == "女")
+            {
+                ViewBag.womanSel = " selected ";
+            }
+
+            
+            // 管理的分馆
+            string[] libraryList = sessionInfo.ActiveUser.libraryCode.Split(new[] { ',' });
+            // 读者类别
+            string types = sessionInfo.ReaderTypes;
+            string typesHtml = "";
+            if (String.IsNullOrEmpty(types) == false)
+            {
+                string[] typeList = types.Split(new char[] { ',' });
+                foreach (string type in typeList)
+                {
+                    // 如果这个类型的分馆 是当前帐户可用的分馆，才列出来
+                    if (sessionInfo.ActiveUser.libraryCode != "")
+                    {
+                        int nIndex = type.LastIndexOf("}");
+                        if (nIndex > 0)
+                        {
+                            string left = type.Substring(0, nIndex);
+                            nIndex = left.IndexOf("{");
+                            if (nIndex != -1)
+                            {
+                                left = left.Substring(nIndex + 1);
+
+                                if (libraryList.Contains(left) == true)
+                                {
+                                    string sel = "";
+                                    if (patron.readerType == left)
+                                        sel = " selected ";
+
+
+                                    typesHtml += "<option value='" + type + "' "+ sel +">" + type + "</option>";
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        string sel = "";
+                        if (patron.readerType == type)
+                            sel = " selected ";
+
+                        typesHtml += "<option value='" + type + "' "+sel+">" + type + "</option>";
+                    }
+                }
+            }
+            typesHtml = "<select id='selReaderType' name='selReaderType' class='selArrowRight'>"
+                    + "<option value=''>请选择</option>"
+                    + typesHtml
+                    + "</select>";
+            ViewBag.readerTypeHtml = typesHtml;
+
+            return View(patron);
+
+        }
+
+
+        /// <summary>
+        /// 工作人员登记读者 或者 编辑读者信息
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="state"></param>
+        /// <param name="libId"></param>
+        /// <param name="patronBarcode"></param>
+        /// <returns></returns>
+        public ActionResult PatronEdit(string code, string state)
+        {
+            string strError = "";
+            int nRet = 0;
+
+            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
+            // -1 出错
+            // 0 成功
+            nRet = this.GetSessionInfo(code, state,
+                out SessionInfo sessionInfo,
+                out strError);
+            if (nRet == -1)
+            {
+                ViewBag.Error = strError;
+                return View();
+            }
+
+            // 当前帐号不存在，尚未选择图书馆
+            if (sessionInfo.ActiveUser == null)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Patron/PatronEdit");
+                return View();
+            }
+
+            // 必须是工作人员，且不能为public
+            if (sessionInfo.ActiveUser.type != WxUserDatabase.C_Type_Worker
+                || sessionInfo.ActiveUser.userName == "public")
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("读者登记", "/Patron/PatronEdit", true);
+                return View();
+            }
+
+            // 当前工作人员帐号
+            ViewBag.userName = sessionInfo.ActiveUser.userName;
+
+            // 管理的分馆
+            string[] libraryList = sessionInfo.ActiveUser.libraryCode.Split(new[] { ',' });
+
+            // 读者类别
+            string types = sessionInfo.ReaderTypes;
+            string typesHtml = "";
+            if (String.IsNullOrEmpty(types) == false)
+            {
+                string[] typeList = types.Split(new char[] { ',' });
+                foreach (string type in typeList)
+                {
+                    // 如果这个类型的分馆 是当前帐户可用的分馆，才列出来
+                    if (sessionInfo.ActiveUser.libraryCode != "")
+                    {
+                        int nIndex = type.LastIndexOf("}");
+                        if (nIndex > 0)
+                        {
+                            string left = type.Substring(0, nIndex);
+                            nIndex = left.IndexOf("{");
+                            if (nIndex != -1)
+                            {
+                                left = left.Substring(nIndex + 1);
+
+                                if (libraryList.Contains(left) == true)
+                                {
+                                    typesHtml += "<option value='" + type + "'>" + type + "</option>";
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        typesHtml += "<option value='" + type + "'>" + type + "</option>";
+                    }
+                }
+            }
+            typesHtml = "<select id='selReaderType' name='selReaderType' class='selArrowRight'>"
+                    + "<option value=''>请选择</option>"
+                    + typesHtml
+                    + "</select>";
+            ViewBag.readerTypeHtml = typesHtml;
+
+            // 目标数据库
+            string dbs = sessionInfo.ReaderDbnames;
+            string dbsHtml = "";
+            if (String.IsNullOrEmpty(dbs) == false)
+            {
+                string[] dbList = dbs.Split(new char[] { ',' });
+                foreach (string db in dbList)
+                {
+                    dbsHtml += "<option value='" + db + "'>" + db + "</option>";
+                }
+            }
+            if (dbsHtml != "")
+            {
+                dbsHtml = "<select id='selDbName' name='selDbName' class='selArrowRight'>"
+                    + "<option value=''>请选择</option>"
+                    + dbsHtml
+                    + "</select>";
+            }
+            ViewBag.readerDbnamesHtml = dbsHtml;
+
+            return View();
+        }
+
+
+        /// <summary>
         /// 读者自助注册功能
         /// </summary>
         /// <param name="code"></param>
         /// <param name="state"></param>
         /// <returns></returns>
-        public ActionResult NewPatron(string code, string state)
+        public ActionResult PatronRegister(string code, string state)
         {
             string strError = "";
             int nRet = 0;
@@ -47,7 +313,7 @@ namespace dp2weixinWeb.Controllers
             // 如果尚未选择图书馆，不存在当前帐号，出现绑定帐号链接
             if (sessionInfo.ActiveUser == null)
             {
-                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Patron/NewPatron");
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Patron/PatronRegister");
                 return View();
             }
 
@@ -61,482 +327,7 @@ namespace dp2weixinWeb.Controllers
             return View();
         }
 
-        /// <summary>
-        /// 选择图书馆
-        /// </summary>
-        /// <param name="code"></param>
-        /// <param name="state"></param>
-        /// <param name="returnUrl"></param>
-        /// <returns></returns>
-        public ActionResult SelectLib(string code, string state, string returnUrl)
-        {
-            string strError = "";
-            int nRet = 0;
-
-            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
-            // -1 出错
-            // 0 成功
-            nRet = this.GetSessionInfo(code, state,
-                out SessionInfo sessionInfo,
-                out strError);
-             if (nRet == -1)
-            {
-                ViewBag.Error = strError;
-                return View();
-            }
-
-             // 选择完返回的页面
-            ViewBag.returnUrl = returnUrl;
-
-            // 获取可访问的图书馆
-            List<Library> avaiblelibList = dp2WeiXinService.Instance.LibManager.GetLibraryByIds(sessionInfo.libIds);
-
-            // 获取该微信帐户绑定了哪些图书馆帐户
-            List<WxUserItem> list = WxUserDatabase.Current.Get(sessionInfo.WeixinId, null, -1);
-
-            // 可显示的区域
-            List<Area> areaList = new List<Area>();
-            // 从所有区域中查找
-            foreach(Area area in dp2WeiXinService.Instance._areaMgr._areas)
-            {
-                List<LibModel> libList = new List<LibModel>();
-                foreach (LibModel lib in area.libs)
-                {
-                    lib.Checked = "";
-                    lib.bindFlag = "";
-
-                    // 如果是到期的图书馆，不显示出来
-                    Library thisLib = dp2WeiXinService.Instance.LibManager.GetLibrary(lib.libId);//.GetLibById(lib.libId);
-                    if (thisLib != null && thisLib.Entity.state == "到期")
-                    {
-                        continue;
-                    }
-
-                    //如果不在可访问范围，不显示
-                    if (thisLib != null && avaiblelibList.IndexOf(thisLib) == -1)
-                    {
-                        continue;
-                    }
-
-                    // 如果从mongodb库没有找到图书馆，不显示
-                    // 有可能是mongodb库删除，但配置文件还没有删除
-                    if (thisLib == null)
-                    {
-                        dp2WeiXinService.Instance.WriteDebug("选择图书馆时，根据[" + lib.libId + "]未找到对应的图书馆");
-                        continue;
-                    }
-
-                    // 加到显示列表
-                    libList.Add(lib);
-
-                    // 检查微信用户是否绑定了这个图书馆
-                    if (this.CheckIsBind(list, lib) == true)  //libs.Contains(lib.libId)
-                        lib.bindFlag = " * ";
-
-                    // 当前绑定帐户的图书馆显示为勾中状态
-                    if (sessionInfo.ActiveUser != null)
-                    {
-                        if (lib.libId == sessionInfo.ActiveUser.libId
-                            && lib.libraryCode == sessionInfo.ActiveUser.bindLibraryCode)
-                        {
-                            lib.Checked = " checked ";
-                        }
-                    }
-                }
-
-                // 只有当有下级图书馆时，才显示地区
-                if (libList.Count > 0)
-                {
-                    Area newArea = new Area();
-                    newArea.name = area.name;
-                    newArea.libs = libList;
-                    areaList.Add(newArea);
-                }
-
-            }
-
-            // 放到界面上
-            ViewBag.areaList = areaList;
-
-            return View();
-        }
-
-        /// <summary>
-        /// 检查一个图书馆是否在绑定列表中
-        /// </summary>
-        /// <param name="list"></param>
-        /// <param name="lib"></param>
-        /// <returns></returns>
-        public bool CheckIsBind(List<WxUserItem> list, LibModel lib)
-        {
-            foreach (WxUserItem user in list)
-            {
-                if (user.libId == lib.libId)
-                {
-                    if (user.bindLibraryCode == lib.libraryCode)  //这里按bind帐户来
-                        return true;
-                    else
-                        return false;
-                }
-            }
-            return false;
-        }
-
-
-        /// <summary>
-        /// 设置
-        /// </summary>
-        /// <param name="code"></param>
-        /// <param name="state"></param>
-        /// <param name="returnUrl"></param>
-        /// <returns></returns>
-        public ActionResult Setting(string code, string state, string returnUrl)
-        {
-            string strError = "";
-            int nRet = 0;
-
-            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
-            // -1 出错
-            // 0 成功
-            nRet = this.GetSessionInfo(code, state,
-                out SessionInfo sessionInfo,
-                out strError);
-            if (nRet == -1)
-            {
-                ViewBag.Error = strError;
-                return View();
-            }
-
-            // 当前帐号不存在，尚未选择图书馆
-            if (sessionInfo.ActiveUser == null)
-            {
-                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state,"/Patron/Setting");
-                return View();
-            }
-
-            // 返回url
-            ViewBag.returnUrl = returnUrl;
-
-            // 是否显示头像
-            string photoChecked = "";
-            if (ViewBag.showPhoto == 1)
-                photoChecked = " checked='checked' ";
-            ViewBag.photoChecked = photoChecked;
-
-            // 是否显示图书封面
-            string coverChecked = "";
-            if (ViewBag.showCover == 1)
-                coverChecked = " checked='checked' ";
-            ViewBag.coverChecked = coverChecked;
-
-            // 检查是否绑定工作人员，决定界面上是否出现 监控消息
-            ViewBag.info = "监控本馆消息";
-            string tracingChecked = "";
-            string maskChecked = "";
-            // 工作人员且不是public时，出现监控消息选项
-            if (sessionInfo.ActiveUser.type == WxUserDatabase.C_Type_Worker 
-                && sessionInfo.ActiveUser.userName!="public")
-            {
-                ViewBag.workerId = sessionInfo.ActiveUser.id;
-                if (sessionInfo.ActiveUser.tracing == "on" || sessionInfo.ActiveUser.tracing == "on -mask")
-                {
-                    tracingChecked = " checked='checked' ";
-                    maskChecked = " checked='checked' ";
-                    if (sessionInfo.ActiveUser.tracing == "on -mask")  // 是否马赛克敏感消息
-                        maskChecked = " ";
-                }
-            }
-            ViewBag.tracingChecked = tracingChecked;
-            ViewBag.maskChecked = maskChecked;
-
-            // 如果当前馆是数字平台，数字平台维护人员可以监控所有图书馆消息
-            if (ViewBag.LibName == "[" + WeiXinConst.C_Dp2003LibName + "]")
-            {
-                ViewBag.info = "监控所有图书馆的消息";
-            }
-
-            ViewBag.subLibGray = "";
-
-            // 未绑定帐户 ，todo 普通读者一样可选择关注馆藏地
-            if (sessionInfo.ActiveUser == null 
-                || sessionInfo.ActiveUser.userName =="public")
-            {
-                ViewBag.subLibGray = "color:#cccccc";
-                return View();
-            }
-
-            // 当前帐户信息显示在界面上
-            string accountInfo = "";
-            if (sessionInfo.ActiveUser.type == WxUserDatabase.C_Type_Worker)
-            {
-                accountInfo = "帐号:"+ sessionInfo.ActiveUser.userName;
-            }
-            else
-            {
-                accountInfo = "读者:" + sessionInfo.ActiveUser.readerBarcode;
-            }
-            if (accountInfo != "")
-            {
-                accountInfo = "(" + accountInfo + ")";
-            }
-            ViewBag.accountInfo = accountInfo;
-            ViewBag.userId = sessionInfo.ActiveUser.id;
-
-            // 如果location为空，从服务器获取馆藏地信息
-            string locationXml = sessionInfo.ActiveUser.location;
-            if(String.IsNullOrEmpty(sessionInfo.ActiveUser.location)==true 
-                && sessionInfo.ActiveUser.userName!="public")
-            {
-                // 从dp2服务器获取
-                nRet =dp2WeiXinService.Instance.GetLocation(ViewBag.LibId,
-                    sessionInfo.ActiveUser,
-                   out locationXml,
-                   out strError);
-                if (nRet == -1)
-                {
-                    ViewBag.Error = strError;
-                    return View();
-                }
-
-
-                //保存到微信用户库
-                sessionInfo.ActiveUser.location = locationXml;
-                WxUserDatabase.Current.Update(sessionInfo.ActiveUser);
-            }
-
-
-            // 解析本帐户拥有的全部馆藏地
-            List<SubLib> subLibs = SubLib.ParseSubLib(locationXml,true);
-
-            //上次选中的打上勾
-            if (String.IsNullOrEmpty(sessionInfo.ActiveUser.selLocation)==false)
-            {
-                string selLocation = SubLib.ParseToSplitByComma(sessionInfo.ActiveUser.selLocation);
-                if (selLocation != "")
-                {
-                    string[] selLocList = selLocation.Split(new char[] { ',' });
-                    foreach (SubLib subLib in subLibs)
-                    {
-                        foreach (Location loc in subLib.Locations)
-                        {
-                            string locPath = subLib.libCode + "/" + loc.Name;
-                            if (selLocList.Contains(locPath) == true)
-                            {
-                                subLib.Checked = "checked";
-                                loc.Checked = "checked";
-                            }
-                        }
-                    }
-                }
-                // end
-            }
-
-            // todo 其实，可以用一个字段来表示馆藏地和选中的项，就量在xml的字段中加checked属性，
-            // 但如果服务器更新了，刷的时候就全部覆盖了。
-            // 现在还没做到服务器更新后，自动刷过来
-
-
-            ViewBag.libList = subLibs;
-            ViewBag.verifyBarcode = "";
-            if (sessionInfo.ActiveUser != null && sessionInfo.ActiveUser.verifyBarcode == 1)
-            {
-                ViewBag.verifyBarcode = "checked";
-            }
-
-            ViewBag.audioType = 1;
-            if (sessionInfo.ActiveUser != null && sessionInfo.ActiveUser.audioType >0)
-            {
-                ViewBag.audioType = sessionInfo.ActiveUser.audioType;
-            }
-
-            return View();
-
-        }
-
-
-        #region 二维码 图片
-
-        // 二维码
-        public ActionResult QRcode(string code, string state)
-        {
-            string strError = "";
-            int nRet = 0;
-
-            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
-            // -1 出错
-            // 0 成功
-            nRet = this.GetSessionInfo(code, state,
-                out SessionInfo sessionInfo,
-                out strError);
-            if (nRet == -1)
-            {
-                ViewBag.Error = strError;
-                return View();
-            }
-
-            // 当前帐号不存在，尚未选择图书馆
-            if (sessionInfo.ActiveUser == null)
-            {
-                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Patron/QRcode");
-                return View();
-            }
-
-            if (sessionInfo.ActiveUser != null 
-                && sessionInfo.ActiveUser.type != WxUserDatabase.C_Type_Patron)
-            {
-                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("二维码", "/Patron/QRcode");
-                return View();
-            }
-
-
-            string strXml = "";
-            string patronBarcode = "";
-            string recPath = "";
-            nRet = this.GetReaderXml(sessionInfo.ActiveUser,
-               out strXml,
-               out recPath,
-               out strError);
-            if (nRet == -1)
-            {
-                ViewBag.Error = strError;
-                return View();
-            }
-
-            string warn = "";
-            string qrcodeUrl = "";
-            if (String.IsNullOrEmpty(warn) == true)
-            {
-                qrcodeUrl = "./getphoto?libId=" + HttpUtility.UrlEncode(sessionInfo.ActiveUser.libId)
-                     + "&type=pqri"
-                     + "&barcode=" + HttpUtility.UrlEncode(sessionInfo.ActiveUser.readerBarcode);
-                //+ "&width=400&height=400";
-            }
-            ViewBag.qrcodeUrl = qrcodeUrl;
-
-
-            return View(sessionInfo.ActiveUser);
-        }
-
-        // 图片
-        public ActionResult GetPhoto(string code, string state,string libId, string type, string barcode, string objectPath)
-        {
-            MemoryStream ms = new MemoryStream(); ;
-            string strError = "";
-            int nRet = 0;
-
-            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
-            // -1 出错
-            // 0 成功
-            nRet = this.GetSessionInfo(code, state,
-                out SessionInfo sessionInfo,
-                out strError);
-            if (nRet == -1)//???为什么要做这一句 2020-2-8 && ViewBag.LibState != LibraryManager.C_State_Hangup1)
-            {
-                goto ERROR1;
-            }
-
-
-            // 读者二维码
-            if (type == "pqri")
-            {                
-                // 设置媒体类型
-                Response.ContentType = "image/jpeg";
-
-                // 获得读者证号二维码字符串
-                string strCode = "";
-                nRet = dp2WeiXinService.Instance.GetQRcode(libId,
-                    barcode,
-                    out strCode,
-                    out strError);
-                if (nRet == -1 || nRet == 0)
-                    goto ERROR1;
-
-                // 获得二维码图片
-                string strWidth = Request.QueryString["width"];
-                string strHeight = Request.QueryString["height"];
-                int nWidth = 0;
-                if (string.IsNullOrEmpty(strWidth) == false)
-                {
-                    if (Int32.TryParse(strWidth, out nWidth) == false)
-                    {
-                        strError = "width 参数 '" + strWidth + "' 格式不合法";
-                        goto ERROR1;
-                    }
-                }
-                int nHeight = 0;
-                if (string.IsNullOrEmpty(strHeight) == false)
-                {
-                    if (Int32.TryParse(strHeight, out nHeight) == false)
-                    {
-                        strError = "height 参数 '" + strHeight + "' 格式不合法";
-                        goto ERROR1;
-                    }
-                }
-                dp2WeiXinService.Instance.GetQrImage(strCode,
-                   nWidth,
-                   nHeight,
-                   Response.OutputStream,
-                   out strError);
-                if (strError != "")
-                    goto ERROR1;
-                return null;
-            }
-
-            // 取头像 或 封面
-            string weixinId = ViewBag.weixinId;
-            nRet = dp2WeiXinService.GetObject0(this, libId,weixinId,objectPath, out strError);
-            if (nRet == -1)
-                goto ERROR1;
-
-            return null;
-
-
-        ERROR1:
-
-            ms = dp2WeiXinService.Instance.GetErrorImg(strError);
-            return File(ms.ToArray(), "image/jpeg");
-        }
-
-        // 资源
-        public ActionResult GetObject(string code, string state,string libId,string uri)
-        {
-            string strError = "";
-            int nRet = 0;
-
-            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
-            // -1 出错
-            // 0 成功
-            nRet = this.GetSessionInfo(code, state,
-                out SessionInfo sessionInfo,
-                out strError);
-            if (nRet == -1) //??? 为什么加后面部分 2020-2-8 && ViewBag.LibState != LibraryManager.C_State_Hangup1)
-            {
-                goto ERROR1;
-            }
-
-            //处理 dp2 系统外部的 URL
-            Uri tempUri = dp2WeiXinService.GetUri(uri);
-            if (tempUri != null
-                && (tempUri.Scheme == "http" || tempUri.Scheme == "https"))
-            {
-                return Redirect(uri);
-            }
-
-            string weixinId = ViewBag.weixinId;
-            nRet = dp2WeiXinService.GetObject0(this, libId, weixinId, uri, out strError);
-            if (nRet == -1)
-                goto ERROR1;
- 
-            return null;
-
-
-        ERROR1:
-            MemoryStream ms =  dp2WeiXinService.Instance.GetErrorImg(strError);
-            return File(ms.ToArray(), "image/jpeg");
-        }
-
-
-        #endregion
+        
 
 
 
@@ -837,7 +628,7 @@ namespace dp2weixinWeb.Controllers
 
             if (activeUser.type != WxUserDatabase.C_Type_Patron)
             {
-                strError = "当前活动需为读者帐号";
+                strError = "当前页面需为读者帐号";
                 return -1;
             }
 
@@ -873,10 +664,486 @@ namespace dp2weixinWeb.Controllers
                 return -1;
 
             activeUser.recPath = recPath; // todo 应该在绑定的时候赋值，但绑定时没有返回路径
-            //todo1 要保存到数据库里
 
 
             return 1;
+        }
+
+
+        #endregion
+
+        /// <summary>
+        /// 选择图书馆
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="state"></param>
+        /// <param name="returnUrl"></param>
+        /// <returns></returns>
+        public ActionResult SelectLib(string code, string state, string returnUrl)
+        {
+            string strError = "";
+            int nRet = 0;
+
+            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
+            // -1 出错
+            // 0 成功
+            nRet = this.GetSessionInfo(code, state,
+                out SessionInfo sessionInfo,
+                out strError);
+            if (nRet == -1)
+            {
+                ViewBag.Error = strError;
+                return View();
+            }
+
+            // 选择完返回的页面
+            ViewBag.returnUrl = returnUrl;
+
+            // 获取可访问的图书馆
+            List<Library> avaiblelibList = dp2WeiXinService.Instance.LibManager.GetLibraryByIds(sessionInfo.libIds);
+
+            // 获取该微信帐户绑定了哪些图书馆帐户
+            List<WxUserItem> list = WxUserDatabase.Current.Get(sessionInfo.WeixinId, null, -1);
+
+            // 可显示的区域
+            List<Area> areaList = new List<Area>();
+            // 从所有区域中查找
+            foreach (Area area in dp2WeiXinService.Instance._areaMgr._areas)
+            {
+                List<LibModel> libList = new List<LibModel>();
+                foreach (LibModel lib in area.libs)
+                {
+                    lib.Checked = "";
+                    lib.bindFlag = "";
+
+                    // 如果是到期的图书馆，不显示出来
+                    Library thisLib = dp2WeiXinService.Instance.LibManager.GetLibrary(lib.libId);//.GetLibById(lib.libId);
+                    if (thisLib != null && thisLib.Entity.state == "到期")
+                    {
+                        continue;
+                    }
+
+                    //如果不在可访问范围，不显示
+                    if (thisLib != null && avaiblelibList.IndexOf(thisLib) == -1)
+                    {
+                        continue;
+                    }
+
+                    // 如果从mongodb库没有找到图书馆，不显示
+                    // 有可能是mongodb库删除，但配置文件还没有删除
+                    if (thisLib == null)
+                    {
+                        dp2WeiXinService.Instance.WriteDebug("选择图书馆时，根据[" + lib.libId + "]未找到对应的图书馆");
+                        continue;
+                    }
+
+                    // 加到显示列表
+                    libList.Add(lib);
+
+                    // 检查微信用户是否绑定了这个图书馆
+                    if (this.CheckIsBind(list, lib) == true)  //libs.Contains(lib.libId)
+                        lib.bindFlag = " * ";
+
+                    // 当前绑定帐户的图书馆显示为勾中状态
+                    if (sessionInfo.ActiveUser != null)
+                    {
+                        if (lib.libId == sessionInfo.ActiveUser.libId
+                            && lib.libraryCode == sessionInfo.ActiveUser.bindLibraryCode)
+                        {
+                            lib.Checked = " checked ";
+                        }
+                    }
+                }
+
+                // 只有当有下级图书馆时，才显示地区
+                if (libList.Count > 0)
+                {
+                    Area newArea = new Area();
+                    newArea.name = area.name;
+                    newArea.libs = libList;
+                    areaList.Add(newArea);
+                }
+
+            }
+
+            // 放到界面上
+            ViewBag.areaList = areaList;
+
+            return View();
+        }
+
+        /// <summary>
+        /// 检查一个图书馆是否在绑定列表中
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="lib"></param>
+        /// <returns></returns>
+        public bool CheckIsBind(List<WxUserItem> list, LibModel lib)
+        {
+            foreach (WxUserItem user in list)
+            {
+                if (user.libId == lib.libId)
+                {
+                    if (user.bindLibraryCode == lib.libraryCode)  //这里按bind帐户来
+                        return true;
+                    else
+                        return false;
+                }
+            }
+            return false;
+        }
+
+
+        /// <summary>
+        /// 设置
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="state"></param>
+        /// <param name="returnUrl"></param>
+        /// <returns></returns>
+        public ActionResult Setting(string code, string state, string returnUrl)
+        {
+            string strError = "";
+            int nRet = 0;
+
+            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
+            // -1 出错
+            // 0 成功
+            nRet = this.GetSessionInfo(code, state,
+                out SessionInfo sessionInfo,
+                out strError);
+            if (nRet == -1)
+            {
+                ViewBag.Error = strError;
+                return View();
+            }
+
+            // 当前帐号不存在，尚未选择图书馆
+            if (sessionInfo.ActiveUser == null)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Patron/Setting");
+                return View();
+            }
+
+            // 返回url
+            ViewBag.returnUrl = returnUrl;
+
+            // 是否显示头像
+            string photoChecked = "";
+            if (ViewBag.showPhoto == 1)
+                photoChecked = " checked='checked' ";
+            ViewBag.photoChecked = photoChecked;
+
+            // 是否显示图书封面
+            string coverChecked = "";
+            if (ViewBag.showCover == 1)
+                coverChecked = " checked='checked' ";
+            ViewBag.coverChecked = coverChecked;
+
+            // 检查是否绑定工作人员，决定界面上是否出现 监控消息
+            ViewBag.info = "监控本馆消息";
+            string tracingChecked = "";
+            string maskChecked = "";
+            // 工作人员且不是public时，出现监控消息选项
+            if (sessionInfo.ActiveUser.type == WxUserDatabase.C_Type_Worker
+                && sessionInfo.ActiveUser.userName != "public")
+            {
+                ViewBag.workerId = sessionInfo.ActiveUser.id;
+                if (sessionInfo.ActiveUser.tracing == "on" || sessionInfo.ActiveUser.tracing == "on -mask")
+                {
+                    tracingChecked = " checked='checked' ";
+                    maskChecked = " checked='checked' ";
+                    if (sessionInfo.ActiveUser.tracing == "on -mask")  // 是否马赛克敏感消息
+                        maskChecked = " ";
+                }
+            }
+            ViewBag.tracingChecked = tracingChecked;
+            ViewBag.maskChecked = maskChecked;
+
+            // 如果当前馆是数字平台，数字平台维护人员可以监控所有图书馆消息
+            if (ViewBag.LibName == "[" + WeiXinConst.C_Dp2003LibName + "]")
+            {
+                ViewBag.info = "监控所有图书馆的消息";
+            }
+
+            ViewBag.subLibGray = "";
+
+            // 未绑定帐户 ，todo 普通读者一样可选择关注馆藏地
+            if (sessionInfo.ActiveUser == null
+                || sessionInfo.ActiveUser.userName == "public")
+            {
+                ViewBag.subLibGray = "color:#cccccc";
+                return View();
+            }
+
+            // 当前帐户信息显示在界面上
+            string accountInfo = "";
+            if (sessionInfo.ActiveUser.type == WxUserDatabase.C_Type_Worker)
+            {
+                accountInfo = "帐号:" + sessionInfo.ActiveUser.userName;
+            }
+            else
+            {
+                accountInfo = "读者:" + sessionInfo.ActiveUser.readerBarcode;
+            }
+            if (accountInfo != "")
+            {
+                accountInfo = "(" + accountInfo + ")";
+            }
+            ViewBag.accountInfo = accountInfo;
+            ViewBag.userId = sessionInfo.ActiveUser.id;
+
+            // 如果location为空，从服务器获取馆藏地信息
+            string locationXml = sessionInfo.ActiveUser.location;
+            if (String.IsNullOrEmpty(sessionInfo.ActiveUser.location) == true
+                && sessionInfo.ActiveUser.userName != "public")
+            {
+                // 从dp2服务器获取
+                nRet = dp2WeiXinService.Instance.GetLocation(ViewBag.LibId,
+                    sessionInfo.ActiveUser,
+                   out locationXml,
+                   out strError);
+                if (nRet == -1)
+                {
+                    ViewBag.Error = strError;
+                    return View();
+                }
+
+
+                //保存到微信用户库
+                sessionInfo.ActiveUser.location = locationXml;
+                WxUserDatabase.Current.Update(sessionInfo.ActiveUser);
+            }
+
+
+            // 解析本帐户拥有的全部馆藏地
+            List<SubLib> subLibs = SubLib.ParseSubLib(locationXml, true);
+
+            //上次选中的打上勾
+            if (String.IsNullOrEmpty(sessionInfo.ActiveUser.selLocation) == false)
+            {
+                string selLocation = SubLib.ParseToSplitByComma(sessionInfo.ActiveUser.selLocation);
+                if (selLocation != "")
+                {
+                    string[] selLocList = selLocation.Split(new char[] { ',' });
+                    foreach (SubLib subLib in subLibs)
+                    {
+                        foreach (Location loc in subLib.Locations)
+                        {
+                            string locPath = subLib.libCode + "/" + loc.Name;
+                            if (selLocList.Contains(locPath) == true)
+                            {
+                                subLib.Checked = "checked";
+                                loc.Checked = "checked";
+                            }
+                        }
+                    }
+                }
+                // end
+            }
+
+            // todo 其实，可以用一个字段来表示馆藏地和选中的项，就量在xml的字段中加checked属性，
+            // 但如果服务器更新了，刷的时候就全部覆盖了。
+            // 现在还没做到服务器更新后，自动刷过来
+
+
+            ViewBag.libList = subLibs;
+            ViewBag.verifyBarcode = "";
+            if (sessionInfo.ActiveUser != null && sessionInfo.ActiveUser.verifyBarcode == 1)
+            {
+                ViewBag.verifyBarcode = "checked";
+            }
+
+            ViewBag.audioType = 1;
+            if (sessionInfo.ActiveUser != null && sessionInfo.ActiveUser.audioType > 0)
+            {
+                ViewBag.audioType = sessionInfo.ActiveUser.audioType;
+            }
+
+            return View();
+
+        }
+
+
+        #region 二维码 图片
+
+        // 二维码
+        public ActionResult QRcode(string code, string state)
+        {
+            string strError = "";
+            int nRet = 0;
+
+            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
+            // -1 出错
+            // 0 成功
+            nRet = this.GetSessionInfo(code, state,
+                out SessionInfo sessionInfo,
+                out strError);
+            if (nRet == -1)
+            {
+                ViewBag.Error = strError;
+                return View();
+            }
+
+            // 当前帐号不存在，尚未选择图书馆
+            if (sessionInfo.ActiveUser == null)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Patron/QRcode");
+                return View();
+            }
+
+            if (sessionInfo.ActiveUser != null
+                && sessionInfo.ActiveUser.type != WxUserDatabase.C_Type_Patron)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("二维码", "/Patron/QRcode");
+                return View();
+            }
+
+
+            string strXml = "";
+            string patronBarcode = "";
+            string recPath = "";
+            nRet = this.GetReaderXml(sessionInfo.ActiveUser,
+               out strXml,
+               out recPath,
+               out strError);
+            if (nRet == -1)
+            {
+                ViewBag.Error = strError;
+                return View();
+            }
+
+            string warn = "";
+            string qrcodeUrl = "";
+            if (String.IsNullOrEmpty(warn) == true)
+            {
+                qrcodeUrl = "./getphoto?libId=" + HttpUtility.UrlEncode(sessionInfo.ActiveUser.libId)
+                     + "&type=pqri"
+                     + "&barcode=" + HttpUtility.UrlEncode(sessionInfo.ActiveUser.readerBarcode);
+                //+ "&width=400&height=400";
+            }
+            ViewBag.qrcodeUrl = qrcodeUrl;
+
+
+            return View(sessionInfo.ActiveUser);
+        }
+
+        // 图片
+        public ActionResult GetPhoto(string code, string state, string libId, string type, string barcode, string objectPath)
+        {
+            MemoryStream ms = new MemoryStream(); ;
+            string strError = "";
+            int nRet = 0;
+
+            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
+            // -1 出错
+            // 0 成功
+            nRet = this.GetSessionInfo(code, state,
+                out SessionInfo sessionInfo,
+                out strError);
+            if (nRet == -1)//???为什么要做这一句 2020-2-8 && ViewBag.LibState != LibraryManager.C_State_Hangup1)
+            {
+                goto ERROR1;
+            }
+
+
+            // 读者二维码
+            if (type == "pqri")
+            {
+                // 设置媒体类型
+                Response.ContentType = "image/jpeg";
+
+                // 获得读者证号二维码字符串
+                string strCode = "";
+                nRet = dp2WeiXinService.Instance.GetQRcode(libId,
+                    barcode,
+                    out strCode,
+                    out strError);
+                if (nRet == -1 || nRet == 0)
+                    goto ERROR1;
+
+                // 获得二维码图片
+                string strWidth = Request.QueryString["width"];
+                string strHeight = Request.QueryString["height"];
+                int nWidth = 0;
+                if (string.IsNullOrEmpty(strWidth) == false)
+                {
+                    if (Int32.TryParse(strWidth, out nWidth) == false)
+                    {
+                        strError = "width 参数 '" + strWidth + "' 格式不合法";
+                        goto ERROR1;
+                    }
+                }
+                int nHeight = 0;
+                if (string.IsNullOrEmpty(strHeight) == false)
+                {
+                    if (Int32.TryParse(strHeight, out nHeight) == false)
+                    {
+                        strError = "height 参数 '" + strHeight + "' 格式不合法";
+                        goto ERROR1;
+                    }
+                }
+                dp2WeiXinService.Instance.GetQrImage(strCode,
+                   nWidth,
+                   nHeight,
+                   Response.OutputStream,
+                   out strError);
+                if (strError != "")
+                    goto ERROR1;
+                return null;
+            }
+
+            // 取头像 或 封面
+            string weixinId = ViewBag.weixinId;
+            nRet = dp2WeiXinService.GetObject0(this, libId, weixinId, objectPath, out strError);
+            if (nRet == -1)
+                goto ERROR1;
+
+            return null;
+
+
+        ERROR1:
+
+            ms = dp2WeiXinService.Instance.GetErrorImg(strError);
+            return File(ms.ToArray(), "image/jpeg");
+        }
+
+        // 资源
+        public ActionResult GetObject(string code, string state, string libId, string uri)
+        {
+            string strError = "";
+            int nRet = 0;
+
+            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
+            // -1 出错
+            // 0 成功
+            nRet = this.GetSessionInfo(code, state,
+                out SessionInfo sessionInfo,
+                out strError);
+            if (nRet == -1) //??? 为什么加后面部分 2020-2-8 && ViewBag.LibState != LibraryManager.C_State_Hangup1)
+            {
+                goto ERROR1;
+            }
+
+            //处理 dp2 系统外部的 URL
+            Uri tempUri = dp2WeiXinService.GetUri(uri);
+            if (tempUri != null
+                && (tempUri.Scheme == "http" || tempUri.Scheme == "https"))
+            {
+                return Redirect(uri);
+            }
+
+            string weixinId = ViewBag.weixinId;
+            nRet = dp2WeiXinService.GetObject0(this, libId, weixinId, uri, out strError);
+            if (nRet == -1)
+                goto ERROR1;
+
+            return null;
+
+
+        ERROR1:
+            MemoryStream ms = dp2WeiXinService.Instance.GetErrorImg(strError);
+            return File(ms.ToArray(), "image/jpeg");
         }
 
 

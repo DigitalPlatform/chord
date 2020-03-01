@@ -169,7 +169,7 @@
                 alert("weixinId不能为空。");
                 return;
             }
-            alert(weixinId);
+            //alert(weixinId);
 
 
             //显示等待图层
@@ -197,7 +197,7 @@
 
                     $("#_recPath").text(result.recPath);
 
-                    alert("读者信息提交成功，请 等待管理员审核。");
+                    alert("读者信息提交成功，请等待管理员审核。");
 
                     //清空编辑界面信息,todo
                     $("#txtName").val("");
@@ -207,7 +207,9 @@
                     $("#txtVerifyCode").val("");
                     $("#_verifyCode").text("");
 
-                    var returnUrl = "/Patron/PersonalInfo"; 
+                    var tempBarcode = result.info;
+                    var returnUrl = "/Patron/PatronReview?libId=" + libId + "&patronPath=" + encodeURIComponent(result.recPath);//"/Patron/PersonalInfo"; 
+                    alert(returnUrl);
                     gotoUrl(returnUrl);
                 },
                 function (xhq, textStatus, errorThrown) {

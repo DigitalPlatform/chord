@@ -3930,6 +3930,78 @@ ErrorInfo成员里可能会有报错信息。
 
                 // 给馆员发送微信通知（需要馆员先绑定微信帐户，然后监控本馆消息），
                 // 同时消息也发给打开了监控数字平台工作
+                // 给馆员发消息似乎不用关心是否是web入口
+                // 发送绑定成功的客服消息   
+                {
+                    /*
+                    您好，您有新的读者注册信息待审核。
+                    申请人：任延华
+                    手机号码：13862157150
+                    申请进度：等待审核
+                    申请时间：2020/02/29 15:10
+                    审核通过后，读者才能借还书。
+                     */
+                    string strFirst = "您好，您有新的读者注册信息待审核";
+                    string strRemark = "审核通过后，读者才能借还书。";
+
+                    string strAccount = this.GetFullPatronName(userItem.readerName, 
+                        userItem.readerBarcode, "", "", false);
+                    string fullLibName = this.GetFullLibName(userItem.libName, userItem.libraryCode, "");
+
+                    // todo
+                    GzhCfg gzh = dp2WeiXinService.Instance._gzhContainer.GetDefault();//.GetByAppId(this.AppId);
+                    if (gzh == null)
+                    {
+                        strError = "未找到默认的公众号配置";
+                        return -1;
+                    }
+                    string linkUrl = "";//dp2WeiXinService.Instance.OAuth2_Url_AccountIndex,//详情转到账户管理界面
+                    linkUrl = dp2WeiXinService.Instance.GetOAuth2Url(gzh,
+                        "Patron/PatronReview?libId=" + userItem.libId+"&patronBarcode="+userItem.readerBarcode);
+
+
+                    //// 本人
+                    List<string> bindWeixinIds = new List<string>();
+                    //string tempfullWeixinId = weixinId;//2016-11-16 传进来的weixinId带了@appId // +"@" + appId;
+                    //bindWeixinIds.Add(tempfullWeixinId);
+
+                    // 工作人员
+                    List<WxUserItem> workers = this.GetTraceUsers(libId, userItem.libraryCode);
+
+                    if (bindWeixinIds.Count > 0 || workers.Count > 0)
+                    {
+                        // 不加mask的通知数据
+                        string thisTime = dp2WeiXinService.GetNowTime();
+                        string first_color = "#000000";
+                        ReviewPatronTemplateData msgData = new ReviewPatronTemplateData(strFirst, first_color,
+                            strAccount, userItem.phone, "等待审核", thisTime,
+                            strRemark + " " + fullLibName);
+
+                        //加mask的通知数据
+                        strAccount = this.GetFullPatronName(userItem.readerName, userItem.readerBarcode, "", "", true);//this.markString(userItem.readerName) + " " + this.markString(userItem.readerBarcode) + "";
+                        ReviewPatronTemplateData maskMsgData = new ReviewPatronTemplateData(strFirst, first_color,
+                            strAccount, userItem.phone, "等待审核", thisTime,
+                            strRemark + " " + fullLibName);
+
+                        // 发送待审核的微信消息
+                        nRet = this.SendTemplateMsg(GzhCfg.C_Template_ReviewPatron,
+                           bindWeixinIds,
+                           workers,
+                           msgData,
+                           maskMsgData,
+                           linkUrl,
+                           "",
+                           out strError);
+                        if (nRet == -1)
+                        {
+                            return -1;
+                        }
+                    }
+                }
+
+
+
+
             }
 
             return 0;
@@ -4518,6 +4590,7 @@ ErrorInfo成员里可能会有报错信息。
             string readerName = "";
             string refID = "";
             string department = "";
+            string phone = "";
 
             string rights = ""; // 权限
             string location = "";
@@ -4546,6 +4619,7 @@ ErrorInfo成员里可能会有报错信息。
                 readerName = patronInfo.readerName;
                 refID = patronInfo.refID;
                 department = patronInfo.department;
+                phone = patronInfo.phone;
                 libraryCode = patronInfo.libraryCode;
                 rights = patronInfo.rights;
                 location = patronInfo.location;
@@ -4659,6 +4733,7 @@ ErrorInfo成员里可能会有报错信息。
             userItem.readerBarcode = readerBarcode;
             userItem.readerName = readerName;
             userItem.department = department;
+            userItem.phone = phone;
             userItem.xml = partonXml;
 
             userItem.refID = refID;
@@ -8703,6 +8778,10 @@ tempRemark);
             return time.ToString("yyyy-MM-dd HH:mm");
         }
 
+        public static string GetNowTime()
+        {
+            return DateTimeToStringNoSec(DateTime.Now);
+        }
 
         /// <summary>
         /// 获得异常信息
@@ -10497,6 +10576,7 @@ tempRemark);
             userItem.readerBarcode = patronInfo.readerBarcode;
             userItem.readerName = patronInfo.readerName;
             userItem.department = patronInfo.department;
+            userItem.phone = patronInfo.phone;
             userItem.xml = patronInfo.xml;
 
             userItem.refID = patronInfo.refID;
@@ -10549,6 +10629,7 @@ tempRemark);
             userItem.readerBarcode = "";
             userItem.readerName = "";
             userItem.department = "";
+            userItem.phone = "";
             userItem.xml = "";
 
             userItem.refID = "";
@@ -10609,6 +10690,12 @@ tempRemark);
             if (node != null)
                 department = DomUtil.GetNodeText(node);
 
+            // 部门
+            string phone = "";
+            node = root.SelectSingleNode("tel");
+            if (node != null)
+                phone = DomUtil.GetNodeText(node);
+
             // 分馆代码
             string libraryCode = "";
             node = root.SelectSingleNode("libraryCode");
@@ -10664,6 +10751,7 @@ tempRemark);
 
             userItem.readerName = readerName;
             userItem.department = department;
+            userItem.phone = phone;
             userItem.refID = refID;
             userItem.libraryCode = libraryCode;
             userItem.xml = xml;
@@ -10984,6 +11072,7 @@ tempRemark);
                 //user.readerBarcode = patronInfo.readerBarcode;
                 user.readerName = patronInfo.readerName;
                 user.department = patronInfo.department;
+                user.phone = patronInfo.phone;
                 user.xml = patronInfo.xml;
                 user.refID = patronInfo.refID;
                 user.libraryCode = patronInfo.libraryCode;

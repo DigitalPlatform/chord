@@ -119,12 +119,13 @@ namespace dp2weixinWeb.ApiControllers
             result.timestamp = outputTimestamp;
 
             // 如果是读者自助注册过来的，需要把注册的这个帐户设置为当前帐户
-            if (string.IsNullOrEmpty(weixinId) ==false)
+            if (string.IsNullOrEmpty(weixinId) ==false && userItem !=null )
             {
+                result.info = userItem.readerBarcode;
+
                 nRet = ApiHelper.ActiveUser(userItem, out strError);
                 if (nRet == -1)
                 {
-                    result.errorCode = -1;
                     result.errorInfo = strError;
                     return result;
                 }

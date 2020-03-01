@@ -115,6 +115,9 @@ namespace dp2weixin.service
         public const string C_Template_CaoQi = "CaoQi";
         public const string C_Template_CancelReserve = "CancelReserve";
 
+        // 2020-3-1 加
+        public const string C_Template_ReviewPatron = "ReviewPatron";
+
         public GzhCfg(XmlNode node)
         {
             this._node = node;

@@ -72,106 +72,7 @@ namespace dp2weixinWeb.Controllers
             return View(sessionInfo.ActiveUser);
         }
 
-        // 工作人员进行读者登记
-        public ActionResult PatronEdit(string code, string state)
-        {
-            string strError = "";
-            int nRet = 0;
 
-            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
-            // -1 出错
-            // 0 成功
-            nRet = this.GetSessionInfo(code, state,
-                out SessionInfo sessionInfo,
-                out strError);
-            if (nRet == -1)
-            {
-                ViewBag.Error = strError;
-                return View();
-            }
-
-            // 当前帐号不存在，尚未选择图书馆
-            if (sessionInfo.ActiveUser == null)
-            {
-                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state,"/Library/PatronEdit");
-                return View();
-            }
-
-            // 必须是工作人员，且不能为public
-            if (sessionInfo.ActiveUser.type != WxUserDatabase.C_Type_Worker
-                || sessionInfo.ActiveUser.userName == "public")
-            {
-                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("读者登记", "/Library/PatronEdit", true);
-                return View();
-            }
-
-            ViewBag.userName = sessionInfo.ActiveUser.userName;
-
-            // 管理的分馆
-            string[] libraryList = sessionInfo.ActiveUser.libraryCode.Split(new []{','});
-            // 读者类别
-            string types = sessionInfo.ReaderTypes;
-            string typesHtml = "";
-            if (String.IsNullOrEmpty(types) == false)
-            {
-                string[] typeList = types.Split(new char[] { ',' });
-                foreach (string type in typeList)
-                {
-                    // 如果这个类型的分馆 是当前帐户可用的分馆，才列出来
-                    if (sessionInfo.ActiveUser.libraryCode != "")
-                    {
-                        int nIndex = type.LastIndexOf("}");
-                        if (nIndex > 0)
-                        {
-                            string left = type.Substring(0, nIndex);
-                            nIndex = left.IndexOf("{");
-                            if (nIndex != -1)
-                            {
-                                left = left.Substring(nIndex + 1);
-
-                                if (libraryList.Contains(left) == true)
-                                {
-                                    typesHtml += "<option value='" + type + "'>" + type + "</option>";
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        typesHtml += "<option value='" + type + "'>" + type + "</option>";
-                    }
-                }
-            }
-
-            typesHtml = "<select id='selReaderType' name='selReaderType' class='selArrowRight'>"
-                    +"<option value=''>请选择</option>"
-                    + typesHtml
-                    + "</select>";
-
-            ViewBag.readerTypeHtml = typesHtml;
-            
-            // 目标数据库
-            string dbs=sessionInfo.ReaderDbnames;
-            string dbsHtml = "";
-            if (String.IsNullOrEmpty(dbs) == false)
-            {
-                string[] dbList = dbs.Split(new char[] { ',' });
-                foreach (string db in dbList)
-                {
-                    dbsHtml += "<option value='" + db + "'>" + db + "</option>";
-                }
-            }
-            if (dbsHtml != "")
-            {
-                dbsHtml = "<select id='selDbName' name='selDbName' class='selArrowRight'>"
-                    + "<option value=''>请选择</option>"
-                    + dbsHtml
-                    + "</select>";
-            }
-            ViewBag.readerDbnamesHtml = dbsHtml;
-
-            return View();
-        }
 
 
         public ActionResult Message(string code, string state)
@@ -203,7 +104,6 @@ namespace dp2weixinWeb.Controllers
             List<UserMessageItem> list =  UserMessageDb.Current.GetByUserId(sessionInfo.ActiveUser.weixinId);
             return View(list);
         }
-
 
 
         // 借还窗

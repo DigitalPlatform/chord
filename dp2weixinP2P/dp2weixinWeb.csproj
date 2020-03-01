@@ -357,7 +357,7 @@
     <Content Include="Views\Shared\_LayoutEmpty.cshtml" />
     <Content Include="Views\Library\Charge2.cshtml" />
     <Content Include="Views\UI\CtrlDemo.cshtml" />
-    <Content Include="Views\Library\PatronEdit.cshtml" />
+    <Content Include="Views\Patron\PatronEdit.cshtml" />
     <Content Include="Views\Patron\SelectLib.cshtml" />
     <Content Include="Views\UI\AudioTest.cshtml" />
     <Content Include="Views\Library\Circulate.cshtml" />
@@ -366,7 +366,8 @@
     <Content Include="Views\Biblio\ViewPDF-V.cshtml" />
     <Content Include="Scripts\jquery-3.4.1.slim.min.map" />
     <Content Include="Scripts\jquery-3.4.1.min.map" />
-    <Content Include="Views\Patron\NewPatron.cshtml" />
+    <Content Include="Views\Patron\PatronRegister.cshtml" />
+    <Content Include="Views\Patron\PatronReview.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
