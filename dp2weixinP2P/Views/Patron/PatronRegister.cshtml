@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = "NewPatron";
+    ViewBag.Title = "PatronRegister";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 @section header {
@@ -87,7 +87,7 @@
                     $("#_verifyCode").text(result.verifyCode);
 
 
-                    alert("短信验证码已发送到您手机号，请查收。" + result.verifyCode);  //todo正式版本删除码提示
+                    alert("短信验证码已发送到您手机号，请查收。";// + result.verifyCode);  //todo正式版本删除码提示
 
                 }, function (xhq, textStatus, errorThrown) {
                     // 关闭等待层
@@ -299,7 +299,7 @@ else
 
             <div class="mui-input-row ">
                 <label id="lblTel" style="color:#cccccc">手机号</label>
-                <input id='txtTel' type="text" class="mui-input mui-input-clear" value="13862157150">
+                <input id='txtTel' type="text" class="mui-input mui-input-clear" value="">
             </div>
 
             <table style="width:100%;border:none">

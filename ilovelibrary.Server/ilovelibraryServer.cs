@@ -1412,7 +1412,7 @@ namespace ilovelibrary.Server
 
                     // 书目摘要
                     string strSummary = "";
-                    if (entity.ErrorCode != ErrorCode.NoError)
+                    if (string.IsNullOrEmpty(entity.ErrorInfo) ==false)//entity.ErrorCode != ErrorCode.NoError)
                     {
                         strSummary = entity.ErrorInfo;
                     }

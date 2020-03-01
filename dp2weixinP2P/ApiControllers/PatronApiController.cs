@@ -149,7 +149,7 @@ namespace dp2weixinWeb.ApiControllers
             string tel)
         {
             GetVerifyCodeResult result = new GetVerifyCodeResult();
-            result.verifyCode = "7";
+            //result.verifyCode = "7";
 
             string error = "";
             int nRet = dp2WeiXinService.Instance.GetVerifyCode(libId,
