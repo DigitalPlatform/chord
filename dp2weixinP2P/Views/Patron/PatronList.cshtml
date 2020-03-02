@@ -62,7 +62,7 @@ else
 
         foreach (dp2weixin.service.Patron patron in Model)
         {
-            string url = "/Patron/PatronReview?libId=" + ViewBag.LibId 
+            string url = "../Patron/PatronReview?libId=" + ViewBag.LibId 
                 + "&patronLibCode=" + HttpUtility.UrlEncode(patron.libraryCode) 
                 + "&patronPath=" + HttpUtility.UrlEncode(patron.recPath)
                 +"&f=list";

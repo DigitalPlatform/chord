@@ -88,7 +88,7 @@
             // 新增读者的记录路径,这里是写死的，要改为配置的数据库名称todo
             var recPath = $("#_recPath").text();//"读者/?";
             if (recPath == "") {
-                alert("尚未配置读者数据库名称，请联系管理员。");
+                alert("尚未配置读者数据库，请联系管理员。");
                 return;
             }
             //alert(recPath);
@@ -143,7 +143,7 @@
                 alert("异常：weixinId不能为空。");
                 return;
             }
-            alert(weixinId);
+            //alert(weixinId);
 
 
             //显示等待图层

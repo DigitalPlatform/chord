@@ -69,6 +69,10 @@ namespace DongshifangMessageInterface
                 if (nRet <= 0)
                 {
                     strError = "发送出错，错误码 [" + nRet.ToString() + "]，错误信息:" + strError;
+                    if (nRet == -4)
+                    {
+                        strError = "手机号无法识别。";
+                    }
                     return -1;
                 }
 
