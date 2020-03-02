@@ -3926,22 +3926,22 @@ ErrorInfo成员里可能会有报错信息。
             {
                 string bindLibraryCode = patron.libraryCode;
 
-                // 注，这里必须得重新获取一下，上面返回的outputPatronXml没有返回分馆代码 2020-3-1
-                LoginInfo loginInfo1 = new LoginInfo("", false);
-                string strXml = "";
-                string word = "@path:" + outputRecPath;
-                string tempPath = "";
-                string tempTimestamp = "";
-                 nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
-                    loginInfo1,
-                    word,
-                    "xml",
-                    out tempPath,
-                    out tempTimestamp,
-                    out strXml,
-                    out strError);
-                if (nRet == -1 || nRet == 0)
-                    return -1;
+                //// 注，这里必须得重新获取一下，上面返回的outputPatronXml没有返回分馆代码 2020-3-1
+                //LoginInfo loginInfo1 = new LoginInfo("", false);
+                //string strXml = "";
+                //string word = "@path:" + outputRecPath;
+                //string tempPath = "";
+                //string tempTimestamp = "";
+                // nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
+                //    loginInfo1,
+                //    word,
+                //    "xml",
+                //    out tempPath,
+                //    out tempTimestamp,
+                //    out strXml,
+                //    out strError);
+                //if (nRet == -1 || nRet == 0)
+                //    return -1;
 
                 // 要使用返回的读者信息，因为前端组装的xml没有refID
                 nRet = this.SaveUserToLocal1(weixinId,
@@ -3949,7 +3949,7 @@ ErrorInfo成员里可能会有报错信息。
                     bindLibraryCode,
                     C_TYPE_READER,
                     outputRecPath,
-                    strXml,//outputPatronXml,
+                    outputPatronXml,
                     "new",
                     out userItem,
                     out strError);
@@ -4105,42 +4105,42 @@ ErrorInfo成员里可能会有报错信息。
                 foreach (Record record in result.Records)// int i = 0; i < result.ResultCount; i++)
                 {
 
-                    id = Guid.NewGuid().ToString();
-                    request = new SearchRequest(id,
-                       loginInfo,
-                       "getPatronInfo",
-                       "",
-                       "@path:" + this.GetPurePath(record.RecPath),//patronBarocde,
-                       "",
-                       "",
-                       "",
-                       "xml",
-                       1,
-                       0,
-                       -1);
+                    //id = Guid.NewGuid().ToString();
+                    //request = new SearchRequest(id,
+                    //   loginInfo,
+                    //   "getPatronInfo",
+                    //   "",
+                    //   "@path:" + this.GetPurePath(record.RecPath),//patronBarocde,
+                    //   "",
+                    //   "",
+                    //   "",
+                    //   "xml",
+                    //   1,
+                    //   0,
+                    //   -1);
 
-                    result = connection.SearchTaskAsync(
-                       lib.capoUserName,
-                       request,
-                       new TimeSpan(0, 0, 15),  //改为15秒
-                       cancel_token).Result;
+                    //result = connection.SearchTaskAsync(
+                    //   lib.capoUserName,
+                    //   request,
+                    //   new TimeSpan(0, 0, 15),  //改为15秒
+                    //   cancel_token).Result;
 
-                    if (result.ResultCount == -1)
-                    {
-                        strError = "图书馆 " + lib.libName + " 获取读者记录出错:" + result.ErrorInfo;
-                        return -1;
-                    }
-                    if (result.ResultCount == 0)
-                    {
-                        strError = result.ErrorInfo;
-                        return 0;
-                    }
-
-
-                    string xml = result.Records[0].Data;
+                    //if (result.ResultCount == -1)
+                    //{
+                    //    strError = "图书馆 " + lib.libName + " 获取读者记录出错:" + result.ErrorInfo;
+                    //    return -1;
+                    //}
+                    //if (result.ResultCount == 0)
+                    //{
+                    //    strError = result.ErrorInfo;
+                    //    return 0;
+                    //}
 
 
-                    // string xml = record.Data;
+                    //string xml = result.Records[0].Data;
+
+
+                     string xml = record.Data;
 
                     Patron patron = this.ParsePatronXml(libId,
                          xml,
