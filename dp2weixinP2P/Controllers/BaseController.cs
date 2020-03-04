@@ -13,6 +13,21 @@ namespace dp2weixinWeb.Controllers
 {
     public class BaseController : Controller
     {
+        public int GetSessionInfo(string code,
+    string state,
+    out SessionInfo sessionInfo,
+    out string strError,
+    string myWeixinId = "")
+        {
+            return this.GetSessionInfo2(code,
+                state,
+                true,
+                out sessionInfo,
+                out strError,
+                myWeixinId);
+        
+        }
+
         /// <summary>
         /// 获取当前sessionInfo
         /// </summary>
@@ -28,8 +43,9 @@ namespace dp2weixinWeb.Controllers
         /// -1 出错
         /// 0 成功
         /// </returns>
-        public int GetSessionInfo(string code,
+        public int GetSessionInfo2(string code,
             string state,
+            bool isCheckLibState,
             out SessionInfo sessionInfo,
             out string strError,
             string myWeixinId = "")
@@ -68,6 +84,7 @@ namespace dp2weixinWeb.Controllers
                         state,
                         myWeixinId,
                         sessionInfo,
+                        isCheckLibState,
                         out strError);
                     if (nRet == -1)
                         return -1;
@@ -78,6 +95,7 @@ namespace dp2weixinWeb.Controllers
                     nRet = WhenNoSession(code,
                         state,
                         myWeixinId,
+                        isCheckLibState,
                         out sessionInfo,
                         out strError);
                     if (nRet == -1)
@@ -111,6 +129,7 @@ namespace dp2weixinWeb.Controllers
             string state,
             string myWeixinId,
             SessionInfo sessionInfo,
+            bool isCheckLibState,
             out string strError)
         {
             int nRet = 0;
@@ -191,7 +210,7 @@ namespace dp2weixinWeb.Controllers
                 dp2WeiXinService.Instance.WriteDebug("GetActive/WhenHasSession-4--如果经过前面的判断和设置，session中活动帐号依然存在，根据session初始化ViewBag");
 
                 // 初始化 viewbag 
-                nRet = this.InitViewBag(sessionInfo, out strError);
+                nRet = this.InitViewBag(sessionInfo, isCheckLibState, out strError);
                 if (nRet == -1)
                     return -1;
 
@@ -220,7 +239,7 @@ namespace dp2weixinWeb.Controllers
                 return -1;
 
             // 初始化 viewbag
-            nRet = this.InitViewBag(sessionInfo, out strError);
+            nRet = this.InitViewBag(sessionInfo, isCheckLibState,out strError);
             if (nRet == -1)
                 return -1;
 
@@ -244,6 +263,7 @@ namespace dp2weixinWeb.Controllers
         private int WhenNoSession(string code,
             string state,
             string myWeixinId,
+            bool isCheckLibState,
             out SessionInfo sessionInfo,
             out string strError)
         {
@@ -288,7 +308,7 @@ namespace dp2weixinWeb.Controllers
                 return -1;
 
             // 初始化 viewbag
-            nRet = this.InitViewBag(sessionInfo, out strError);
+            nRet = this.InitViewBag(sessionInfo, isCheckLibState,out strError);
             if (nRet == -1)
                 return -1;
 
@@ -401,6 +421,7 @@ namespace dp2weixinWeb.Controllers
         /// 0 成功
         /// </returns>
         private int InitViewBag(SessionInfo sessionInfo,
+            bool isCheckLibState,
             out string strError)
         {
             strError = "";
@@ -495,8 +516,9 @@ namespace dp2weixinWeb.Controllers
             ViewBag.showCover = sessionInfo.ActiveUser.showCover;
 
             ViewBag.LibState = sessionInfo.CurrentLib.IsHangup.ToString();
-            if (sessionInfo.CurrentLib.IsHangup == true)  //checkLibState == true && 
+            if (isCheckLibState == true && sessionInfo.CurrentLib.IsHangup == true)  
             {
+                // 获取服务器不通文字描述
                 string warn = LibraryManager.GetLibHungWarn(sessionInfo.CurrentLib, true);
                 if (string.IsNullOrEmpty(warn) == false)
                 {

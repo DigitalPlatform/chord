@@ -3809,6 +3809,15 @@ ErrorInfo成员里可能会有报错信息。
                     email = "weixinid:" + weixinId;//传入的weixinId带着后缀 + "@" + wxAppId;
                 }
 
+                if (string.IsNullOrEmpty(patron.barcode) == true)
+                {
+                    // 2020-3-5 之前注册的读者帐户是没有证条码的，但有些功能是用代理帐户代替当前帐登录
+                    // 比如借还要知道当前操作者，检索也是传的当前帐户信息，但因为读者注册时的证条码还没有，传的RI:refid
+                    // 但点不对api不认，会报缺证条码，后面又报缺channel.userName，和谢老师语音，要全面支持要入很多地方
+                    // 所以在注册时，还是生成一个随机的guid，让这条记录合规，审核的时候可以不显示
+                    patron.barcode = Guid.NewGuid().ToString().ToUpper();  //注册要大写
+                }
+
                 patronXml = "<root>"
                        + "<barcode>" + patron.barcode + "</barcode>"
                        + "<state>临时</state> "
@@ -5195,13 +5204,7 @@ ErrorInfo成员里可能会有报错信息。
             if (string.IsNullOrEmpty(strWord) == true)
             {
                 strWord = "";
-                //searchRet.apiResult.errorCode = -1;
-                //searchRet.apiResult.errorInfo = "尚未传入检索词";
-                //return searchRet;
             }
-
-            // 测试加的日志
-            //dp2WeiXinService.Instance.WriteErrorLog1("走到SearchBiblio-2-strWord["+strWord+"]");
 
 
             // 未传入检索途径
@@ -5212,15 +5215,10 @@ ErrorInfo成员里可能会有报错信息。
                 return searchRet;
             }
 
-            // 测试加的日志
-            //dp2WeiXinService.Instance.WriteErrorLog1("走到SearchBiblio-3-strFrom[" + strFrom + "]");
-
 
             // 获取访问dp2library的身份
             LoginInfo loginInfo = this.Getdp2AccoutForSearch(weixinId);
 
-            // 测试加的日志
-            //dp2WeiXinService.Instance.WriteErrorLog1("走到SearchBiblio-4-loginInfo[" + loginInfo.UserName + "]"+loginInfo.UserType);
 
 
             string strError = "";
@@ -5525,9 +5523,13 @@ ErrorInfo成员里可能会有报错信息。
             }
         }
 
-        // 20170117
-        // 获取检索使用dp2library的身份
-        // 优先使用绑定的工作人员，再读者，最后public
+
+
+        /// <summary>
+        /// 获取登录身份
+        /// </summary>
+        /// <param name="weixinId"></param>
+        /// <returns></returns>
         private LoginInfo Getdp2AccoutForSearch(string weixinId)
         {
             string userName = "";
@@ -5543,11 +5545,14 @@ ErrorInfo成员里可能会有报错信息。
             {
                 return null;
             }
-            //Debug.Assert(user != null, "此时不应该没有活动帐呈");
+
             if (user.type == WxUserDatabase.C_Type_Patron)
             {
                 isPatron = true;
                 userName = user.readerBarcode;
+
+                // 用refid登录
+                userName = userName.Replace("@refid:", "RI:");
             }
             else
             {

@@ -514,21 +514,6 @@ namespace dp2weixinWeb.Controllers
             string patronXml = "";
             string recPath = "";
 
-            /*
-            SessionInfo sessionInfo = this.GetSessionInfo1();
-            if (sessionInfo == null)
-            {
-                strError = "session失效";
-                goto ERROR1;
-            }
-            nRet = this.InitViewBag(sessionInfo, out strError);
-            if (nRet == -1)
-            {
-                goto ERROR1;
-            }
-
-            WxUserItem activeUserItem = sessionInfo.ActiveUser;
-            */
 
             // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
             // -1 出错
@@ -751,12 +736,13 @@ namespace dp2weixinWeb.Controllers
 
 
             string searchWord = patronBarcode;  //检索不支持@refid，只支持@path:格式
-            if (patronBarcode.Length > 7 && patronBarcode.Substring(0, 7) == "@refid:")
-            {
-                searchWord = "@path:" + activeUser.recPath;
-                // 采用代理帐户
-                loginInfo = new LoginInfo("", false);
-            }
+            // 2020-3-5 读者注册时改为产生临时guid证条码号,所以这是还是用当前帐户身份
+            //if (patronBarcode.Length > 7 && patronBarcode.Substring(0, 7) == "@refid:")
+            //{
+            //    searchWord = "@path:" + activeUser.recPath;
+            //    // 采用代理帐户
+            //    loginInfo = new LoginInfo("", false);
+            //}
 
             // 获取读者记录
             string timestamp = "";
@@ -795,7 +781,8 @@ namespace dp2weixinWeb.Controllers
             // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
             // -1 出错
             // 0 成功
-            nRet = this.GetSessionInfo(code, state,
+            nRet = this.GetSessionInfo2(code, state,
+                false,
                 out SessionInfo sessionInfo,
                 out strError);
             if (nRet == -1)
