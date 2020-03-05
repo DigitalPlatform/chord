@@ -4414,6 +4414,7 @@ ErrorInfo成员里可能会有报错信息。
 
 
             // todo 正常版本打开
+            /*
             //发送短信
             nRet = this.SendSMS("~temp",//patronBarcode,
                tel,
@@ -4422,6 +4423,7 @@ ErrorInfo成员里可能会有报错信息。
                out error);
             if (nRet == -1)
                 return -1;
+            */
 
             return nRet;
         }

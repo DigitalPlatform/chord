@@ -46,7 +46,7 @@
             showMaskLayer();
 
             // setting()
-            var url = "/api/wxuser?weixinId=" + weixinId;
+            var url = "/api/wxuserApi?weixinId=" + weixinId;
             sendAjaxRequest(url, "POST",
                 function (result) {
 
@@ -129,7 +129,7 @@
             showMaskLayer();
 
             // setting()
-            var url = "/api/wxuser?workerId=" + workerId
+            var url = "/api/wxuserApi?workerId=" + workerId
                 + "&tracing=" + tracing;
             //alert(url);
             sendAjaxRequest(url, "POST",
@@ -303,7 +303,7 @@
             showMaskLayer();
 
             //window.setTimeout("hideMaskLayer()", 5000);
-            var url = "/api/wxuser?userId=" + userId
+            var url = "/api/wxuserApi?userId=" + userId
                 + "&locations=" + encodeURIComponent(locations)
             sendAjaxRequest(url, "POST",
                 function (result) {
@@ -351,7 +351,7 @@
             showMaskLayer();
 
             //window.setTimeout("hideMaskLayer()", 5000);
-            var url = "/api/wxuser?userId=" + userId
+            var url = "/api/wxuserApi?userId=" + userId
                 + "&verifyBarcode=" + encodeURIComponent(verifyBarcode)
             sendAjaxRequest(url, "POST",
                 function (result) {
@@ -388,7 +388,7 @@
             showMaskLayer();
 
             //window.setTimeout("hideMaskLayer()", 5000);
-            var url = "/api/wxuser?userId=" + userId
+            var url = "/api/wxuserApi?userId=" + userId
                 + "&audioType=" + encodeURIComponent(audioType)
             sendAjaxRequest(url, "POST",
                 function (result) {

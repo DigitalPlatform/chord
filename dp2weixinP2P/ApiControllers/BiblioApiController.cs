@@ -10,7 +10,7 @@ using System.Web.Http;
 
 namespace dp2weixinWeb.ApiControllers
 {
-    public class BiblioController : ApiController
+    public class BiblioApiController : ApiController
     {
         /// <summary>
         /// 检索

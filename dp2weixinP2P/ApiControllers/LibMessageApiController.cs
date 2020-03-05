@@ -12,7 +12,7 @@ using System.Web;
 
 namespace dp2weixinWeb.ApiControllers
 {
-    public class LibMessageController : ApiController
+    public class LibMessageApiController : ApiController
     {
         public ApiResult GetTemplate(string group,
             string libId,

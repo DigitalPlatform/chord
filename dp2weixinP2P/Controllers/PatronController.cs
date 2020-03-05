@@ -291,7 +291,9 @@ namespace dp2weixinWeb.Controllers
             if (sessionInfo.ActiveUser !=null)
             {
                 List<WxUserItem> patrons = WxUserDatabase.Current.GetPatron(sessionInfo.ActiveUser.weixinId,
-                    sessionInfo.ActiveUser.libId, "");
+                    sessionInfo.ActiveUser.libId, 
+                    sessionInfo.ActiveUser.bindLibraryCode,//这里传的绑定时选择的分馆，对于读者来说bind分馆与自己的分馆是完全一样的。
+                    "");
                 if (patrons.Count > 0)
                 {
                     string bindUrl = "/Account/Index";
@@ -1096,7 +1098,6 @@ namespace dp2weixinWeb.Controllers
 
 
             string strXml = "";
-            string patronBarcode = "";
             string recPath = "";
             nRet = this.GetReaderXml(sessionInfo.ActiveUser,
                out strXml,

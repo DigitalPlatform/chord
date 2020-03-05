@@ -9,7 +9,7 @@ using System.Web.Http;
 
 namespace dp2weixinWeb.ApiControllers
 {
-    public class ChargeCommandController : ApiController
+    public class ChargeCommandApiController : ApiController
     {
         [HttpGet]
         public ChargeCommandResult GetCommands(string libId)

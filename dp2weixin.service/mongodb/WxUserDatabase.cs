@@ -196,6 +196,11 @@ namespace dp2weixin.service
             return this.Get(weixinId, libId, null,C_Type_Patron, readerBarcode,null, true);
         }
 
+        public List<WxUserItem> GetPatron(string weixinId, string libId,string libraryCode, string readerBarcode)
+        {
+            return this.Get(weixinId, libId, libraryCode, C_Type_Patron, readerBarcode, null, true);
+        }
+
         public List<WxUserItem> GetWorkers(string weixinId, string libId, string userName)
         {
             return this.Get(weixinId, libId, null,C_Type_Worker,  null,userName, true);

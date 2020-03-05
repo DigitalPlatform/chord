@@ -685,7 +685,7 @@ main源文件
             //alert(searchText);
 
             //调检索的api
-            var url = "/api/biblio?action=search&searchText=" + encodeURIComponent(searchText) + "&functionType=" + cmdType;
+            var url = "/api/biblioApi?action=search&searchText=" + encodeURIComponent(searchText) + "&functionType=" + cmdType;
             // 调api
             sendAjaxRequest(url, "GET", function (data) {
 

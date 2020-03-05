@@ -8,7 +8,7 @@ using System.Web.Http;
 
 namespace dp2weixinWeb.ApiControllers
 {
-    public class ReservationController : ApiController
+    public class ReservationApiController : ApiController
     {
         
 

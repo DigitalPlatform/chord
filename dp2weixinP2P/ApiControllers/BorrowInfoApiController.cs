@@ -8,7 +8,7 @@ using System.Web.Http;
 
 namespace dp2weixinWeb.ApiControllers
 {
-    public class BorrowInfoController : ApiController
+    public class BorrowInfoApiController : ApiController
     {
 
         //// GET api/<controller>

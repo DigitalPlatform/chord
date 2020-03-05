@@ -193,7 +193,7 @@
             //var index = loadLayer();
             showMaskLayer();
 
-            var url = "/api/LibrarySetting?username=" + wxUserName
+            var url = "/api/LibrarySettingApi?username=" + wxUserName
                 +"&password="+wxPassword;
             sendAjaxRequest(url, "POST", function (result) {
                 // 关闭等待层
@@ -274,7 +274,7 @@
             //var index = loadLayer();
             showMaskLayer();
 
-            var url = "/api/LibrarySetting?username=" + encodeURIComponent(wxUserName)
+            var url = "/api/LibrarySettingApi?username=" + encodeURIComponent(wxUserName)
                 + "&password=" + encodeURIComponent(wxPassword)
             + "&department=" + encodeURIComponent(libName)
             + "&mUsername=" +encodeURIComponent(mUsername) 
@@ -384,7 +384,7 @@
             }
             else {
                 actionType = "PUT";
-                url = "/api/LibrarySetting?id=" + id;
+                url = "/api/LibrarySettingApi?id=" + id;
             }
             //alert("id=["+id+"]");
 
@@ -549,7 +549,7 @@
                 showMaskLayer();
 
                 //GetLibName api
-                var url = "/api/LibrarySetting?capoUserName=" + capo
+                var url = "/api/LibrarySettingApi?capoUserName=" + capo
                 sendAjaxRequest(url, "POST", function (result) {
                     // 关闭等待层
                     //layer.close(index);

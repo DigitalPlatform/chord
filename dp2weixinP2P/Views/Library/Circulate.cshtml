@@ -53,7 +53,7 @@
             // 先删除老数据
 
             // 调web api
-            var url = "/api/ChargeCommand?libId=" + libId;
+            var url = "/api/ChargeCommandApi?libId=" + libId;
             sendAjaxRequest(url, "GET", function (result) {
 
                 // 关闭等待层
@@ -482,7 +482,7 @@
             //显示等待图层
             showLoading();
             // 调校验条码web api
-            var url = "/api/ChargeCommand?libId=" + libId
+            var url = "/api/ChargeCommandApi?libId=" + libId
                 + "&libraryCode=" + encodeURIComponent(libraryCode)
                 + "&userId=" + userId
                 + "&barcode=" + encodeURIComponent(barcode)
@@ -609,7 +609,7 @@
             }
 
             //调 web api
-            var url = "/api/ChargeCommand?weixinId=" + weixinId
+            var url = "/api/ChargeCommandApi?weixinId=" + weixinId
                 + "&libId=" + libId
                 + "&libraryCode=" + encodeURIComponent(libraryCode)
                 + "&needTransfrom=" + needTransfrom

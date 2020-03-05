@@ -118,7 +118,7 @@ function getDetail(libId, recPath, obj, from) {
     //alert("getDetail 2");
 
     // 调GetBiblioDetail  api
-    var url = "/api/biblio?weixinId=" + encodeURIComponent(weixinId)
+    var url = "/api/biblioApi?weixinId=" + encodeURIComponent(weixinId)
         + "&libId=" + encodeURIComponent(libId)
         + "&biblioPath=" + encodeURIComponent(recPath)
         + "&format=table"
@@ -324,8 +324,7 @@ function reservation(obj, barcode, style) {
     //showMaskLayer();
     
 
-    var url = "/api/Reservation"
-        + "?weixinId=" + weixinId
+    var url = "/api/ReservationApi?weixinId=" + weixinId
         + "&libId=" + encodeURIComponent(libId)
         + "&patron=" + encodeURIComponent(patron)
         + "&items=" + encodeURIComponent(paramBarcord)
@@ -435,7 +434,7 @@ function renew(itemBarcode) {
     //var index = loadLayer();
     showLoading();
 
-    var url = "/api/BorrowInfo?libId=" + encodeURIComponent(libId)
+    var url = "/api/BorrowInfoApi?libId=" + encodeURIComponent(libId)
         + "&action=renew"
         + "&patron=" + encodeURIComponent(patronBarcode)
         + "&item=" + encodeURIComponent(paramItemBarcord)
@@ -549,7 +548,7 @@ function fillPending() {
         var libId = o.children("span").text();
 
         // 调GetBiblioSummary api
-        var url = "/api/biblio?id=" + encodeURIComponent(myvalue)
+        var url = "/api/biblioApi?id=" + encodeURIComponent(myvalue)
             + "&format=summary"
             + "&libId=" + encodeURIComponent(libId);
 
@@ -580,7 +579,7 @@ function fillPending() {
         var libId = o.children("span").text();
 
         // 调GetBiblioSummary api
-        var url = "/api/biblio?id=" + encodeURIComponent(myvalue)
+        var url = "/api/biblioApi?id=" + encodeURIComponent(myvalue)
             + "&format=more-summary"
             + "&libId=" + encodeURIComponent(libId);
         //alert(url);
@@ -611,7 +610,7 @@ function fillPending() {
         }
 
         // 调web api
-        var url = "/api/LibMessage?weixinId=" //+ weixinId
+        var url = "/api/LibMessageApi?weixinId=" //+ weixinId
                     + "&group=" + group //gn:_lib_homePage"
                     + "&libId=" + libId
                     + "&msgId="
@@ -814,7 +813,7 @@ function deleteMsg(msgId) {
     //var index = loadLayer();
     showLoading();
 
-    var url = "/api/LibMessage?weixinId="+weixinId
+    var url = "/api/LibMessageApi?weixinId="+weixinId
         + "&libId=" +  encodeURIComponent(libId)
         + "&group=" + encodeURIComponent(group)
         + "&msgId=" + msgId
@@ -1157,7 +1156,7 @@ function save(msgId) {
         return;
     }
 
-    var url = "/api/LibMessage?weixinId="+weixinId
+    var url = "/api/LibMessageApi?weixinId="+weixinId
         + "&group=" + group
         + "&libId=" + libId
         + "&parameters=" + parameters;
@@ -1370,7 +1369,7 @@ function getSubjectHtml(msgId) {
         selSubject = "";
 
     // 调web api
-    var url = "/api/LibMessage?weixinId=" + weixinId
+    var url = "/api/LibMessageApi?weixinId=" + weixinId
         + "&group=" + encodeURIComponent(group)
         + "&libId=" + libId
     + "&selSubject=" + encodeURIComponent(selSubject)
@@ -1506,7 +1505,7 @@ function cancelEdit(msgId) {
     string style)
     */
     // 调web api
-    var url = "/api/LibMessage?weixinId=" + weixinId
+    var url = "/api/LibMessageApi?weixinId=" + weixinId
                 + "&group=" + group
                 + "&libId=" + libId
                 + "&msgId=" + msgId
@@ -1627,7 +1626,7 @@ function gotoEdit(msgId) {
     */
     // 调web api
     // alert("gotoEdit 1");
-    var url = "/api/LibMessage?weixinId=" + weixinId
+    var url = "/api/LibMessageApi?weixinId=" + weixinId
                 + "&group=" + group
                 + "&libId=" + libId
                 + "&msgId=" + msgId
@@ -1740,7 +1739,7 @@ function getTemplate(subject) {
     showMaskLayer();
 
     // 调web api
-    var url = "/api/LibMessage?group=" + encodeURIComponent(group)
+    var url = "/api/LibMessageApi?group=" + encodeURIComponent(group)
         + "&libId=" + libId
     + "&subject=" + encodeURIComponent(subject);
     //alert(url);

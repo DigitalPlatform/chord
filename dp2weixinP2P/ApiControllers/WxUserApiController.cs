@@ -12,7 +12,7 @@ using System.Net.Http.Headers;
 
 namespace dp2weixinWeb.ApiControllers
 {
-    public class WxUserController : ApiController
+    public class WxUserApiController : ApiController
     {
         private WxUserDatabase wxUserDb = WxUserDatabase.Current;
 

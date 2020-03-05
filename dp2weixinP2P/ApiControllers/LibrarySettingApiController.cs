@@ -8,7 +8,7 @@ using System.Web.Http;
 
 namespace dp2weixinWeb.ApiControllers
 {
-    public class LibrarySettingController : ApiController
+    public class LibrarySettingApiController : ApiController
     {
 
         // GET api/<controller>

@@ -19,7 +19,7 @@
             model.wxWorkers.removeAll();
 
             // 调web api
-            var url = "/api/wxuser?weixinId=" + weixinId;
+            var url = "/api/wxuserApi?weixinId=" + weixinId;
             sendAjaxRequest(url, "GET", function (result) {
 
                 // 关闭等待层
@@ -127,7 +127,7 @@
                 name = item.userName;
 
             // 调ActivePatron api
-            var url = "/api/wxuser?weixinId=" + item.weixinId + "&id=" + item.id;
+            var url = "/api/wxuserApi?weixinId=" + item.weixinId + "&id=" + item.id;
             sendAjaxRequest(url, "POST", function () {
 
                 // 因为有可能更新当前图书馆，所以reload保险，todo

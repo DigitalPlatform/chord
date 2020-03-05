@@ -126,7 +126,7 @@
 
 
             // 调web api
-            var url = "/api/wxuser?libId=" + libid + "&type=" + curText;
+            var url = "/api/wxuserApi?libId=" + libid + "&type=" + curText;
             sendAjaxRequest(url, "GET", function (result) {
 
                 // 关闭等待层
@@ -201,7 +201,7 @@
 
         function updateUser(item) {
 
-            var url = "/api/wxuser?userId=" + item.id
+            var url = "/api/wxuserApi?userId=" + item.id
                 + "&infoType=libName";
 
             sendAjaxRequest(url, "POST", function (result) {
@@ -240,7 +240,7 @@
             model.wxUsers.removeAll();
 
             // 调web api
-            var url = "/api/wxuser?actionType=recover";
+            var url = "/api/wxuserApi?actionType=recover";
             sendAjaxRequest(url, "POST", function (result) {
 
                 // 关闭等待层
@@ -287,7 +287,7 @@
             model.wxUsers.removeAll();
 
             // 调web api
-            var url = "/api/wxuser?actionType=addAppId";
+            var url = "/api/wxuserApi?actionType=addAppId";
             sendAjaxRequest(url, "POST", function (result) {
 
                 // 关闭等待层

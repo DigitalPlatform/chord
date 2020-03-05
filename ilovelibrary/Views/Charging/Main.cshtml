@@ -674,7 +674,7 @@
 
             //调检索的api
             var functionType = cmdModel.editor.type();
-            var url = "/api/biblio?action=search&searchText=" + encodeURIComponent(searchText) + "&functionType=" + functionType;
+            var url = "/api/biblioApi?action=search&searchText=" + encodeURIComponent(searchText) + "&functionType=" + functionType;
             // 调api
             sendAjaxRequest(url, "GET", function (data) {
 

@@ -34,10 +34,20 @@
             font-weight: bolder;
         }
 
-        TABLE.personalinfo TR.barcode TD.value {
-            font-weight: bolder;
-            font-size: 14px;
-        }
+            TABLE.personalinfo TR.barcode TD.value {
+                font-weight: bolder;
+                font-size: 14px;
+            }
+
+            TABLE.personalinfo TR.state TD {
+                font-weight: bolder;
+            }
+
+                TABLE.personalinfo TR.state TD.value {
+                    font-weight: bolder;
+                    font-size: 14px;
+                    color: red;
+                }
 
 
         /*===============*/

@@ -267,14 +267,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiControllers\ApiHelper.cs" />
-    <Compile Include="ApiControllers\ChargeCommandController.cs" />
-    <Compile Include="ApiControllers\LibMessageController.cs" />
-    <Compile Include="ApiControllers\BiblioController.cs" />
-    <Compile Include="ApiControllers\BorrowInfoController.cs" />
-    <Compile Include="ApiControllers\LibrarySettingController.cs" />
+    <Compile Include="ApiControllers\ChargeCommandApiController.cs" />
+    <Compile Include="ApiControllers\LibMessageApiController.cs" />
+    <Compile Include="ApiControllers\BiblioApiController.cs" />
+    <Compile Include="ApiControllers\BorrowInfoApiController.cs" />
+    <Compile Include="ApiControllers\LibrarySettingApiController.cs" />
     <Compile Include="ApiControllers\PatronApiController.cs" />
-    <Compile Include="ApiControllers\ReservationController.cs" />
-    <Compile Include="ApiControllers\WxUserController.cs" />
+    <Compile Include="ApiControllers\ReservationApiController.cs" />
+    <Compile Include="ApiControllers\WxUserApiController.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
