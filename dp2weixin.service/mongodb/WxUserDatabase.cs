@@ -24,6 +24,17 @@ namespace dp2weixin.service
         public const int C_State_Temp = 2;
         public const int C_State_disabled = 0;
 
+        // refid前缀，在从mongo库检索时，如果patronBarcode传了@refid前缀，则表示根据refid检索
+        // 比如dp2读者信息发生变化，传过来的消息，从本地mongodb库检索时就只能用refid检索，因为读者证条码号可能变化了。
+        public const string C_Prefix_RefId = "@refid:";
+        public const string C_Prefix_fromWeb = "~~";
+
+        // 读者状态
+        public const string C_PatronState_TodoReview = "待审核";
+        public const string C_PatronState_Pass= "";
+        public const string C_PatronState_NoPass = "不通过";
+
+
         /// <summary>
         /// 单一静态实例,饿汉模式
         /// </summary>
@@ -115,14 +126,11 @@ namespace dp2weixin.service
         {
             var filter = Builders<WxUserItem>.Filter.Empty;
 
-            //dp2WeiXinService.Instance.WriteLog1("走进WxUserDatabase.Get()");
-
             StringBuilder info = new StringBuilder();
+
             if (bOnlyAvailable == true) // 只取有效的
             {
                 filter = filter & Builders<WxUserItem>.Filter.Eq("state", C_State_Available);
-
-                //info.Append(" state = " + C_State_Available);
             }
 
             if (string.IsNullOrEmpty(weixinId) == false)
@@ -142,12 +150,13 @@ namespace dp2weixin.service
 
             if (string.IsNullOrEmpty(libraryCode) == false)
             {
+                if (libraryCode == "空")
+                    libraryCode = "";
+
                 filter = filter & Builders<WxUserItem>.Filter.Eq("bindLibraryCode", libraryCode);
 
                 //info.Append(" libId=" + libId);
             }
-
-            
 
             if (type != -1)
             {
@@ -158,9 +167,21 @@ namespace dp2weixin.service
 
             if (string.IsNullOrEmpty(patronBarcode) == false)
             {
-                filter = filter & Builders<WxUserItem>.Filter.Eq("readerBarcode", patronBarcode);
-
-                //info.Append(" readerBarcode=" + patronBarcode);
+                //2020/3/7 当读者信息更新，外面传的@refid:xxx，这里要根据refID来检索
+                // 例如读者先注册，分配的是一个临时号码，馆员审核后，分配了一个正式号码，
+                // 这时读者记录发生修改，dp2library会给公众号发送一个读者信息变更的消息。就需要用refid来检索
+                string refId = "";
+                bool bRefId = WxUserDatabase.CheckIsRefId(patronBarcode,out refId);
+                if (bRefId == true)
+                {
+                    filter = filter & Builders<WxUserItem>.Filter.Eq("refID", refId);
+                    //info.Append(" refID=" + refId);
+                }
+                else
+                {
+                    filter = filter & Builders<WxUserItem>.Filter.Eq("readerBarcode", patronBarcode);
+                    //info.Append(" readerBarcode=" + patronBarcode);
+                }
             }
 
             if (string.IsNullOrEmpty(userName) == false)
@@ -170,22 +191,51 @@ namespace dp2weixin.service
                 //info.Append(" userName=" + userName);
             }
 
-            //dp2WeiXinService.Instance.WriteLog1(info.ToString());
 
 
             List<WxUserItem> list = this.wxUserCollection.Find(filter).ToList();
-            //dp2WeiXinService.Instance.WriteLog1("共命中" + list.Count.ToString() + "个对象");
 
-
-
+            //dp2WeiXinService.Instance.WriteDebug("检索条件["+info.ToString()+"]，命中数量["+list.Count.ToString()+"]");
 
 
 
             return list;
         }
 
-        // 获取有效的绑定账户
-        public List<WxUserItem> Get(string weixinId, string libId, int type)
+
+
+        /// <summary>
+        /// 检查传进来的条码是不是refid
+        /// 用于从mongodb库检索读者的函数
+        /// </summary>
+        /// <param name="barcode"></param>
+        /// <param name="refiId"></param>
+        /// <returns></returns>
+        public static bool CheckIsRefId(string barcode,out string refiId)
+        {
+            refiId = "";
+
+            if (barcode.Length > 7 && barcode.Substring(0, 7) == C_Prefix_RefId)
+            {
+                refiId = barcode.Substring(7);
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool CheckIsFromWeb(string weixinId)
+        {
+            if (weixinId.Length >= 2 && weixinId.Substring(0, 2) == C_Prefix_fromWeb)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+            // 获取有效的绑定账户
+            public List<WxUserItem> Get(string weixinId, string libId, int type)
         {
             return this.Get(weixinId, libId,null,type,null,null, true);
         }
@@ -201,9 +251,14 @@ namespace dp2weixin.service
             return this.Get(weixinId, libId, libraryCode, C_Type_Patron, readerBarcode, null, true);
         }
 
-        public List<WxUserItem> GetWorkers(string weixinId, string libId, string userName)
+        public List<WxUserItem> GetWorkers1(string weixinId, string libId, string userName)
         {
-            return this.Get(weixinId, libId, null,C_Type_Worker,  null,userName, true);
+            return this.Get(weixinId, libId, null, C_Type_Worker, null, userName, true);
+        }
+
+        public List<WxUserItem> GetWorkers2(string weixinId, string libId, string libraryCode, string userName)
+        {
+            return this.Get(weixinId, libId, libraryCode, C_Type_Worker,  null,userName, true);
         }
 
 
@@ -335,6 +390,9 @@ namespace dp2weixin.service
             userItem.readerName = "";
             userItem.department = "";
             userItem.phone = "";
+            userItem.patronState = ""; //2020-3-7加
+            userItem.isRegister = false;
+
             userItem.xml = "";
             userItem.refID = "";
             userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
@@ -350,7 +408,7 @@ namespace dp2weixin.service
             userItem.selLocation = "";
             userItem.verifyBarcode = 0;
             userItem.audioType = 4;
-            userItem.state = 1;
+            userItem.state = WxUserDatabase.C_State_Available; //1;
             userItem.remark = "";
             userItem.rights = "";
             userItem.showCover = 1;
@@ -639,6 +697,8 @@ namespace dp2weixin.service
                 .Set("readerName", item.readerName)
                 .Set("department", item.department)
                 .Set("phone", item.phone)
+                .Set("patronState", item.patronState)  // 2020-3-7 读者状态
+                .Set("isRegister", item.isRegister)  //2020-3-7 是否读者自助注册的
                 .Set("xml", item.xml)
                 .Set("recPath", item.recPath)
 
@@ -729,6 +789,10 @@ namespace dp2weixin.service
         public string department { get; set; }  //部门，二维码下方显示 // 2016-6-16 新增
 
         public string phone { get; set; } // 读者手机号 2020-3-1 新增
+        public string patronState { get; set; }  // 2020-3-7 读者状态，读者注册提交后是待审核
+
+        // 是否是读者自助注册的
+        public bool isRegister = false;   // 1表示是读者自助注册的
 
         // 读者记录xml
         public string xml { get; set; }        
@@ -803,8 +867,6 @@ namespace dp2weixin.service
         // 借还时语音方案
         public int audioType { get; set; }
 
-
-
         // 从setting表移来的字段
         public int showPhoto { get; set; }
         public int showCover { get; set; }
@@ -823,6 +885,8 @@ namespace dp2weixin.service
             sb.AppendLine("readerName=[" + this.readerName + "] ");
             sb.AppendLine("department=[" + this.department + "] ");
             sb.AppendLine("phone=[" + this.phone + "] ");
+            sb.AppendLine("patronState=[" + this.patronState + "] ");  //2020-3-7
+            sb.AppendLine("isRegister=[" + this.isRegister + "] ");  // 2020-3-7
             sb.AppendLine("refID=[" + this.refID + "] ");
             sb.AppendLine("isActive=[" + this.isActive + "] ");
             sb.AppendLine("userName=[" + this.userName + "] ");

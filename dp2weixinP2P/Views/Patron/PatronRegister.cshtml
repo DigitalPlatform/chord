@@ -209,6 +209,11 @@
             );
         }
 
+        function setdept(dept) {
+            $("#txtDepartment").val(dept);
+
+            //alert("test-"+$("#txtDepartment").val());
+        }
 
     </script>
 }
@@ -263,8 +268,11 @@ else
                 </select>
             </div>
 
-            <div class="mui-input-row ">
+            <div class="mui-input-row selArrowRightContainer">
                 <label id="lblDepartment" style="color:#cccccc">部门</label>
+                <select id="selDept"  name="selDept" class='selArrowRight' onchange="setdept(this.value)">
+                    @Html.Raw(ViewBag.deptHtml)
+                </select>
                 <input id='txtDepartment' type="text" class="mui-input mui-input-clear">
             </div>
 

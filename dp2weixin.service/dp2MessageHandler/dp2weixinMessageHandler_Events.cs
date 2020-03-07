@@ -18,6 +18,7 @@ namespace dp2weixin
     /// </summary>
     public partial class dp2weixinMessageHandler : MessageHandler<dp2weixinMessageContext>
     {
+        /*
         /// <summary>
         /// 订阅（关注）事件
         /// </summary>
@@ -39,6 +40,7 @@ namespace dp2weixin
                 + "\r\n3) 点击 <a href='" + accountIndex + "'>绑定账户</a>，完成绑定。";
             return this.CreateTextResponseMessage(strMessage);
         }
+        */
 
         /// <summary>
         /// 自定义菜单点击事件

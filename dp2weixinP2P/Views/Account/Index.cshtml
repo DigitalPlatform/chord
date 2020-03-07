@@ -85,7 +85,7 @@
             showMaskLayer();
 
             //alert("remove-"+item.libId);
-            var url = "/api/wxuser/" + item.id;
+            var url = "/api/wxuserApi/" + item.id;
             sendAjaxRequest(url, "DELETE", function (result) {
 
                 // 关闭等待层

@@ -47,11 +47,17 @@ namespace dp2weixin.service
                         string name = DomUtil.GetAttr(libNode, "name");
                         string libraryCode = DomUtil.GetAttr(libNode, "libraryCode");
                         string patronDbName = DomUtil.GetAttr(libNode, "patronDbName");
+
+                        //2020-3-6 增加部门配置，方便读者注册时选择
+                        string departments = DomUtil.GetAttr(libNode, "departments"); 
+
+
                         LibModel lib = new LibModel();
                         lib.libId = id;
                         lib.name = name;
                         lib.libraryCode = libraryCode;
                         lib.patronDbName = patronDbName; //2020-2-29 读者注册对应的读者库
+                        lib.departments = departments;//2020-3-6
 
                         area.libs.Add(lib);
                     }
@@ -114,6 +120,7 @@ namespace dp2weixin.service
                         + " name='" + lib.name + "'"
                         + " libraryCode='" + lib.libraryCode + "'"
                         + " patronDbName='" + lib.patronDbName + "'"
+                        + " departments='"+lib.departments+"'"
                         + " />";
                 }
                 xml += "</area>";
@@ -185,6 +192,31 @@ namespace dp2weixin.service
             }
             return null;
         }
+
+        /// <summary>
+        /// 获取配置的部门 2020-3-6
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="libraryCode"></param>
+        /// <returns></returns>
+        public List<string> GetDeptartment(string id, string libraryCode)
+        {
+            List<string> deptList = new List<string>();
+            LibModel lib = this.GetLibCfg(id, libraryCode);
+            if (lib != null)
+            {
+                string[] depts = lib.departments.Trim().Split(new char[] {','});
+                foreach (string dept in depts)
+                {
+                    string temp = dept.Trim();
+                    if (temp == "")
+                        continue;
+
+                    deptList.Add(dept);
+                }
+            }
+            return deptList;
+        }
     }
 
     public class Area
@@ -216,7 +248,9 @@ namespace dp2weixin.service
         // 2020-2-29任延华
         // 读者自助注册读者帐户时，对应的读者库
         // 这个配置还只能放在libcfg配置文件中，因为每个分馆的读者库不同，不能定义在图书馆实例的mongodb表中
-        public string patronDbName = "";  
+        public string patronDbName = "";
+
+        public string departments = "";
 
         // 对应的capo帐户
         public string capoUser = "";

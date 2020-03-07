@@ -169,6 +169,22 @@ namespace dp2weixin.service
     }
 
     /*
+尊敬的用户：您好！您提交的书柜帐户注册信息已审核完成。
+申请人：张三
+手机号码：13866668888
+审核结果：通过
+感谢你的使用，您现在可以用手机二维码到智能书柜借书了。
+     */
+    public class ReviewResultTemplateData : Template3Data
+    {
+        public ReviewResultTemplateData(string first, string first_color,
+            string k1, string k2, string k3,
+            string remark)
+            : base(first, first_color, k1, k2, k3, remark)
+        { }
+    }
+
+    /*
 超期图书停借期满
 书刊名称：剪面包的男孩
 到期事项：B000001,B000002

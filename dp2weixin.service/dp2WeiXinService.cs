@@ -927,7 +927,7 @@ namespace dp2weixin.service
             //===数据处理消息================
             if (strType == "工作人员账户变动")
             {
-                //nRet = this.UpdateWorker(lib, bodyDom, out strError);
+                nRet = this.UpdateWorker(lib, bodyDom, out strError);
                 return 0;// nRet;
             }
             if (strType == "读者记录变动")
@@ -1457,6 +1457,10 @@ namespace dp2weixin.service
             // 从内存中查找
             foreach (WxUserItem tUser in this.TracingOnUserList)
             {
+                // web入口的weixin不用发通知
+                if (tUser.weixinId.Length > 2 && tUser.weixinId.Substring(0, 2) == "~~")
+                    continue;
+
                 // 数字平台工作人员
                 if (tUser.IsdpAdmin == true)
                 {
@@ -3820,7 +3824,7 @@ ErrorInfo成员里可能会有报错信息。
 
                 patronXml = "<root>"
                        + "<barcode>" + patron.barcode + "</barcode>"
-                       + "<state>临时</state> "
+                       + "<state>"+WxUserDatabase.C_PatronState_TodoReview+"</state> "
                        + "<readerType>" + patron.readerType + "</readerType>"
                        + "<name>" + patron.name + "</name>"
                        + "<gender>" + patron.gender + "</gender>"
@@ -3935,6 +3939,7 @@ ErrorInfo成员里可能会有报错信息。
             {
                 string bindLibraryCode = patron.libraryCode;
 
+                // 2020-3-2新版本直接使用接口返回的信息，带了libraryCode
                 //// 注，这里必须得重新获取一下，上面返回的outputPatronXml没有返回分馆代码 2020-3-1
                 //LoginInfo loginInfo1 = new LoginInfo("", false);
                 //string strXml = "";
@@ -3960,6 +3965,7 @@ ErrorInfo成员里可能会有报错信息。
                     outputRecPath,
                     outputPatronXml,
                     "new",
+                    true,
                     out userItem,
                     out strError);
                 if (nRet == -1)
@@ -3983,9 +3989,10 @@ ErrorInfo成员里可能会有报错信息。
                     string strFirst = "您好，您有新的读者注册信息待审核";
                     string strRemark = "审核通过后，读者才能借还书。";
 
-                    string strAccount = this.GetFullPatronName(userItem.readerName, 
-                        userItem.readerBarcode, "", "", false);
-                    string fullLibName = this.GetFullLibName(userItem.libName, userItem.libraryCode, "");
+                    //string strAccount = this.GetFullPatronName(userItem.readerName, 
+                    //    userItem.readerBarcode, "", "", false);
+                    string strAccount = userItem.readerBarcode;
+                   // string fullLibName = this.GetFullLibName(userItem.libName, userItem.libraryCode, "");
 
                     // todo
                     GzhCfg gzh = dp2WeiXinService.Instance._gzhContainer.GetDefault();//.GetByAppId(this.AppId);
@@ -4001,6 +4008,8 @@ ErrorInfo成员里可能会有报错信息。
                         + "&patronPath=" + HttpUtility.UrlEncode(userItem.recPath)
                         + "&f=notice"
                         );
+
+                    this.WriteDebug("链接地址-"+linkUrl);
 
 
                     //// 本人
@@ -4018,13 +4027,13 @@ ErrorInfo成员里可能会有报错信息。
                         string first_color = "#000000";
                         ReviewPatronTemplateData msgData = new ReviewPatronTemplateData(strFirst, first_color,
                             strAccount, userItem.phone, "等待审核", thisTime,
-                            strRemark + " " + fullLibName);
+                            strRemark);
 
                         //加mask的通知数据
                         strAccount = this.GetFullPatronName(userItem.readerName, userItem.readerBarcode, "", "", true);//this.markString(userItem.readerName) + " " + this.markString(userItem.readerBarcode) + "";
                         ReviewPatronTemplateData maskMsgData = new ReviewPatronTemplateData(strFirst, first_color,
                             strAccount, userItem.phone, "等待审核", thisTime,
-                            strRemark + " " + fullLibName);
+                            strRemark);
 
                         // 发送待审核的微信消息
                         nRet = this.SendTemplateMsg(GzhCfg.C_Template_ReviewPatron,
@@ -4078,7 +4087,7 @@ ErrorInfo成员里可能会有报错信息。
             LoginInfo loginInfo = new LoginInfo("", false);
 
             // 从远程dp2library中查
-            string strWord = "临时";
+            string strWord = WxUserDatabase.C_PatronState_TodoReview;//"临时";
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             SearchRequest request = new SearchRequest(id,
@@ -4624,6 +4633,7 @@ ErrorInfo成员里可能会有报错信息。
                     recPath,
                     partonXml,
                     strFullWord,
+                    false,
                     out userItem,
                     out strError) ;
                 if (nRet == -1)
@@ -4731,6 +4741,7 @@ ErrorInfo成员里可能会有报错信息。
             string recPath,
             string partonXml,
             string bindFromWord,
+            bool isRegister,
             out WxUserItem userItem,
             out string strError)
         {
@@ -4761,6 +4772,7 @@ ErrorInfo成员里可能会有报错信息。
             string refID = "";
             string department = "";
             string phone = "";
+            string patronState = "";
 
             string rights = ""; // 权限
             string location = "";
@@ -4790,6 +4802,7 @@ ErrorInfo成员里可能会有报错信息。
                 refID = patronInfo.refID;
                 department = patronInfo.department;
                 phone = patronInfo.phone;
+                patronState = patronInfo.patronState;
                 libraryCode = patronInfo.libraryCode;
                 rights = patronInfo.rights;
                 location = patronInfo.location;
@@ -4831,7 +4844,7 @@ ErrorInfo成员里可能会有报错信息。
 
             // 将微信id对应的public帐户都删除
             //注意这里不过滤图书馆，就是说临时选择的图书馆，如果未绑定正式帐户，则会被新选择的图书馆public帐户代替
-            List<WxUserItem> publicList = WxUserDatabase.Current.GetWorkers(weixinId, "", "public");
+            List<WxUserItem> publicList = WxUserDatabase.Current.GetWorkers1(weixinId, "", "public");
             if (publicList.Count > 0)
             {
                 if (publicList.Count > 1)
@@ -4841,8 +4854,6 @@ ErrorInfo成员里可能会有报错信息。
 
                 for (int i = 0; i < publicList.Count; i++)
                 {
-                    this.WriteDebug("准备删除public帐户" + publicList[i].id);
-
                     WxUserDatabase.Current.SimpleDelete(publicList[i].id);
                 }
             }
@@ -4857,16 +4868,14 @@ ErrorInfo成员里可能会有报错信息。
                 {
                     if (list.Count > 1)
                     {
-                        this.WriteErrorLog("异常：找到了"+list.Count+"个读者帐号,根据weixinid=[" + weixinId + "] libId=[" + libId + "] readerBarcode=[" + readerBarcode + "]");
+                        this.WriteErrorLog("异常：找到了"+list.Count+"个读者帐号,根据weixinid=[" + weixinId + "] libId=[" + libId + "] readerBarcode=[" + readerBarcode + "],应只有1个帐户。");
                     }
-
                     userItem = list[0];
-                    this.WriteDebug("根据weixinid=[" + weixinId + "] libId=[" + libId + "] readerBarcode=[" + readerBarcode + "]找到了读者帐号id=[" + userItem.id + "]");
                 }
             }
             else
             {
-                List<WxUserItem> list = WxUserDatabase.Current.GetWorkers(weixinId, libId, userName);
+                List<WxUserItem> list = WxUserDatabase.Current.GetWorkers1(weixinId, libId, userName);
                 if (list != null && list.Count > 0)
                 {
                     if (list.Count > 1)
@@ -4875,10 +4884,8 @@ ErrorInfo成员里可能会有报错信息。
                     }
 
                     userItem = list[0];
-                    this.WriteDebug("根据weixinid=[" + weixinId + "] libId=[" + libId + "] userName=[" + userName + "]找到了工作人员帐号id=[" + userItem.id + "]");
                 }
             }
-
 
             // 是否给本地新增帐户
             bool bNew = false;
@@ -4886,15 +4893,9 @@ ErrorInfo成员里可能会有报错信息。
             {
                 bNew = true;
                 userItem = new WxUserItem();
-
-                this.WriteDebug("新建WxUserItem对象，weixinid=" + userItem.weixinId + " id=" + userItem.id);
             }
 
-            // 输出调试信息
-            //this.WriteDebugUserInfo(weixinId, "检索后");
-
             userItem.recPath = recPath;//2020-2/28 增加recPath
-
             userItem.weixinId = weixinId;
             userItem.libName = thislibName;
             userItem.libId = lib.id;
@@ -4904,7 +4905,10 @@ ErrorInfo成员里可能会有报错信息。
             userItem.readerName = readerName;
             userItem.department = department;
             userItem.phone = phone;
+            userItem.patronState = patronState;
             userItem.xml = partonXml;
+
+            userItem.isRegister = isRegister;
 
             userItem.refID = refID;
             userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
@@ -4926,7 +4930,7 @@ ErrorInfo成员里可能会有报错信息。
             userItem.audioType = 4; // 2018/1/2
 
             // 2016-8-26 新增
-            userItem.state = 1;
+            userItem.state = WxUserDatabase.C_State_Available; //1;
             userItem.remark = bindFromWord; // 当初的绑定途径和输入的关键词
             userItem.rights = rights;
 
@@ -4936,13 +4940,11 @@ ErrorInfo成员里可能会有报错信息。
             userItem.bookSubject = "";
 
             //如果是微信来源，从微信id中拆出来公众号的appId
-            bool isWeb = true;
             string appId = "";
             int tempIndex = weixinId.IndexOf('@');
             if (tempIndex > 0)
             {
                 appId = weixinId.Substring(tempIndex + 1);
-                isWeb = false;
             }
             userItem.appId = appId;
 
@@ -4950,19 +4952,13 @@ ErrorInfo成员里可能会有报错信息。
             if (bNew == true)
             {
                 WxUserDatabase.Current.Add(userItem);
-
-                this.WriteDebug("新增weixinid=" + userItem.weixinId + " id=[" + userItem.id + "]");
-                //this.WriteDebugUserInfo(weixinId, "新增后");
+                this.WriteDebug("新增帐户 " + userItem.Dump());// weixinid=" + userItem.weixinId + " id=[" + userItem.id + "]");
             }
             else
             {
                 lRet = WxUserDatabase.Current.Update(userItem);
-                this.WriteDebug("更新weixinid=" + userItem.weixinId + " id=[" + userItem.id + "]");
-                //this.WriteDebugUserInfo(weixinId, "更新后");
+                this.WriteDebug("更新帐户 " + userItem.Dump()); //weixinid =" + userItem.weixinId + " id=[" + userItem.id + "]");
             }
-
-
-           
 
             return 0;
         }
@@ -5158,16 +5154,16 @@ ErrorInfo成员里可能会有报错信息。
             catch (AggregateException ex)
             {
                 strError = MessageConnection.GetExceptionText(ex);
-                goto ERROR1;
+                return -1;
+                //goto ERROR1;
             }
             catch (Exception ex)
             {
                 strError = ex.Message;
-                goto ERROR1;
+                return -1;
+                //goto ERROR1;
             }
 
-        ERROR1:
-            return -1;
         }
 
 
@@ -10735,7 +10731,10 @@ tempRemark);
 
         #region 通用函数
 
-        public WxUserItem newPatronUserItem(LibEntity lib, string weixinId, WxUserItem patronInfo)
+        // todo
+        public WxUserItem newPatronUserItem(LibEntity lib,
+            string weixinId,
+            WxUserItem patronInfo)
         {
             WxUserItem userItem = new WxUserItem();
             userItem.weixinId = weixinId;
@@ -10749,7 +10748,10 @@ tempRemark);
             userItem.readerName = patronInfo.readerName;
             userItem.department = patronInfo.department;
             userItem.phone = patronInfo.phone;
+            userItem.patronState = patronInfo.patronState;
             userItem.xml = patronInfo.xml;
+
+            userItem.isRegister = false;
 
             userItem.refID = patronInfo.refID;
             userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
@@ -10780,7 +10782,7 @@ tempRemark);
         }
 
 
-
+        // todo
         public WxUserItem NewWorkerUserItem(LibEntity lib,
             string weixinId,
             string name,
@@ -10802,7 +10804,10 @@ tempRemark);
             userItem.readerName = "";
             userItem.department = "";
             userItem.phone = "";
+            userItem.patronState = "";
             userItem.xml = "";
+
+            userItem.isRegister = false;
 
             userItem.refID = "";
             userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
@@ -10862,11 +10867,17 @@ tempRemark);
             if (node != null)
                 department = DomUtil.GetNodeText(node);
 
-            // 部门
+            // 电话
             string phone = "";
             node = root.SelectSingleNode("tel");
             if (node != null)
                 phone = DomUtil.GetNodeText(node);
+
+            // 读者状态
+            string patronState = "";
+            node = root.SelectSingleNode("state");
+            if (node != null)
+                patronState = DomUtil.GetNodeText(node);
 
             // 分馆代码
             string libraryCode = "";
@@ -10914,16 +10925,19 @@ tempRemark);
 
 
             WxUserItem userItem = new WxUserItem();
+
+            // 2020-3-7,现在已经没有证条码号为空的情况了
             // 如果barcode为空，则用"@refid:" + refID 来代替
             if (readerBarcode == null)
                 readerBarcode = "";
             if (readerBarcode == "")
                 readerBarcode = "@refid:" + refID;
-            userItem.readerBarcode = readerBarcode;
 
+            userItem.readerBarcode = readerBarcode;
             userItem.readerName = readerName;
             userItem.department = department;
             userItem.phone = phone;
+            userItem.patronState = patronState;
             userItem.refID = refID;
             userItem.libraryCode = libraryCode;
             userItem.xml = xml;
@@ -11001,28 +11015,43 @@ tempRemark);
         private List<string> AddAppIdForWeixinId(List<string> weixinIds)
         {
             GzhCfg gzh=dp2WeiXinService.Instance._gzhContainer.GetDefault();
-
             for (int i = 0; i < weixinIds.Count; i++)
             {
                 string weixinId = weixinIds[i];
-                if (weixinId.IndexOf('@') == -1)
-                {
-                    weixinId += "@" + gzh.appId;
-                }
-                weixinIds[i] = weixinId;
+                weixinIds[i] = this.AddAppIdForWeixinId(weixinId,gzh);
             }
             return weixinIds;
         }
 
+        public string AddAppIdForWeixinId(string weixinId, GzhCfg gzh)
+        {
+            if(gzh == null)
+                gzh = dp2WeiXinService.Instance._gzhContainer.GetDefault();
+
+            // 2020-3-7 注意这里还是检查web来源的绑定，~~开头但没有@，web来源不需要加@公众号appid
+            if (weixinId.Length >= 0 && weixinId.Substring(0, 2) == "~~")
+                return weixinId;
+
+            // 很久之前的版本，weixinid没有带公众号后缀，所以这里自动处理一下
+            if (weixinId.IndexOf('@') == -1)
+            {
+                return weixinId += "@" + gzh.appId;
+            }
+
+            return weixinId;
+        }
+
+
+        /// <summary>
+        /// 根据dp2传来的帐户变更修改mongodb对应记录的信息，只处理change的帐户，且只处理dp2与mongodb两边同时存在的weixinId
+        /// </summary>
+        /// <param name="lib"></param>
+        /// <param name="bodyDom"></param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
         private int UpdateWorker(LibEntity lib, XmlDocument bodyDom, out string strError)
         {
             strError = "";
-
-            dp2WeiXinService.Instance.WriteDebug("走进UpdateWorker()-1");
-
-            return 0;  //todo 20180313
-
-            dp2WeiXinService.Instance.WriteDebug("走进UpdateWorker()-2");
 
             //<root>
             //  <type>工作人员账户变动</type>
@@ -11041,17 +11070,18 @@ tempRemark);
 
             XmlNode actionNode = root.SelectSingleNode("action");
             string action = DomUtil.GetNodeText(actionNode);
+            //  不是change的情况，不用处理
             if (action != "change")
                 return 0;
 
             XmlNode nodeAccount = root.SelectSingleNode("account");
 
-            List<string> newWeixinIds = null;
+            List<string> dp2WeixinIds = null;
             string name = "";
             string libraryCode = "";
             string rights = "";
             this.GetWorkerInfoByXml(nodeAccount.OuterXml,
-                out newWeixinIds,
+                out dp2WeixinIds,
                 out name,
                 out libraryCode,
                 out rights);
@@ -11061,45 +11091,57 @@ tempRemark);
                 return 0;
             }
 
-            //2016-11-16
-            newWeixinIds = AddAppIdForWeixinId(newWeixinIds);
-
-
+            //2016-11-16,处理早期版本绑定的帐户，weixinid没有后缀的情况
+            dp2WeixinIds = AddAppIdForWeixinId(dp2WeixinIds);
 
             this.WriteDebug("收到通知，更新图书馆 " + lib.libName + " 工作人员 " + name + " 的信息。");
 
             // 查一下数据库中有没有绑定该账户的微信
-            List<WxUserItem> userList = WxUserDatabase.Current.GetWorkers(null, lib.id, name);
-            List<string> oldWeixinIds = new List<string>();
-            foreach (WxUserItem user in userList)
+            List<WxUserItem> userList = WxUserDatabase.Current.GetWorkers1(null, lib.id, name);
+
+            //  2020-3-7 不使用下面比对两者weixinId分出3批数据的做法，
+            // 修改为直接根据变更帐户修改mongodb库的中该帐户对应所有记录的信息，
+            // 不论dp2端的weixinId是否与mongodb一致,都不会根据dp2中的weixinId处理公众号mongodb的记录
+            foreach (WxUserItem userItem in userList)
             {
-                string temp = user.weixinId;
-
-                // mongodb中存的weixinId带了@appId 2016-11-16
-                //if (String.IsNullOrEmpty(user.appId) == false)
-                //    temp += "@" + user.appId;
-
-                oldWeixinIds.Add(temp);
+                //string weixinId = this.AddAppIdForWeixinId(userItem.weixinId, null);
+                //userItem.weixinId = weixinId;
+                userItem.libraryCode = libraryCode;
+                userItem.rights = rights;
+                userItem.updateTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+                WxUserDatabase.Current.Update(userItem);
             }
 
+
+            /*
+            List<string> mongoWeixinIds = new List<string>();
+            foreach (WxUserItem user in userList)
+            {
+                mongoWeixinIds.Add(user.weixinId);
+            }
+            mongoWeixinIds = AddAppIdForWeixinId(mongoWeixinIds);
+
             // 没有绑定的微信用户
-            if (newWeixinIds.Count == 0 && oldWeixinIds.Count == 0)
+            if (dp2WeixinIds.Count == 0 && mongoWeixinIds.Count == 0)
                 return 0;
 
             List<string> addIds = null;
             List<string> modifyIds = null;
             List<string> deleteIds = null;
-            this.CompareOldNew(oldWeixinIds, newWeixinIds, out addIds, out modifyIds, out deleteIds);
+            this.CompareOldNew(dp2WeixinIds, 
+                mongoWeixinIds,
+                out addIds, out modifyIds, out deleteIds);
 
-            // 新增的绑定用户
-            if (addIds.Count > 0)
-            {
-                foreach (string weixinId in addIds)
-                {
-                    WxUserItem userItem = this.NewWorkerUserItem(lib, weixinId, name, libraryCode, rights);
-                    WxUserDatabase.Current.Add(userItem);
-                }
-            }
+            // 2020-3-7 修改为只处理dp2与mongodb同时存在的帐户，然后更新帐户的信息。
+            // 对于dp2端新增的weixinid不做处理，因为不能确保dp2增加的weixinid是否正确，
+            // 所以不能单方面在dp2的读者email加weixinId,公众号这边不认
+            // 对于dp2端从email删除了weixinid，公众号这边也不认，mongodb还依然是原样存储
+            // 删除的不做处理有3个主要原因：
+            // 1）删除公众号端信息涉及到用户的体验，本来在微信用的好好的，忽略绑定帐户不存在
+            // 2) 删除还涉及到当前活动帐户，如果可好删除是当前活动帐户，
+            // 以前的做法时，删除的如果是当前活动帐户则自动找一个绑定帐户，又不是用户自己操作了，也影响用户体现，会让用户莫名其妙
+            // 3）对于读者记录变更，也仅处理的是change，未处理delete，所以既然dp2删除一条读者记录都不做处理，
+            // 那么更没必要因为email中weixinId删了，就从公众号的mongodb库中删除。
 
             // 修改的用户
             if (modifyIds.Count > 0)
@@ -11114,16 +11156,25 @@ tempRemark);
                 }
             }
 
-            // 删除的用户
-            if (deleteIds.Count > 0)
-            {
-                foreach (string weixinId in deleteIds)
-                {
-                    WxUserItem userItem = this.getUser(userList, weixinId);
-                    WxUserItem newActivePatron = null;
-                    WxUserDatabase.Current.Delete1(userItem.id, out newActivePatron);  // todo 2020-3-1 涉及到是否需要更新当前帐户
-                }
-            }
+            //// 新增的绑定用户
+            //if (addIds.Count > 0)
+            //{
+            //    foreach (string weixinId in addIds)
+            //    {
+            //        WxUserItem userItem = this.NewWorkerUserItem(lib, weixinId, name, libraryCode, rights);
+            //        WxUserDatabase.Current.Add(userItem);
+            //    }
+            //}
+            //// 删除的用户
+            //if (deleteIds.Count > 0)
+            //{
+            //    foreach (string weixinId in deleteIds)
+            //    {
+            //        WxUserItem userItem = this.getUser(userList, weixinId);
+            //        WxUserDatabase.Current.Delete(userItem.id, -1); 
+            //    }
+            //}
+            */
 
             return 1;
         }
@@ -11169,14 +11220,17 @@ tempRemark);
             }
         }
 
+        /// <summary>
+        /// 读者信息更新
+        /// </summary>
+        /// <param name="lib"></param>
+        /// <param name="bodyDom"></param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
         private int UpdatePatron(LibEntity lib, XmlDocument bodyDom, out string strError)
         {
-            //dp2WeiXinService.Instance.WriteLog1("走进UpdatePatron()-1");
-
             strError = "";
-            //return 0; // todo 2018/3/14
-
-            //dp2WeiXinService.Instance.WriteLog1("走进UpdatePatron()-2");
+            int nRet = 0;
 
             //<root>
             //    <type>读者记录变动</type>
@@ -11214,113 +11268,214 @@ tempRemark);
             //  </root>
 
 
-
-            // 取出传过来的账户信息
+            // 检查变化类型
             XmlNode root = bodyDom.DocumentElement;
             XmlNode actionNode = root.SelectSingleNode("action");
             string action = DomUtil.GetNodeText(actionNode);
+            // 如果不是修改信息，则不用做什么事情
             if (action != "change")
                 return 0;
 
             XmlNode patronRecord = root.SelectSingleNode("patronRecord");
 
-            // 将xml转成parton对象
-            List<string> newWeixinIds = null;
+            // 得到dp2存储weixinid
+            List<string> dp2WeixinIds = null;
             WxUserItem patronInfo = this.GetPatronInfoByXml(patronRecord.OuterXml,
-                out newWeixinIds);
-            newWeixinIds = this.AddAppIdForWeixinId(newWeixinIds);// 2016-11-16
+                out dp2WeixinIds);
+            //dp2WeixinIds = this.AddAppIdForWeixinId(dp2WeixinIds);// 2016-11-16
 
-            // 查一下数据库中有没有绑定该账户的微信
-            List<WxUserItem> userList = WxUserDatabase.Current.GetPatron(null, 
+            // 获取数据库中存储的该读者的微信
+            // 2020-3-7 改为传读者refId，因为对于读者自己注册的情况，馆员审核后是新证条码号，
+            // 所以不能用证条码检索
+            List<WxUserItem> userList = WxUserDatabase.Current.GetPatron(null,
                 lib.id,
-                patronInfo.readerBarcode);
-            List<string> oldWeixinIds = new List<string>();
-            foreach (WxUserItem user in userList)
-            {
-                string temp = user.weixinId;
-                oldWeixinIds.Add(temp);
+                WxUserDatabase.C_Prefix_RefId + patronInfo.refID); //patronInfo.readerBarcode);
 
-                // 2018/4/18加
-                //user.readerBarcode = patronInfo.readerBarcode;
-                user.readerName = patronInfo.readerName;
-                user.department = patronInfo.department;
-                user.phone = patronInfo.phone;
-                user.xml = patronInfo.xml;
-                user.refID = patronInfo.refID;
-                user.libraryCode = patronInfo.libraryCode;
-                user.rights = patronInfo.rights;
-                user.updateTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+            //  2020-3-7 不使用下面比对两者weixinId分出3批数据的做法，
+            // 修改为直接根据变更帐户修改mongodb库的中该帐户对应所有记录的信息，
+            // 不论dp2端的weixinId是否与mongodb一致,都不会根据dp2中的weixinId处理公众号mongodb的记录
+            foreach (WxUserItem userItem in userList)
+            {
+                // 判断mongo库的读者是否是 待审核
+                int nPass = -1;
+                if (userItem.patronState == WxUserDatabase.C_PatronState_TodoReview)
+                {
+                    if (patronInfo.patronState == WxUserDatabase.C_PatronState_Pass)
+                        nPass = 1;
+                    else if (patronInfo.patronState == WxUserDatabase.C_PatronState_NoPass)
+                        nPass = 0;
+                }
+
+
+                //string weixinId = this.AddAppIdForWeixinId(user.weixinId,null);
+                //user.weixinId = weixinId;
+
+                userItem.readerBarcode = patronInfo.readerBarcode;
+                userItem.readerName = patronInfo.readerName;
+                userItem.department = patronInfo.department;
+                userItem.phone = patronInfo.phone;
+                userItem.patronState = patronInfo.patronState;  //更新为dp2读者记录的最新状态
+                userItem.xml = patronInfo.xml;
+                userItem.refID = patronInfo.refID;
+                userItem.libraryCode = patronInfo.libraryCode;
+                userItem.rights = patronInfo.rights;
+                userItem.updateTime = DateTimeUtil.DateTimeToString(DateTime.Now);
 
                 // 2017-2-14
-                //user.location = patronInfo.location;
-                //user.selLocation = "";
+                userItem.location = patronInfo.location;
+                //user.selLocation = "";  //选择的location不用变更
 
-                // 2017-4-19
-                //user.verifyBarcode = 0;
-                //user.audioType = 4; // 2018/1/2
+                // 不用修改isRegister字段
 
-                WxUserDatabase.Current.Update(user);
+                // 直接更新库中记录，不涉及到更新其它状态。
+                WxUserDatabase.Current.Update(userItem);
+
+
+                // 如果是微信入口，且是审核引起的读者信息变化，则给注册用户发通知
+                if ((nPass ==0 || nPass ==1))
+                    //&&(WxUserDatabase.CheckIsFromWeb(userItem.weixinId)==false)  
+                {
+                    /*
+尊敬的用户：您好！您提交的书柜帐户注册信息已审核完成。
+申请人：张三
+手机号码：13866668888
+审核结果：通过
+您现在使用智能书柜借书了。
+                    */
+                    string strFirst = "尊敬的用户：您好！您提交的书柜帐户注册信息已审核完成。";
+                    string strRemark = "您现在使用智能书柜借书了。";
+
+                    string result = "通过";
+                    if (nPass == 0)
+                        result = "不通过";
+
+                    // todo，这里使用的default公众号，后面如果有些单位用自己的公众号再改进
+                    GzhCfg gzh = dp2WeiXinService.Instance._gzhContainer.GetDefault();//.GetByAppId(this.AppId);
+                    if (gzh == null)
+                    {
+                        strError = "未找到默认的公众号配置";
+                        return -1;
+                    }
+
+                    // 到我的信息
+                    string linkUrl = "";//dp2WeiXinService.Instance.OAuth2_Url_AccountIndex,//详情转到账户管理界面
+                    linkUrl = dp2WeiXinService.Instance.GetOAuth2Url(gzh,
+                        "Patron/PersonalInfo");
+
+
+                    //// 本人
+                    List<string> bindWeixinIds = new List<string>();
+                    bindWeixinIds.Add(userItem.weixinId);
+                    //string tempfullWeixinId = weixinId;//2016-11-16 传进来的weixinId带了@appId // +"@" + appId;
+                    //bindWeixinIds.Add(tempfullWeixinId);
+
+                    // 工作人员
+                    List<WxUserItem> workers = this.GetTraceUsers(userItem.libId, userItem.libraryCode);
+
+                    if (bindWeixinIds.Count > 0 || workers.Count > 0)
+                    {
+                        // 不加mask的通知数据
+                        string thisTime = dp2WeiXinService.GetNowTime();
+                        string first_color = "#000000";
+                        ReviewResultTemplateData msgData = new ReviewResultTemplateData(strFirst, first_color,
+                            userItem.readerName, userItem.phone, result,
+                            strRemark);
+
+                        ////加mask的通知数据
+                        //strAccount = this.GetFullPatronName(userItem.readerName, userItem.readerBarcode, "", "", true);//this.markString(userItem.readerName) + " " + this.markString(userItem.readerBarcode) + "";
+                        //ReviewPatronTemplateData maskMsgData = new ReviewPatronTemplateData(strFirst, first_color,
+                        //    strAccount, userItem.phone, "等待审核", thisTime,
+                        //    strRemark);
+
+                        // 发送待审核的微信消息
+                        nRet = this.SendTemplateMsg(GzhCfg.C_Template_ReviewPatron,
+                           bindWeixinIds,
+                           workers,
+                           msgData,
+                           msgData, // todo 没有做马赛克，看看后面是否需要
+                           linkUrl,
+                           "",
+                           out strError);
+                        if (nRet == -1)
+                        {
+                            return -1;
+                        }
+                    }
+                }
             }
 
-            // 没有绑定的微信用户
-            if (newWeixinIds.Count == 0 && oldWeixinIds.Count == 0)
-                return 0;
-            
 
             /*
+            List<string> mongoWeixinIds = new List<string>();
+            foreach (WxUserItem user in userList)
+            {
+                mongoWeixinIds.Add(user.weixinId);
+            }
+            mongoWeixinIds = this.AddAppIdForWeixinId(dp2WeixinIds);
+
+            // dp2读者记录里没有weixinId，微信本地库也没有该读者的绑定帐户，则不用做处理
+            if (dp2WeixinIds.Count == 0 && mongoWeixinIds.Count == 0)
+                return 0;
+
             List<string> addIds = null;
             List<string> modifyIds = null;
             List<string> deleteIds = null;
-            this.CompareOldNew(oldWeixinIds, newWeixinIds, out addIds, out modifyIds, out deleteIds);
+            // 比对两组数据，分出新增的，修改的，删除的
+            this.CompareOldNew(dp2WeixinIds, mongoWeixinIds,
+                out addIds,
+                out modifyIds,
+                out deleteIds);
 
-            // 新增的绑定用户
-            if (addIds.Count > 0)
-            {
-                foreach (string weixinId in addIds)
-                {
-                    WxUserItem userItem = this.newPatronUserItem(lib, weixinId, patronInfo);
-                    WxUserDatabase.Current.Add(userItem);
-                }
-            }
+            // 2020-3-7 修改为只处理dp2与mongodb同时存在的帐户，然后更新帐户的信息。
+            // 对于dp2端新增的weixinid不做处理，因为不能确保dp2增加的weixinid是否正确，
+            // 所以不能单方面在dp2的读者email加weixinId,公众号这边不认
+            // 对于dp2端从email删除了weixinid，公众号这边也不认，mongodb还依然是原样存储
+            // 删除的不做处理有3个主要原因：
+            // 1）删除公众号端信息涉及到用户的体验，本来在微信用的好好的，忽略绑定帐户不存在
+            // 2) 删除还涉及到当前活动帐户，如果可好删除是当前活动帐户，
+            // 以前的做法时，删除的如果是当前活动帐户则自动找一个绑定帐户，又不是用户自己操作了，也影响用户体现，会让用户莫名其妙
+            // 3）对于读者记录变更，也仅处理的是change，未处理delete，所以既然dp2删除一条读者记录都不做处理，
+            // 那么更没必要因为email中weixinId删了，就从公众号的mongodb库中删除。
+
 
             // 修改的用户
-            if (modifyIds.Count > 0)
+            foreach (string weixinId in modifyIds)
             {
-                foreach (string weixinId in modifyIds)
-                {
-                    WxUserItem userItem = this.getUser(userList, weixinId);
-                    userItem.readerBarcode = patronInfo.readerBarcode;
-                    userItem.readerName = patronInfo.readerName;
-                    userItem.department = patronInfo.department;
-                    userItem.xml = patronInfo.xml;
-                    userItem.refID = patronInfo.refID;
-                    userItem.libraryCode = patronInfo.libraryCode;
-                    userItem.rights = patronInfo.rights;
-                    userItem.updateTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+                WxUserItem userItem = this.getUser(userList, weixinId);
+                userItem.readerBarcode = patronInfo.readerBarcode;
+                userItem.readerName = patronInfo.readerName;
+                userItem.department = patronInfo.department;
+                userItem.xml = patronInfo.xml;
+                userItem.refID = patronInfo.refID;
+                userItem.libraryCode = patronInfo.libraryCode;
+                userItem.rights = patronInfo.rights;
+                userItem.updateTime = DateTimeUtil.DateTimeToString(DateTime.Now);
 
-                    // 2017-2-14
-                    userItem.location = patronInfo.location;
-                    userItem.selLocation = "";
+                // 2017-2-14
+                userItem.location = patronInfo.location;
+                userItem.selLocation = "";
 
-                    // 2017-4-19
-                    userItem.verifyBarcode = 0;
-                    userItem.audioType = 4; // 2018/1/2
+                // 2017-4-19
+                userItem.verifyBarcode = 0;
+                userItem.audioType = 4; // 2018/1/2
 
-                    WxUserDatabase.Current.Update(userItem);
-                }
+                WxUserDatabase.Current.Update(userItem);
             }
 
-            // 删除的用户
-            if (deleteIds.Count > 0)
+            // 新增的绑定用户
+            foreach (string weixinId in addIds)
             {
-                foreach (string weixinId in deleteIds)
-                {
-                    WxUserItem userItem = this.getUser(userList, weixinId);
-                    WxUserItem newActivePatron = null;
-                    WxUserDatabase.Current.Delete(userItem.id, out newActivePatron);
-                }
+                WxUserItem userItem = this.newPatronUserItem(lib, weixinId, patronInfo);
+                WxUserDatabase.Current.Add(userItem);
+            }
+            // 删除的用户
+            foreach (string weixinId in deleteIds)
+            {
+                WxUserItem userItem = this.getUser(userList, weixinId);
+                WxUserDatabase.Current.Delete(userItem.id, -1);
             }
             */
+
             return 1;
         }
 

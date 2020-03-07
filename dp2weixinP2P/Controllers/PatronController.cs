@@ -290,9 +290,14 @@ namespace dp2weixinWeb.Controllers
             // 检查一下是否已经有了读者帐户，如果已经绑定过读者帐户，则不允许再注册
             if (sessionInfo.ActiveUser !=null)
             {
+                // 这里做了特殊处理，因为需要根据空字符串从数据库中检索
+                string bindLibraryCode = sessionInfo.ActiveUser.bindLibraryCode;
+                if (bindLibraryCode == "")
+                    bindLibraryCode = "空";
+
                 List<WxUserItem> patrons = WxUserDatabase.Current.GetPatron(sessionInfo.ActiveUser.weixinId,
-                    sessionInfo.ActiveUser.libId, 
-                    sessionInfo.ActiveUser.bindLibraryCode,//这里传的绑定时选择的分馆，对于读者来说bind分馆与自己的分馆是完全一样的。
+                    sessionInfo.ActiveUser.libId,
+                    bindLibraryCode,//这里传的绑定时选择的分馆，对于读者来说bind分馆与自己的分馆是完全一样的。
                     "");
                 if (patrons.Count > 0)
                 {
@@ -308,6 +313,26 @@ namespace dp2weixinWeb.Controllers
                 }
             }
 
+            /*
+                   <option value=''>请选择</option>"
+                    <option value="部门1">部门1</option>
+                    <option value="部门2">部门2</option>
+             */
+            string deptHtml = "<option value=''>请选择</option>";
+            List<string> deptList = dp2WeiXinService.Instance._areaMgr.GetDeptartment(
+                sessionInfo.ActiveUser.libId,
+                sessionInfo.ActiveUser.bindLibraryCode);
+            if (deptList.Count == 0)
+            {
+                ViewBag.Error = "尚未配置部门信息，请联系管理员。";
+                return View();
+            }
+
+            foreach (string dept in deptList)
+            {
+                deptHtml+= "<option value='"+dept+"'>"+dept+"</option>";
+            }
+            ViewBag.deptHtml = deptHtml;
             return View();
         }
 
@@ -432,12 +457,6 @@ namespace dp2weixinWeb.Controllers
 
             return View();
         }
-
-
-
-
-        
-
 
 
         /// <summary>

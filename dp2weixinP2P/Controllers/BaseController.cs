@@ -287,6 +287,7 @@ namespace dp2weixinWeb.Controllers
             // 如果传入了myWeixinId参数，则以该参数作为weixinId
             if (string.IsNullOrEmpty(myWeixinId) == false)
             {
+                myWeixinId = dp2WeiXinService.Instance.AddAppIdForWeixinId(myWeixinId,null);
                 sessionInfo.WeixinId = myWeixinId;
             }
             else

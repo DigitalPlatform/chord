@@ -117,6 +117,8 @@ namespace dp2weixin.service
 
         // 2020-3-1 加
         public const string C_Template_ReviewPatron = "ReviewPatron";
+        // 2020-3-7加
+        public const string C_Template_ReviewResult = "ReviewResult";
 
         public GzhCfg(XmlNode node)
         {
