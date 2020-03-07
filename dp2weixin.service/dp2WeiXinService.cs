@@ -11387,8 +11387,8 @@ tempRemark);
                         //    strAccount, userItem.phone, "等待审核", thisTime,
                         //    strRemark);
 
-                        // 发送待审核的微信消息
-                        nRet = this.SendTemplateMsg(GzhCfg.C_Template_ReviewPatron,
+                        // 发送消息
+                        nRet = this.SendTemplateMsg(GzhCfg.C_Template_ReviewResult,
                            bindWeixinIds,
                            workers,
                            msgData,
