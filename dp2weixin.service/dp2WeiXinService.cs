@@ -3991,7 +3991,7 @@ ErrorInfo成员里可能会有报错信息。
 
                     //string strAccount = this.GetFullPatronName(userItem.readerName, 
                     //    userItem.readerBarcode, "", "", false);
-                    string strAccount = userItem.readerBarcode;
+                    string strAccount = userItem.readerName;
                    // string fullLibName = this.GetFullLibName(userItem.libName, userItem.libraryCode, "");
 
                     // todo
@@ -4016,7 +4016,7 @@ ErrorInfo成员里可能会有报错信息。
                             + "&f=notice")
                         );
 
-                    this.WriteDebug("链接地址-"+linkUrl);
+                    //this.WriteDebug("链接地址-"+linkUrl);
 
 
                     //// 本人
