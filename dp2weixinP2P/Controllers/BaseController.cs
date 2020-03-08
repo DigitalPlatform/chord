@@ -22,6 +22,7 @@ namespace dp2weixinWeb.Controllers
             return this.GetSessionInfo2(code,
                 state,
                 true,
+                false,
                 out sessionInfo,
                 out strError,
                 myWeixinId);
@@ -46,6 +47,7 @@ namespace dp2weixinWeb.Controllers
         public int GetSessionInfo2(string code,
             string state,
             bool isCheckLibState,
+            bool redoGetActiveUser,
             out SessionInfo sessionInfo,
             out string strError,
             string myWeixinId = "")
@@ -59,8 +61,7 @@ namespace dp2weixinWeb.Controllers
             sessionInfo = null;
 
             // 调试信息
-            dp2WeiXinService.Instance.WriteDebug("GetActive-1--code=[" + code + "],state=[" + state + "]"
-                + ",Request.Path=[" + this.Request.Path + "]");
+            dp2WeiXinService.Instance.WriteDebug("Url=[" + this.Request.Url + "]");
 
             // 检查传入的myWeixinId参数是否合理
             if (string.IsNullOrEmpty(code) == false
@@ -85,6 +86,7 @@ namespace dp2weixinWeb.Controllers
                         myWeixinId,
                         sessionInfo,
                         isCheckLibState,
+                        redoGetActiveUser,
                         out strError);
                     if (nRet == -1)
                         return -1;
@@ -130,6 +132,7 @@ namespace dp2weixinWeb.Controllers
             string myWeixinId,
             SessionInfo sessionInfo,
             bool isCheckLibState,
+            bool redoGetActiveUser,
             out string strError)
         {
             int nRet = 0;
@@ -140,22 +143,16 @@ namespace dp2weixinWeb.Controllers
             if (string.IsNullOrEmpty(code) == false)
                 bFromWeixin = true;
 
-            // 调试信息
-            dp2WeiXinService.Instance.WriteDebug("GetActive/WhenHasSession-0--已存在session。信息如下："
+            //// 调试信息
+            dp2WeiXinService.Instance.WriteDebug("WhenHasSession-1--已存在session。信息如下："
                 + sessionInfo.Dump());
 
             //如果参数传进来的state与session中原有的state不一致时，要整个重新初始化session
             if (string.IsNullOrEmpty(state) == false
                && sessionInfo.gzhState != state)
             {
-                dp2WeiXinService.Instance.WriteDebug("GetActive/WhenHasSession-1--session原来的gzhState为[" + sessionInfo.gzhState + "]，此次传入的state参数为[" + state + "],两者不一样，重新初始化session信息");
-
-                //// 完全重新初始化session
-                //return this.WhenNoSession(code,
-                //    state,
-                //    myWeixinId,
-                //    out sessionInfo,
-                //    out strError);
+                dp2WeiXinService.Instance.WriteDebug("WhenHasSession-2--session原来的gzhState为[" + sessionInfo.gzhState + "]，"
+                    +"此次传入的state参数为[" + state + "],两者不一样，重新设置公众号信息。");
 
                 // 给session设置公众号和图书馆配置
                 nRet = sessionInfo.SetGzhInfo(state, out strError);
@@ -166,13 +163,13 @@ namespace dp2weixinWeb.Controllers
             // 检查session中的公众号配置与数据库配置是否正常
             if (sessionInfo.gzh == null)
             {
-                dp2WeiXinService.Instance.WriteDebug("异常：已存在session中gzh为null");
+                dp2WeiXinService.Instance.WriteDebug("WhenHasSession-3--已存在session中gzh为null");
+
                 // 给session设置公众号和图书馆配置
                 nRet = sessionInfo.SetGzhInfo(state, out strError);
                 if (nRet == -1)
                     return -1;
             }
-
 
             // 如果参数中传来了weixinid，则使用传来的weixinid，重新获取当前帐户
             if (string.IsNullOrEmpty(myWeixinId) == false
@@ -181,7 +178,7 @@ namespace dp2weixinWeb.Controllers
                 sessionInfo.WeixinId = myWeixinId;
                 sessionInfo.ActiveUser = null;
 
-                dp2WeiXinService.Instance.WriteDebug("GetActive/WhenHasSession-2--参数中传入的weixinId=[" + myWeixinId + "],"
+                dp2WeiXinService.Instance.WriteDebug("WhenHasSession-4--参数中传入的weixinId=[" + myWeixinId + "],"
                     + "与session中原来的weixinid=[" + sessionInfo.WeixinId + "]不同，"
                     + "使用传入的weixinId,将active置为null。");
             }
@@ -193,13 +190,13 @@ namespace dp2weixinWeb.Controllers
                 && oldWeixinId.Length > 2
                 && oldWeixinId.Substring(0, 2) == "~~")
             {
-                dp2WeiXinService.Instance.WriteDebug("GetActive/WhenHasSession-3--异常：发现微信入口是临时ID，根据code重新获取id");
+                dp2WeiXinService.Instance.WriteDebug("WhenHasSession-5--发现微信入口是临时ID，根据code重新获取id");
                 sessionInfo.WeixinId = "";
                 sessionInfo.ActiveUser = null;
             }
 
             // 如果经过前面的判断和设置，session中活动帐号依然存在，则直接使用该activeUser
-            if (sessionInfo.ActiveUser != null)
+            if (sessionInfo.ActiveUser != null && redoGetActiveUser == false)  // 2020-3-8 增加redoGetActiveUser是否为null
             {
                 if (string.IsNullOrEmpty(sessionInfo.WeixinId) == true)
                 {
@@ -207,14 +204,14 @@ namespace dp2weixinWeb.Controllers
                     return -1;
                 }
 
-                dp2WeiXinService.Instance.WriteDebug("GetActive/WhenHasSession-4--如果经过前面的判断和设置，session中活动帐号依然存在，根据session初始化ViewBag");
+                dp2WeiXinService.Instance.WriteDebug("WhenHasSession-6--如果经过前面的判断和设置，session中活动帐号依然存在，根据session初始化ViewBag");
 
                 // 初始化 viewbag 
                 nRet = this.InitViewBag(sessionInfo, isCheckLibState, out strError);
                 if (nRet == -1)
                     return -1;
 
-                dp2WeiXinService.Instance.WriteDebug("GetActive/WhenHasSession-5--InitViewBag完成，直接返回");
+                dp2WeiXinService.Instance.WriteDebug("WhenHasSession-7--InitViewBag完成，直接返回");
 
                 // 直接返回0
                 return 0;
@@ -230,6 +227,8 @@ namespace dp2weixinWeb.Controllers
                 if (nRet == -1)
                     return -1;
                 sessionInfo.WeixinId = weixinid;
+
+                dp2WeiXinService.Instance.WriteDebug("WhenHasSession-8--得到weixinId为["+weixinid+"]");
             }
 
             // 根据weiXin初始化session
@@ -238,10 +237,17 @@ namespace dp2weixinWeb.Controllers
             if (nRet == -1)
                 return -1;
 
+           if (sessionInfo.ActiveUser !=null)
+                dp2WeiXinService.Instance.WriteDebug("WhenHasSession-9--获取当前帐户为"  + (String.IsNullOrEmpty(sessionInfo.ActiveUser.readerName) == false ? sessionInfo.ActiveUser.readerName : sessionInfo.ActiveUser.userName)); // this.ActiveUser.Dump() + "\r\n";
+                                                                                                                                                                                                                         //sessionInfo.ActiveUser.Dump());
+
+
             // 初始化 viewbag
             nRet = this.InitViewBag(sessionInfo, isCheckLibState,out strError);
             if (nRet == -1)
                 return -1;
+
+            dp2WeiXinService.Instance.WriteDebug("WhenHasSession-10-InitViewBag()完成");
 
 
             return 0;
@@ -275,13 +281,15 @@ namespace dp2weixinWeb.Controllers
             Session[WeiXinConst.C_Session_sessioninfo] = sessionInfo;
 
             // 调试日志
-            dp2WeiXinService.Instance.WriteDebug("GetActive/WhenNoSession()-1--不已存在session，新new一个session。");
+            dp2WeiXinService.Instance.WriteDebug("WhenNoSession()-1--不已存在session，新new一个session。");
 
-            
             // 给session设置公众号和图书馆配置
              nRet = sessionInfo.SetGzhInfo(state,out strError);
             if (nRet == -1)
                 return -1;
+
+            // 调试日志
+            dp2WeiXinService.Instance.WriteDebug("WhenNoSession()-2--SetGzhInfo()完成");
 
 
             // 如果传入了myWeixinId参数，则以该参数作为weixinId
@@ -301,6 +309,9 @@ namespace dp2weixinWeb.Controllers
                 sessionInfo.WeixinId = weixinid;
             }
 
+            // 调试日志
+            dp2WeiXinService.Instance.WriteDebug("WhenNoSession()-3--获得weixinId为["+sessionInfo.WeixinId+"]");
+
 
             // 根据weiXin初始化session
             nRet = sessionInfo.GetActiveUser(sessionInfo.WeixinId,
@@ -308,11 +319,17 @@ namespace dp2weixinWeb.Controllers
             if (nRet == -1)
                 return -1;
 
+            if (sessionInfo.ActiveUser != null)
+            {
+                dp2WeiXinService.Instance.WriteDebug("WhenNoSession-4--获取当前帐户为" + (String.IsNullOrEmpty(sessionInfo.ActiveUser.readerName) == false ? sessionInfo.ActiveUser.readerName : sessionInfo.ActiveUser.userName)); // sessionInfo.ActiveUser.Dump() + "\r\n";
+            }
+
             // 初始化 viewbag
             nRet = this.InitViewBag(sessionInfo, isCheckLibState,out strError);
             if (nRet == -1)
                 return -1;
 
+            dp2WeiXinService.Instance.WriteDebug("WhenNoSession-5-InitViewBag()完成");
 
             return 0;
         }
@@ -343,7 +360,7 @@ namespace dp2weixinWeb.Controllers
             if (string.IsNullOrEmpty(code) == false)
             {
                 // 获取微信id
-                dp2WeiXinService.Instance.WriteDebug("GetActive/WhenHasSession-7--微信入口，根据微信code=[" + code + "]获取weixinId");
+                dp2WeiXinService.Instance.WriteDebug("微信入口，根据微信code=[" + code + "]获取weixinId");
 
                 // 根据微信接口得到weixinid
 
@@ -364,19 +381,19 @@ namespace dp2weixinWeb.Controllers
                 // 把传过来的code设在session信息里
                 sessionInfo.oauth2_return_code = code;
 
-                dp2WeiXinService.Instance.WriteDebug("GetActive/WhenHasSession-8--根据微信code获到的weixinId=[" + weixinId + "]");
+                dp2WeiXinService.Instance.WriteDebug("根据微信code获到的weixinId=[" + weixinId + "]");
 
                 // 写到微信浏览器的cookies里，以解决微信不退出，但web页面失效的问题
                 HttpCookie aCookie = new HttpCookie("browseId");
                 aCookie.Value = weixinId;
                 aCookie.Expires = DateTime.MaxValue;//设为永久不失效， DateTime.Now.AddDays(1); 
                 Response.Cookies.Add(aCookie);
-                dp2WeiXinService.Instance.WriteDebug("GetActive/WhenHasSession-9--将微信入口的weixinid写入微信浏览器的cookies=" + weixinId);
+                dp2WeiXinService.Instance.WriteDebug("将微信入口的weixinid写入微信浏览器的cookies=" + weixinId);
             }
             else
             {
                 // 浏览器id
-                dp2WeiXinService.Instance.WriteDebug("GetActive/WhenHasSession-10--浏览器入口，准备获取browseId");
+                dp2WeiXinService.Instance.WriteDebug("浏览器入口，准备获取browseId");
 
 
                 string browseId = "";

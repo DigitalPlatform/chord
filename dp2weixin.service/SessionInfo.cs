@@ -50,7 +50,7 @@ namespace dp2weixin.service
                 + ",weixinId=[" + WeixinId + "]";
             if (this.ActiveUser != null)
             {
-                text += "\r\n" + this.ActiveUser.Dump() + "\r\n";
+                text += "\r\n" + (String.IsNullOrEmpty(this.ActiveUser.readerName) == false ? this.ActiveUser.readerName : this.ActiveUser.userName); // this.ActiveUser.Dump() + "\r\n";
             }
             else
             {

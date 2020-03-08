@@ -97,6 +97,13 @@ namespace dp2weixinWeb.Controllers
                 ViewBag.Error = "libId参数不能为空。";
                 return View();
             }
+            //Request.
+
+            dp2WeiXinService.Instance.WriteDebug("!!!PatronReview页面 Request.Path=[" + this.Request.Path + "]"
+                + "\r\n RawUrl=" + this.Request.RawUrl
+                + "\r\n Url=" + this.Request.Url);
+
+
 
             if (string.IsNullOrEmpty(patronPath) == true)
             {
@@ -473,7 +480,9 @@ namespace dp2weixinWeb.Controllers
             // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
             // -1 出错
             // 0 成功
-            nRet = this.GetSessionInfo(code, state,
+            nRet = this.GetSessionInfo2(code, state,
+                true,
+                true,
                 out SessionInfo sessionInfo,
                 out strError);
             if (nRet == -1)
@@ -803,7 +812,8 @@ namespace dp2weixinWeb.Controllers
             // -1 出错
             // 0 成功
             nRet = this.GetSessionInfo2(code, state,
-                false,
+                false, //是否校验图书馆状态
+                false,  //是否重新获取activeuser
                 out SessionInfo sessionInfo,
                 out strError);
             if (nRet == -1)

@@ -4002,11 +4002,18 @@ ErrorInfo成员里可能会有报错信息。
                         return -1;
                     }
                     string linkUrl = "";//dp2WeiXinService.Instance.OAuth2_Url_AccountIndex,//详情转到账户管理界面
+                                        //linkUrl = dp2WeiXinService.Instance.GetOAuth2Url(gzh,
+                                        //    "Patron/PatronReview?libId=" + userItem.libId
+                                        //    + "&patronLibCode=" + HttpUtility.UrlEncode(userItem.bindLibraryCode)
+                                        //    + "&patronPath=" + HttpUtility.UrlEncode(userItem.recPath)
+                                        //    + "&f=notice"
+                                        //    );
+
                     linkUrl = dp2WeiXinService.Instance.GetOAuth2Url(gzh,
-                        "Patron/PatronReview?libId=" + userItem.libId
-                        + "&patronLibCode=" + HttpUtility.UrlEncode(userItem.bindLibraryCode)
-                        + "&patronPath=" + HttpUtility.UrlEncode(userItem.recPath)
-                        + "&f=notice"
+                        HttpUtility.UrlEncode("Patron/PatronReview?libId=" + userItem.libId
+                            + "&patronLibCode=" + userItem.bindLibraryCode
+                            + "&patronPath=" + userItem.recPath
+                            + "&f=notice")
                         );
 
                     this.WriteDebug("链接地址-"+linkUrl);
@@ -11369,8 +11376,9 @@ tempRemark);
                     //string tempfullWeixinId = weixinId;//2016-11-16 传进来的weixinId带了@appId // +"@" + appId;
                     //bindWeixinIds.Add(tempfullWeixinId);
 
+                    // 2020-3-8 改为不给工作人员发消息，怕把管理员弄混了。
                     // 工作人员
-                    List<WxUserItem> workers = this.GetTraceUsers(userItem.libId, userItem.libraryCode);
+                    List<WxUserItem> workers = new List<WxUserItem>(); //this.GetTraceUsers(userItem.libId, userItem.libraryCode);
 
                     if (bindWeixinIds.Count > 0 || workers.Count > 0)
                     {
