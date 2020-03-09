@@ -210,7 +210,16 @@
         }
 
         function setdept(dept) {
-            $("#txtDepartment").val(dept);
+
+            if (dept == "其它") {
+                $("#txtDepartment").val();
+
+                $("#otherDept").css("display", "block");
+            }
+            else {
+                $("#txtDepartment").val(dept);
+                $("#otherDept").css("display", "none");
+            }
 
             //alert("test-"+$("#txtDepartment").val());
         }
@@ -238,69 +247,74 @@ else
     }
     else
     {
-        <div class="mui-input-group">
+<div class="mui-input-group">
 
-            <table style="width:100%">
-                <tr>
-                    <td style="width:100%">
-                        <div class="mui-input-group" style="background-color:white">
-                            <div class="mui-input-row">
-                                <label style="color:#cccccc;">图书馆</label>
-                                <input type="text" class="mui-input mui-input-clear" id="txtLib" readonly value="@ViewBag.PureLibName">
-                            </div>
-                        </div>
-                    </td>
-                    <td><button onclick="gotoSelectLib()" id='login' class="" style="border:1px dotted gray;margin-right:2px;height:40px;">...</button></td>
-                </tr>
-            </table>
+    <table style="width:100%">
+        <tr>
+            <td style="width:100%">
+                <div class="mui-input-group" style="background-color:white">
+                    <div class="mui-input-row">
+                        <label style="color:#cccccc;">图书馆</label>
+                        <input type="text" class="mui-input mui-input-clear" id="txtLib" readonly value="@ViewBag.PureLibName">
+                    </div>
+                </div>
+            </td>
+            <td><button onclick="gotoSelectLib()" id='login' class="" style="border:1px dotted gray;margin-right:2px;height:40px;">...</button></td>
+        </tr>
+    </table>
 
-            <div class="mui-input-row ">
-                <label id="lblName" style="color:#cccccc">姓名</label>
-                <input id='txtName' type="text" class="mui-input mui-input-clear">
-            </div>
+    <div class="mui-input-row ">
+        <label id="lblName" style="color:#cccccc">姓名</label>
+        <input id='txtName' type="text" class="mui-input mui-input-clear"  placeholder="请输入 姓名" >
+    </div>
 
-            <div class="mui-input-row selArrowRightContainer">
-                <label id="lblGender" style="color:#cccccc">性别</label>
-                <select id="selGender" name="selGender" class='selArrowRight'>
-                    <option value=''>请选择</option>"
-                    <option value="男">男</option>
-                    <option value="女">女</option>
-                </select>
-            </div>
+    <div class="mui-input-row selArrowRightContainer">
+        <label id="lblGender" style="color:#cccccc">性别</label>
+        <select id="selGender" name="selGender" class='selArrowRight'>
+            <option value=''>请选择 性别</option>"
+            <option value="男">男</option>
+            <option value="女">女</option>
+        </select>
+    </div>
 
-            <div class="mui-input-row selArrowRightContainer">
-                <label id="lblDepartment" style="color:#cccccc">部门</label>
-                <select id="selDept"  name="selDept" class='selArrowRight' onchange="setdept(this.value)">
-                    @Html.Raw(ViewBag.deptHtml)
-                </select>
-                <input id='txtDepartment' type="text" class="mui-input mui-input-clear">
-            </div>
+    <div class="mui-input-row selArrowRightContainer">
+        <label id="lblDepartment" style="color:#cccccc">部门</label>
+        <select id="selDept" name="selDept" class='selArrowRight' onchange="setdept(this.value)">
+            @Html.Raw(ViewBag.deptHtml)
+        </select>
+    </div>
 
-            <div class="mui-input-row ">
-                <label id="lblTel" style="color:#cccccc">手机号</label>
-                <input id='txtTel' type="text" class="mui-input mui-input-clear" value="">
-            </div>
-
-            <table style="width:100%;border:none">
-                <tr style="border:none">
-                    <td style="width:100%;border:none">
-                        <div class="mui-input-row">
-                            <label id="lblVerifyCode" style="color:gray;border:none">验证码</label>
-                            <input id='txtVerifyCode' type="text" class="mui-input mui-input-clear" style="border:none">
-                        </div>
-                    </td>
-                    <td>
-                        <button onclick="sendVC()" id='btnSendVC' class="mui-btn" style="border:1px dotted #eeeeee;margin-right:2px;height:40px;">获取短信验证码</button>
-                    </td>
-                </tr>
-            </table>
+    <div id='otherDept' class="mui-input-row " style="display:none">
+        <label id="lblTel" style="color:#cccccc">其它部门</label>
+        <input id='txtDepartment' type="text" class="mui-input mui-input-clear"  placeholder="请输入 部门"  >
+    </div>
 
 
+    <div class="mui-input-row ">
+        <label id="lblTel" style="color:#cccccc">手机号</label>
+        <input id='txtTel' type="text" class="mui-input mui-input-clear" value=""  placeholder="请输入 手机号" >
+    </div>
 
-            <div class="mui-content-padded">
-                <button id='btn' class="mui-btn mui-btn-block mui-btn-primary" onclick="save1()">提交</button>
-            </div>
-        </div>
+    <table style="width:100%;border:none">
+        <tr style="border:none">
+            <td style="width:100%;border:none">
+                <div class="mui-input-row">
+                    <label id="lblVerifyCode" style="color:gray;border:none">验证码</label>
+                    <input id='txtVerifyCode' type="text" class="mui-input mui-input-clear" style="border:none">
+                </div>
+            </td>
+            <td>
+                <button onclick="sendVC()" id='btnSendVC' class="mui-btn" style="border:1px dotted #eeeeee;margin-right:2px;height:40px;">获取短信验证码</button>
+            </td>
+        </tr>
+    </table>
+
+
+
+    <div class="mui-content-padded">
+        <button id='btn' class="mui-btn mui-btn-block mui-btn-primary" onclick="save1()">提交</button>
+    </div>
+</div>
     }
 }
 

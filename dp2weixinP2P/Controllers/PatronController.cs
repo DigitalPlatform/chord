@@ -223,6 +223,51 @@ namespace dp2weixinWeb.Controllers
 
             // 来源
             ViewBag.From = f;
+
+
+            /*
+                   <option value=''>请选择 部门</option>"
+                    <option value="部门1">部门1</option>
+                    <option value="部门2">部门2</option>
+             */
+            string deptHtml = "<option value=''>请选择 部门</option>";
+            List<string> deptList = dp2WeiXinService.Instance._areaMgr.GetDeptartment(
+                sessionInfo.ActiveUser.libId,
+                sessionInfo.ActiveUser.bindLibraryCode);
+            if (deptList.Count == 0)
+            {
+                ViewBag.Error = "尚未配置部门信息，请联系管理员。";
+                return View();
+            }
+
+            bool bFind = false;
+            string sel = "";
+
+            foreach (string dept in deptList)
+            {
+                if (dept == patron.department)
+                {
+                    sel = " selected ";
+                    bFind = true;
+                }
+
+                deptHtml += "<option value='" + dept + "' "+sel+">" + dept + "</option>";
+            }
+
+            string displayText = "  style='display: none' ";
+            if (deptHtml != "")
+            {
+                if (bFind == false)
+                {
+                    sel = " selected ";
+                    displayText = "  style='display: block' ";
+                }
+
+                deptHtml += "<option value='其它' "+sel+">其它</option>";
+            }
+            ViewBag.deptHtml = deptHtml;
+            ViewBag.displayText = displayText;
+
             return View(patron);
         }
 
@@ -321,11 +366,11 @@ namespace dp2weixinWeb.Controllers
             }
 
             /*
-                   <option value=''>请选择</option>"
+                   <option value=''>请选择 部门</option>"
                     <option value="部门1">部门1</option>
                     <option value="部门2">部门2</option>
              */
-            string deptHtml = "<option value=''>请选择</option>";
+            string deptHtml = "<option value=''>请选择 部门</option>";
             List<string> deptList = dp2WeiXinService.Instance._areaMgr.GetDeptartment(
                 sessionInfo.ActiveUser.libId,
                 sessionInfo.ActiveUser.bindLibraryCode);
@@ -338,6 +383,10 @@ namespace dp2weixinWeb.Controllers
             foreach (string dept in deptList)
             {
                 deptHtml+= "<option value='"+dept+"'>"+dept+"</option>";
+            }
+            if (deptHtml != "")
+            {
+                deptHtml+= "<option value='其它'>其它</option>";
             }
             ViewBag.deptHtml = deptHtml;
             return View();

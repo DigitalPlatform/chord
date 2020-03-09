@@ -2445,9 +2445,12 @@ namespace dp2weixin.service
                 //overdueType是超期类型，overdue表示超期，warning表示即将超期。
                 string overdueType = DomUtil.GetAttr(item, "overdueType");
                 string remark = "";
+
                 if (overdueType == "overdue")
                 {
                     remark = "\n" + fullPatronName + "，您借出的图书已超期，请尽快归还。";
+
+
                 }
                 else if (overdueType == "warning")
                 {
@@ -2467,39 +2470,87 @@ namespace dp2weixin.service
                 //应还日期：2016-07-31
                 //超期情况：已超期30天
                 //任延华，您借出的图书已超期，请尽快归还。
-                string first = "📙📙📙📙📙📙📙📙📙📙";
-                string first_color = "#FFFF00";
-                CaoQiTemplateData msgData = new CaoQiTemplateData(first,
-                    first_color,
-                    summary,
-                    fullItemBarcode,
-                    borrowDate,
-                    timeReturning,
-                    overdue,
-                    remark);
 
-                //mask
-                remark = remark.Replace(fullPatronName, markFullPatronName);
-                CaoQiTemplateData maskMsgData = new CaoQiTemplateData(first,
-                    first_color,
-                    summary,
-                    fullItemBarcode,
-                    borrowDate,
-                    timeReturning,
-                    overdue,
-                    remark);
+                if (overdueType == "overdue")
+                {
+                    remark = "\n" + fullPatronName + "，您借出的图书已超期，请尽快归还。";
+                    string first = "📙📙📙📙📙📙📙📙📙📙";
+                    string first_color = "#FFFF00";
+                    CaoQiTemplateData msgData = new CaoQiTemplateData(first,
+                        first_color,
+                        summary,
+                        fullItemBarcode,
+                        borrowDate,
+                        timeReturning,
+                        overdue,
+                        remark);
 
-                // 发送消息
-                int nRet = this.SendTemplateMsg(GzhCfg.C_Template_CaoQi,
-                    bindWeixinIds,
-                    workers,
-                    msgData,
-                    maskMsgData,
-                    "",//linkurl
-                    "",//theOperator,
-                    out strError);
-                if (nRet == -1)
-                    return -1;
+                    //mask
+                    remark = remark.Replace(fullPatronName, markFullPatronName);
+                    CaoQiTemplateData maskMsgData = new CaoQiTemplateData(first,
+                        first_color,
+                        summary,
+                        fullItemBarcode,
+                        borrowDate,
+                        timeReturning,
+                        overdue,
+                        remark);
+
+                    // 发送消息
+                    int nRet = this.SendTemplateMsg(GzhCfg.C_Template_CaoQi,
+                        bindWeixinIds,
+                        workers,
+                        msgData,
+                        maskMsgData,
+                        "",//linkurl
+                        "",//theOperator,
+                        out strError);
+                    if (nRet == -1)
+                        return -1;
+
+                }
+                else if (overdueType == "warning")
+                {
+                    remark = "\n" + fullPatronName + "，您借出的图书即将到期，请注意不要超期，留意归还。";
+
+                    string first = "📙📙📙📙📙📙📙📙📙📙";
+                    string first_color = "#FFFF00";
+                    KuaiCaoQiTemplateData msgData = new KuaiCaoQiTemplateData(first,
+                        first_color,
+                        summary,
+                        fullItemBarcode,
+                        borrowDate,
+                        timeReturning,
+                        overdue,
+                        remark);
+
+                    //mask
+                    remark = remark.Replace(fullPatronName, markFullPatronName);
+                    KuaiCaoQiTemplateData maskMsgData = new KuaiCaoQiTemplateData(first,
+                        first_color,
+                        summary,
+                        fullItemBarcode,
+                        borrowDate,
+                        timeReturning,
+                        overdue,
+                        remark);
+
+                    // 发送消息
+                    int nRet = this.SendTemplateMsg(GzhCfg.C_Template_KuaiCaoQi,
+                        bindWeixinIds,
+                        workers,
+                        msgData,
+                        maskMsgData,
+                        "",//linkurl
+                        "",//theOperator,
+                        out strError);
+                    if (nRet == -1)
+                        return -1;
+                }
+
+                
+
+
 
             }
             return 0;
@@ -2580,7 +2631,9 @@ namespace dp2weixin.service
                 && string.IsNullOrEmpty(lib.comment)==false
                 && lib.comment.IndexOf("OnshelfArrivedNoNotice") != -1)
             {
-                return 0;
+
+                //return 0;  //2020-3-9改为不给读者立即发，还是给监控的工作人员发送
+                bindWeixinIds.Clear();
             }
 
             // 摘要

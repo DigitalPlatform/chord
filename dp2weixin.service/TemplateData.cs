@@ -195,15 +195,7 @@ namespace dp2weixin.service
 
 
 
-    /*
-尊敬的读者，您的图书即将超期，请及时还书，避免超期违约。
-书刊摘要：C#开发教程
-册条码号：XZ000004
-借书日期：2019/12/1
-应还日期：2019/12/31
-超期说明：即将超期
-王小，您借出的图书即将超期，请及时还书，避免超期违约。 
-     */
+
 
     //您好，您已借书成功。
     //书刊摘要：中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00
@@ -269,6 +261,24 @@ namespace dp2weixin.service
         { }
     }
 
+
+    /*
+尊敬的读者，您的图书即将超期，请及时还书，避免超期违约。
+书刊摘要：C#开发教程
+册条码号：XZ000004
+借书日期：2019/12/1
+应还日期：2019/12/31
+超期说明：即将超期
+王小，您借出的图书即将超期，请及时还书，避免超期违约。 
+ */
+    public class KuaiCaoQiTemplateData : Template5Data
+    {
+        public KuaiCaoQiTemplateData(string first, string first_color,
+            string k1, string k2, string k3, string k4, string k5,
+            string remark)
+            : base(first, first_color, k1, k2, k3, k4, k5, remark)
+        { }
+    }
 
 
 

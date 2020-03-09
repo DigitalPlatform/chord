@@ -196,6 +196,20 @@
             );
         }
 
+        function setdept(dept) {
+
+            if (dept == "其它") {
+                $("#txtDepartment").val();
+
+                $("#otherDept").css("display", "block");
+            }
+            else {
+                $("#txtDepartment").val(dept);
+                $("#otherDept").css("display", "none");
+            }
+
+            //alert("test-"+$("#txtDepartment").val());
+        }
 
     </script>
 }
@@ -223,7 +237,7 @@ else
 
     <div class="mui-input-row ">
         <label id="lblName" style="color:#cccccc">证条码号</label>
-        <input id='txtBarcode' type="text" class="mui-input mui-input-clear" placeholder="请输入 证条码号" value="">  
+        <input id='txtBarcode' type="text" class="mui-input mui-input-clear" placeholder="请输入 证条码号" value="">
     </div>
 
     <div class="mui-input-row selArrowRightContainer">
@@ -240,25 +254,34 @@ else
     <div class="mui-input-row selArrowRightContainer">
         <label id="lblGender" style="color:#cccccc">性别</label>
         <select id="selGender" name="selGender" class='selArrowRight'>
-            <option value=''>请选择</option>"
+            <option value=''>请选择 性别</option>"
             <option value="男" @ViewBag.manSel>男</option>
             <option value="女" @ViewBag.womanSel>女</option>
         </select>
     </div>
 
-    <div class="mui-input-row ">
-        <label id="lblDepartment" style="color:#cccccc">单位</label>
-        <input id='txtDepartment' type="text" class="mui-input mui-input-clear" value="@Model.department">
+
+
+    <div class="mui-input-row selArrowRightContainer">
+        <label id="lblDepartment" style="color:#cccccc">部门</label>
+        <select id="selDept" name="selDept" class='selArrowRight' onchange="setdept(this.value)">
+            @Html.Raw(ViewBag.deptHtml)
+        </select>
+    </div>
+
+    <div id='otherDept' class="mui-input-row " @ViewBag.displayText>
+        <label id="lblTel" style="color:#cccccc">其它部门</label>
+        <input id='txtDepartment' type="text" class="mui-input mui-input-clear" placeholder="请输入 部门" value="@Model.department">
     </div>
 
     <div class="mui-input-row ">
         <label id="lblTel" style="color:#cccccc">手机号</label>
-        <input id='txtTel' type="text" class="mui-input mui-input-clear" value="@Model.tel">
+        <input id='txtTel' type="text" class="mui-input mui-input-clear" value="@Model.tel" placeholder="请输入 手机号" >
     </div>
 
     <div class="mui-input-row ">
         <label id="lblReason" style="color:#cccccc">不通过原因</label>
-        <input id='txtReason' type="text" class="mui-input mui-input-clear" >
+        <input id='txtReason' type="text" class="mui-input mui-input-clear" placeholder="请输入 不通过原因" >
     </div>
 
 </div>
