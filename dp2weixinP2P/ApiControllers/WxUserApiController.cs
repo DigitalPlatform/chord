@@ -445,7 +445,7 @@ namespace dp2weixinWeb.ApiControllers
             {
                 // 先看看有没有public的,有的话，用绑定的实际帐号替换
                 //注意这里不过滤图书馆，就是说临时选择的图书馆，如果未绑定正式帐户，则会被新选择的图书馆public帐户代替
-                List<WxUserItem> publicList = WxUserDatabase.Current.GetWorkers1(weixinId, "", "public");
+                List<WxUserItem> publicList = WxUserDatabase.Current.GetWorkers(weixinId, "", "public");
                 if (publicList.Count > 0)
                 {
                     user = publicList[0];

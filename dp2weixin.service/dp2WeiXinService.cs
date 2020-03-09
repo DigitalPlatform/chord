@@ -1226,7 +1226,7 @@ namespace dp2weixin.service
 
                     string appId = gzh.appId;
 
-                    if (weixinId.Length > 2 && weixinId.Substring(0, 2) == "~~")
+                    if (WxUserDatabase.CheckIsFromWeb(weixinId)==true) //weixinId.Length > 2 && weixinId.Substring(0, 2) == "~~")
                     {
                         // web入口，把消息把加本地库中
                         UserMessageItem myMsg = new UserMessageItem();
@@ -1458,7 +1458,7 @@ namespace dp2weixin.service
             foreach (WxUserItem tUser in this.TracingOnUserList)
             {
                 // web入口的weixin不用发通知
-                if (tUser.weixinId.Length > 2 && tUser.weixinId.Substring(0, 2) == "~~")
+                if (WxUserDatabase.CheckIsFromWeb(tUser.weixinId)==true)//tUser.weixinId.Length > 2 && tUser.weixinId.Substring(0, 2) == WxUserDatabase.C_Prefix_fromWeb) // "~~")
                     continue;
 
                 // 数字平台工作人员
@@ -3231,7 +3231,7 @@ namespace dp2weixin.service
                         continue;
 
                     // 从web页面绑定的
-                    if (user.weixinId.Substring(0, 2) == "~~")
+                    if (WxUserDatabase.CheckIsFromWeb(user.weixinId)==true) //user.weixinId.Substring(0, 2) == "~~")
                     {
                         this.WriteDebug("工作人员" + user.userName + "的weixinId为" + user.weixinId + ",非微信入口，不发通知。");
                         continue;
@@ -4025,7 +4025,19 @@ ErrorInfo成员里可能会有报错信息。
                     //bindWeixinIds.Add(tempfullWeixinId);
 
                     // 工作人员
-                    List<WxUserItem> workers = this.GetTraceUsers(libId, userItem.libraryCode);
+                    //List<WxUserItem> workers = this.GetTraceUsers(libId, userItem.libraryCode);
+
+                    // 2020-3-9 改为发给本馆绑定的工作人员，不管是否打开监控消息没有关系，
+                    //只要图书馆工作人员绑定了帐户，就发给馆员。也不再发给dp2003的监控，意义不大。
+                    List<WxUserItem> tempWorkers = WxUserDatabase.Current.GetWorkers("", libId, "");
+                    List<WxUserItem> workers = new List<WxUserItem>();
+                    foreach(WxUserItem one in tempWorkers)
+                    {
+                        if (WxUserDatabase.CheckIsFromWeb(one.weixinId) == true)
+                            continue;
+
+                        workers.Add(one);
+                    }
 
                     if (bindWeixinIds.Count > 0 || workers.Count > 0)
                     {
@@ -4036,18 +4048,18 @@ ErrorInfo成员里可能会有报错信息。
                             strAccount, userItem.phone, "等待审核", thisTime,
                             strRemark);
 
-                        //加mask的通知数据
-                        strAccount = this.GetFullPatronName(userItem.readerName, userItem.readerBarcode, "", "", true);//this.markString(userItem.readerName) + " " + this.markString(userItem.readerBarcode) + "";
-                        ReviewPatronTemplateData maskMsgData = new ReviewPatronTemplateData(strFirst, first_color,
-                            strAccount, userItem.phone, "等待审核", thisTime,
-                            strRemark);
+                        ////加mask的通知数据
+                        //strAccount = this.GetFullPatronName(userItem.readerName, userItem.readerBarcode, "", "", true);//this.markString(userItem.readerName) + " " + this.markString(userItem.readerBarcode) + "";
+                        //ReviewPatronTemplateData maskMsgData = new ReviewPatronTemplateData(strFirst, first_color,
+                        //    strAccount, userItem.phone, "等待审核", thisTime,
+                        //    strRemark);
 
                         // 发送待审核的微信消息
                         nRet = this.SendTemplateMsg(GzhCfg.C_Template_ReviewPatron,
                            bindWeixinIds,
                            workers,
                            msgData,
-                           maskMsgData,
+                           msgData, //用的同一组数据，不做马赛克
                            linkUrl,
                            "",
                            out strError);
@@ -4647,15 +4659,8 @@ ErrorInfo成员里可能会有报错信息。
                     return -1;
 
 
-
-                bool isWeb = false;
-                if (weixinId.Length > 2 && weixinId.Substring(0, 2) == "~~")
-                {
-                    isWeb = true;
-                }
-
                 // 微信入口才需要发通知
-                if (isWeb == false)
+                if (WxUserDatabase.CheckIsFromWeb(weixinId) == false)
                 {
                     // 发送绑定成功的客服消息    
                     string strFirst = "☀恭喜您！您已成功绑定图书馆读者账号。";
@@ -4851,7 +4856,7 @@ ErrorInfo成员里可能会有报错信息。
 
             // 将微信id对应的public帐户都删除
             //注意这里不过滤图书馆，就是说临时选择的图书馆，如果未绑定正式帐户，则会被新选择的图书馆public帐户代替
-            List<WxUserItem> publicList = WxUserDatabase.Current.GetWorkers1(weixinId, "", "public");
+            List<WxUserItem> publicList = WxUserDatabase.Current.GetWorkers(weixinId, "", "public");
             if (publicList.Count > 0)
             {
                 if (publicList.Count > 1)
@@ -4882,7 +4887,7 @@ ErrorInfo成员里可能会有报错信息。
             }
             else
             {
-                List<WxUserItem> list = WxUserDatabase.Current.GetWorkers1(weixinId, libId, userName);
+                List<WxUserItem> list = WxUserDatabase.Current.GetWorkers(weixinId, libId, userName);
                 if (list != null && list.Count > 0)
                 {
                     if (list.Count > 1)
@@ -5009,11 +5014,11 @@ ErrorInfo成员里可能会有报错信息。
             }
 
             //string weixinId = "~~" + guid +"@" + gzh.appId; //2018/3/8
-            bool isWeb = false;
-            if (weixinId.Length > 2 && weixinId.Substring(0, 2) == "~~")
-            {
-                isWeb = true;
-            }
+            //bool isWeb = false;
+            //if (weixinId.Length > 2 && weixinId.Substring(0, 2) == "~~")
+            //{
+            //    isWeb = true;
+            //}
 
 
             LibEntity lib = this.GetLibById(userItem.libId);
@@ -5083,7 +5088,7 @@ ErrorInfo成员里可能会有报错信息。
                 // 删除mongodb库的记录
                 WxUserDatabase.Current.Delete1(userId, out newActiveUser);
 
-                if (isWeb == false)
+                if (WxUserDatabase.CheckIsFromWeb(weixinId) == false)
                 {
                     // 发送解绑消息    
                     string strFirst = "☀您已成功对图书馆读者账号解除绑定。";
@@ -9592,7 +9597,7 @@ tempRemark);
             List<WxUserItem> patrons = WxUserDatabase.Current.Get("", libId,libraryCode, WxUserDatabase.C_Type_Patron,null,null,true);
             foreach (WxUserItem user in patrons)
             {
-                if (user.weixinId.Length > 2 && user.weixinId.Substring(0, 2) == "~~")
+                if (WxUserDatabase.CheckIsFromWeb(user.weixinId)==true)//user.weixinId.Length > 2 && user.weixinId.Substring(0, 2) == "~~")
                 {
                     webPatronList.Add(user);
                 }
@@ -9611,7 +9616,7 @@ tempRemark);
                     continue;
                 }
 
-                if (user.weixinId.Length > 2 && user.weixinId.Substring(0, 2) == "~~")
+                if (WxUserDatabase.CheckIsFromWeb(user.weixinId) ==true)//user.weixinId.Length > 2 && user.weixinId.Substring(0, 2) == "~~")
                 {
                     webWorkerList.Add(user);
                 }
@@ -11036,7 +11041,7 @@ tempRemark);
                 gzh = dp2WeiXinService.Instance._gzhContainer.GetDefault();
 
             // 2020-3-7 注意这里还是检查web来源的绑定，~~开头但没有@，web来源不需要加@公众号appid
-            if (weixinId.Length >= 0 && weixinId.Substring(0, 2) == "~~")
+            if (WxUserDatabase.CheckIsFromWeb(weixinId) == true)//weixinId.Length >= 0 && weixinId.Substring(0, 2) == "~~")
                 return weixinId;
 
             // 很久之前的版本，weixinid没有带公众号后缀，所以这里自动处理一下
@@ -11104,7 +11109,7 @@ tempRemark);
             this.WriteDebug("收到通知，更新图书馆 " + lib.libName + " 工作人员 " + name + " 的信息。");
 
             // 查一下数据库中有没有绑定该账户的微信
-            List<WxUserItem> userList = WxUserDatabase.Current.GetWorkers1(null, lib.id, name);
+            List<WxUserItem> userList = WxUserDatabase.Current.GetWorkers(null, lib.id, name);
 
             //  2020-3-7 不使用下面比对两者weixinId分出3批数据的做法，
             // 修改为直接根据变更帐户修改mongodb库的中该帐户对应所有记录的信息，

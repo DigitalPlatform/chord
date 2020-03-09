@@ -18,7 +18,37 @@ namespace dp2weixin
     /// </summary>
     public partial class dp2weixinMessageHandler : MessageHandler<dp2weixinMessageContext>
     {
+
+
+        /// <summary>
+        /// 订阅（关注）事件
+        /// </summary>
+        /// <returns></returns>
+        public override IResponseMessageBase OnEvent_SubscribeRequest(RequestMessageEvent_Subscribe requestMessage)
+        {
+            GzhCfg gzh = dp2WeiXinService.Instance._gzhContainer.GetByAppId(this.AppId);
+            if (gzh == null)
+            {
+                return this.CreateTextResponseMessage("未找到" + this.AppId + "对应的公众号配置");
+            }
+
+            string resetPasswordUrl = dp2WeiXinService.Instance.GetOAuth2Url(gzh, "Account/ResetPassword");
+            string accountIndex = dp2WeiXinService.Instance.GetOAuth2Url(gzh, "Account/Index");
+
+            string strMessage = "☀您好，欢迎关注我爱图书馆公众号。一般情况下，绑定读者账户的流程如下："
+                + "\r\n1) 去图书馆出纳台，找工作人员在图书馆系统中登记存储您的手机号码；"
+                + "\r\n2) 点击 <a href='" + resetPasswordUrl + "'>找回密码</a>，获得您的图书馆读者证密码(密码将自动通过短信发送到您的手机)；"
+                + "\r\n3) 点击 <a href='" + accountIndex + "'>绑定账户</a>，完成绑定。";
+
+
+            var responseMessage = ResponseMessageBase.CreateFromRequestMessage<ResponseMessageText>(requestMessage);
+            responseMessage.Content = strMessage;
+
+            return responseMessage;
+        }
+
         /*
+
         /// <summary>
         /// 订阅（关注）事件
         /// </summary>
@@ -42,6 +72,11 @@ namespace dp2weixin
         }
         */
 
+
+        #region 其它用户事件消息
+
+        /*
+        
         /// <summary>
         /// 自定义菜单点击事件
         /// </summary>
@@ -54,9 +89,7 @@ namespace dp2weixin
 
             return this.CreateTextResponseMessage("不支持");
         }
-
-        #region 其它用户事件消息
-
+ 
         /// <summary>
         /// 微信客户端（通过微信服务器）自动发送过来的位置信息事件
         /// </summary>
@@ -93,7 +126,7 @@ namespace dp2weixin
             responseMessage.Content = "感谢扫码";
             return responseMessage;
         }
-
+        */
         #endregion
     }
 }

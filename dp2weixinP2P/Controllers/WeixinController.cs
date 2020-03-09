@@ -26,7 +26,7 @@ using Senparc.Weixin.MP.Helpers;
 //using Senparc.Weixin.MP.Sample.Service;
 //using Senparc.Weixin.MP.Sample.CustomerMessageHandler;
 using Senparc.Weixin.MP.Sample.CommonService;
-using Senparc.Weixin.MP.Sample.CommonService.CustomMessageHandler;
+//using Senparc.Weixin.MP.Sample.CommonService.CustomMessageHandler;
 using Senparc.Weixin.MP.MvcExtension;
 using Senparc.Weixin.MP;
 using dp2weixin;
@@ -161,20 +161,31 @@ namespace dp2weixinWeb.Controllers
             var logDir = dp2WeiXinService.Instance._weiXinLogDir;
 
             //自定义MessageHandler，对微信请求的详细判断操作都在这里面。
-            var messageHandler = new dp2weixinMessageHandler(Request.InputStream, postModel, maxRecordCount);
+            dp2weixinMessageHandler messageHandler = new dp2weixinMessageHandler(Request.InputStream, postModel, maxRecordCount);
             try
             {
-                //执行微信处理过程
-                CancellationToken cancellationToken = new CancellationToken();
-                await messageHandler.ExecuteAsync(cancellationToken);
+                dp2WeiXinService.Instance.WriteDebug("执行前");
+                //CancellationToken cancellationToken = new CancellationToken();
+                //await messageHandler.ExecuteAsync(cancellationToken);
 
-                // 计算处理消息用了多少时间
-                TimeSpan time_length = DateTime.Now - start_time;
-                string strMsgContext = "";
-                if (messageHandler.RequestMessage is RequestMessageText)
-                    strMsgContext = ((RequestMessageText)messageHandler.RequestMessage).Content;
+                // 2020-3-9 必须得用同步函数，用异常函数，只返回default消息。
+                messageHandler.Execute();//执行微信处理过程（关键）
 
-                
+                dp2WeiXinService.Instance.WriteDebug("执行后");
+
+                return new WeixinResult(messageHandler);
+
+                ////执行微信处理过程
+                //CancellationToken cancellationToken = new CancellationToken();
+                //await messageHandler.ExecuteAsync(cancellationToken);
+
+                //// 计算处理消息用了多少时间
+                //TimeSpan time_length = DateTime.Now - start_time;
+                //string strMsgContext = "";
+                //if (messageHandler.RequestMessage is RequestMessageText)
+                //    strMsgContext = ((RequestMessageText)messageHandler.RequestMessage).Content;
+
+
                 // 点一下菜单也是一个event消息，太频繁了，没必要写日志了。2020-2-6
                 /*
                 string info = "处理[" + messageHandler.RequestMessage.CreateTime 
@@ -193,16 +204,18 @@ namespace dp2weixinWeb.Controllers
                 */
 
 
-                // 如果消息是空内容，直接返回空，这样微信就不是重试了，用于 用户请求书目详细消息，公众号以客户消息返回
-                if (messageHandler.ResponseMessage is ResponseMessageText)
-                {
-                    var mess = (ResponseMessageText)messageHandler.ResponseMessage;
-                    if (String.IsNullOrEmpty(mess.Content) == true)
-                    {
-                        return Content("");
-                    }
-                }
-                return new WeixinResult(messageHandler.TextResponseMessage);// ResponseMessage);//v0.8+
+                //// 如果消息是空内容，直接返回空，这样微信就不是重试了，用于 用户请求书目详细消息，公众号以客户消息返回
+                //if (messageHandler.ResponseMessage is ResponseMessageText)
+                //{
+                //    var mess = (ResponseMessageText)messageHandler.ResponseMessage;
+                //    if (String.IsNullOrEmpty(mess.Content) == true)
+                //    {
+                //        return Content("");
+                //    }
+                //}
+                //return new WeixinResult(messageHandler.TextResponseMessage);// ResponseMessage);//v0.8+
+
+
             }
             catch (Exception ex)
             {

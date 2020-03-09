@@ -251,15 +251,11 @@ namespace dp2weixin.service
             return this.Get(weixinId, libId, libraryCode, C_Type_Patron, readerBarcode, null, true);
         }
 
-        public List<WxUserItem> GetWorkers1(string weixinId, string libId, string userName)
+        public List<WxUserItem> GetWorkers(string weixinId, string libId, string userName)
         {
             return this.Get(weixinId, libId, null, C_Type_Worker, null, userName, true);
         }
 
-        public List<WxUserItem> GetWorkers2(string weixinId, string libId, string libraryCode, string userName)
-        {
-            return this.Get(weixinId, libId, libraryCode, C_Type_Worker,  null,userName, true);
-        }
 
 
 
@@ -835,6 +831,8 @@ namespace dp2weixin.service
             {
                 if (tracing == null)
                     tracing = "";
+
+                // todo 空认为是马赛克还是不马赛克 2020-3-9
 
                 if (this.tracing.IndexOf("-mask") != -1)  // -mask 指不做马赛克处理
                     return false;

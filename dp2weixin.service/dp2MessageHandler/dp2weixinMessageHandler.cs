@@ -51,7 +51,7 @@ namespace dp2weixin
            this.Token = postModel.Token;
         }
 
-
+        /*
 
         /// <summary>
         /// 执行时，用于过滤黑名单
@@ -68,22 +68,43 @@ namespace dp2weixin
         {
             return base.OnExecutedAsync(token);
         }
-      
+        */
+
         /// <summary>
         /// 处理文字请求
         /// </summary>
         /// <returns></returns>
-        public override IResponseMessageBase OnTextRequest(RequestMessageText requestMessage)
+        public override async Task<IResponseMessageBase> OnTextRequestAsync(RequestMessageText requestMessage)
         {
-            string strText = requestMessage.Content;
+            //string strText = requestMessage.Content; 
 
-            return this.CreateTextResponseMessage("您刚才发送["+strText+"]");
+            //return this.CreateTextResponseMessage("您刚才发送["+strText+"]");
+            var result = new StringBuilder();
+            result.AppendFormat("您刚才发送了文字信息：{0}\r\n\r\n", requestMessage.Content);
 
-            //string strMessage = "您好，欢迎使用。";
-            //return this.CreateTextResponseMessage(strMessage);
 
+
+            var defaultResponseMessage = base.CreateResponseMessage<ResponseMessageText>();
+
+            defaultResponseMessage.Content = result.ToString();
+
+            return defaultResponseMessage;
         }
- 
+
+        public override IResponseMessageBase DefaultResponseMessage(IRequestMessageBase requestMessage)
+        {
+            /* 所有没有被处理的消息会默认返回这里的结果，
+            * 因此，如果想把整个微信请求委托出去（例如需要使用分布式或从其他服务器获取请求），
+            * 只需要在这里统一发出委托请求，如：
+            * var responseMessage = MessageAgent.RequestResponseMessage(agentUrl, agentToken, RequestDocument.ToString());
+            * return responseMessage;
+            */
+
+            var responseMessage = this.CreateResponseMessage<ResponseMessageText>();
+            responseMessage.Content = "这条消息来自DefaultResponseMessage。";
+            return responseMessage;
+        }
+
         /// <summary>
         /// 创建文本回复消息
         /// </summary>
@@ -103,19 +124,7 @@ namespace dp2weixin
 
         #region 其它类型消息
 
-        /// <summary>
-        /// 处理位置请求
-        /// </summary>
-        /// <param name="requestMessage"></param>
-        /// <returns></returns>
-        public override IResponseMessageBase OnLocationRequest(RequestMessageLocation requestMessage)
-        {
-            var responseMessage = CreateResponseMessage<ResponseMessageText>();
-            responseMessage.Content = string.Format("您刚才发送了地理位置信息。Location_X：{0}，Location_Y：{1}，Scale：{2}，标签：{3}",
-                              requestMessage.Location_X, requestMessage.Location_Y,
-                              requestMessage.Scale, requestMessage.Label);
-            return responseMessage;
-        }
+        /*
         /// <summary>
         /// 处理图片请求
         /// </summary>
@@ -196,6 +205,10 @@ Url:{2}", requestMessage.Title, requestMessage.Description, requestMessage.Url);
             responseMessage.Content = "这条消息来自DefaultResponseMessage。";
             return responseMessage;
         }
+        */
         #endregion
+
+    
     }
+
 }
