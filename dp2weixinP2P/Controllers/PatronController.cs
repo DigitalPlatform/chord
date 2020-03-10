@@ -97,11 +97,11 @@ namespace dp2weixinWeb.Controllers
                 ViewBag.Error = "libId参数不能为空。";
                 return View();
             }
-            //Request.
 
-            dp2WeiXinService.Instance.WriteDebug("!!!PatronReview页面 Request.Path=[" + this.Request.Path + "]"
-                + "\r\n RawUrl=" + this.Request.RawUrl
-                + "\r\n Url=" + this.Request.Url);
+
+            //dp2WeiXinService.Instance.WriteDebug("!!!PatronReview页面 Request.Path=[" + this.Request.Path + "]"
+            //    + "\r\n RawUrl=" + this.Request.RawUrl
+            //    + "\r\n Url=" + this.Request.Url);
 
 
 
@@ -200,13 +200,7 @@ namespace dp2weixinWeb.Controllers
                     ViewBag.showPhoto,
                     false);
 
-            string patronBarcode = patron.barcode;
-            // 如果是临时id则置空
-            if (patronBarcode.Length>=7 && patronBarcode.Substring(0, 7).ToLower() == "@refid:")
-            {
-                patronBarcode = "";
-            }
-            ViewBag.patronBarcode = patronBarcode;
+
 
             // 当前读者性别
             if (patron.gender == "男")
@@ -339,6 +333,8 @@ namespace dp2weixinWeb.Controllers
                 ViewBag.PatronRecPath = ViewBag.PatronDbName + "/?";
             }
 
+            // 改为手机号作为证条码号，这个检查不必了 2020-3-10
+            /*
             // 检查一下是否已经有了读者帐户，如果已经绑定过读者帐户，则不允许再注册
             if (sessionInfo.ActiveUser !=null)
             {
@@ -364,6 +360,7 @@ namespace dp2weixinWeb.Controllers
                     return View();
                 }
             }
+            */
 
             /*
                    <option value=''>请选择 部门</option>"

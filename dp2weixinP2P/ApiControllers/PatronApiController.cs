@@ -146,14 +146,14 @@ namespace dp2weixinWeb.ApiControllers
         /// <param name="tel"></param>
         /// <returns></returns>
         public GetVerifyCodeResult GetVerifyCode(string libId, 
-            string tel)
+            string phone)
         {
             GetVerifyCodeResult result = new GetVerifyCodeResult();
             //result.verifyCode = "7";
 
             string error = "";
             int nRet = dp2WeiXinService.Instance.GetVerifyCode(libId,
-                tel,
+                phone,
                 out string verifyCode,
                 out error);
             if (nRet == -1)

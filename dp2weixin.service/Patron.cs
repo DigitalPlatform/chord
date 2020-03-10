@@ -54,7 +54,7 @@ namespace dp2weixin.service
         public string department { get; set; }
 
         // 电话
-        public string tel { get; set; }
+        public string phone { get; set; }
 
         public string libraryCode { get; set; }
 

@@ -27,12 +27,12 @@
             }
 
             // 手机号
-            var tel = $("#txtTel").val();
-            if (tel == "") {
+            var phone = $("#txtPhone").val();
+            if (phone == "") {
                 alert("手机号不能为空！");
                 return;
             }
-            if (tel.length != 11) {
+            if (phone.length != 11) {
                 alert("手机号必须是11位数字！");
                 return;
             }
@@ -42,7 +42,7 @@
 
             // 调patron发送验证码接口
             var url = "/api/patronapi?libId=" + encodeURIComponent(libId)
-                + "&tel=" + encodeURIComponent(tel)
+                + "&phone=" + encodeURIComponent(phone)
 
             //alert(url);
             sendAjaxRequest(url, "GET",
@@ -115,12 +115,12 @@
             }
 
             // 手机号
-            var tel = $("#txtTel").val();
-            if (tel == "") {
+            var phone = $("#txtPhone").val();
+            if (phone == "") {
                 alert("请输入手机号");
                 return;
             }
-            if (tel.length != 11) {
+            if (phone.length != 11) {
                 alert("手机号格式不正确。");
                 return;
             }
@@ -177,7 +177,7 @@
                     $("#txtName").val("");
                     $("#selGender").val("");
                     $("#txtDepartment").val("");
-                    $("#txtTel").val("");
+                    $("#txtPhone").val("");
                     $("#txtVerifyCode").val("");
                     $("#_verifyCode").text("");
 
@@ -203,7 +203,7 @@
                     name: name,
                     gender: gender,
                     department: department,
-                    tel: tel,
+                    phone: phone,
                     libraryCode: libraryCode
                 }
             );
@@ -285,14 +285,14 @@ else
     </div>
 
     <div id='otherDept' class="mui-input-row " style="display:none">
-        <label id="lblTel" style="color:#cccccc">其它部门</label>
+        <label id="lblOther" style="color:#cccccc">其它部门</label>
         <input id='txtDepartment' type="text" class="mui-input mui-input-clear"  placeholder="请输入 部门"  >
     </div>
 
 
     <div class="mui-input-row ">
-        <label id="lblTel" style="color:#cccccc">手机号</label>
-        <input id='txtTel' type="text" class="mui-input mui-input-clear" value=""  placeholder="请输入 手机号" >
+        <label id="lblPhone" style="color:#cccccc">手机号</label>
+        <input id='txtPhone' type="text" class="mui-input mui-input-clear" value=""  placeholder="请输入 手机号" >
     </div>
 
     <table style="width:100%;border:none">

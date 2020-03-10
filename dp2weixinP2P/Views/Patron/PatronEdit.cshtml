@@ -93,7 +93,7 @@
                     $("#txtName").val(patron.name);
                     $('#selGender').val(patron.gender);
                     $("#txtDepartment").val(patron.department);
-                    $("#txtTel").val(patron.tel);
+                    $("#txtPhone").val(patron.phone);
                     $("#_bLoad").text("1");
 
                     var tempRecPath = result.recPath;
@@ -191,8 +191,8 @@
 
 
             // 手机号
-            var tel = $("#txtTel").val();
-            //if (tel == "") {
+            var phonel = $("#txtPhone").val();
+            //if (phone == "") {
             //    alert("手机号不能为空！");
             //    return;
             //}
@@ -270,7 +270,7 @@
                     name: name,
                     gender: gender,
                     department: department,
-                    tel: tel
+                    phone: phone
                 }
             );
         }
@@ -337,8 +337,8 @@ else
             </div>
 
             <div class="mui-input-row ">
-                <label id="lblTel" style="color:#cccccc">手机号</label>
-                <input id='txtTel' type="text" class="mui-input mui-input-clear">
+                <label id="lblPhone" style="color:#cccccc">手机号</label>
+                <input id='txtPhone' type="text" class="mui-input mui-input-clear">
             </div>
 
             <!--

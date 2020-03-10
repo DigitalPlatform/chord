@@ -3782,7 +3782,7 @@ ErrorInfo成员里可能会有报错信息。
             XmlNode telNode = root.SelectSingleNode("tel");
             if (telNode == null)
                 telNode = DomUtil.CreateNodeByPath(root, "tel");
-            DomUtil.SetNodeText(telNode, patron.tel);
+            DomUtil.SetNodeText(telNode, patron.phone);
 
             // 状态 state
             XmlNode stateNode = root.SelectSingleNode("state");
@@ -3872,7 +3872,7 @@ ErrorInfo成员里可能会有报错信息。
                     // 比如借还要知道当前操作者，检索也是传的当前帐户信息，但因为读者注册时的证条码还没有，传的RI:refid
                     // 但点不对api不认，会报缺证条码，后面又报缺channel.userName，和谢老师语音，要全面支持要入很多地方
                     // 所以在注册时，还是生成一个随机的guid，让这条记录合规，审核的时候可以不显示
-                    patron.barcode = Guid.NewGuid().ToString().ToUpper();  //注册要大写
+                    patron.barcode = patron.phone;//Guid.NewGuid().ToString().ToUpper();  //注册要大写
                 }
 
                 patronXml = "<root>"
@@ -3882,7 +3882,7 @@ ErrorInfo成员里可能会有报错信息。
                        + "<name>" + patron.name + "</name>"
                        + "<gender>" + patron.gender + "</gender>"
                        + "<department>" + patron.department + "</department>"
-                       + "<tel>" + patron.tel + "</tel>"
+                       + "<tel>" + patron.phone + "</tel>"
                        + "<email>" + email + "</email>"
                        + "</root>";
             }
@@ -3963,7 +3963,16 @@ ErrorInfo成员里可能会有报错信息。
 
                 if (result.Value == -1)
                 {
-                    strError = "图书馆 " + lib.libName + " 的保存读者信息时出错:" + result.ErrorInfo;
+                    if (result.ErrorInfo.IndexOf("已经被下列读者记录使用了") != -1)
+                    {
+                        strError = "该手机号"+patron.phone+"已被注册，不能重复注册。";
+                    }
+                    else
+                    {
+                        strError = "图书馆 " + lib.libName + " 的保存读者信息时出错:" + result.ErrorInfo;
+                    }
+
+                    
                     return -1;
                 }
 
@@ -4082,7 +4091,10 @@ ErrorInfo成员里可能会有报错信息。
 
                     // 2020-3-9 改为发给本馆绑定的工作人员，不管是否打开监控消息没有关系，
                     //只要图书馆工作人员绑定了帐户，就发给馆员。也不再发给dp2003的监控，意义不大。
-                    List<WxUserItem> tempWorkers = WxUserDatabase.Current.GetWorkers("", libId, "");
+                    string libraryCode = userItem.libraryCode;
+                    if (libraryCode == "")
+                        libraryCode = "空";
+                    List<WxUserItem> tempWorkers = WxUserDatabase.Current.GetWorkers("", libId, libraryCode, "");
                     List<WxUserItem> workers = new List<WxUserItem>();
                     foreach(WxUserItem one in tempWorkers)
                     {
@@ -4481,7 +4493,7 @@ ErrorInfo成员里可能会有报错信息。
         /// <param name="error"></param>
         /// <returns></returns>
         public int GetVerifyCode(string libId, 
-            string tel, 
+            string phone, 
             out string verifyCode,
             out string error)
         {
@@ -4495,16 +4507,14 @@ ErrorInfo成员里可能会有报错信息。
 
 
             // todo 正常版本打开
-            /*
-            //发送短信
-            nRet = this.SendSMS("~temp",//patronBarcode,
-               tel,
-               strMessageText,
-               libId,
-               out error);
-            if (nRet == -1)
-                return -1;
-            */
+            ////发送短信
+            //nRet = this.SendSMS("~temp",//patronBarcode,
+            //   phone,
+            //   strMessageText,
+            //   libId,
+            //   out error);
+            //if (nRet == -1)
+            //    return -1;
 
             return nRet;
         }
@@ -4692,6 +4702,8 @@ ErrorInfo成员里可能会有报错信息。
                 if (result.Value == -1)
                 {
                     strError = result.ErrorInfo;
+                    if (string.IsNullOrEmpty(strError) == true)
+                        strError = "帐户或密码不正确";
                     return -1;
                 }
 
@@ -4838,6 +4850,7 @@ ErrorInfo成员里可能会有报错信息。
             string department = "";
             string phone = "";
             string patronState = "";
+            string noPassReason = "";
 
             string rights = ""; // 权限
             string location = "";
@@ -4868,9 +4881,11 @@ ErrorInfo成员里可能会有报错信息。
                 department = patronInfo.department;
                 phone = patronInfo.phone;
                 patronState = patronInfo.patronState;
+                noPassReason = patronInfo.noPassReason;
                 libraryCode = patronInfo.libraryCode;
                 rights = patronInfo.rights;
                 location = patronInfo.location;
+                
             }
 
             // 针对读者帐户，如果绑定时选择的图书馆 与 自己所属的分馆不一致，则不允许绑定
@@ -4971,6 +4986,7 @@ ErrorInfo成员里可能会有报错信息。
             userItem.department = department;
             userItem.phone = phone;
             userItem.patronState = patronState;
+            userItem.noPassReason = noPassReason;
             userItem.xml = partonXml;
 
             userItem.isRegister = isRegister;
@@ -7694,12 +7710,12 @@ ErrorInfo成员里可能会有报错信息。
 
             // 电话
             string strTel = DomUtil.GetElementText(dom.DocumentElement, "tel");
-            patron.tel = strTel;
+            patron.phone = strTel;
             if (strTel.Length > 4 && bMaskPhone==true)
             {
                 string left = strTel.Substring(0, strTel.Length - 4);
                 left = "".PadLeft( left.Length, '*');
-                patron.tel = left + strTel.Substring(strTel.Length - 4);
+                patron.phone = left + strTel.Substring(strTel.Length - 4);
             }
 
             // email
@@ -10814,6 +10830,7 @@ tempRemark);
             userItem.department = patronInfo.department;
             userItem.phone = patronInfo.phone;
             userItem.patronState = patronInfo.patronState;
+            userItem.noPassReason = patronInfo.noPassReason;
             userItem.xml = patronInfo.xml;
 
             userItem.isRegister = false;
@@ -10870,6 +10887,7 @@ tempRemark);
             userItem.department = "";
             userItem.phone = "";
             userItem.patronState = "";
+            userItem.noPassReason = "";
             userItem.xml = "";
 
             userItem.isRegister = false;
@@ -10944,6 +10962,13 @@ tempRemark);
             if (node != null)
                 patronState = DomUtil.GetNodeText(node);
 
+            // 读者状态
+            string noPassReason = "";
+            node = root.SelectSingleNode("comment");
+            if (node != null)
+                noPassReason = DomUtil.GetNodeText(node);
+
+
             // 分馆代码
             string libraryCode = "";
             node = root.SelectSingleNode("libraryCode");
@@ -11003,6 +11028,7 @@ tempRemark);
             userItem.department = department;
             userItem.phone = phone;
             userItem.patronState = patronState;
+            userItem.noPassReason = noPassReason;
             userItem.refID = refID;
             userItem.libraryCode = libraryCode;
             userItem.xml = xml;
@@ -11380,6 +11406,7 @@ tempRemark);
                 userItem.department = patronInfo.department;
                 userItem.phone = patronInfo.phone;
                 userItem.patronState = patronInfo.patronState;  //更新为dp2读者记录的最新状态
+                userItem.noPassReason = patronInfo.noPassReason;//更新不通过原因
                 userItem.xml = patronInfo.xml;
                 userItem.refID = patronInfo.refID;
                 userItem.libraryCode = patronInfo.libraryCode;
@@ -11408,11 +11435,14 @@ tempRemark);
 您现在使用智能书柜借书了。
                     */
                     string strFirst = "尊敬的用户：您好！您提交的书柜帐户注册信息已审核完成。";
-                    string strRemark = "您现在使用智能书柜借书了。";
+                    string strRemark = "您现在可以使用智能书柜借书了。";
 
                     string result = "通过";
                     if (nPass == 0)
+                    {
                         result = "不通过";
+                        strRemark = "审核不通过原因：" + userItem.noPassReason;
+                    }
 
                     // todo，这里使用的default公众号，后面如果有些单位用自己的公众号再改进
                     GzhCfg gzh = dp2WeiXinService.Instance._gzhContainer.GetDefault();//.GetByAppId(this.AppId);

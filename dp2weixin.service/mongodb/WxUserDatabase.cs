@@ -256,7 +256,10 @@ namespace dp2weixin.service
             return this.Get(weixinId, libId, null, C_Type_Worker, null, userName, true);
         }
 
-
+        public List<WxUserItem> GetWorkers(string weixinId, string libId, string libraryCode, string userName)
+        {
+            return this.Get(weixinId, libId, libraryCode, C_Type_Worker, null, userName, true);
+        }
 
 
         //// 获取工作人员账户，目前设计是：针对一个图书馆只绑定一个账户
@@ -387,6 +390,7 @@ namespace dp2weixin.service
             userItem.department = "";
             userItem.phone = "";
             userItem.patronState = ""; //2020-3-7加
+            userItem.noPassReason = "";
             userItem.isRegister = false;
 
             userItem.xml = "";
@@ -693,7 +697,8 @@ namespace dp2weixin.service
                 .Set("readerName", item.readerName)
                 .Set("department", item.department)
                 .Set("phone", item.phone)
-                .Set("patronState", item.patronState)  // 2020-3-7 读者状态
+                .Set("patronState", item.patronState) 
+                 .Set("noPassReason", item.noPassReason)  // 2020-3-8 不通过原因
                 .Set("isRegister", item.isRegister)  //2020-3-7 是否读者自助注册的
                 .Set("xml", item.xml)
                 .Set("recPath", item.recPath)
@@ -786,6 +791,7 @@ namespace dp2weixin.service
 
         public string phone { get; set; } // 读者手机号 2020-3-1 新增
         public string patronState { get; set; }  // 2020-3-7 读者状态，读者注册提交后是待审核
+        public string noPassReason { get; set; } // 2020-3-8 不通过原因
 
         // 是否是读者自助注册的
         public bool isRegister = false;   // 1表示是读者自助注册的
@@ -883,7 +889,8 @@ namespace dp2weixin.service
             sb.AppendLine("readerName=[" + this.readerName + "] ");
             sb.AppendLine("department=[" + this.department + "] ");
             sb.AppendLine("phone=[" + this.phone + "] ");
-            sb.AppendLine("patronState=[" + this.patronState + "] ");  //2020-3-7
+            sb.AppendLine("patronState=[" + this.patronState + "] ");  //2020-3-7  //noPassReason
+            sb.AppendLine("noPassReason=[" + this.noPassReason + "] ");  //2020-3-8
             sb.AppendLine("isRegister=[" + this.isRegister + "] ");  // 2020-3-7
             sb.AppendLine("refID=[" + this.refID + "] ");
             sb.AppendLine("isActive=[" + this.isActive + "] ");
