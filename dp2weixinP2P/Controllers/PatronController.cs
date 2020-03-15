@@ -62,6 +62,7 @@ namespace dp2weixinWeb.Controllers
 
             List<Patron> patronList = new List<Patron>();
              nRet = dp2WeiXinService.Instance.GetTempPatrons(sessionInfo.ActiveUser.libId,
+                 sessionInfo.ActiveUser.bindLibraryCode,
                 out patronList,
                 out strError);
             if (nRet == -1)
@@ -200,7 +201,14 @@ namespace dp2weixinWeb.Controllers
                     ViewBag.showPhoto,
                     false);
 
+            // 2020-3-12 已审核过的读者不需要再次审核
+            if (patron.state != WxUserDatabase.C_PatronState_TodoReview)
+            {
+                ViewBag.Error = "姓名为[" + patron.name + "]，手机号为["+patron.phone+"]的读者已审核完成。";
+                return View();
+            }
 
+            // 设置一些信息
 
             // 当前读者性别
             if (patron.gender == "男")
@@ -248,7 +256,8 @@ namespace dp2weixinWeb.Controllers
                 deptHtml += "<option value='" + dept + "' "+sel+">" + dept + "</option>";
             }
 
-            string displayText = "  style='display: none' ";
+            string displayText = "  style='display:none'  ";
+            sel = "";
             if (deptHtml != "")
             {
                 if (bFind == false)

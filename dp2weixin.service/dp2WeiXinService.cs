@@ -4098,7 +4098,8 @@ ErrorInfo成员里可能会有报错信息。
                     List<WxUserItem> workers = new List<WxUserItem>();
                     foreach(WxUserItem one in tempWorkers)
                     {
-                        if (WxUserDatabase.CheckIsFromWeb(one.weixinId) == true)
+                        // 2020-3-11 还要加上public帐户
+                        if (WxUserDatabase.CheckIsFromWeb(one.weixinId) == true || one.userName=="public")
                             continue;
 
                         workers.Add(one);
@@ -4153,11 +4154,14 @@ ErrorInfo成员里可能会有报错信息。
         /// <param name="strError"></param>
         /// <returns></returns>
         public int GetTempPatrons(string libId,
+            string libraryCode,
             out List<Patron> patronList,
             out string strError)
         {
             strError = "";
             patronList = new List<Patron>();
+            if (libraryCode == null)
+                libraryCode = "";
 
             // 根据id找到图书馆对象
             LibEntity lib = this.GetLibById(libId);
@@ -4171,7 +4175,7 @@ ErrorInfo成员里可能会有报错信息。
             LoginInfo loginInfo = new LoginInfo("", false);
 
             // 从远程dp2library中查
-            string strWord = WxUserDatabase.C_PatronState_TodoReview;//"临时";
+            string strWord = WxUserDatabase.C_PatronState_TodoReview;  // 待审核
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             SearchRequest request = new SearchRequest(id,
@@ -4179,7 +4183,7 @@ ErrorInfo成员里可能会有报错信息。
                 "searchPatron",
                 "<全部>",  //todo 这里后面考虑是否指定总分馆对应的数据库
                 strWord,
-                "state",
+                "state",  //状态 途径
                 "left",
                 "temp-patron",
                 "id,xml",
@@ -4206,42 +4210,6 @@ ErrorInfo成员里可能会有报错信息。
                     return 0;
                 foreach (Record record in result.Records)// int i = 0; i < result.ResultCount; i++)
                 {
-
-                    //id = Guid.NewGuid().ToString();
-                    //request = new SearchRequest(id,
-                    //   loginInfo,
-                    //   "getPatronInfo",
-                    //   "",
-                    //   "@path:" + this.GetPurePath(record.RecPath),//patronBarocde,
-                    //   "",
-                    //   "",
-                    //   "",
-                    //   "xml",
-                    //   1,
-                    //   0,
-                    //   -1);
-
-                    //result = connection.SearchTaskAsync(
-                    //   lib.capoUserName,
-                    //   request,
-                    //   new TimeSpan(0, 0, 15),  //改为15秒
-                    //   cancel_token).Result;
-
-                    //if (result.ResultCount == -1)
-                    //{
-                    //    strError = "图书馆 " + lib.libName + " 获取读者记录出错:" + result.ErrorInfo;
-                    //    return -1;
-                    //}
-                    //if (result.ResultCount == 0)
-                    //{
-                    //    strError = result.ErrorInfo;
-                    //    return 0;
-                    //}
-
-
-                    //string xml = result.Records[0].Data;
-
-
                      string xml = record.Data;
 
                     Patron patron = this.ParsePatronXml(libId,
@@ -4250,7 +4218,10 @@ ErrorInfo成员里可能会有报错信息。
                          0,
                          false);
 
-                    patronList.Add(patron);
+                    if (patron.libraryCode == libraryCode)
+                    {
+                        patronList.Add(patron);
+                    }
                 }
 
 
