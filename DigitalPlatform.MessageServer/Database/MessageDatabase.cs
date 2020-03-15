@@ -548,8 +548,11 @@ int count,
 
         static string[] GetStringArray(BsonArray array)
         {
+            //if (array == null)
+            //    return null;
+            // 2020/3/4
             if (array == null)
-                return null;
+                return new string[0];
 
             List<string> results = new List<string>();
             foreach (BsonValue v in array)
@@ -568,9 +571,9 @@ int count,
             string timeRange,
             string idCondition,
             string subjectCondition,
-int start,
-int count,
-Delegate_outputMessage proc)
+            int start,
+            int count,
+            Delegate_outputMessage proc)
         {
             IMongoCollection<MessageItem> collection = this._collection;
 
@@ -608,8 +611,8 @@ Delegate_outputMessage proc)
 #endif
 
             var myresults = await collection.Aggregate().Match(filter)
-//.Group(new BsonDocument("_id", "$subjects"))
-.Group(
+                //.Group(new BsonDocument("_id", "$subjects"))
+                .Group(
                         new BsonDocument
                             {
                                 { "_id", "$" + field },
@@ -623,8 +626,7 @@ Delegate_outputMessage proc)
                                                  }
                                 }
                             }
-)
-.ToListAsync().ConfigureAwait(false);
+                ).ToListAsync().ConfigureAwait(false);
 
             long totalCount = myresults.Count;
             var index = 0;

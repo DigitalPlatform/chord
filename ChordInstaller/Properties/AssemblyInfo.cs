@@ -32,9 +32,10 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“生成号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”: 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.3.*")]
-[assembly: AssemblyFileVersion("1.3.0.0")]
+[assembly: AssemblyVersion("1.4.*")]
+[assembly: AssemblyFileVersion("1.4.0.0")]
 
 // 1.1 (2016/9/15) 巩固打包日志文件功能
 // 1.2 (2016/9/17) 增加安装 dp2Router 功能
 // 1.3 (2016/9/18) 增加自动升级 dp2MServer 功能
+// 1.4 (2020/3/4) dp2mserver 修正了一个 bug
