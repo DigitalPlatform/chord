@@ -65,6 +65,7 @@ else
             string url = "../Patron/PatronReview?libId=" + ViewBag.LibId 
                 + "&patronLibCode=" + HttpUtility.UrlEncode(patron.libraryCode) 
                 + "&patronPath=" + HttpUtility.UrlEncode(patron.recPath)
+                + "&barcode="+HttpUtility.UrlEncode(patron.barcode)
                 +"&f=list";
 
             <ul class="mui-table-view">

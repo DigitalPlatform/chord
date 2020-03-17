@@ -3959,6 +3959,10 @@ ErrorInfo成员里可能会有报错信息。
             else if (action == C_Action_delete)
             {
                 userItemId = patron.barcode;
+
+                // todo，默认设为读者不允许删除
+               // this._areaMgr.GetLibCfg(libId, patron.libraryCode);
+
             }
             else
             {
@@ -4076,76 +4080,80 @@ ErrorInfo成员里可能会有报错信息。
                 // 删除mongodb库的记录
                 WxUserDatabase.Current.Delete1(userItemId, out WxUserItem newActiveUser);
 
-
-                // 给馆员发消息
-                /*
-您好，下面读者删除了个人信息。
-用户名：李四
-联系方式：13788888888
-变更类型：删除读者记录
-变更时间：2016年1月2日 14:00
-  */
-
-                //WxUserItem patronInfo = this.GetPatronInfoByXml(outputPatronXml, out List<string> tempWeixinIds);
-
-
-                string strFirst = "您好，下面读者删除了个人信息。";
-                string strRemark = "请登录图书馆系统查看操作日志。";
-
-                string patronName = userItem.readerName;
-
-                // todo
-                GzhCfg gzh = dp2WeiXinService.Instance._gzhContainer.GetDefault();//.GetByAppId(this.AppId);
-                if (gzh == null)
+                // 如果不是待审核的读者，会给馆员发通知。
+                if (userItem.patronState != WxUserDatabase.C_PatronState_TodoReview)
                 {
-                    strError = "未找到默认的公众号配置";
-                    return -1;
-                }
-                string linkUrl = "";
+
+                    // 给馆员发消息
+                    /*
+    您好，下面读者删除了个人信息。
+    用户名：李四
+    联系方式：13788888888
+    变更类型：删除读者记录
+    变更时间：2016年1月2日 14:00
+      */
+
+                    //WxUserItem patronInfo = this.GetPatronInfoByXml(outputPatronXml, out List<string> tempWeixinIds);
 
 
-                //// 不发本人
-                List<string> bindWeixinIds = new List<string>();
+                    string strFirst = "您好，下面读者删除了个人信息。";
+                    string strRemark = "请登录图书馆系统查看操作日志。";
 
-                // 工作人员
-                // 2020-3-17 发给本馆绑定的工作人员，不管是否打开监控消息没有关系，
-                //只要图书馆工作人员绑定了帐户，就发给馆员。也不再发给dp2003的监控，意义不大。
-                string libraryCode = userItem.libraryCode;
-                if (libraryCode == "")
-                    libraryCode = "空";
-                List<WxUserItem> tempWorkers = WxUserDatabase.Current.GetWorkers("", libId, libraryCode, "");
-                List<WxUserItem> workers = new List<WxUserItem>();
-                foreach (WxUserItem one in tempWorkers)
-                {
-                    // 2020-3-11 还要加上public帐户
-                    if (WxUserDatabase.CheckIsFromWeb(one.weixinId) == true
-                        || one.userName == "public")
-                        continue;
+                    string patronName = userItem.readerName;
 
-                    workers.Add(one);
-                }
-
-                if (bindWeixinIds.Count > 0 || workers.Count > 0)
-                {
-                    // 不加mask的通知数据
-                    string thisTime = dp2WeiXinService.GetNowTime();
-                    string first_color = "#000000";
-                    ReviewPatronTemplateData msgData = new ReviewPatronTemplateData(strFirst, first_color,
-                        patronName, userItem.phone, "删除读者记录", thisTime,
-                        strRemark);
-
-                    // 发送待审核的微信消息
-                    nRet = this.SendTemplateMsg(GzhCfg.C_Template_PatronInfoChanged,
-                       bindWeixinIds,
-                       workers,
-                       msgData,
-                       msgData, //用的同一组数据，不做马赛克
-                       linkUrl,
-                       "",
-                       out strError);
-                    if (nRet == -1)
+                    // todo
+                    GzhCfg gzh = dp2WeiXinService.Instance._gzhContainer.GetDefault();//.GetByAppId(this.AppId);
+                    if (gzh == null)
                     {
+                        strError = "未找到默认的公众号配置";
                         return -1;
+                    }
+                    string linkUrl = "";
+
+
+                    //// 不发本人
+                    List<string> bindWeixinIds = new List<string>();
+
+                    // 工作人员
+                    // 2020-3-17 发给本馆绑定的工作人员，不管是否打开监控消息没有关系，
+                    //只要图书馆工作人员绑定了帐户，就发给馆员。也不再发给dp2003的监控，意义不大。
+                    string libraryCode = userItem.libraryCode;
+                    if (libraryCode == "")
+                        libraryCode = "空";
+                    List<WxUserItem> tempWorkers = WxUserDatabase.Current.GetWorkers("", libId, libraryCode, "");
+                    List<WxUserItem> workers = new List<WxUserItem>();
+                    foreach (WxUserItem one in tempWorkers)
+                    {
+                        // 2020-3-11 还要加上public帐户
+                        if (WxUserDatabase.CheckIsFromWeb(one.weixinId) == true
+                            || one.userName == "public")
+                            continue;
+
+                        workers.Add(one);
+                    }
+
+                    if (bindWeixinIds.Count > 0 || workers.Count > 0)
+                    {
+                        // 不加mask的通知数据
+                        string thisTime = dp2WeiXinService.GetNowTime();
+                        string first_color = "#000000";
+                        ReviewPatronTemplateData msgData = new ReviewPatronTemplateData(strFirst, first_color,
+                            patronName, userItem.phone, "删除读者记录", thisTime,
+                            strRemark);
+
+                        // 发送待审核的微信消息
+                        nRet = this.SendTemplateMsg(GzhCfg.C_Template_PatronInfoChanged,
+                           bindWeixinIds,
+                           workers,
+                           msgData,
+                           msgData, //用的同一组数据，不做马赛克
+                           linkUrl,
+                           "",
+                           out strError);
+                        if (nRet == -1)
+                        {
+                            return -1;
+                        }
                     }
                 }
 
@@ -4166,64 +4174,67 @@ ErrorInfo成员里可能会有报错信息。
 
                 WxUserItem patronInfo = this.GetPatronInfoByXml(outputPatronXml, out List<string> tempWeixinIds);
 
-
-                string strFirst = "您好，下面读者更新了手机号信息。";
-                string strRemark = "请登录图书馆系统查看该读者的详细信息。";
-
-                string patronName = patronInfo.readerName;
-
-                // todo
-                GzhCfg gzh = dp2WeiXinService.Instance._gzhContainer.GetDefault();//.GetByAppId(this.AppId);
-                if (gzh == null)
+                // 如果不是待审核的读者，会给馆员发通知。
+                if (patronInfo.patronState != WxUserDatabase.C_PatronState_TodoReview)
                 {
-                    strError = "未找到默认的公众号配置";
-                    return -1;
-                }
-                string linkUrl = "";
+                    string strFirst = "您好，下面读者更新了手机号信息。";
+                    string strRemark = "请登录图书馆系统查看该读者的详细信息。";
 
+                    string patronName = patronInfo.readerName;
 
-                //// 不发本人
-                List<string> bindWeixinIds = new List<string>();
-
-                // 工作人员
-                // 2020-3-17 发给本馆绑定的工作人员，不管是否打开监控消息没有关系，
-                //只要图书馆工作人员绑定了帐户，就发给馆员。也不再发给dp2003的监控，意义不大。
-                string libraryCode = patronInfo.libraryCode;
-                if (libraryCode == "")
-                    libraryCode = "空";
-                List<WxUserItem> tempWorkers = WxUserDatabase.Current.GetWorkers("", libId, libraryCode, "");
-                List<WxUserItem> workers = new List<WxUserItem>();
-                foreach (WxUserItem one in tempWorkers)
-                {
-                    // 2020-3-11 还要加上public帐户
-                    if (WxUserDatabase.CheckIsFromWeb(one.weixinId) == true 
-                        || one.userName == "public")
-                        continue;
-
-                    workers.Add(one);
-                }
-
-                if (bindWeixinIds.Count > 0 || workers.Count > 0)
-                {
-                    // 不加mask的通知数据
-                    string thisTime = dp2WeiXinService.GetNowTime();
-                    string first_color = "#000000";
-                    ReviewPatronTemplateData msgData = new ReviewPatronTemplateData(strFirst, first_color,
-                        patronName, patronInfo.phone, "修改手机号", thisTime,
-                        strRemark);
-
-                    // 发送待审核的微信消息
-                    nRet = this.SendTemplateMsg(GzhCfg.C_Template_PatronInfoChanged,
-                       bindWeixinIds,
-                       workers,
-                       msgData,
-                       msgData, //用的同一组数据，不做马赛克
-                       linkUrl,
-                       "",
-                       out strError);
-                    if (nRet == -1)
+                    // todo
+                    GzhCfg gzh = dp2WeiXinService.Instance._gzhContainer.GetDefault();//.GetByAppId(this.AppId);
+                    if (gzh == null)
                     {
+                        strError = "未找到默认的公众号配置";
                         return -1;
+                    }
+                    string linkUrl = "";
+
+
+                    //// 不发本人
+                    List<string> bindWeixinIds = new List<string>();
+
+                    // 工作人员
+                    // 2020-3-17 发给本馆绑定的工作人员，不管是否打开监控消息没有关系，
+                    //只要图书馆工作人员绑定了帐户，就发给馆员。也不再发给dp2003的监控，意义不大。
+                    string libraryCode = patronInfo.libraryCode;
+                    if (libraryCode == "")
+                        libraryCode = "空";
+                    List<WxUserItem> tempWorkers = WxUserDatabase.Current.GetWorkers("", libId, libraryCode, "");
+                    List<WxUserItem> workers = new List<WxUserItem>();
+                    foreach (WxUserItem one in tempWorkers)
+                    {
+                        // 2020-3-11 还要加上public帐户
+                        if (WxUserDatabase.CheckIsFromWeb(one.weixinId) == true
+                            || one.userName == "public")
+                            continue;
+
+                        workers.Add(one);
+                    }
+
+                    if (bindWeixinIds.Count > 0 || workers.Count > 0)
+                    {
+                        // 不加mask的通知数据
+                        string thisTime = dp2WeiXinService.GetNowTime();
+                        string first_color = "#000000";
+                        ReviewPatronTemplateData msgData = new ReviewPatronTemplateData(strFirst, first_color,
+                            patronName, patronInfo.phone, "修改手机号", thisTime,
+                            strRemark);
+
+                        // 发送待审核的微信消息
+                        nRet = this.SendTemplateMsg(GzhCfg.C_Template_PatronInfoChanged,
+                           bindWeixinIds,
+                           workers,
+                           msgData,
+                           msgData, //用的同一组数据，不做马赛克
+                           linkUrl,
+                           "",
+                           out strError);
+                        if (nRet == -1)
+                        {
+                            return -1;
+                        }
                     }
                 }
             }
@@ -4292,6 +4303,7 @@ ErrorInfo成员里可能会有报错信息。
                         HttpUtility.UrlEncode("Patron/PatronReview?libId=" + userItem1.libId
                             + "&patronLibCode=" + userItem1.bindLibraryCode
                             + "&patronPath=" + userItem1.recPath
+                            + "&barcode="+userItem1.readerBarcode
                             + "&f=notice")
                         );
 

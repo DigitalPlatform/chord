@@ -129,12 +129,16 @@ namespace dp2weixinWeb.Controllers
             public ActionResult PatronReview(string code, string state, 
             string libId, string patronLibCode,
             string patronPath,
+            string barcode,
             string f)
         {
             string strError = "";
             int nRet = 0;
             if (patronLibCode == null)
                 patronLibCode = "";
+
+            if (barcode == null)
+                barcode = "";
 
             if (string.IsNullOrEmpty(libId) == true)
             {
@@ -227,9 +231,14 @@ namespace dp2weixinWeb.Controllers
                 out timestamp,
                 out patronXml,
                 out strError);
-            if (nRet == -1 || nRet == 0)
+            if (nRet == -1)
             {
                 ViewBag.Error = strError;
+                return View();
+            }
+            if (nRet == 0)
+            {
+                ViewBag.Error = "证条码为'"+ barcode + "'的读者在图书馆系统不存在，可能是由于读者删除了注册信息。";
                 return View();
             }
 
