@@ -367,6 +367,7 @@
     <Content Include="Views\Patron\PatronRegister.cshtml" />
     <Content Include="Views\Patron\PatronReview.cshtml" />
     <Content Include="Views\Patron\PatronList.cshtml" />
+    <Content Include="Views\Patron\ChangePhone.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

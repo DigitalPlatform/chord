@@ -3720,7 +3720,9 @@ ErrorInfo成员里可能会有报错信息。
         public int MergePatronXml(string libId,
             string recPath,
             SimplePatron patron,
+            bool checkNull,
             out string patronXml,
+            out string timestamp,
             out string strError)
         {
             strError = "";
@@ -3731,13 +3733,13 @@ ErrorInfo成员里可能会有报错信息。
             string strOldXml = "";
             string word = "@path:" + recPath;
             string tempPath = "";
-            string tempTimestamp = "";
+            //string tempTimestamp = "";
             int nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
                 loginInfo,
                 word,
-                "xml",
+                "xml,timestamp",
                 out tempPath,
-                out tempTimestamp,
+                out timestamp,
                 out strOldXml,
                 out strError);
             if (nRet == -1 || nRet == 0)
@@ -3748,53 +3750,80 @@ ErrorInfo成员里可能会有报错信息。
             dom.LoadXml(strOldXml);
             XmlNode root = dom.DocumentElement;
 
-            // 读者证条码号
-            XmlNode barcodeNode = root.SelectSingleNode("barcode");
-            if (barcodeNode == null)
-                barcodeNode = DomUtil.CreateNodeByPath(root, "barcode");
-            DomUtil.SetNodeText(barcodeNode, patron.barcode);
 
-            // 读者类型
-            XmlNode readerTypeNode = root.SelectSingleNode("readerType");
-            if (readerTypeNode == null)
-                readerTypeNode = DomUtil.CreateNodeByPath(root, "readerType");
-            DomUtil.SetNodeText(readerTypeNode, patron.readerType);
+            // 读者证条码号，2020-3-17 先检查是否需要修改
+            if (CheckFieldIsNeedChange(checkNull,patron.barcode) ==true)
+            {
+                XmlNode barcodeNode = root.SelectSingleNode("barcode");
+                if (barcodeNode == null)
+                    barcodeNode = DomUtil.CreateNodeByPath(root, "barcode");
+                DomUtil.SetNodeText(barcodeNode, patron.barcode);
+            }
 
-            // 姓名
-            XmlNode nameNode = root.SelectSingleNode("name");
-            if (nameNode == null)
-                nameNode = DomUtil.CreateNodeByPath(root, "name");
-            DomUtil.SetNodeText(nameNode, patron.name);
+            // 读者类型，2020-3-17 先检查是否需要修改
+            if (CheckFieldIsNeedChange(checkNull, patron.readerType) == true)
+            {
+                XmlNode readerTypeNode = root.SelectSingleNode("readerType");
+                if (readerTypeNode == null)
+                    readerTypeNode = DomUtil.CreateNodeByPath(root, "readerType");
+                DomUtil.SetNodeText(readerTypeNode, patron.readerType);
+            }
+
+            // 姓名，2020-3-17 先检查是否需要修改
+            if (CheckFieldIsNeedChange(checkNull, patron.name) == true)
+            {
+                XmlNode nameNode = root.SelectSingleNode("name");
+                if (nameNode == null)
+                    nameNode = DomUtil.CreateNodeByPath(root, "name");
+                DomUtil.SetNodeText(nameNode, patron.name);
+            }
 
             // 性别
-            XmlNode genderNode = root.SelectSingleNode("gender");
-            if (genderNode == null)
-                genderNode = DomUtil.CreateNodeByPath(root, "gender");
-            DomUtil.SetNodeText(genderNode, patron.gender);
+            // 2020-3-17 加检查是否是空值，如果只修改手机号，那其实字段传的是空值
+            if ((checkNull == false)
+                || ((checkNull == true) && string.IsNullOrEmpty(patron.gender) == false))
+            {
+                XmlNode genderNode = root.SelectSingleNode("gender");
+                if (genderNode == null)
+                    genderNode = DomUtil.CreateNodeByPath(root, "gender");
+                DomUtil.SetNodeText(genderNode, patron.gender);
+            }
 
-            // 部门
-            XmlNode departmentNode = root.SelectSingleNode("department");
-            if (departmentNode == null)
-                departmentNode = DomUtil.CreateNodeByPath(root, "department");
-            DomUtil.SetNodeText(departmentNode, patron.department);
+            // 部门，2020-3-17 先检查是否需要修改
+            if (CheckFieldIsNeedChange(checkNull, patron.department) == true)
+            {
+                XmlNode departmentNode = root.SelectSingleNode("department");
+                if (departmentNode == null)
+                    departmentNode = DomUtil.CreateNodeByPath(root, "department");
+                DomUtil.SetNodeText(departmentNode, patron.department);
+            }
 
-            // 手机号
-            XmlNode telNode = root.SelectSingleNode("tel");
-            if (telNode == null)
-                telNode = DomUtil.CreateNodeByPath(root, "tel");
-            DomUtil.SetNodeText(telNode, patron.phone);
+            // 手机号，2020-3-17 先检查是否需要修改
+            if (CheckFieldIsNeedChange(checkNull, patron.phone) == true)
+            {
+                XmlNode telNode = root.SelectSingleNode("tel");
+                if (telNode == null)
+                    telNode = DomUtil.CreateNodeByPath(root, "tel");
+                DomUtil.SetNodeText(telNode, patron.phone);
+            }
 
-            // 状态 state
-            XmlNode stateNode = root.SelectSingleNode("state");
-            if (stateNode == null)
-                stateNode = DomUtil.CreateNodeByPath(root, "state");
-            DomUtil.SetNodeText(stateNode, patron.state);
+            // 状态 state，2020-3-17 先检查是否需要修改
+            if (CheckFieldIsNeedChange(checkNull, patron.state) == true)
+            {
+                XmlNode stateNode = root.SelectSingleNode("state");
+                if (stateNode == null)
+                    stateNode = DomUtil.CreateNodeByPath(root, "state");
+                DomUtil.SetNodeText(stateNode, patron.state);
+            }
 
-            // 把不通过的原因放在注释里
-            XmlNode commentNode = root.SelectSingleNode("comment");
-            if (commentNode == null)
-                commentNode = DomUtil.CreateNodeByPath(root, "comment");
-            DomUtil.SetNodeText(commentNode, patron.reason);
+            // 把不通过的原因放在注释里，2020-3-17 先检查是否需要修改
+            if (CheckFieldIsNeedChange(checkNull, patron.reason) == true)
+            {
+                XmlNode commentNode = root.SelectSingleNode("comment");
+                if (commentNode == null)
+                    commentNode = DomUtil.CreateNodeByPath(root, "comment");
+                DomUtil.SetNodeText(commentNode, patron.reason);
+            }
 
             StringWriter textWrite = new StringWriter();
             XmlTextWriter xmlTextWriter = new XmlTextWriter(textWrite);
@@ -3804,21 +3833,44 @@ ErrorInfo成员里可能会有报错信息。
             return 0;
         }
 
-          /// <summary>
-          /// 
-          /// </summary>
-          /// <param name="libId"></param>
-          /// <param name="userName"></param>
-          /// <param name="action"></param>
-          /// <param name="recPath"></param>
-          /// <param name="timestamp"></param>
-          /// <param name="weixinId">当读者自助注册帐号时，会传入weixinId</param>
-          /// <param name="patron"></param>
-          /// <param name="bMergeInfo"></param>
-          /// <param name="outputRecPath"></param>
-          /// <param name="outputTimestamp"></param>
-          /// <param name="strError"></param>
-          /// <returns></returns>
+        /// <summary>
+        /// 2020-3-17 检查读者字段是否需要修改，如果只修改某个字段，其实字段会传空值，则不需要修改。
+        /// </summary>
+        /// <param name="checkNull">是否检查空</param>
+        /// <param name="field">字段值</param>
+        /// <returns></returns>
+        public bool CheckFieldIsNeedChange(bool checkNull, string field)
+        {
+            if (checkNull == false)
+                return true;
+            
+            if (checkNull == true && string.IsNullOrEmpty(field) == false)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public const string C_Action_new = "new";
+        public const string C_Action_change = "change";
+        public const string C_Action_delete = "delete";
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="libId"></param>
+        /// <param name="userName"></param>
+        /// <param name="action"></param>
+        /// <param name="recPath"></param>
+        /// <param name="timestamp"></param>
+        /// <param name="weixinId">当读者自助注册帐号时，会传入weixinId</param>
+        /// <param name="patron"></param>
+        /// <param name="bMergeInfo"></param>
+        /// <param name="outputRecPath"></param>
+        /// <param name="outputTimestamp"></param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
         public int SetReaderInfo(string libId,
             string userName,
             string action,
@@ -3826,18 +3878,20 @@ ErrorInfo成员里可能会有报错信息。
             string timestamp,
             string weixinId,
             SimplePatron patron,
-            bool bMergeInfo,
+            //bool bMergeInfo,
+            bool checkNull,
             out string outputRecPath,
             out string outputTimestamp,
-            out WxUserItem userItem,  //只有当读者注册时才能值，馆员编辑读者时返回null
+            out WxUserItem userItem1,  //只有当读者注册时才能值，馆员编辑读者时返回null
             out string strError)
         {
             strError = "";
             outputRecPath = "";
             outputTimestamp = "";
-            userItem = null;
+            userItem1 = null;
             int nRet = 0;
 
+            string userItemId = "";
 
             // 根据id找到图书馆对象
             LibEntity lib = this.GetLibById(libId);
@@ -3856,7 +3910,10 @@ ErrorInfo成员里可能会有报错信息。
 
             string patronXml = "";
             // 是否需要合并读者信息，当馆员编辑读者信息时，需要合并读者信息
-            if (bMergeInfo == false)
+            //if (bMergeInfo == false)
+
+            //2020-3-17统一用action来判断，原来的bMergeInfo好像没有用了
+            if (action == C_Action_new)
             {
                 string email = "";
 
@@ -3877,7 +3934,7 @@ ErrorInfo成员里可能会有报错信息。
 
                 patronXml = "<root>"
                        + "<barcode>" + patron.barcode + "</barcode>"
-                       + "<state>"+WxUserDatabase.C_PatronState_TodoReview+"</state> "
+                       + "<state>" + WxUserDatabase.C_PatronState_TodoReview + "</state> "
                        + "<readerType>" + patron.readerType + "</readerType>"
                        + "<name>" + patron.name + "</name>"
                        + "<gender>" + patron.gender + "</gender>"
@@ -3886,16 +3943,27 @@ ErrorInfo成员里可能会有报错信息。
                        + "<email>" + email + "</email>"
                        + "</root>";
             }
-            else
+            else if (action == C_Action_change)
             {
                 // 将dp2服务器的读者信息与界面提交的信息合并
                 nRet = this.MergePatronXml(libId,
                     recPath,
                     patron,
+                    checkNull,
                     out patronXml,
+                    out timestamp,
                     out strError);
                 if (nRet == -1)
                     return -1;
+            }
+            else if (action == C_Action_delete)
+            {
+                userItemId = patron.barcode;
+            }
+            else
+            {
+                strError = "SetReaderInfo()接口不能识别的action["+action+"]";
+                return -1;
             }
 
             // 点对点消息实体
@@ -3932,7 +4000,7 @@ ErrorInfo成员里可能会有报错信息。
             entities.Add(entity);
 
             // 修改读者记录的情况
-            if (action == "change")
+            if (action == "change" || action=="delete")
             {
                 Record oldRecord = new Record();
                 oldRecord.Timestamp = timestamp;
@@ -3996,28 +4064,177 @@ ErrorInfo成员里可能会有报错信息。
                 return -1;
             }
 
+            // 删除的话，需要删除库里的记录，同时给馆员发通知 todo
+            if (action == C_Action_delete)
+            {
+                WxUserItem userItem = WxUserDatabase.Current.GetById(userItemId);
+                if (userItem == null)
+                {
+                    strError = "绑定账号未找到";
+                    return -1;
+                }
+                // 删除mongodb库的记录
+                WxUserDatabase.Current.Delete1(userItemId, out WxUserItem newActiveUser);
+
+
+                // 给馆员发消息
+                /*
+您好，下面读者删除了个人信息。
+用户名：李四
+联系方式：13788888888
+变更类型：删除读者记录
+变更时间：2016年1月2日 14:00
+  */
+
+                //WxUserItem patronInfo = this.GetPatronInfoByXml(outputPatronXml, out List<string> tempWeixinIds);
+
+
+                string strFirst = "您好，下面读者删除了个人信息。";
+                string strRemark = "请登录图书馆系统查看操作日志。";
+
+                string patronName = userItem.readerName;
+
+                // todo
+                GzhCfg gzh = dp2WeiXinService.Instance._gzhContainer.GetDefault();//.GetByAppId(this.AppId);
+                if (gzh == null)
+                {
+                    strError = "未找到默认的公众号配置";
+                    return -1;
+                }
+                string linkUrl = "";
+
+
+                //// 不发本人
+                List<string> bindWeixinIds = new List<string>();
+
+                // 工作人员
+                // 2020-3-17 发给本馆绑定的工作人员，不管是否打开监控消息没有关系，
+                //只要图书馆工作人员绑定了帐户，就发给馆员。也不再发给dp2003的监控，意义不大。
+                string libraryCode = userItem.libraryCode;
+                if (libraryCode == "")
+                    libraryCode = "空";
+                List<WxUserItem> tempWorkers = WxUserDatabase.Current.GetWorkers("", libId, libraryCode, "");
+                List<WxUserItem> workers = new List<WxUserItem>();
+                foreach (WxUserItem one in tempWorkers)
+                {
+                    // 2020-3-11 还要加上public帐户
+                    if (WxUserDatabase.CheckIsFromWeb(one.weixinId) == true
+                        || one.userName == "public")
+                        continue;
+
+                    workers.Add(one);
+                }
+
+                if (bindWeixinIds.Count > 0 || workers.Count > 0)
+                {
+                    // 不加mask的通知数据
+                    string thisTime = dp2WeiXinService.GetNowTime();
+                    string first_color = "#000000";
+                    ReviewPatronTemplateData msgData = new ReviewPatronTemplateData(strFirst, first_color,
+                        patronName, userItem.phone, "删除读者记录", thisTime,
+                        strRemark);
+
+                    // 发送待审核的微信消息
+                    nRet = this.SendTemplateMsg(GzhCfg.C_Template_PatronInfoChanged,
+                       bindWeixinIds,
+                       workers,
+                       msgData,
+                       msgData, //用的同一组数据，不做马赛克
+                       linkUrl,
+                       "",
+                       out strError);
+                    if (nRet == -1)
+                    {
+                        return -1;
+                    }
+                }
+
+            }
+
+
+            // 如果是读者自己修改信息，则通过管理员
+            if (checkNull == true)
+            {
+                /*
+张三客户经理，您有客户更新了基本信息，更新情况如下：
+用户名：李四
+联系方式：13788888888
+变更类型：修改手机号
+变更时间：2016年1月2日 14:00
+请登录系统查看该客户的详细更新情况！
+                 */
+
+                WxUserItem patronInfo = this.GetPatronInfoByXml(outputPatronXml, out List<string> tempWeixinIds);
+
+
+                string strFirst = "您好，下面读者更新了手机号信息。";
+                string strRemark = "请登录图书馆系统查看该读者的详细信息。";
+
+                string patronName = patronInfo.readerName;
+
+                // todo
+                GzhCfg gzh = dp2WeiXinService.Instance._gzhContainer.GetDefault();//.GetByAppId(this.AppId);
+                if (gzh == null)
+                {
+                    strError = "未找到默认的公众号配置";
+                    return -1;
+                }
+                string linkUrl = "";
+
+
+                //// 不发本人
+                List<string> bindWeixinIds = new List<string>();
+
+                // 工作人员
+                // 2020-3-17 发给本馆绑定的工作人员，不管是否打开监控消息没有关系，
+                //只要图书馆工作人员绑定了帐户，就发给馆员。也不再发给dp2003的监控，意义不大。
+                string libraryCode = patronInfo.libraryCode;
+                if (libraryCode == "")
+                    libraryCode = "空";
+                List<WxUserItem> tempWorkers = WxUserDatabase.Current.GetWorkers("", libId, libraryCode, "");
+                List<WxUserItem> workers = new List<WxUserItem>();
+                foreach (WxUserItem one in tempWorkers)
+                {
+                    // 2020-3-11 还要加上public帐户
+                    if (WxUserDatabase.CheckIsFromWeb(one.weixinId) == true 
+                        || one.userName == "public")
+                        continue;
+
+                    workers.Add(one);
+                }
+
+                if (bindWeixinIds.Count > 0 || workers.Count > 0)
+                {
+                    // 不加mask的通知数据
+                    string thisTime = dp2WeiXinService.GetNowTime();
+                    string first_color = "#000000";
+                    ReviewPatronTemplateData msgData = new ReviewPatronTemplateData(strFirst, first_color,
+                        patronName, patronInfo.phone, "修改手机号", thisTime,
+                        strRemark);
+
+                    // 发送待审核的微信消息
+                    nRet = this.SendTemplateMsg(GzhCfg.C_Template_PatronInfoChanged,
+                       bindWeixinIds,
+                       workers,
+                       msgData,
+                       msgData, //用的同一组数据，不做马赛克
+                       linkUrl,
+                       "",
+                       out strError);
+                    if (nRet == -1)
+                    {
+                        return -1;
+                    }
+                }
+            }
+
+            
+
+
             // 如果是读者自助的情况，给本地mongodb创建一笔绑定记录
             if (string.IsNullOrEmpty(weixinId) == false)
             {
                 string bindLibraryCode = patron.libraryCode;
-
-                // 2020-3-2新版本直接使用接口返回的信息，带了libraryCode
-                //// 注，这里必须得重新获取一下，上面返回的outputPatronXml没有返回分馆代码 2020-3-1
-                //LoginInfo loginInfo1 = new LoginInfo("", false);
-                //string strXml = "";
-                //string word = "@path:" + outputRecPath;
-                //string tempPath = "";
-                //string tempTimestamp = "";
-                // nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
-                //    loginInfo1,
-                //    word,
-                //    "xml",
-                //    out tempPath,
-                //    out tempTimestamp,
-                //    out strXml,
-                //    out strError);
-                //if (nRet == -1 || nRet == 0)
-                //    return -1;
 
                 // 要使用返回的读者信息，因为前端组装的xml没有refID
                 nRet = this.SaveUserToLocal1(weixinId,
@@ -4028,7 +4245,7 @@ ErrorInfo成员里可能会有报错信息。
                     outputPatronXml,
                     "new",
                     true,
-                    out userItem,
+                    out userItem1,
                     out strError);
                 if (nRet == -1)
                 {
@@ -4053,7 +4270,7 @@ ErrorInfo成员里可能会有报错信息。
 
                     //string strAccount = this.GetFullPatronName(userItem.readerName, 
                     //    userItem.readerBarcode, "", "", false);
-                    string strAccount = userItem.readerName;
+                    string strAccount = userItem1.readerName;
                    // string fullLibName = this.GetFullLibName(userItem.libName, userItem.libraryCode, "");
 
                     // todo
@@ -4072,9 +4289,9 @@ ErrorInfo成员里可能会有报错信息。
                                         //    );
 
                     linkUrl = dp2WeiXinService.Instance.GetOAuth2Url(gzh,
-                        HttpUtility.UrlEncode("Patron/PatronReview?libId=" + userItem.libId
-                            + "&patronLibCode=" + userItem.bindLibraryCode
-                            + "&patronPath=" + userItem.recPath
+                        HttpUtility.UrlEncode("Patron/PatronReview?libId=" + userItem1.libId
+                            + "&patronLibCode=" + userItem1.bindLibraryCode
+                            + "&patronPath=" + userItem1.recPath
                             + "&f=notice")
                         );
 
@@ -4091,7 +4308,7 @@ ErrorInfo成员里可能会有报错信息。
 
                     // 2020-3-9 改为发给本馆绑定的工作人员，不管是否打开监控消息没有关系，
                     //只要图书馆工作人员绑定了帐户，就发给馆员。也不再发给dp2003的监控，意义不大。
-                    string libraryCode = userItem.libraryCode;
+                    string libraryCode = userItem1.libraryCode;
                     if (libraryCode == "")
                         libraryCode = "空";
                     List<WxUserItem> tempWorkers = WxUserDatabase.Current.GetWorkers("", libId, libraryCode, "");
@@ -4111,7 +4328,7 @@ ErrorInfo成员里可能会有报错信息。
                         string thisTime = dp2WeiXinService.GetNowTime();
                         string first_color = "#000000";
                         ReviewPatronTemplateData msgData = new ReviewPatronTemplateData(strFirst, first_color,
-                            strAccount, userItem.phone, "等待审核", thisTime,
+                            strAccount, userItem1.phone, "等待审核", thisTime,
                             strRemark);
 
                         ////加mask的通知数据

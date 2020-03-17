@@ -81,7 +81,7 @@
             model.librarys.removeAll();
 
             // 调web api
-            var url = "/api/LibrarySetting";
+            var url = "/api/LibrarySettingApi";
             sendAjaxRequest(url, "GET", function (data) {
                 for (var i = 0; i < data.length; i++) {
                     //遍历从服务器得到的结果，以push方法对该数组填充新数据
@@ -116,7 +116,7 @@
             showMaskLayer();
 
             //alert("remove-"+item.libId);
-            var url = "/api/LibrarySetting/" + item.id;
+            var url = "/api/LibrarySettingApi/" + item.id;
             sendAjaxRequest(url, "DELETE", function (result) {
                 //getAllLib();
 
@@ -380,7 +380,7 @@
             var id = model.editor.id();
             if (id == null || id == "") {
                 actionType = "POST";
-                url = "/api/LibrarySetting";
+                url = "/api/LibrarySettingApi";
             }
             else {
                 actionType = "PUT";
@@ -400,6 +400,8 @@
                         alert("保存出错:" + result.errorInfo);
                         return;
                     }
+
+                    alert("保存成功。");
 
                     //model.librarys.push(newItem);
                     model.displaySummary(true);

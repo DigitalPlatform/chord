@@ -21,6 +21,49 @@ namespace dp2weixinWeb.Controllers
     public class PatronController : BaseController
     {
         /// <summary>
+        /// 我的信息主界面
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="state"></param>
+        /// <returns></returns>
+        public ActionResult ChangePhone(string code, string state)
+        {
+            string strError = "";
+            int nRet = 0;
+
+            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
+            // -1 出错
+            // 0 成功
+            nRet = this.GetSessionInfo(code, state,
+                out SessionInfo sessionInfo,
+                out strError);
+            if (nRet == -1)
+            {
+                ViewBag.Error = strError;
+                return View();
+            }
+
+            // 当前帐号不存在，尚未选择图书馆
+            if (sessionInfo.ActiveUser == null)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Patron/ChangePhone");
+                return View();
+            }
+
+            if (sessionInfo.ActiveUser.type != WxUserDatabase.C_Type_Patron)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("修改手机号", "/Patron/ChangePhone");
+                return View();
+            }
+
+            ViewBag.PatronName = sessionInfo.ActiveUser.readerName;
+            ViewBag.PatronRecPath = sessionInfo.ActiveUser.recPath;
+
+            return View();
+
+        }
+
+        /// <summary>
         /// 审核主界面
         /// </summary>
         /// <param name="code"></param>
@@ -535,7 +578,7 @@ namespace dp2weixinWeb.Controllers
             // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
             // -1 出错
             // 0 成功
-            nRet = this.GetSessionInfo2(code, state,
+            nRet = this.GetSessionInfo(code, state,
                 true,
                 true,
                 out SessionInfo sessionInfo,
@@ -562,10 +605,12 @@ namespace dp2weixinWeb.Controllers
 
             string patronXml = "";
             string recPath = "";
-   
+
+            string timestamp = "";
              nRet = this.GetReaderXml(sessionInfo.ActiveUser,
                 out patronXml,
                 out recPath,
+                out  timestamp,
                 out strError);
             if (nRet == -1 || nRet == 0)
             {
@@ -573,6 +618,8 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
 
+            ViewBag.userItemId = sessionInfo.ActiveUser.id;
+            ViewBag.timestamp = timestamp;
 
 
             ViewBag.overdueUrl = "../Patron/OverdueInfo";
@@ -586,6 +633,7 @@ namespace dp2weixinWeb.Controllers
                     recPath,
                     ViewBag.showPhoto,
                     true);
+
             return View(patron);
 
         }
@@ -629,6 +677,7 @@ namespace dp2weixinWeb.Controllers
              nRet = this.GetReaderXml(sessionInfo.ActiveUser,
                 out patronXml,
                 out recPath,
+                out string timestamp,
                 out strError);
             if (nRet == -1 || nRet == 0 || nRet == -2)
                 goto ERROR1;
@@ -687,6 +736,7 @@ namespace dp2weixinWeb.Controllers
              nRet = this.GetReaderXml(sessionInfo.ActiveUser,
                 out patronXml,
                 out recPath,
+                out string timestamp,
                 out strError);
             if (nRet == -1 || nRet == 0 || nRet == -2)
                 goto ERROR1;
@@ -748,6 +798,7 @@ namespace dp2weixinWeb.Controllers
             nRet = this.GetReaderXml(sessionInfo.ActiveUser,
                 out patronXml,
                 out recPath,
+                out string timestamp,
                 out strError);
             if (nRet == -1 || nRet == 0 || nRet == -2)
             {
@@ -792,12 +843,14 @@ namespace dp2weixinWeb.Controllers
         private int GetReaderXml(WxUserItem activeUser,
             out string patronXml,
             out string recPath,
+            out string timestamp,
             out string strError)
         {
             patronXml = "";
             strError = "";
             recPath = "";
             int nRet = 0;
+            timestamp = "";
             if (activeUser == null)
             {
                 strError = "activeUser参数不能为空";
@@ -814,10 +867,13 @@ namespace dp2weixinWeb.Controllers
             string libId = activeUser.libId;
             string patronBarcode = activeUser.readerBarcode;
 
-            // 登录人是读者自己
-            string loginUserName = activeUser.readerBarcode;
-            bool isPatron = true;
-            LoginInfo loginInfo = new LoginInfo(loginUserName, isPatron);
+            //// 登录人是读者自己
+            //string loginUserName = activeUser.readerBarcode;
+            //bool isPatron = true;
+            //LoginInfo loginInfo = new LoginInfo(loginUserName, isPatron);
+
+            // 2020-3-17 读者修改手机号完成后，也是进入我的信息界面，但此时通道已失效，所以改为代理帐号
+            LoginInfo loginInfo = new LoginInfo("", false);
 
 
             string searchWord = patronBarcode;  //检索不支持@refid，只支持@path:格式
@@ -830,11 +886,11 @@ namespace dp2weixinWeb.Controllers
             //}
 
             // 获取读者记录
-            string timestamp = "";
+            //string timestamp = "";
             nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
                 loginInfo,
                 searchWord,
-                "advancexml",  // 格式
+                "advancexml,timestamp",  // 格式
                 out recPath,
                 out timestamp,
                 out patronXml,
@@ -866,7 +922,7 @@ namespace dp2weixinWeb.Controllers
             // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
             // -1 出错
             // 0 成功
-            nRet = this.GetSessionInfo2(code, state,
+            nRet = this.GetSessionInfo(code, state,
                 false, //是否校验图书馆状态
                 false,  //是否重新获取activeuser
                 out SessionInfo sessionInfo,
@@ -1186,6 +1242,7 @@ namespace dp2weixinWeb.Controllers
             nRet = this.GetReaderXml(sessionInfo.ActiveUser,
                out strXml,
                out recPath,
+               out string timestamp,
                out strError);
             if (nRet == -1)
             {

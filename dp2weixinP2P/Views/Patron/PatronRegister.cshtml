@@ -156,7 +156,8 @@
                 + "&recPath=" + encodeURIComponent(recPath)
                 + "&timestamp=" // + encodeURIComponent(timestamp)
                 + "&weixinId=" + encodeURIComponent(weixinId)
-                + "&bMergeInfo=false"; //+ bMergeInfo;
+                //+ "&bMergeInfo=false"; //+ bMergeInfo;
+                + "&checkNull=false";
 
             sendAjaxRequest(url, "POST",
                 function (result) {

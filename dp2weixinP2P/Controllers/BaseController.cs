@@ -19,7 +19,7 @@ namespace dp2weixinWeb.Controllers
     out string strError,
     string myWeixinId = "")
         {
-            return this.GetSessionInfo2(code,
+            return this.GetSessionInfo(code,
                 state,
                 true,
                 false,
@@ -44,7 +44,7 @@ namespace dp2weixinWeb.Controllers
         /// -1 出错
         /// 0 成功
         /// </returns>
-        public int GetSessionInfo2(string code,
+        public int GetSessionInfo(string code,
             string state,
             bool isCheckLibState,
             bool redoGetActiveUser,
