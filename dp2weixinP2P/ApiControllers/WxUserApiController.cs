@@ -432,7 +432,7 @@ namespace dp2weixinWeb.ApiControllers
             List<WxUserItem> publicList = WxUserDatabase.Current.GetWorkers(weixinId, "", WxUserDatabase.C_Public);
             if (publicList.Count > 0)
             {
-                dp2WeiXinService.Instance.WriteDebug("删除了" + publicList.Count + "个临时public帐户");
+                //dp2WeiXinService.Instance.WriteDebug("删除了" + publicList.Count + "个临时public帐户");
                 for (int i = 0; i < publicList.Count; i++)
                 {
                     WxUserDatabase.Current.SimpleDelete(publicList[i].id);

@@ -628,6 +628,7 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
 
+            //// 这里还是需要提前选择一下图书馆，要不后面没法获取配置的单位列表
             //// 如果尚未选择图书馆，不存在当前帐号，出现绑定帐号链接
             //if (sessionInfo.ActiveUser == null)
             //{
@@ -675,13 +676,19 @@ namespace dp2weixinWeb.Controllers
                     <option value="部门2">部门2</option>
              */
             string deptHtml = "<option value=''>请选择 部门</option>";
-            List<string> deptList = dp2WeiXinService.Instance._areaMgr.GetDeptartment(
-                sessionInfo.ActiveUser.libId,
-                sessionInfo.ActiveUser.bindLibraryCode);
-            if (deptList.Count == 0)
+            List<string> deptList = new List<string>();
+
+            // 注册的界面，没让用户先必须选择图书馆，所以要判断为null的情况
+            if (sessionInfo.ActiveUser != null)
             {
-                ViewBag.Error = "尚未配置部门信息，请联系管理员。";
-                return View();
+                deptList = dp2WeiXinService.Instance._areaMgr.GetDeptartment(
+                    sessionInfo.ActiveUser.libId,
+                    sessionInfo.ActiveUser.bindLibraryCode);
+                if (deptList.Count == 0)
+                {
+                    ViewBag.Error = "尚未配置部门信息，请联系管理员。";
+                    return View();
+                }
             }
 
             foreach (string dept in deptList)

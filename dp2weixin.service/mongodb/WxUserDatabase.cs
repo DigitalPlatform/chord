@@ -571,19 +571,19 @@ namespace dp2weixin.service
 
         public void SimpleDelete(String id)
         {
-            dp2WeiXinService.Instance.WriteDebug("1.走进WxUserDatabase.SimpleDelete()");
+            //dp2WeiXinService.Instance.WriteDebug("1.走进WxUserDatabase.SimpleDelete()");
 
             if (string.IsNullOrEmpty(id) == true)
                 return;
 
-            dp2WeiXinService.Instance.WriteDebug("2.走进WxUserDatabase.SimpleDelete() id=" + id);
+            //dp2WeiXinService.Instance.WriteDebug("2.走进WxUserDatabase.SimpleDelete() id=" + id);
 
             // 从mongodb库删除
             IMongoCollection<WxUserItem> collection = this.wxUserCollection;
             var filter = Builders<WxUserItem>.Filter.Eq("id", id);
             DeleteResult ret = collection.DeleteOne(filter);
 
-            dp2WeiXinService.Instance.WriteDebug("3.共删除成功" + ret.DeletedCount + "个对象");
+            //dp2WeiXinService.Instance.WriteDebug("3.共删除成功" + ret.DeletedCount + "个对象");
         }
 
         // 根据libId与状态删除记录

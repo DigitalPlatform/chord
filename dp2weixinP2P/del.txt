@@ -1,4 +1,83 @@
-﻿        // 设置微信用户当前图书馆
+﻿                // 成员册 不显示“在借情况”和“预约信息”
+                if (bMember == false)
+                {
+                    string strBorrowInfo = "在架";
+                    bool bOwnBorrow = false;
+                    
+                    // 被借出的情况
+                    if (string.IsNullOrEmpty(item.borrower) == false)
+                    {
+                        // 馆的备注信息如果配置了ReserveOnshelf，则表示仅支持在架预约，外借的图不支持预约。2020/2/14 renyh
+                        if (string.IsNullOrEmpty(lib.comment)==false
+                            && lib.comment.IndexOf("ReserveOnshelf") != -1) 
+                        {
+                            bCanReservation = false;
+                        }
+
+
+
+                        // 工作人员的情况
+                        if (loginInfo.UserType != "patron" 
+                            && loginInfo.UserName!= WxUserDatabase.C_Public)
+                        {
+                            strBorrowInfo = "借阅者：" + item.borrower + "<br/>"
+                          + "借阅时间：" + item.borrowDate + "<br/>"
+                          + "借期：" + item.borrowPeriod;
+                        }
+                        else if (patronBarcode != item.borrower 
+                            || String.IsNullOrEmpty(patronBarcode) == true) // 非本人的情况
+                        {
+                            strBorrowInfo = "借阅者：***<br/>"
+                            + "借阅时间：" + item.borrowDate + "<br/>"
+                            + "借期：" + item.borrowPeriod;
+                        }
+                        else
+                        {
+                            // 2016-8-16 修改isbn不能预约的情况
+                            string tempBarcode = item.barcode;
+                            if (tempBarcode.Contains("@refID:") == true)
+                                tempBarcode = tempBarcode.Replace("@refID:", "refID-");
+
+                            strBorrowInfo =
+                                "<table style='width:100%;border:0px'>"
+                                + "<tr>"
+                                    + "<td class='info' style='border:0px'>借阅者：" + item.borrower + "<br/>"
+                                                                + "借阅时间：" + item.borrowDate + "<br/>"
+                                                                + "借期：" + item.borrowPeriod
+                                        + "</td>"
+                                    + "<td class='btn' style='border:0px'>";
+
+                            if (String.IsNullOrEmpty(patronBarcode) == false)//isPatron == true) // 只有读者身份，才有预约按钮
+                            {
+                                strBorrowInfo += "<button class='mui-btn  mui-btn-default'  onclick=\"renew('" + tempBarcode + "')\">续借</button>";
+                            }
+                            strBorrowInfo += "</td>"
+                                + "</tr>"
+                                + "<tr><td colspan='2'><div id='renewInfo-" + tempBarcode + "'/></td></tr>"
+                                + "</table>";
+
+                            // 此时不能预约
+                            bOwnBorrow = true;
+                            reservationInfo = "<div class='remark'>该册目前是您在借中，不能预约。</div>";
+                        }
+                    }
+                    item.borrowInfo = strBorrowInfo;
+
+                    // 预约信息
+                    if (bCanReservation == true && bOwnBorrow == false)
+                    {
+                        bool showReser = true;
+                        if (disable == true || String.IsNullOrEmpty(patronBarcode)==true)//isPatron == false)
+                            showReser = false;
+
+                        string state = this.getReservationState(reserList, item.barcode);
+                        reservationInfo = getReservationHtml(state, item.barcode, false, showReser);
+                    }
+                    item.reservationInfo = reservationInfo;
+                }
+
+===
+        // 设置微信用户当前图书馆
         [HttpPost]
         public ApiResult SetLibId(string weixinId, string libId)
         {

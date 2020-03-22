@@ -15,6 +15,12 @@ namespace dp2weixin.service
     /// </summary>
     public sealed class LibDatabase
     {
+        public const string C_ReserveScope_All = "all";
+        public const string C_ReserveScope_OnlyBorrow = "onlyBorrow";
+        public const string C_ReserveScope_OnlyOnshelf = "onshelf";
+        public const string C_ReserveScope_No = "no";
+
+
         // 饿汉模式
         private static readonly LibDatabase _db = new LibDatabase();
         public static LibDatabase Current
@@ -130,6 +136,14 @@ namespace dp2weixin.service
 
                     if (item.capoUserName == null)
                         item.capoUserName = "";
+
+                    // 2020/3/22 预约相关参数
+                    if (item.ReserveScope == null)
+                        item.ReserveScope = "all";
+                    if (item.NoReserveLocation == null)
+                        item.NoReserveLocation = "";
+                    if (item.IsSendArrivedNotice == null)
+                        item.IsSendArrivedNotice = "Y";
                 }
             }
             //list.Sort()
@@ -199,7 +213,10 @@ namespace dp2weixin.service
                 .Set("searchDbs", item.searchDbs)
                 .Set("match", item.match)
                 .Set("state", item.state)
-                .Set("biblioFilter", item.biblioFilter)//
+                .Set("biblioFilter", item.biblioFilter)
+                .Set("ReserveScope", item.ReserveScope)
+                .Set("NoReserveLocation", item.NoReserveLocation)
+                .Set("IsSendArrivedNotice", item.IsSendArrivedNotice)
                 ;
 
             UpdateResult ret = this.LibCollection.UpdateOneAsync(filter, update).Result;
@@ -255,6 +272,16 @@ namespace dp2weixin.service
 
         // 对应opac.xml里的databaseFilter/@biblioFilter
         public string biblioFilter { get; set; } // 检索书目库时候，额外添加的限制结果集。缺省值为空，表示不进行限制。
+
+
+        // 2020/3/22 加预约相关参数
+        // 预约范围
+        public string ReserveScope { get; set; }
+        // 不支持预约的馆藏
+        public string NoReserveLocation { get; set; }
+        //是否给读者发预约到书通知
+        public string IsSendArrivedNotice { get; set; } 
+
 
 
     }
