@@ -6506,10 +6506,10 @@ ErrorInfo成员里可能会有报错信息。
                 return result;
             }
 
-        ERROR1:
-            result.errorCode = -1;
-            result.errorInfo = strError;
-            return result;
+        //ERROR1:
+        //    result.errorCode = -1;
+        //    result.errorInfo = strError;
+        //    return result;
 
         }
 
