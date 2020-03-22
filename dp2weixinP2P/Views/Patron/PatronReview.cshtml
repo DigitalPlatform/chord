@@ -216,6 +216,10 @@
             alert("自动获取证条码");
         }
 
+        function searchPatron() {
+            alert("按姓名检索读者,todo");
+        }
+
     </script>
 }
 <span id="_userName" style="display:none">@ViewBag.userName</span>
@@ -250,21 +254,30 @@ else
                     </div>
                 </div>
             </td>
-            <td><button onclick="getPatronBarcode()" id='login' class="" style="border:1px dotted gray;margin-right:2px;height:40px;">...</button></td>
+            <td><button onclick="getPatronBarcode()" id='login' class="" style="border:1px dotted gray;margin-right:2px;width:40px;height:40px;background-image:url('../../img/banshou3.jfif');background-repeat:round"></button></td>
         </tr>
     </table>
 
-    <div class="mui-input-row selArrowRightContainer">
-        <label id="lblType" style="color:#cccccc">读者类别</label>
-        @Html.Raw(ViewBag.readerTypeHtml)
-    </div>
+    <table style="width:100%">
+        <tr>
+            <td style="width:100%">
+                <div class="mui-input-group" style="background-color:white">
+                    <div class="mui-input-row">
+                        <label id="lblName" style="color:#cccccc">姓名</label>
+                        <input id='txtName' type="text" class="mui-input mui-input-clear" placeholder="请输入 姓名" value="@Model.name">
+                    </div>
+                </div>
+            </td>
+            <td><button onclick="searchPatron()" id='login' class="" style="border:1px dotted gray;margin-right:2px;width:40px;height:40px;background-image:url('../../img/search2.jfif');background-repeat:round;">...</button></td>
+        </tr>
+    </table>
 
-
-    <div class="mui-input-row ">
-        <label id="lblName" style="color:#cccccc">姓名</label>
-        <input id='txtName' type="text" class="mui-input mui-input-clear" value="@Model.name">
-    </div>
-
+    <!--
+        <div class="mui-input-row ">
+            <label id="lblName" style="color:#cccccc">姓名</label>
+            <input id='txtName' type="text" class="mui-input mui-input-clear" value="@Model.name">
+        </div>
+    -->
     <div class="mui-input-row selArrowRightContainer">
         <label id="lblGender" style="color:#cccccc">性别</label>
         <select id="selGender" name="selGender" class='selArrowRight'>
@@ -273,6 +286,15 @@ else
             <option value="女" @ViewBag.womanSel>女</option>
         </select>
     </div>
+    <div class="mui-input-row selArrowRightContainer">
+        <label id="lblType" style="color:#cccccc">读者类别</label>
+        @Html.Raw(ViewBag.readerTypeHtml)
+    </div>
+
+
+
+
+
 
 
 

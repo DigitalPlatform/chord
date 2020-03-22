@@ -3514,7 +3514,7 @@ ErrorInfo成员里可能会有报错信息。
                 nRet = (int)result.Value;
                 if (result.Value == -1)
                 {
-                    strError = "图书馆 " + lib.libName + " 的桥接服务器出错:" + result.ErrorInfo;
+                    strError = "图书馆[" + lib.libName + "]返回错误:" + result.ErrorInfo;
                     //strError = //this.GetFriendlyErrorInfo(result, lib.libName); //result.ErrorInfo;
                 }
                 if (result.Value == 0)
@@ -3670,7 +3670,7 @@ ErrorInfo成员里可能会有报错信息。
                 nRet = (int)result.Value;
                 if (result.Value == -1)
                 {
-                    strError = "图书馆 " + libraryCode + " 的桥接服务器出错:" + result.ErrorInfo;
+                    strError = "图书馆[" + libraryCode + "]返回错误:" + result.ErrorInfo;
                     //strError = this.GetFriendlyErrorInfo(result, libraryCode);//lib.libName); 
                     return -1;
                 }
@@ -4531,7 +4531,7 @@ ErrorInfo成员里可能会有报错信息。
                 {
                     //strError = "操作失败：" + result.ErrorInfo;
                     //return -1;
-                    strError = "图书馆 " + lib.libName + " 的桥接服务器出错:" + result.ErrorInfo;
+                    strError = "图书馆[" + lib.libName + "]返回错误:" + result.ErrorInfo;
                     //strError = this.GetFriendlyErrorInfo(result, lib.libName); //result.ErrorInfo;
                     return -1;
                 }
@@ -5345,7 +5345,7 @@ ErrorInfo成员里可能会有报错信息。
                     cancel_token).Result;
                 if (result.Value == -1)
                 {
-                    strError = "图书馆 " + lib.libName + " 的桥接服务器出错:" + result.ErrorInfo;
+                    strError = "图书馆[" + lib.libName + "]返回错误:" + result.ErrorInfo;
                     //strError = this.GetFriendlyErrorInfo(result, lib.libName);//result.ErrorInfo;
                     //return -1;
                 }
@@ -5735,7 +5735,7 @@ ErrorInfo成员里可能会有报错信息。
                 if (result.ResultCount == -1)
                 {
                     bool bOffline = false;
-                    strError = "图书馆 " + lib.libName + " 的桥接服务器出错:" + result.ErrorInfo;
+                    strError = "图书馆[" + lib.libName + "]返回错误:" + result.ErrorInfo;
 
                     //strError = this.GetFriendlyErrorInfo(result, lib.libName, out bOffline);
                     if (bOffline == true)
@@ -6829,7 +6829,7 @@ ErrorInfo成员里可能会有报错信息。
                 if (result.ResultCount == -1)
                 {
                     bool bOffline = false;
-                    strError = "图书馆 " + lib.libName + " 的桥接服务器出错:" + result.ErrorInfo;
+                    strError = "图书馆[" + lib.libName + "]返回错误:" + result.ErrorInfo;
 
                     //strError = this.GetFriendlyErrorInfo(result, lib.libName, out bOffline);// result.ErrorInfo;
                     return -1;
@@ -6916,7 +6916,7 @@ ErrorInfo成员里可能会有报错信息。
                 if (result.ResultCount == -1)
                 {
                     bool bOffline = false;
-                    strError = "图书馆 " + lib.libName + " 的桥接服务器GetBiblioSummary()出错:" + result.ErrorInfo;
+                    strError = "图书馆[" + lib.libName + "]返回错误:" + result.ErrorInfo;
 
                     //strError = "GetBiblioSummary()出错：" + this.GetFriendlyErrorInfo(result, lib.libName, out bOffline); //result.ErrorInfo ;
                     return -1;
@@ -7280,7 +7280,7 @@ ErrorInfo成员里可能会有报错信息。
                     bool bCanReservation = true;  // 默认是可以预约的
                     if (lib.ReserveScope == LibDatabase.C_ReserveScope_No)
                     {
-                        reservationInfo = "该图书馆不支持预约。";
+                        reservationInfo = "本图书馆不支持预约图书。";
                         bCanReservation = false;
                     }
                     else if (lib.ReserveScope == LibDatabase.C_ReserveScope_All)
@@ -7295,7 +7295,7 @@ ErrorInfo成员里可能会有报错信息。
                     {
                         if (string.IsNullOrEmpty(item.borrower) == true)
                         {
-                            reservationInfo = "该图书馆不支持在架预约。";
+                            reservationInfo = "本图书馆不支持在架图书预约。";
                             bCanReservation = false;
                         }
                         else
@@ -7311,7 +7311,7 @@ ErrorInfo成员里可能会有报错信息。
                     {
                         if (string.IsNullOrEmpty(item.borrower) == false)
                         {
-                            reservationInfo = "该图书馆不支持外借图书预约。";
+                            reservationInfo = "本图书馆不支持外借图书预约。";
                             bCanReservation = false;
                         }
                     }
@@ -7321,7 +7321,7 @@ ErrorInfo成员里可能会有报错信息。
                     {
                         if (lib.NoReserveLocation.IndexOf(item.location) != -1)
                         {
-                            reservationInfo = "该馆藏地不支持预约。";
+                            reservationInfo = "本馆藏地不支持预约。";
                             bCanReservation = false;
                         }
                     }
@@ -8501,7 +8501,7 @@ ErrorInfo成员里可能会有报错信息。
                 if (result.ResultCount == -1)
                 {
                     bool bOffline = false;
-                    strError = "图书馆 " + lib.libName + " 桥接服务器出错:" + result.ErrorInfo;
+                    strError = "图书馆[" + lib.libName + "]返回错误:" + result.ErrorInfo;
 
                     //strError = this.GetFriendlyErrorInfo(result, lib.libName, out bOffline);//result.ErrorInfo;
                     return -1;
@@ -8810,7 +8810,7 @@ ErrorInfo成员里可能会有报错信息。
 
                 if (result.Value == -1)
                 {
-                    strError = "图书馆 " + lib.libName + " 的桥接服务器出错:" + result.ErrorInfo;
+                    strError = "图书馆[" + lib.libName + "]返回错误:" + result.ErrorInfo;
                     //strError = this.GetFriendlyErrorInfo(result, lib.libName);
                     return -1;
                 }
@@ -8872,7 +8872,7 @@ ErrorInfo成员里可能会有报错信息。
                     cancel_token).Result;
                 if (result.Value == -1)
                 {
-                    strError = "图书馆 " + lib.libName + " 的桥接服务器出错:" + result.ErrorInfo;
+                    strError = "图书馆[" + lib.libName + "]返回错误:" + result.ErrorInfo;
                     //strError = this.GetFriendlyErrorInfo(result, lib.libName);
                     return -1;
                 }
@@ -8976,7 +8976,7 @@ ErrorInfo成员里可能会有报错信息。
                     cancel_token).Result;
                 if (result.Value == -1)
                 {
-                    strError = "图书馆 " + lib.libName + " 的桥接服务器出错:" + result.ErrorInfo;
+                    strError = "图书馆[" + lib.libName + "]返回错误:" + result.ErrorInfo;
                     //strError = this.GetFriendlyErrorInfo(result, lib.libName);
                     return -1;
                 }
@@ -9311,7 +9311,7 @@ tempRemark);
                     cancel_token).Result;
                 if (result.Value == -1 || result.Value == 0)
                 {
-                    strError = "图书馆 " + lib.libName + " 的桥接服务器出错:" + result.ErrorInfo;
+                    strError = "图书馆[" + lib.libName + "]返回错误:" + result.ErrorInfo;
                     //strError = this.GetFriendlyErrorInfo(result, lib.libName); //"出错：" + result.ErrorInfo;
                     return (int)result.Value;
                 }
@@ -10056,7 +10056,7 @@ tempRemark);
                     cancel_token);
                 if (result.Value == -1)
                 {
-                    strError = "图书馆 " + libName + " 的桥接服务器出错:" + result.ErrorInfo;
+                    strError = "图书馆[" + libName + "]返回错误:" + result.ErrorInfo;
                     //strError = this.GetFriendlyErrorInfo(result, libName);
                     goto ERROR1;
                 }
@@ -10938,7 +10938,7 @@ tempRemark);
                 if (result.ResultCount == -1)
                 {
                     bool bOffline = false;
-                    strError = "图书馆 " + lib.libName + "桥接服务器出错:" + result.ErrorInfo;
+                    strError = "图书馆[" + lib.libName + "]返回错误:" + result.ErrorInfo;
 
                     //strError = this.GetFriendlyErrorInfo(result, lib.libName, out bOffline);// result.ErrorInfo;
                     return -1;
