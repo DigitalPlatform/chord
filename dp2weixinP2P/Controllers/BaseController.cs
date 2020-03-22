@@ -521,7 +521,7 @@ namespace dp2weixinWeb.Controllers
             {
                 LibEntity libEntity = sessionInfo.CurrentLib.Entity;//dp2WeiXinService.Instance.GetLibById(libId);
                 if (libEntity != null && libEntity.state == "到期"
-                    && Request.Path.Contains("/Patron/SelectLib") == false) //选择图书馆界面除外
+                    && Request.Path.Contains("/Patron/SelectOwnerLib") == false) //选择图书馆界面除外
                 {
                     strError = "服务已到期，请联系图书馆工作人员。";
                     return -1;

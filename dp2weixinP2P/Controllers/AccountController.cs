@@ -48,7 +48,7 @@ namespace dp2weixinWeb.Controllers
 
             // 检查微信id是否已经绑定的读者
             if (sessionInfo.ActiveUser.type == WxUserDatabase.C_Type_Worker 
-                && sessionInfo.ActiveUser.userName == "public")
+                && sessionInfo.ActiveUser.userName == WxUserDatabase.C_Public)
             {
                 List<WxUserItem> userList = WxUserDatabase.Current.Get(sessionInfo.WeixinId, null, -1);
                 if (userList.Count > 1)

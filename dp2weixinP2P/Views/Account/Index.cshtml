@@ -46,7 +46,7 @@
                     if (user.type == 0)
                         model.wxPatrons.push(user);
                     else {
-                        if (user.userName != "public")
+                        if (user.userName != WxUserDatabase.C_Public)
                             model.wxWorkers.push(user);
                     }
                 }

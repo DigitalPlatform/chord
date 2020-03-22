@@ -52,17 +52,17 @@ namespace dp2weixinWeb.ApiControllers
                 List<WxUserItem> tempList = WxUserDatabase.Current.Get("", libId, WxUserDatabase.C_Type_Worker);
                 foreach (WxUserItem item in tempList)
                 {
-                    if (item.userName == "public")
+                    if (item.userName == WxUserDatabase.C_Public)
                         continue;
                     users.Add(item);
                 }
             }
-            else if (type == "public")
+            else if (type == WxUserDatabase.C_Public)
             {
                 List<WxUserItem> tempList = WxUserDatabase.Current.Get("", libId, WxUserDatabase.C_Type_Worker);
                 foreach (WxUserItem item in tempList)
                 {
-                    if (item.userName == "public")
+                    if (item.userName == WxUserDatabase.C_Public)
                     {
                         users.Add(item);
                     }
@@ -387,9 +387,9 @@ namespace dp2weixinWeb.ApiControllers
             result.errorInfo = error;
             return result;
         }
-        
 
-        
+
+
         // 设置微信用户当前图书馆
         [HttpPost]
         public ApiResult SetLibId(string weixinId, string libId)
@@ -426,6 +426,20 @@ namespace dp2weixinWeb.ApiControllers
                 return result;
             }
 
+
+            // 先看看有没有public的,有的话，先删除
+            //注意这里不过滤图书馆，就是说临时选择的图书馆，如果未绑定正式帐户，则会在选择下一个图书馆时被清除
+            List<WxUserItem> publicList = WxUserDatabase.Current.GetWorkers(weixinId, "", WxUserDatabase.C_Public);
+            if (publicList.Count > 0)
+            {
+                dp2WeiXinService.Instance.WriteDebug("删除了" + publicList.Count + "个临时public帐户");
+                for (int i = 0; i < publicList.Count; i++)
+                {
+                    WxUserDatabase.Current.SimpleDelete(publicList[i].id);
+                }
+            }
+
+
             // 如果微信用户已经绑定了该图书馆的帐户，则设这个馆第一个帐户为活动帐户
             WxUserItem user = null;
             List<WxUserItem> list = WxUserDatabase.Current.Get(weixinId, libId, -1); //注意这里不区分分馆,在下面还是要看分馆
@@ -441,51 +455,12 @@ namespace dp2weixinWeb.ApiControllers
                     }
                 }
             }
-            if (user == null) // 绑public身份创建一个帐号
+
+            // 如果微信用户针对这个选择的图书馆没有绑定过帐号，则自动创建一个临时public帐户
+            if (user == null)
             {
-                // 先看看有没有public的,有的话，用绑定的实际帐号替换
-                //注意这里不过滤图书馆，就是说临时选择的图书馆，如果未绑定正式帐户，则会被新选择的图书馆public帐户代替
-                List<WxUserItem> publicList = WxUserDatabase.Current.GetWorkers(weixinId, "", "public");
-                if (publicList.Count > 0)
-                {
-                    user = publicList[0];
-                    if (publicList.Count > 1)
-                    {
-                        dp2WeiXinService.Instance.WriteErrorLog("!!!异常：出现" + publicList.Count + "个public帐户?应该只有一个，把多余的帐户删除");
-                        for (int i = 1; i < publicList.Count; i++)
-                        {
-                            WxUserDatabase.Current.SimpleDelete(publicList[i].id);
-                        }
-                    }
-
-                    user.libId = libId;
-                    Library lib = dp2WeiXinService.Instance.LibManager.GetLibrary(libId);
-                    if (lib == null)
-                    {
-                        error = "未找到id=" + libId + "对应的图书馆";
-                        goto ERROR1;
-                    }
-                    user.libName = lib.Entity.libName;
-                    user.bindLibraryCode = bindLibraryCode;
-                    if (string.IsNullOrEmpty(user.bindLibraryCode) == false)
-                        user.libName = user.bindLibraryCode;
-
-                    user.libraryCode = "";
-                    WxUserDatabase.Current.Update(user);
-                }
-                else
-                {
-                    try
-                    {
-                        // 创建一个public帐号
-                        user = WxUserDatabase.Current.CreatePublic(weixinId, libId, bindLibraryCode);
-                    }
-                    catch (Exception ex)
-                    {
-                        error = ex.Message;
-                        goto ERROR1;
-                    }
-                }
+                // 创建一个public帐号
+                user = WxUserDatabase.Current.CreatePublic(weixinId, libId, bindLibraryCode);
             }
 
             // 设为当前帐户
@@ -500,7 +475,7 @@ namespace dp2weixinWeb.ApiControllers
 
             return result;
 
-            ERROR1:
+        ERROR1:
             result.errorCode = -1;
             result.errorInfo = error;
             return result;

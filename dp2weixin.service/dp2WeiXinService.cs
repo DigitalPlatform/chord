@@ -3280,7 +3280,7 @@ namespace dp2weixin.service
                 // 如果有工作人员配了 接收警告 权限，将只返回有权限的工作人员
                 foreach (WxUserItem user in workers)
                 {
-                    if (user.userName == "public")
+                    if (user.userName == WxUserDatabase.C_Public)
                         continue;
 
                     // 从web页面绑定的
@@ -3336,7 +3336,7 @@ namespace dp2weixin.service
         {
 
 
-            string bindUrl = "/Patron/SelectLib?state="+ state + "&returnUrl=" + HttpUtility.UrlEncode(returnUrl);
+            string bindUrl = "/Patron/SelectOwnerLib?state="+ state + "&returnUrl=" + HttpUtility.UrlEncode(returnUrl);
             string bindLink = "<a href='javascript:void(0)' onclick='gotoUrl(\"" + bindUrl + "\")'>请先点击这里选择图书馆</a>。";
             string strRedirectInfo = "您尚未选择图书馆，" + bindLink;
 
@@ -4126,7 +4126,7 @@ ErrorInfo成员里可能会有报错信息。
                     {
                         // 2020-3-11 还要加上public帐户
                         if (WxUserDatabase.CheckIsFromWeb(one.weixinId) == true
-                            || one.userName == "public")
+                            || one.userName == WxUserDatabase.C_Public)
                             continue;
 
                         workers.Add(one);
@@ -4207,7 +4207,7 @@ ErrorInfo成员里可能会有报错信息。
                     {
                         // 2020-3-11 还要加上public帐户
                         if (WxUserDatabase.CheckIsFromWeb(one.weixinId) == true
-                            || one.userName == "public")
+                            || one.userName == WxUserDatabase.C_Public)
                             continue;
 
                         workers.Add(one);
@@ -4328,7 +4328,8 @@ ErrorInfo成员里可能会有报错信息。
                     foreach(WxUserItem one in tempWorkers)
                     {
                         // 2020-3-11 还要加上public帐户
-                        if (WxUserDatabase.CheckIsFromWeb(one.weixinId) == true || one.userName=="public")
+                        if (WxUserDatabase.CheckIsFromWeb(one.weixinId) == true 
+                            || one.userName== WxUserDatabase.C_Public)
                             continue;
 
                         workers.Add(one);
@@ -5124,7 +5125,7 @@ ErrorInfo成员里可能会有报错信息。
 
             // 将微信id对应的public帐户都删除
             //注意这里不过滤图书馆，就是说临时选择的图书馆，如果未绑定正式帐户，则会被新选择的图书馆public帐户代替
-            List<WxUserItem> publicList = WxUserDatabase.Current.GetWorkers(weixinId, "", "public");
+            List<WxUserItem> publicList = WxUserDatabase.Current.GetWorkers(weixinId, "", WxUserDatabase.C_Public);
             if (publicList.Count > 0)
             {
                 if (publicList.Count > 1)
@@ -5276,7 +5277,8 @@ ErrorInfo成员里可能会有报错信息。
             }
             string weixinId = userItem.weixinId;
 
-            if(userItem.type==WxUserDatabase.C_Type_Worker && userItem.userName=="public")
+            if(userItem.type==WxUserDatabase.C_Type_Worker 
+                && userItem.userName== WxUserDatabase.C_Public)
             {
                 strError = "public帐户是系统临时绑定帐号，不需要解绑";
                 return -1;
@@ -5642,7 +5644,7 @@ ErrorInfo成员里可能会有报错信息。
                 List<WxUserItem> userList = WxUserDatabase.Current.Get(weixinId, libId, -1);
                 if (userList == null 
                     || userList.Count == 0
-                    || (userList.Count ==1 && userList[0].userName=="public"))
+                    || (userList.Count ==1 && userList[0].userName== WxUserDatabase.C_Public))
                 {
                     strError = "图书馆\"" + lib.libName + "\"不对外公开书目信息。请点击'我的图书馆/绑定帐户'菜单进行绑定。";
                     return -1;
@@ -5868,7 +5870,7 @@ ErrorInfo成员里可能会有报错信息。
                 // 因为数字资源有访问权限，不能再用capo， capo账户有wirteobject权限 导致 856和对象上设置的访问权限失效了
                 if (string.IsNullOrEmpty(userName) == true)
                 {
-                    userName = "public";
+                    userName = WxUserDatabase.C_Public;
                     isPatron = false;
                 }
             }
@@ -5876,7 +5878,7 @@ ErrorInfo成员里可能会有报错信息。
 
             LoginInfo loginInfo = new LoginInfo(userName, isPatron);
             // 当账户为public时，注意将password设为""，不能使用null。如果密码为null，系统会用代码帐号capo模拟登录。
-            if (userName == "public")
+            if (userName == WxUserDatabase.C_Public)
                 loginInfo.Password = "";
 
             return loginInfo;
@@ -5888,7 +5890,7 @@ ErrorInfo成员里可能会有报错信息。
         //    LoginInfo loginInfo = new LoginInfo(userName, isPatron);
 
         //    // 20170117 注意将password设为""，不能使用null。如果密码为null，系统会用代码帐号capo模拟登录。
-        //    if (userName == "public")
+        //    if (userName == WxUserDatabase.C_Public)
         //        loginInfo.Password = "";
 
         //    return loginInfo;
@@ -6419,7 +6421,8 @@ ErrorInfo成员里可能会有报错信息。
                 // 如果当前是工作人员帐户，出现好书推荐按钮
                 string workerUserName = "";
                 string recommendBtn = "";
-                if (activeUser.type == WxUserDatabase.C_Type_Worker && activeUser.userName!="public")
+                if (activeUser.type == WxUserDatabase.C_Type_Worker 
+                    && activeUser.userName!= WxUserDatabase.C_Public)
                 {
                     // 检索是否有权限 _wx_setHomePage
                     string needRight = dp2WeiXinService.C_Right_SetHomePage;
@@ -7306,7 +7309,8 @@ ErrorInfo成员里可能会有报错信息。
                         }
 
                         // 工作人员的情况
-                        if (loginInfo.UserType != "patron" && loginInfo.UserName!="public")
+                        if (loginInfo.UserType != "patron" 
+                            && loginInfo.UserName!= WxUserDatabase.C_Public)
                         {
                             strBorrowInfo = "借阅者：" + item.borrower + "<br/>"
                           + "借阅时间：" + item.borrowDate + "<br/>"
@@ -9880,7 +9884,7 @@ tempRemark);
             List<WxUserItem> workers = WxUserDatabase.Current.Get("", libId,libraryCode, WxUserDatabase.C_Type_Worker,null,null,true);
             foreach (WxUserItem user in workers)
             {
-                if (user.userName == "public")
+                if (user.userName == WxUserDatabase.C_Public)
                 {
                     continue;
                 }

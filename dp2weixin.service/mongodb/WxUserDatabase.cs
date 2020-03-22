@@ -34,6 +34,9 @@ namespace dp2weixin.service
         public const string C_PatronState_Pass= "";
         public const string C_PatronState_NoPass = "不通过";
 
+        // public
+        public const string C_Public = "public";
+
 
         /// <summary>
         /// 单一静态实例,饿汉模式
@@ -401,7 +404,7 @@ namespace dp2weixin.service
 
             userItem.libraryCode = ""; //实际分馆
             userItem.type = WxUserDatabase.C_Type_Worker;
-            userItem.userName = "public";
+            userItem.userName = WxUserDatabase.C_Public;
             userItem.isActiveWorker = 0;//是否是激活的工作人员账户，读者时均为0
             userItem.tracing = "off";//默认是关闭监控
             userItem.location = "";
