@@ -1,0 +1,161 @@
+﻿@model List<dp2weixin.service.PatronInfo>
+@{
+    ViewBag.Title = "PatronSearch";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section style {
+
+    <style type="text/css">
+        /*所有需要后面填充内容的元素样式*/
+        .pending {
+            /*设为背景图影响效果太大了，还是元素里面加个img吧*/
+            /*background-image:url("img/wait.gif");*/
+        }
+
+        TABLE.borrowTable {
+            text-align: left;
+            background-color: white;
+            width: 100%;
+        }
+
+            TABLE.borrowTable TR TD {
+                border-width: 0px;
+                border-top-width: 1px;
+                border-color: #dddddd;
+                border-style: dotted;
+                padding: 2px;
+            }
+
+                TABLE.borrowTable TR TD.value {
+                    /*border-left-width: 2px;*/
+                    border-left: 1px solid #CCCCCC;
+                    padding-left: 5px;
+                }
+
+                TABLE.borrowTable TR TD.returnDate {
+                    font-weight: bolder;
+                    border-left: 1px solid #CCCCCC;
+                    padding-left: 5px;
+                }
+
+                TABLE.borrowTable TR TD.label {
+                    width: 70px;
+                    max-width: 70px;
+                    min-width: 70px;
+                    background-color: #eeeeee;
+                    color: #999999;
+                    padding-left: 5px;
+                    text-align: right;
+                }
+    </style>
+}
+
+@section header {
+    <h1 class="mui-title">检索读者</h1>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            window.setTimeout("fillPending()", 1);
+        });
+    </script>
+}
+
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
+}
+else
+{
+
+    if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
+    {
+        @Html.Raw(ViewBag.RedirectInfo);
+    }
+    else
+    {
+
+        // 警告提示
+        if (String.IsNullOrEmpty(ViewBag.Warn) == false)
+        {
+            <div class="mui-content-padded">
+                <span class="errorinfo">
+                    @Html.Raw(ViewBag.Warn)
+                </span>
+            </div>
+        }
+
+        if (Model == null || Model.Count == 0)
+        {
+            <div class="mui-card" id="divNo" style="margin-top:10px;">
+                <center>
+                    <div>未命中，图书馆系统中没有其它名为'@ViewBag.patronName'的读者。</div>
+                </center>
+            </div>
+        }
+
+        foreach (dp2weixin.service.PatronInfo patronInfo in Model)
+        {
+            <div style="padding-left:10px">
+                姓名：@patronInfo.patron.name &nbsp; &nbsp;电话：@patronInfo.patron.phone  &nbsp; &nbsp;部门：@patronInfo.patron.department<br />
+                目前在借[@patronInfo.patron.BorrowCount]册
+            </div>
+
+            foreach (dp2weixin.service.BorrowInfo2 item in patronInfo.borrowList)
+            {
+                <div class="mui-card" style="margin-bottom:10px ">
+                    <table class="borrowTable">
+                        <tr>
+                            <td class="label">册条码号</td>
+                            <td class="value"><a href="@item.barcodeUrl" target="_blank"><span>@item.barcode</span></a></td>
+                        </tr>
+                        <tr>
+                            <td class="label">续借次</td>
+                            <td class="value">@item.renewNo</td>
+                        </tr>
+                        <tr>
+                            <td class="label">借阅日期</td>
+                            <td class="value">@item.borrowDate</td>
+                        </tr>
+                        <tr>
+                            <td class="label">期限</td>
+                            <td class="value">@item.period</td>
+                        </tr>
+                        <tr>
+                            <td class="label">操作者</td>
+                            <td class="value">@item.borrowOperator</td>
+                        </tr>
+                        <tr>
+                            <td class="label">应还日期</td>
+                            <td class="returnDate">@item.returnDate</td>
+                        </tr>
+                        <tr>
+                            <td class="label">摘要</td>
+                            <td class="value">
+                                <span class="pending">
+                                    <label style="display:inline">bs-@item.barcode</label>
+                                    <img src="~/img/wait2.gif" height="10" width="10" />
+                                    <span>@ViewBag.LibId</span>
+                                </span>
+                            </td>
+                        </tr>
+
+
+                    </table>
+                </div>
+            }
+        }
+
+        <div class="mui-content-padded">
+            <button id='back' class="mui-btn mui-btn-block mui-btn-primary" onclick="javascript:history.back(-1);">返回</button>
+        </div>
+    }
+
+
+}

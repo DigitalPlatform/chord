@@ -217,7 +217,18 @@
         }
 
         function searchPatron() {
-            alert("按姓名检索读者,todo");
+
+            //姓名
+            var name = $("#txtName").val();
+            if (name == "") {
+                alert("姓名不能为空！");
+                return;
+            }
+
+            var url = "/Patron/PatronSearch?patronName=" + encodeURIComponent(name);
+            gotoUrl(url);
+
+            //alert("按姓名检索读者,todo");
         }
 
     </script>
@@ -246,7 +257,7 @@ else
 
     <table style="width:100%">
         <tr>
-            <td style="width:100%">
+            <td style="width:100%;">
                 <div class="mui-input-group" style="background-color:white">
                     <div class="mui-input-row">
                         <label id="lblName" style="color:#cccccc">证条码号</label>
@@ -254,7 +265,7 @@ else
                     </div>
                 </div>
             </td>
-            <td><button onclick="getPatronBarcode()" id='login' class="" style="border:1px dotted gray;margin-right:2px;width:40px;height:40px;background-image:url('../../img/banshou3.jfif');background-repeat:round"></button></td>
+            <td><button onclick="getPatronBarcode()" id='login' class="" style="border:0px;margin-right:2px;width:30px;height:30px;background-image:url('../img/banshou3.jfif');background-repeat:round"></button></td>
         </tr>
     </table>
 
@@ -268,9 +279,10 @@ else
                     </div>
                 </div>
             </td>
-            <td><button onclick="searchPatron()" id='login' class="" style="border:1px dotted gray;margin-right:2px;width:40px;height:40px;background-image:url('../../img/search2.jfif');background-repeat:round;">...</button></td>
+            <td><button onclick="searchPatron()" id='login' class="" style="border:0px;margin-right:2px;width:32px;height:30px;background-image:url('../img/search2.jfif');background-repeat:round;"></button></td>
         </tr>
     </table>
+
 
     <!--
         <div class="mui-input-row ">

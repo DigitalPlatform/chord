@@ -331,7 +331,7 @@
     <Content Include="Views\Account\Bind.cshtml" />
     <Content Include="Views\Account\ResetPassword.cshtml" />
     <Content Include="Views\Patron\Reservation.cshtml" />
-    <Content Include="Views\Patron\PersonalInfo.cshtml" />
+    <Content Include="Views\Patron\PatronSearch.cshtml" />
     <Content Include="Views\Patron\OverdueInfo.cshtml" />
     <Content Include="Views\Patron\BorrowInfo.cshtml" />
     <Content Include="Views\Account\ChangePassword.cshtml" />
@@ -373,6 +373,7 @@
     <Content Include="Views\Patron\PatronList.cshtml" />
     <Content Include="Views\Patron\ChangePhone.cshtml" />
     <Content Include="Views\Patron\SelectOwnerLib.cshtml" />
+    <Content Include="Views\Patron\PersonalInfo.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

@@ -226,13 +226,7 @@ namespace dp2weixinWeb.Controllers
             return View();
         }
 
-        //public bool isPublic(string userName)
-        //{
-        //    if (userName == WxUserDatabase.C_Public)
-        //        return true;
 
-        //    return false;
-        //}
 
         /// <summary>
         /// 检查一个图书馆是否在绑定列表中
@@ -308,6 +302,65 @@ namespace dp2weixinWeb.Controllers
             return View();
 
         }
+
+        public ActionResult PatronSearch(string code, string state,string patronName)
+        {
+            string strError = "";
+            int nRet = 0;
+
+            if (string.IsNullOrEmpty(patronName) == true)
+            {
+                ViewBag.Error = "未传入读者姓名参数";
+                return View();
+            }
+            ViewBag.patronName = patronName; //用于提示显示出检索用的姓名来
+
+            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
+            // -1 出错
+            // 0 成功
+            nRet = this.GetSessionInfo(code, state,
+                out SessionInfo sessionInfo,
+                out strError);
+            if (nRet == -1)
+            {
+                ViewBag.Error = strError;
+                return View();
+            }
+
+            // 当前帐号不存在，尚未选择图书馆
+            if (sessionInfo.ActiveUser == null)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Patron/PatronList");
+                return View();
+            }
+
+            // 必须是工作人员，且不能为public
+            if (sessionInfo.ActiveUser.type != WxUserDatabase.C_Type_Worker
+                || sessionInfo.ActiveUser.userName == WxUserDatabase.C_Public)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("检索读者", "/Patron/PatronSearch", true);
+                return View();
+            }
+
+
+
+            List<PatronInfo> patronList = new List<PatronInfo>();
+            nRet = dp2WeiXinService.Instance.GetPatronsByName(sessionInfo.ActiveUser.libId,
+                sessionInfo.ActiveUser.bindLibraryCode,
+                patronName,
+               out patronList,
+               out strError);
+            if (nRet == -1)
+            {
+                ViewBag.Error = strError;
+                return View();
+            }
+
+
+
+            return View(patronList);
+        }
+
 
         /// <summary>
         /// 审核主界面

@@ -4470,6 +4470,108 @@ ErrorInfo成员里可能会有报错信息。
 
         }
 
+
+        public int GetPatronsByName(string libId,
+            string libraryCode,
+            string patronName,
+            out List<PatronInfo> patronList,
+            out string strError)
+        {
+            strError = "";
+            patronList = new List<PatronInfo>();
+            if (libraryCode == null)
+                libraryCode = "";
+
+            // 根据id找到图书馆对象
+            LibEntity lib = this.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为[" + libId + "]的图书馆定义。";
+                return -1;
+            }
+
+            // 使用代理账号
+            LoginInfo loginInfo = new LoginInfo("", false);
+
+            // 从远程dp2library中查
+            //string strWord = WxUserDatabase.C_PatronState_TodoReview;  // 待审核
+            CancellationToken cancel_token = new CancellationToken();
+            string id = Guid.NewGuid().ToString();
+            SearchRequest request = new SearchRequest(id,
+                loginInfo,
+                "searchPatron",
+                "<全部>",  //todo 这里后面考虑是否指定总分馆对应的数据库
+                patronName,
+                "姓名",  //状态 途径
+                "left",
+                "patrons",
+                "id,xml",
+                1000,
+                0,
+                WeiXinConst.C_Search_MaxCount);
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
+                    this._dp2MServerUrl,
+                    lib.capoUserName).Result;
+
+                SearchResult result = connection.SearchTaskAsync(
+                    lib.capoUserName,
+                    request,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token).Result;
+                if (result.ResultCount == -1)
+                {
+                    strError = "图书馆 " + lib.libName + "检索读者出错:" + result.ErrorInfo;
+                    return -1;
+                }
+                if (result.ResultCount == 0)
+                    return 0;
+                foreach (Record record in result.Records)// int i = 0; i < result.ResultCount; i++)
+                {
+                    string patronXml = record.Data;
+
+                    Patron patron = this.ParsePatronXml(libId,
+                         patronXml,
+                         this.GetPurePath(record.RecPath),
+                         0,
+                         false);
+
+
+
+                    if (patron.libraryCode == libraryCode && patron.state != WxUserDatabase.C_PatronState_TodoReview)
+                    {
+                        string strWarningText = "";
+                        string maxBorrowCountString = "";
+                        string curBorrowCountString = "";
+                        List<BorrowInfo2> borrowList = this.GetBorrowInfo(patronXml,
+                            out strWarningText,
+                            out maxBorrowCountString,
+                            out curBorrowCountString);
+
+                        PatronInfo patronInfo = new PatronInfo();
+                        patronInfo.patron = patron;
+                        patronInfo.borrowList = borrowList;
+                        patronList.Add(patronInfo);
+                    }
+                }
+
+
+                return (int)result.ResultCount;
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                return -1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                return -1;
+            }
+
+        }
+
         /// <summary>
         /// 找回密码
         /// </summary>
