@@ -156,8 +156,11 @@ function getDetail(libId, recPath, obj, from) {
             var addStyle = "";  /*删除线*/
             if (record.disable ==true)
             {
-                
                 addStyle = "style='color:#cccccc;text-decoration:line-through;'";  /*发灰，删除线*/
+            }
+
+            if (record.isGray == true) {
+                addStyle = "style='color:#cccccc;'";  /*发灰，删除线*/
             }
 
 

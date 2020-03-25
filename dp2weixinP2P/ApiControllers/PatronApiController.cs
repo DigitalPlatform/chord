@@ -87,7 +87,8 @@ namespace dp2weixinWeb.ApiControllers
             string timestamp,
             string weixinId,
             SimplePatron patron,
-            bool bMergeInfo)
+            //bool bMergeInfo,
+            bool checkNull)
         {
             SetReaderInfoResult result = new SetReaderInfoResult();
             string strError="";
@@ -103,7 +104,8 @@ namespace dp2weixinWeb.ApiControllers
                 timestamp,
                 weixinId,
                 patron,
-                bMergeInfo,
+                //bMergeInfo,
+                checkNull,
                 out outputRecPath,
                 out outputTimestamp,
                 out userItem,
@@ -120,7 +122,8 @@ namespace dp2weixinWeb.ApiControllers
             result.timestamp = outputTimestamp;
 
             // 如果是读者自助注册过来的，需要把注册的这个帐户设置为当前帐户
-            if (string.IsNullOrEmpty(weixinId) ==false && userItem !=null )
+            if ((string.IsNullOrEmpty(weixinId) ==false && userItem !=null ))
+               // || action== dp2WeiXinService.C_Action_delete)
             {
                 result.info = userItem.readerBarcode;
 
@@ -131,13 +134,8 @@ namespace dp2weixinWeb.ApiControllers
                     return result;
                 }
             }
-            
-
             return result;
         }
-
-
-
 
         /// <summary>
         /// 发送验证码

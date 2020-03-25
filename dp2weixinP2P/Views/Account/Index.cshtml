@@ -14,42 +14,60 @@
             //var index = loadLayer();
             showLoading();
 
+            //alert("1");
+
             // 先删除可观察数组中的已有数据
             model.wxPatrons.removeAll();
             model.wxWorkers.removeAll();
 
+            //alert("2");
+
             // 调web api
             var url = "/api/wxuserApi?weixinId=" + weixinId;
             sendAjaxRequest(url, "GET", function (result) {
+
+               //alert("3");
 
                 // 关闭等待层
                 //layer.close(index);
                 hideLoading();
 
                 if (result.errorCode == -1) {
+
+                    //alert("4");
                     alert(result.errorInfo);
                     return;
                 }
 
-                //alert("getBindList返回结果" + result.errorCode);
+                //alert("5.getBindList返回结果" + result.users.length);
 
                 if (result.users == null || result.users.length == 0)
                     $("#divNoBind").css('display', 'block');
                 else
                     $("#divNoBind").css('display', 'none');
 
+                //alert("5.1");
+
+
                 for (var i = 0; i < result.users.length; i++) {
+
+                    //alert("5.2");
 
                     var user = result.users[i];
 
                     // 根据类型，放在不同的数组里
-                    if (user.type == 0)
+                    if (user.type == 0) {
                         model.wxPatrons.push(user);
+                    }
                     else {
-                        if (user.userName != "public")
+                        if (user.userName != "public")//WxUserDatabase.C_Public)
+                        {
                             model.wxWorkers.push(user);
+                        }
                     }
                 }
+
+                //alert("6.读者数量=" + model.wxPatrons().length + "-工作人员数量=" + model.wxWorkers().length);
 
 
 

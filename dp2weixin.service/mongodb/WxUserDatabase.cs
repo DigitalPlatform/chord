@@ -34,6 +34,9 @@ namespace dp2weixin.service
         public const string C_PatronState_Pass= "";
         public const string C_PatronState_NoPass = "不通过";
 
+        // public
+        public const string C_Public = "public";
+
 
         /// <summary>
         /// 单一静态实例,饿汉模式
@@ -401,7 +404,7 @@ namespace dp2weixin.service
 
             userItem.libraryCode = ""; //实际分馆
             userItem.type = WxUserDatabase.C_Type_Worker;
-            userItem.userName = "public";
+            userItem.userName = WxUserDatabase.C_Public;
             userItem.isActiveWorker = 0;//是否是激活的工作人员账户，读者时均为0
             userItem.tracing = "off";//默认是关闭监控
             userItem.location = "";
@@ -568,19 +571,19 @@ namespace dp2weixin.service
 
         public void SimpleDelete(String id)
         {
-            dp2WeiXinService.Instance.WriteDebug("1.走进WxUserDatabase.SimpleDelete()");
+            //dp2WeiXinService.Instance.WriteDebug("1.走进WxUserDatabase.SimpleDelete()");
 
             if (string.IsNullOrEmpty(id) == true)
                 return;
 
-            dp2WeiXinService.Instance.WriteDebug("2.走进WxUserDatabase.SimpleDelete() id=" + id);
+            //dp2WeiXinService.Instance.WriteDebug("2.走进WxUserDatabase.SimpleDelete() id=" + id);
 
             // 从mongodb库删除
             IMongoCollection<WxUserItem> collection = this.wxUserCollection;
             var filter = Builders<WxUserItem>.Filter.Eq("id", id);
             DeleteResult ret = collection.DeleteOne(filter);
 
-            dp2WeiXinService.Instance.WriteDebug("3.共删除成功" + ret.DeletedCount + "个对象");
+            //dp2WeiXinService.Instance.WriteDebug("3.共删除成功" + ret.DeletedCount + "个对象");
         }
 
         // 根据libId与状态删除记录

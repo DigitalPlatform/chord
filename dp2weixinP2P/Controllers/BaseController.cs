@@ -19,7 +19,7 @@ namespace dp2weixinWeb.Controllers
     out string strError,
     string myWeixinId = "")
         {
-            return this.GetSessionInfo2(code,
+            return this.GetSessionInfo(code,
                 state,
                 true,
                 false,
@@ -44,7 +44,7 @@ namespace dp2weixinWeb.Controllers
         /// -1 出错
         /// 0 成功
         /// </returns>
-        public int GetSessionInfo2(string code,
+        public int GetSessionInfo(string code,
             string state,
             bool isCheckLibState,
             bool redoGetActiveUser,
@@ -521,7 +521,7 @@ namespace dp2weixinWeb.Controllers
             {
                 LibEntity libEntity = sessionInfo.CurrentLib.Entity;//dp2WeiXinService.Instance.GetLibById(libId);
                 if (libEntity != null && libEntity.state == "到期"
-                    && Request.Path.Contains("/Patron/SelectLib") == false) //选择图书馆界面除外
+                    && Request.Path.Contains("/Patron/SelectOwnerLib") == false) //选择图书馆界面除外
                 {
                     strError = "服务已到期，请联系图书馆工作人员。";
                     return -1;

@@ -151,7 +151,7 @@ namespace dp2weixin.service
 
                 // 如果是工作人员，获取地应图书馆的读者类型和读者库，用于读者登记
                 if (this.ActiveUser.type == WxUserDatabase.C_Type_Worker 
-                    && this.ActiveUser.userName !="public")
+                    && this.ActiveUser.userName != WxUserDatabase.C_Public)
                 {
                     List<string> dataList = null;
                     nRet = dp2WeiXinService.Instance.GetSystemParameter(

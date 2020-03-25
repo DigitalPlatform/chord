@@ -45,7 +45,7 @@ namespace dp2weixinWeb.Controllers
             }
 
             // public帐号不支持专业借还
-            if (sessionInfo.ActiveUser.userName == "public")
+            if (sessionInfo.ActiveUser.userName == WxUserDatabase.C_Public)
             {
                 ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("专业借还", "/Library/Circulate", true);
                 return View();
@@ -133,7 +133,7 @@ namespace dp2weixinWeb.Controllers
 
             bool canBorrow = true;
             bool canReturn = true;
-            if (sessionInfo.ActiveUser.userName=="public")
+            if (sessionInfo.ActiveUser.userName== WxUserDatabase.C_Public)
             {
                 canBorrow = false;
                 canReturn = false;
@@ -224,7 +224,7 @@ namespace dp2weixinWeb.Controllers
             {
                 List<WxUserItem> users = WxUserDatabase.Current.Get(weixinId, sessionInfo.CurrentLib.Entity.id, -1);
                 if (users.Count == 0
-                    || (users.Count == 1 && users[0].userName == "public"))
+                    || (users.Count == 1 && users[0].userName == WxUserDatabase.C_Public))
                 {
                     ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("公告", "/Library/BB", sessionInfo.CurrentLib.Entity.libName);
                     return View();
@@ -263,7 +263,7 @@ namespace dp2weixinWeb.Controllers
             // todo 后面可以放开对读者的权限
             if (activeUser != null 
                 && activeUser.type==WxUserDatabase.C_Type_Worker
-                && activeUser.userName != "public")
+                && activeUser.userName != WxUserDatabase.C_Public)
             {
                 // 检索是否有权限 _wx_setHomePage
                 string needRight = dp2WeiXinService.C_Right_SetBb;
@@ -444,7 +444,7 @@ namespace dp2weixinWeb.Controllers
             {
                 List<WxUserItem> users = WxUserDatabase.Current.Get(sessionInfo.WeixinId, sessionInfo.CurrentLib.Entity.id, -1);
                 if (users.Count == 0
-                    ||( users.Count==1 && users[0].userName=="public"))
+                    ||( users.Count==1 && users[0].userName== WxUserDatabase.C_Public))
                 {
                     ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("好书推荐", "/Library/BookSubject", sessionInfo.CurrentLib.Entity.libName);
                     return View();
@@ -515,7 +515,7 @@ namespace dp2weixinWeb.Controllers
             {
                 List<WxUserItem> users = WxUserDatabase.Current.Get(sessionInfo.ActiveUser.weixinId, sessionInfo.CurrentLib.Entity.id, -1);
                 if (users.Count == 0
-                 || (users.Count == 1 && users[0].userName == "public"))
+                 || (users.Count == 1 && users[0].userName == WxUserDatabase.C_Public))
                 {
                     ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("好书推荐", "/Library/BookSubject", sessionInfo.CurrentLib.Entity.libName);
                     return View();
@@ -614,7 +614,7 @@ namespace dp2weixinWeb.Controllers
             {
                 List<WxUserItem> users = WxUserDatabase.Current.Get(sessionInfo.WeixinId, sessionInfo.CurrentLib.Entity.id, -1);
                 if (users.Count == 0
-                 || (users.Count == 1 && users[0].userName == "public"))
+                 || (users.Count == 1 && users[0].userName == WxUserDatabase.C_Public))
                 {
                     ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("好书推荐", "/Library/BookSubject", sessionInfo.CurrentLib.Entity.libName);
                     return View();

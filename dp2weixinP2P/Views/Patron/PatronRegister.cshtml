@@ -12,7 +12,7 @@
         // 选择图书馆
         function gotoSelectLib() {
             //alert("1");
-            var url = "/Patron/SelectLib?returnUrl=" + encodeURIComponent("/Patron/PatronRegister");
+            var url = "/Patron/SelectOwnerLib?returnUrl=" + encodeURIComponent("/Patron/PatronRegister");
             gotoUrl(url);
         }
 
@@ -156,7 +156,8 @@
                 + "&recPath=" + encodeURIComponent(recPath)
                 + "&timestamp=" // + encodeURIComponent(timestamp)
                 + "&weixinId=" + encodeURIComponent(weixinId)
-                + "&bMergeInfo=false"; //+ bMergeInfo;
+                //+ "&bMergeInfo=false"; //+ bMergeInfo;
+                + "&checkNull=false";
 
             sendAjaxRequest(url, "POST",
                 function (result) {
@@ -169,7 +170,8 @@
                         return;
                     }
 
-                    $("#_recPath").text(result.recPath);
+                    // 2020-3-12 去掉这项
+                    //$("#_recPath").text(result.recPath);
 
                     alert("读者信息提交成功，请等待管理员审核。");
 
@@ -212,7 +214,7 @@
         function setdept(dept) {
 
             if (dept == "其它") {
-                $("#txtDepartment").val();
+                $("#txtDepartment").val("");  // 注意这里一定要设成空字符串""，不能直接是val()
 
                 $("#otherDept").css("display", "block");
             }

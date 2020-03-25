@@ -211,6 +211,8 @@
     <Content Include="img\ajax-loader.gif" />
     <Content Include="img\arrowdown.png" />
     <Content Include="img\arrowright.png" />
+    <Content Include="img\banshou1.jfif" />
+    <Content Include="img\banshou2.jfif" />
     <Content Include="img\book2.png" />
     <Content Include="img\charge_success_24.png" />
     <Content Include="img\barcode.png" />
@@ -231,6 +233,8 @@
     <Content Include="img\person.png" />
     <Content Include="img\process_16.png" />
     <Content Include="img\right1.png" />
+    <Content Include="img\search1.jfif" />
+    <Content Include="img\search2.jfif" />
     <Content Include="img\wait2.gif" />
     <Content Include="fonts\mui-icons-extra.ttf" />
     <Content Include="DongshifangMessageInterface.dll.config">
@@ -327,7 +331,7 @@
     <Content Include="Views\Account\Bind.cshtml" />
     <Content Include="Views\Account\ResetPassword.cshtml" />
     <Content Include="Views\Patron\Reservation.cshtml" />
-    <Content Include="Views\Patron\PersonalInfo.cshtml" />
+    <Content Include="Views\Patron\PatronSearch.cshtml" />
     <Content Include="Views\Patron\OverdueInfo.cshtml" />
     <Content Include="Views\Patron\BorrowInfo.cshtml" />
     <Content Include="Views\Account\ChangePassword.cshtml" />
@@ -367,6 +371,9 @@
     <Content Include="Views\Patron\PatronRegister.cshtml" />
     <Content Include="Views\Patron\PatronReview.cshtml" />
     <Content Include="Views\Patron\PatronList.cshtml" />
+    <Content Include="Views\Patron\ChangePhone.cshtml" />
+    <Content Include="Views\Patron\SelectOwnerLib.cshtml" />
+    <Content Include="Views\Patron\PersonalInfo.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

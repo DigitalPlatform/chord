@@ -63,7 +63,14 @@
                 noShareBiblio: ko.observable(0),
                 //verifyBarcode:ko.observable(0),
                 searchDbs: ko.observable(""),
-                biblioFilter: ko.observable("")
+                biblioFilter: ko.observable(""),
+
+                // 2020/3/22 加预约相关参数
+                ReserveScope: ko.observable(""),
+                NoReserveLocation: ko.observable(""),
+                IsSendArrivedNotice: ko.observable(""),
+                NoViewLocation:ko.observable("")    //2020/3/25 不允许显示册记录的馆藏地
+
             },
             displaySummary: ko.observable(true)
 
@@ -81,7 +88,7 @@
             model.librarys.removeAll();
 
             // 调web api
-            var url = "/api/LibrarySetting";
+            var url = "/api/LibrarySettingApi";
             sendAjaxRequest(url, "GET", function (data) {
                 for (var i = 0; i < data.length; i++) {
                     //遍历从服务器得到的结果，以push方法对该数组填充新数据
@@ -116,7 +123,7 @@
             showMaskLayer();
 
             //alert("remove-"+item.libId);
-            var url = "/api/LibrarySetting/" + item.id;
+            var url = "/api/LibrarySettingApi/" + item.id;
             sendAjaxRequest(url, "DELETE", function (result) {
                 //getAllLib();
 
@@ -369,6 +376,23 @@
             if (model.editor.biblioFilter() != null)
                 biblioFilter = model.editor.biblioFilter().trim();
 
+
+            // 预约范围 2020/3/22 加
+            var ReserveScope = $("#selReserveScope").val();
+
+            // 不支持预约的馆藏地  // 2020/3/22 加
+            var NoReserveLocation = "";
+            if (model.editor.NoReserveLocation() != null)
+                NoReserveLocation = model.editor.NoReserveLocation().trim();
+
+            // 是否给读者发预约到书通知  // 2020/3/22 加
+            var IsSendArrivedNotice = $("#selIsSendArrivedNotice").val();
+
+            // 不支持显示册的馆藏地  // 2020/3/25 加
+            var NoViewLocation = "";
+            if (model.editor.NoViewLocation() != null)
+                NoViewLocation = model.editor.NoViewLocation().trim();
+
             //alert("id-[" + model.editor.id() + "]-2");
 
             //显示等待图层
@@ -380,7 +404,7 @@
             var id = model.editor.id();
             if (id == null || id == "") {
                 actionType = "POST";
-                url = "/api/LibrarySetting";
+                url = "/api/LibrarySettingApi";
             }
             else {
                 actionType = "PUT";
@@ -400,6 +424,8 @@
                         alert("保存出错:" + result.errorInfo);
                         return;
                     }
+
+                    alert("保存成功。");
 
                     //model.librarys.push(newItem);
                     model.displaySummary(true);
@@ -432,7 +458,11 @@
                     searchDbs: searchDbs,
                     match: match,
                     state: state,
-                    biblioFilter: biblioFilter
+                    biblioFilter: biblioFilter,
+                    ReserveScope:ReserveScope,  //预约范围 2020/3/22
+                    NoReserveLocation: NoReserveLocation,  // 不支持预约馆藏地 2020/3/22
+                    IsSendArrivedNotice: IsSendArrivedNotice,   //是否给读者发预约到书通知 2020/3/22
+                    NoViewLocation:NoViewLocation  //不支持显示册记录的馆藏地 2020/3/25
                 }
             );
         }
@@ -458,6 +488,15 @@
             $("#selState").val("");
 
             model.editor.biblioFilter("");
+
+
+            //2020/3/22 预约相关参数
+            model.editor.ReserveScope("");
+            model.editor.NoReserveLocation("");
+            model.editor.IsSendArrivedNotice("");
+
+            model.editor.NoViewLocation(""); //2020/3/25 不支持显示册记录的馆藏地
+            //
         }
 
         // 点击新增图书馆按钮
@@ -515,6 +554,28 @@
             $("#selState").val(state);
 
             model.editor.biblioFilter(item.biblioFilter);
+
+            // 2020/3/22 预约相关参数
+            //model.editor.ReserveScope(item.ReserveScope);
+
+            // 预约范围
+            var ReserveScope = item.ReserveScope;
+            if (ReserveScope == null)
+                ReserveScope = "all";
+            $("#selReserveScope").val(ReserveScope);
+
+            // 不支持预约的馆藏地
+            model.editor.NoReserveLocation(item.NoReserveLocation);
+
+            // 是否通知读者到书
+            var IsSendArrivedNotice = item.IsSendArrivedNotice;
+            if (IsSendArrivedNotice == null)
+                IsSendArrivedNotice = "Y";
+            $("#selIsSendArrivedNotice").val(IsSendArrivedNotice);
+
+
+            // 不支持显示的馆藏地
+            model.editor.NoViewLocation(item.NoViewLocation);
         }
 
 
@@ -594,11 +655,11 @@
                     <td class="value" data-bind="text:id"></td>
                 </tr>
                 <!--
-     <tr>
-         <td class="label">图书馆代码</td>
-         <td class="value" data-bind="text:libCode"></td>
-     </tr>
-         -->
+    <tr>
+        <td class="label">图书馆代码</td>
+        <td class="value" data-bind="text:libCode"></td>
+    </tr>
+        -->
                 <tr>
                     <td class="label">图书馆名称</td>
                     <td class="value" data-bind="text:libName"></td>
@@ -650,6 +711,22 @@
                 <tr>
                     <td class="label">限制的书目结果集</td>
                     <td class="value" data-bind="text:biblioFilter"></td>
+                </tr>
+                <tr>
+                    <td class="label">预约范围</td>
+                    <td class="value" data-bind="text:ReserveScope"></td>
+                </tr>
+                <tr>
+                    <td class="label">不允许预约的馆藏地</td>
+                    <td class="value" data-bind="text:NoReserveLocation"></td>
+                </tr>
+                <tr>
+                    <td class="label">是否给读者发到书通知</td>
+                    <td class="value" data-bind="text:IsSendArrivedNotice"></td>
+                </tr>
+                <tr>
+                    <td class="label">不允许显示册记录的馆藏地</td>
+                    <td class="value" data-bind="text:NoViewLocation"></td>
                 </tr>
                 <!--
     <tr>
@@ -779,6 +856,34 @@
         <div class="mui-input-row">
             <label class="leftLabel">限制的书目结果集</label>
             <textarea rows="1" data-bind="value:model.editor.biblioFilter" placeholder="请输入限制的书目结果集"></textarea>
+        </div>
+
+        <div class="mui-input-row ">
+            <label class="leftLabel">预约范围</label>
+            <select id="selReserveScope">
+                <option value="all" selected>全部</option>
+                <option value="onlyBorrow">仅在借</option>
+                <option value="onshelf">仅在架</option>
+                <option value="no">不支持</option>
+            </select>
+        </div>
+
+        <div class="mui-input-row">
+            <label class="leftLabel">不支持预约的馆藏地</label>
+            <textarea rows="1" data-bind="value:model.editor.NoReserveLocation" placeholder="请输入不支持预约的馆藏地"></textarea>
+        </div>
+
+        <div class="mui-input-row">
+            <label class="leftLabel">是否给读者发到书通知</label>
+            <select id="selIsSendArrivedNotice">
+                <option value="Y" selected>是</option>
+                <option value="N">否</option>
+            </select>
+        </div>
+
+        <div class="mui-input-row">
+            <label class="leftLabel">不允许显示册记录的馆藏地</label>
+            <textarea rows="1" data-bind="value:model.editor.NoViewLocation" placeholder="请输入不允许显示册记录的馆藏地"></textarea>
         </div>
 
         <div class="mui-input-row ">

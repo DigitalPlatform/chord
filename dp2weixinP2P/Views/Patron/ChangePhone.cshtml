@@ -1,0 +1,231 @@
+﻿
+@{
+    ViewBag.Title = "PatronRegister";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section header {
+    <h1 class="mui-title">修改手机号</h1>
+}
+
+@section Scripts {
+    <script>
+
+        // 发送手机验证码
+        function sendVC() {
+
+            // 图书馆ID
+            var libId = getLibId();
+            if (libId == "") {
+                alert("异常情况：libId为空。");
+                return;
+            }
+
+            // 手机号
+            var phone = $("#txtPhone").val();
+            if (phone == "") {
+                alert("手机号不能为空！");
+                return;
+            }
+            if (phone.length != 11) {
+                alert("手机号必须是11位数字！");
+                return;
+            }
+
+            //显示等待图层
+            showLoading();
+
+            // 调patron发送验证码接口
+            var url = "/api/patronapi?libId=" + encodeURIComponent(libId)
+                + "&phone=" + encodeURIComponent(phone)
+
+            //alert(url);
+            sendAjaxRequest(url, "GET",
+                function (result) {
+
+                    // 关闭等待层
+                    hideLoading();
+                    if (result.errorCode == -1) {
+                        alert("发送短信验证码出错：" + result.errorInfo);
+                        return;
+                    }
+
+                    //alert(result.verifyCode);
+
+                    $("#_verifyCode").text(result.verifyCode);
+
+
+                    alert("短信验证码已发送到您手机号，请查收。" + result.verifyCode);  //todo正式版本删除码提示
+
+                }, function (xhq, textStatus, errorThrown) {
+                    // 关闭等待层
+                    hideLoading();
+                    alert(errorThrown);
+                });
+        }
+
+        // 保存读者信息
+        function changePhone() {
+            //alert("1");
+
+            // 图书馆ID
+            var libId = getLibId();
+            if (libId == "") {
+                alert("异常情况：libId为空。");
+                return;
+            }
+
+
+            // 读者路径
+            var recPath = $("#_recPath").text();
+            if (recPath == "") {
+                alert("异常情况：读者记录路径为空");
+                return;
+            }
+            //alert(recPath);
+
+
+
+
+            // 手机号
+            var phone = $("#txtPhone").val();
+            if (phone == "") {
+                alert("请输入手机号");
+                return;
+            }
+            if (phone.length != 11) {
+                alert("手机号格式不正确。");
+                return;
+            }
+
+            var txtVC = $("#txtVerifyCode").val();
+            if (txtVC == "") {
+                alert("请输入短信验证码。");
+                return;
+            }
+
+            var realVC = $("#_verifyCode").text();
+            if (txtVC != realVC) {
+                alert("验证码不正确。");
+                return;
+            }
+
+
+
+
+            //显示等待图层
+            showMaskLayer();
+
+            // 调Patron的SetPatron()
+            var url = "/api/PatronApi?libId=" + libId
+                + "&userName=" //+ encodeURIComponent(userName)
+                + "&action=change"// + encodeURIComponent(action)
+                + "&recPath=" + encodeURIComponent(recPath)
+                + "&timestamp=" // + encodeURIComponent(timestamp)
+                + "&weixinId=" //+ encodeURIComponent(weixinId)
+                //+ "&bMergeInfo=true"
+                + "&checkNull=true"; //+ bMergeInfo;
+
+            sendAjaxRequest(url, "POST",
+                function (result) {
+
+                    // 关闭等待层
+                    hideMaskLayer();
+
+                    if (result.errorCode == -1) {
+                        alert(result.errorInfo);
+                        return;
+                    }
+
+                    // 2020-3-12 去掉这项
+                    //$("#_recPath").text(result.recPath);
+
+                    alert("手机号修改成功。");
+
+                    //清空编辑界面信息,todo
+
+                    $("#txtPhone").val("");
+                    $("#txtVerifyCode").val("");
+                    $("#_verifyCode").text("");
+
+                    var tempBarcode = result.info;
+
+                    // 转到个人信息
+                    var returnUrl = "/Patron/PersonalInfo";
+                    gotoUrl(returnUrl);
+                },
+                function (xhq, textStatus, errorThrown) {
+                    // 关闭等待层
+                    hideMaskLayer();
+                    alert(errorThrown);
+                },
+                {
+                    barcode: "",
+                    readerType: "",
+                    name: "",
+                    gender: "",
+                    department: "",
+                    phone: phone,  //只修改手机号
+                    libraryCode: ""
+                }
+            );
+        }
+
+
+    </script>
+}
+<span id="_recPath" style="display:none">@ViewBag.PatronRecPath</span>
+<span id="_verifyCode" style="display:none"></span>
+<span id="libId" style="display:none">@ViewBag.LibId</span>
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
+}
+else
+{
+    if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
+    {
+        @Html.Raw(ViewBag.RedirectInfo);
+    }
+    else
+    {
+        <div class="mui-input-group">
+        
+            <div class="mui-input-row ">
+                <label id="lblName" style="color:#cccccc">姓名</label>
+                <input id='txtName' type="text" class="mui-input mui-input-clear" value="@ViewBag.PatronName" readonly>
+            </div>
+
+
+
+            <div class="mui-input-row ">
+                <label id="lblPhone" style="color:#cccccc">手机号</label>
+                <input id='txtPhone' type="text" class="mui-input mui-input-clear" value="" placeholder="请输入 手机号">
+            </div>
+
+            <table style="width:100%;border:none">
+                <tr style="border:none">
+                    <td style="width:100%;border:none">
+                        <div class="mui-input-row">
+                            <label id="lblVerifyCode" style="color:gray;border:none">验证码</label>
+                            <input id='txtVerifyCode' type="text" class="mui-input mui-input-clear" style="border:none">
+                        </div>
+                    </td>
+                    <td>
+                        <button onclick="sendVC()" id='btnSendVC' class="mui-btn" style="border:1px dotted #eeeeee;margin-right:2px;height:40px;">获取短信验证码</button>
+                    </td>
+                </tr>
+            </table>
+
+
+
+            <div class="mui-content-padded">
+                <button id='btn' class="mui-btn mui-btn-block mui-btn-primary" onclick="changePhone()">提交</button>
+            </div>
+        </div>
+    }
+}
+

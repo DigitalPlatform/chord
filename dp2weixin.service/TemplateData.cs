@@ -169,6 +169,24 @@ namespace dp2weixin.service
     }
 
     /*
+张三客户经理，您有客户更新了基本信息，更新情况如下：
+用户名：李四
+联系方式：13788888888
+变更类型：修改手机号
+变更时间：2016年1月2日 14:00
+请登录系统查看该客户的详细更新情况！
+ */
+    public class PatronInfoChangedTemplateData : Template4Data
+    {
+        public PatronInfoChangedTemplateData(string first, string first_color,
+            string k1, string k2, string k3, string k4,
+            string remark)
+            : base(first, first_color, k1, k2, k3, k4, remark)
+        { }
+    }
+
+
+    /*
 尊敬的用户：您好！您提交的书柜帐户注册信息已审核完成。
 申请人：张三
 手机号码：13866668888

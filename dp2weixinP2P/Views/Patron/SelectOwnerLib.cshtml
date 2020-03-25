@@ -6,35 +6,6 @@
 @section Scripts {
     <script>
 
-        /*
-        // 获取全部选中的馆藏地
-        function getLibLoc() {
-            var xml = "";
-
-            $(".library:checked").each(function () {
-
-                var libcode = $(this).val();
-                xml += "<library code='" + libcode + "'>";
-
-                var name = "#ckblib-" + libcode + ":checked";
-                $(name).each(function () {
-
-                    var loc = $(this).val();
-                    xml += "<item>" + loc + "</item>";
-
-                });
-
-                xml += "</library>";
-
-            });
-
-            if (xml != "")
-                xml = "<root>" + xml + "</root>";
-
-            return xml
-        }
-        */
-
         // 展开关闭分馆
         function expand(obj, name) {
             //alert(name);
@@ -97,12 +68,9 @@
                     if (returnUrl != null && returnUrl != "") {
                         gotoUrl(returnUrl);
                     }
-                    else
-                    {
+                    else {
                         // 重新加载页面
-                        //window.location.reload();
-
-                        gotoUrl("/Patron/SelectOwnerLib");
+                        window.location.reload();
                     }
 
 
@@ -175,9 +143,5 @@ else
 
     </div>
 
-    <!--
-    <div class="mui-content-padded">
-        <button class="mui-btn mui-btn-block mui-btn-primary" onclick="save()">保存</button>
-    </div>
-        -->
+    <div  style="margin-top:10px;margin-left:10px"><a href="~/Patron/SelectLib?returnUrl=@ViewBag.returnUrl">选择其它图书馆</a></div>
 }
