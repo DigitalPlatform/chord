@@ -7230,6 +7230,8 @@ ErrorInfo成员里可能会有报错信息。
             {
                 BiblioItem item = new BiblioItem();
                 item.recPath = this.GetPurePath(recordList[i].RecPath);
+                item.isGray = false;
+
 
                 string xml = recordList[i].Data;//result.Records[i].Data;
                 XmlDocument dom = new XmlDocument();
@@ -7284,7 +7286,18 @@ ErrorInfo成员里可能会有报错信息。
                 {
                     if (lib.NoViewLocation.IndexOf(item.location) != -1)
                     {
-                        continue;// 如果该册所属的馆藏地不能显示出来，则跳过继续下面的记录
+                        if (string.IsNullOrEmpty(patronBarcode) == false 
+                            || activeItem.userName==WxUserDatabase.C_Public)
+                        {
+                            // 读者身份的话，直接不显示
+                            continue;
+                        }
+                        else
+                        {
+                            // 馆员身份，灰色显示
+                            item.isGray = true;
+                            
+                        }
                     }
                 }
 
@@ -7315,7 +7328,7 @@ ErrorInfo成员里可能会有报错信息。
                 item.borrowDate = borrowDate;
                 item.borrowPeriod = borrowPeriod;
 
-                item.isGray = false;
+                
                 if (string.IsNullOrEmpty(cmdType) == false)//(isPatron1 == false)
                 {
                     if (cmdType == "borrow")
