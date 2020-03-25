@@ -7279,6 +7279,15 @@ ErrorInfo成员里可能会有报错信息。
                 item.volume = DomUtil.GetElementText(dom.DocumentElement, "volume");
                 // 馆藏地
                 item.location = DomUtil.GetElementText(dom.DocumentElement, "location");
+                // 检查该馆藏地的册记录是否可以显示出现
+                if (string.IsNullOrEmpty(lib.NoViewLocation) == false)
+                {
+                    if (lib.NoViewLocation.IndexOf(item.location) != -1)
+                    {
+                        continue;// 如果该册所属的馆藏地不能显示出来，则跳过继续下面的记录
+                    }
+                }
+
                 // 索引号
                 item.accessNo = DomUtil.GetElementText(dom.DocumentElement, "accessNo");
                 // 出版日期

@@ -144,6 +144,8 @@ namespace dp2weixin.service
                         item.NoReserveLocation = "";
                     if (item.IsSendArrivedNotice == null)
                         item.IsSendArrivedNotice = "Y";
+                    if (item.NoViewLocation == null)  //2020/3/25 在书目查询时，不能显示这些馆藏地册记录
+                        item.NoViewLocation = "";
                 }
             }
             //list.Sort()
@@ -217,6 +219,8 @@ namespace dp2weixin.service
                 .Set("ReserveScope", item.ReserveScope)
                 .Set("NoReserveLocation", item.NoReserveLocation)
                 .Set("IsSendArrivedNotice", item.IsSendArrivedNotice)
+                .Set("NoViewLocation", item.NoViewLocation)
+                //NoViewLocation 2020/3/25 不允许显示册记录的馆藏地
                 ;
 
             UpdateResult ret = this.LibCollection.UpdateOneAsync(filter, update).Result;
@@ -280,7 +284,10 @@ namespace dp2weixin.service
         // 不支持预约的馆藏
         public string NoReserveLocation { get; set; }
         //是否给读者发预约到书通知
-        public string IsSendArrivedNotice { get; set; } 
+        public string IsSendArrivedNotice { get; set; }
+
+        // 不允许显示的馆藏地
+        public string NoViewLocation { get; set; }
 
 
 
