@@ -142,7 +142,8 @@ namespace dp2MServer
                 Console.WriteLine();
                 Console.WriteLine("注：修改将在服务重启以后生效");
                 Console.WriteLine("(按回车键返回)");
-                Console.ReadLine();
+                // Console.ReadLine();
+                ReadLineExit();
                 return;
             }
 
@@ -172,8 +173,9 @@ namespace dp2MServer
                 Console.WriteLine();
                 Console.WriteLine("注：修改已经立即生效");
                 Console.WriteLine("(按回车键返回)");
-                Console.ReadLine();
-                ServerInfo.Exit();  // Initial() 执行后，需要 Exit() 才能退出
+                //Console.ReadLine();
+                //ServerInfo.Exit();  // Initial() 执行后，需要 Exit() 才能退出
+                ReadLineExit();
                 return;
             }
 
@@ -209,7 +211,8 @@ namespace dp2MServer
 
                 Console.WriteLine();
                 Console.WriteLine("(按回车键返回)");
-                Console.ReadLine();
+                // Console.ReadLine();
+                ReadLineExit();
                 return;
             }
 
@@ -233,7 +236,8 @@ namespace dp2MServer
                     Console.WriteLine("创建超级用户: dp2mserver createuser");
 
                     Console.WriteLine("(按回车键返回)");
-                    Console.ReadLine();
+                    // Console.ReadLine();
+                    ReadLineExit();
                     return;
                 }
 
@@ -243,6 +247,12 @@ namespace dp2MServer
                 // 这是被当作 service 启动的情况
                 ServiceBase.Run(new Program());
             }
+        }
+
+        static void ReadLineExit()
+        {
+            Console.ReadLine();
+            ServerInfo.Exit();  // Initial() 执行后，需要 Exit() 才能退出
         }
 
         static void CreateSupervisor(string strUserName, string strPassword)
