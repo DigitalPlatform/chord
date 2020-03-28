@@ -23,6 +23,35 @@
             }
         });
 
+
+                // 2016-6-17 jane 为了返回时记住展开项，expand函数由原来传一个对象，改为传一个id
+        function expand(expId) {
+            //根据id找到<li>元素
+            var id = "#" + expId;
+            var obj = $(id);
+
+            //alert(id);
+           //alert(obj);
+
+            // 如果自己是展开状态，则收缩
+            var state = $(obj).find(".mui-collapse-content").first().css("display");
+            if (state == "block") { //自己本来是展开状态，要关闭
+                $(obj).find(".mui-collapse-content").css("display", "none");
+                $(obj).removeClass("mui-active"); 
+                           // alert("1");
+            }
+            else {
+                //其它收缩
+                //$(".mui-collapse-content").css("display", "none");
+                //$(".mui-collapse").removeClass("mui-active");
+
+                //自己展开
+                $(obj).find(".mui-collapse-content").css("display", "block");
+                $(obj).addClass("mui-active");
+
+                //alert("2");
+            }
+        }
     </script>
 }
 
@@ -44,9 +73,19 @@
 else
 {
 
-    <div style="padding:10px">
-        <div class='biblio'>
+<li class='mui-table-view-cell mui-collapse' id='d1'>
+    <a class='mui-navigate-right' href='javascript:void(0)' onclick="expand('d1')" style='padding-top:5px;padding-bottom:5px'>
+        <table width='100%' class='result-biblio'>
+            <tr><td style='width:18px;min-width:18px'>1</td><td style='padding-right:10px'><div style='width:100%; white-space:nowrap;overflow:hidden;text-overflow:ellipsis; '>test</div></td></tr>
+            <tr><td>&nbsp;</td><td style='color:#cccccc'>path</td></tr>
+        </table>
+    </a>
+    <div class='mui-collapse-content' style='display:block;padding-top: 0px;'>
+        <div style="padding:10px">
+            <div class='biblio'>
+            </div>
         </div>
-    </div>
+        </div>
+</li>
 }
 
