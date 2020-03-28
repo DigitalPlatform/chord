@@ -374,7 +374,7 @@ ex.GetType().ToString());
             }
 
             return false;   // 表示拼接尚未结束。需要继续等待后面的请求来进行拼接
-            FINISH:
+        FINISH:
             param.Records = new List<MessageRecord>();
             param.Records.Add(search_info.Data as MessageRecord);
 #if NO
@@ -990,7 +990,7 @@ ex.GetType().ToString());
             return item;
         }
 
-        static List<string> NewListString(string [] contents)
+        static List<string> NewListString(string[] contents)
         {
             if (contents == null)
                 return new List<string>();
@@ -1111,9 +1111,9 @@ ex.GetType().ToString());
             return results;
         }
 
-#endregion
+        #endregion
 
-#region GetMessage() API
+        #region GetMessage() API
 
         // 把用户名列表字符串转换为用户ID列表字符串
         string CanonicalizeUserName(string userNameList)
@@ -1736,10 +1736,10 @@ ex.GetType().ToString());
         }
 #endif
 
-#endregion
+        #endregion
 
 
-#region GetUsers() API
+        #region GetUsers() API
 
         public GetUserResult GetUsers(string userName, int start, int count)
         {
@@ -1806,9 +1806,9 @@ ex.GetType().ToString());
             }
         }
 
-#endregion
+        #endregion
 
-#region SetUsers() API
+        #region SetUsers() API
 
         // 正规化 UserItem 里面的 groups 定义
         // groups 的每一个元素，都是一个完整的群名定义
@@ -2135,9 +2135,9 @@ ex.GetType().ToString());
             info.UserItem.groups = item.groups;
         }
 
-#endregion
+        #endregion
 
-#region Login() API
+        #region Login() API
 
         // 登录，并告知 server 关于自己的一些属性。如果不登录，则 server 会按照缺省的方式设置这些属性，例如无法实现检索响应功能
         // parameters:
@@ -2217,9 +2217,9 @@ ex.GetType().ToString());
             return result;
         }
 
-#endregion
+        #endregion
 
-#region Logout() API
+        #region Logout() API
 
         // 错误码:
         //      异常
@@ -2276,7 +2276,7 @@ ex.GetType().ToString());
             return result;
         }
 
-#endregion
+        #endregion
 
 #if NO
         // parameters:
@@ -2371,7 +2371,7 @@ ex.GetType().ToString());
         }
 #endif
 
-#region GetConnectionInfo() API
+        #region GetConnectionInfo() API
 
         MessageResult ClearConnection(string connection_id)
         {
@@ -2685,9 +2685,9 @@ ex.GetType().ToString());
             return result;
         }
 #endif
-#endregion
+        #endregion
 
-#region CancelSearch() API
+        #region CancelSearch() API
         // 错误码:
         //      _notFound/异常
         public MessageResult CancelSearch(string taskID)
@@ -2723,9 +2723,9 @@ ex.GetType().ToString());
             return result;
         }
 
-#endregion
+        #endregion
 
-#region WebCall() API
+        #region WebCall() API
 
         public MessageResult RequestWebCall(
     string userNameList,
@@ -2942,9 +2942,9 @@ ex.GetType().ToString());
 #endif
         }
 
-#endregion
+        #endregion
 
-#region Search() API
+        #region Search() API
 
         void writeDebug(string strText)
         {
@@ -3282,9 +3282,9 @@ ex.GetType().ToString());
 #endif
         }
 
-#endregion
+        #endregion
 
-#region SetInfo() API
+        #region SetInfo() API
 
         // return:
         //      result.Value    -1 出错; 0 没有任何检索目标; 1 成功发起检索
@@ -3442,9 +3442,9 @@ ex.GetType().ToString());
             return result;
         }
 
-#endregion
+        #endregion
 
-#region BindPatron() API
+        #region BindPatron() API
 
         // return:
         //      result.Value    -1 出错; 0 没有任何检索目标; 1 成功发起检索
@@ -3577,9 +3577,9 @@ ex.GetType().ToString());
             return result;
         }
 
-#endregion
+        #endregion
 
-#region Circulation() API
+        #region Circulation() API
 
         // return:
         //      result.Value    -1 出错; 0 没有任何检索目标; 1 成功发起检索
@@ -3720,9 +3720,9 @@ ex.GetType().ToString());
             return result;
         }
 
-#endregion
+        #endregion
 
-#region GetRes() API
+        #region GetRes() API
 
         public MessageResult RequestGetRes(
             string userNameList,
@@ -3909,9 +3909,9 @@ ex.GetType().ToString());
         }
 
 
-#endregion
+        #endregion
 
-#region ListRes() API
+        #region ListRes() API
 
         public MessageResult RequestListRes(
             string userNameList,
@@ -4095,9 +4095,9 @@ ex.GetType().ToString());
         }
 
 
-#endregion
+        #endregion
 
-#region 几个事件
+        #region 几个事件
 
         public static string[] default_groups = new string[] {
             "gn:<default>",
@@ -4216,7 +4216,7 @@ ex.GetType().ToString());
                         Groups.Remove(connection_info.ConnectionID, def.GroupNameString);
                     }
 
-                    CONTINUE:
+                CONTINUE:
                     defaults.Remove(def.GroupNameString);
                 }
             }
@@ -4289,7 +4289,7 @@ ex.GetType().ToString());
             return base.OnDisconnected(stopCalled);
         }
 
-#endregion
+        #endregion
 
     }
 
