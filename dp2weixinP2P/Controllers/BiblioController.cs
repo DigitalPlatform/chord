@@ -69,6 +69,7 @@ namespace dp2weixinWeb.Controllers
             }
 
             // 为啥要给ViewBag设置证条码号？ 2020-2-7
+            // 主要是一些预约和续借的功能，需要用到证条码号
             ViewBag.PatronBarcode = sessionInfo.ActiveUser.readerBarcode;
 
             // 检索匹配方式
@@ -76,6 +77,13 @@ namespace dp2weixinWeb.Controllers
             if (String.IsNullOrEmpty(match) == true)
                 match = "left";
             ViewBag.Match = match;
+
+            if (sessionInfo.ActiveUser != null
+                && sessionInfo.ActiveUser.type == WxUserDatabase.C_Type_Worker
+                && sessionInfo.ActiveUser.userName != WxUserDatabase.C_Public)
+            {
+                ViewBag.Worker = sessionInfo.ActiveUser.userName;
+            }
 
             return View();
         }

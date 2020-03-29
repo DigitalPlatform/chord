@@ -95,6 +95,14 @@ function setImgSize(obj)
 
 //======书目详细信息==========
 
+function gotoSetItem(biblioPath)
+{
+    //alert("biblioPath=" + biblioPath);
+
+    var url = "/Biblio/Detail?biblioPath=" + encodeURIComponent(biblioPath);
+    gotoUrl(url);
+}
+
 // 获取详细书目记录
 function getDetail(libId, recPath, obj, from) {
 
@@ -256,7 +264,14 @@ function getDetail(libId, recPath, obj, from) {
         }
 
 
+
         var myHtml = result.info + itemTables;
+
+        // 检查要不要出现册登记按钮
+        var worker = $("#_worker").text();
+        if (worker != null && worker != "") {
+            myHtml += "<div style='padding-top:10px'><button id='login' class='mui-btn mui-btn-primary' onclick='gotoSetItem(\"" + recPath+"\")'>册登记</button></div>";
+        }
 
         obj.html(myHtml);
 
