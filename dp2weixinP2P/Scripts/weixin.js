@@ -273,7 +273,7 @@ function getDetail(libId, recPath, obj, from,biblioName) {
         // 检查要不要出现册登记按钮
         var worker = $("#_worker").text();
         if (worker != null && worker != "") {
-            myHtml += "<div style='padding-top:10px'><button  class='mui-btn mui-btn-primary' onclick='gotoSetItem(\"" + recPath + "\",\"" + biblioName+"\")'>册登记</button></div>";
+            myHtml += "<div style='padding-top:10px'><button  class='mui-btn' onclick='gotoSetItem(\"" + recPath + "\",\"" + biblioName+"\")'>册登记</button></div>";
         }
 
         obj.html(myHtml);

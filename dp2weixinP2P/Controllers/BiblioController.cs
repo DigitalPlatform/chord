@@ -113,6 +113,13 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
 
+            if (sessionInfo.ActiveUser != null
+                && sessionInfo.ActiveUser.type == WxUserDatabase.C_Type_Worker
+                && sessionInfo.ActiveUser.userName != WxUserDatabase.C_Public)
+            {
+                ViewBag.Worker = sessionInfo.ActiveUser.userName;
+            }
+
             ViewBag.BiblioName = biblioName;
             ViewBag.PatronBarcode = sessionInfo.ActiveUser.readerBarcode;
             ViewBag.BiblioPath = biblioPath;

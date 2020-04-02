@@ -51,6 +51,12 @@
                 //alert("2");
             }
         }
+
+        function saveItem() {
+
+            alert("1");
+        }
+
     </script>
 }
 
@@ -60,7 +66,8 @@
 <span id="weixinId" style="display:none;">@ViewBag.weixinId</span>
 <span id="patronBarcode" style="display:none">@ViewBag.PatronBarcode</span>
 <span id="biblioPath" style="display:none;">@ViewBag.BiblioPath</span>
-
+<!--当前是馆员帐户，出现册登记按钮，注意这里用_worker1-->
+<span id="_worker1" style="display:none">@ViewBag.Worker</span>
 
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {
@@ -90,6 +97,34 @@ else
         </div>
     </li>
 
-
+    <div class="mui-input-group" style="padding:10px">
+        <div class="mui-input-row ">
+            <label style="color:#cccccc">册条码</label>
+            <input id='barcode' type="text" class="mui-input mui-input-clear" value="" placeholder="请输入 册条码">
+        </div>
+        <div class="mui-input-row ">
+            <label style="color:#cccccc">馆藏地</label>
+            <input id='location' type="text" class="mui-input mui-input-clear" value="">
+        </div>
+        <div class="mui-input-row ">
+            <label style="color:#cccccc">册类型</label>
+            <input id='bookType' type="text" class="mui-input mui-input-clear" value="">
+        </div>
+        <div class="mui-input-row ">
+            <label style="color:#cccccc">索取号</label>
+            <input id='accessNo' type="text" class="mui-input mui-input-clear" value="" placeholder="请输入 索取号">
+        </div>
+        <div class="mui-input-row ">
+            <label style="color:#cccccc">册价格</label>
+            <input id='price' type="text" class="mui-input mui-input-clear" value="" placeholder="请输入 册价格">
+        </div>
+        <div class="mui-input-row ">
+            <label style="color:#cccccc">批次号</label>
+            <input id='batchNo' type="text" class="mui-input mui-input-clear" value="" placeholder="请输入 册价格">
+        </div>
+        <div class="mui-content-padded">
+            <button id='btn' class="mui-btn mui-btn-block mui-btn-primary" onclick="saveItem()">保存</button>
+        </div>
+    </div>
 }
 
