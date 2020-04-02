@@ -817,9 +817,15 @@ ex.GetType().ToString());
                 }
                 // 即便遇到抛出异常的情况，先前保存成功的部分消息也可以发送出去
                 // 启动一个任务，向相关的前端推送消息，以便它们在界面上显示消息或者变化(比如删除或者修改以后的效果)
-                Task.Run(() => PushMessageToClient(param.Action,
+                /*
+                await Task.Run(() => PushMessageToClient(param.Action,
                     excludeConnectionIds,
                     saved_items));
+                    */
+
+                await PushMessageToClient(param.Action,
+                excludeConnectionIds,
+                saved_items);
             }
 
             return result;
@@ -833,7 +839,7 @@ ex.GetType().ToString());
             return "~" + info.LibraryUserName + "@" + info.LibraryName + "|" + info.LibraryUID;
         }
 
-        void PushMessageToClient(string action,
+        async Task PushMessageToClient(string action,
             string[] excludeConnectionIds,
             List<MessageItem> messages)
         {
@@ -874,11 +880,11 @@ ex.GetType().ToString());
                             List<MessageRecord> records = BuildMessageRecords(item);
                             // Clients.Clients(ids).addMessage(action, batch);
 
-                            ProcessMessageRecords(
+                            await ProcessMessageRecords(
     records,
-    (batch) =>
+    async (batch) =>
     {
-        Clients.Clients(ids).addMessage(action, batch);
+        await Clients.Clients(ids).addMessage(action, batch);
         return true;
     },
     4096);
@@ -905,14 +911,14 @@ ex.GetType().ToString());
                     Debug.Assert(records.Count != 0, "");
                     Console.WriteLine("Push to group '" + groupName + "'");
 
-                    ProcessMessageRecords(
+                    await ProcessMessageRecords(
                         records,
-                        (batch) =>
+                        async (batch) =>
                         {
                             if (excludeConnectionIds == null)
-                                Clients.Group(groupName).addMessage(action, batch);
+                                await Clients.Group(groupName).addMessage(action, batch);
                             else
-                                Clients.Group(groupName, excludeConnectionIds).addMessage(action, batch);
+                                await Clients.Group(groupName, excludeConnectionIds).addMessage(action, batch);
                             return true;
                         },
                         4096);
@@ -946,9 +952,9 @@ ex.GetType().ToString());
         // return:
         //      true    继续
         //      false   中断
-        public delegate bool Func_ProcessRecords(List<MessageRecord> records);
+        public delegate Task<bool> Func_ProcessRecords(List<MessageRecord> records);
 
-        void ProcessMessageRecords(
+        async Task ProcessMessageRecords(
             List<MessageRecord> records,
             Func_ProcessRecords proc,
             int chunk_size)
@@ -959,7 +965,8 @@ ex.GetType().ToString());
             while (records.Count > 0)
             {
                 List<MessageRecord> temp = CopyPrevElements(records, chunk_size);
-                if (proc(temp) == false)
+                var result = await proc(temp);
+                if (result  == false)
                     return;
                 records.RemoveRange(0, temp.Count);
             }
@@ -4099,6 +4106,8 @@ ex.GetType().ToString());
 
         #region 几个事件
 
+        // TODO: 当前系统一共用到了哪些名为 <...> 的组，需要从所有用户的 groups 定义中归纳。
+        // 值得注意的是，当用户信息发生修改的时候，这个列表需要及时更新。
         public static string[] default_groups = new string[] {
             "gn:<default>",
             "gn:<dp2circulation>",
