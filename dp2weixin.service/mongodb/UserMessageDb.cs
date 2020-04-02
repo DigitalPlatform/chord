@@ -80,7 +80,10 @@ namespace dp2weixin.service
         {
             var filter = Builders<UserMessageItem>.Filter.Eq("userId", userId);
 
-            List<UserMessageItem> list = this.Collection.Find(filter).ToList();
+            //Sort
+            SortDefinition<UserMessageItem> sort =  Builders<UserMessageItem>.Sort.Descending("createTime");
+
+            List<UserMessageItem> list = this.Collection.Find(filter).Sort(sort).ToList();
             return list;
         }
         
@@ -95,8 +98,31 @@ namespace dp2weixin.service
             this.Collection.InsertOne(item);
 
         }
-        
-        
+
+        // 根据libId与状态删除记录
+        public void Delete(string userId,string id)
+        {
+
+            if (string.IsNullOrEmpty(userId) == true && string.IsNullOrEmpty(id)==true)
+                return;
+
+            var filter = Builders<UserMessageItem>.Filter.Empty;
+
+            if (string.IsNullOrEmpty(userId) == false)
+            {
+                filter = filter & Builders<UserMessageItem>.Filter.Eq("userId", userId);
+            }
+
+            if (string.IsNullOrEmpty(id) == false)
+            {
+                filter = filter & Builders<UserMessageItem>.Filter.Eq("id", id);
+            }
+
+            DeleteResult ret = this.Collection.DeleteMany(filter);
+
+            //dp2WeiXinService.Instance.WriteDebug("3.共删除成功" + ret.DeletedCount + "个对象");
+        }
+
 
     }
     public class UserMessageItem
@@ -105,11 +131,14 @@ namespace dp2weixin.service
         [BsonRepresentation(BsonType.ObjectId)]
         public string id { get; private set; }
 
-        public string userId { get; set; } 
+        public string userId { get; set; }  // 对应的微信id,也可能是~~
 
         public string msgType { get; set; }
 
         public string xml { get; set; }
+
+
+        public string createTime { get; set; }
     }
 
 }

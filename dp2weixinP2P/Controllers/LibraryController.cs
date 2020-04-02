@@ -100,8 +100,10 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
 
+            ViewBag.userId = sessionInfo.ActiveUser.id;
+
             // 获取消息
-            List<UserMessageItem> list =  UserMessageDb.Current.GetByUserId(sessionInfo.ActiveUser.weixinId);
+            List<UserMessageItem> list =  UserMessageDb.Current.GetByUserId(sessionInfo.ActiveUser.id);
             return View(list);
         }
 

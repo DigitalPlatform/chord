@@ -34,6 +34,8 @@ namespace dp2weixin.service
 
         public string info { get; set; }
         public List<BiblioItem> itemList { get; set; }
+
+        //public string biblioName { get; set; }
     }
 
     public class BiblioItemResult : ApiResult

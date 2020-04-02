@@ -96,7 +96,7 @@ namespace dp2weixin.service
             if (string.IsNullOrEmpty(state) == true)
             {
                 state = "ilovelibrary";
-                dp2WeiXinService.Instance.WriteDebug("公众号state参数为空，设为ilovelibrary。");
+                //dp2WeiXinService.Instance.WriteDebug2("公众号state参数为空，设为ilovelibrary。");
             }
 
             // 根据state参数，获取公众号配置信息和图书馆配置
@@ -120,7 +120,7 @@ namespace dp2weixin.service
             this.gzh = gzh1;
             this.libIds = libList1;
 
-            dp2WeiXinService.Instance.WriteDebug("SetGzhInfo(),state=[" + state + "],mylibIds.count=[" + libList1.Count + "]");
+            //dp2WeiXinService.Instance.WriteDebug2("SetGzhInfo(),state=[" + state + "],mylibIds.count=[" + libList1.Count + "]");
 
             return 0;
         }

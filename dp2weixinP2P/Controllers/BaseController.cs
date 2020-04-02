@@ -359,7 +359,7 @@ namespace dp2weixinWeb.Controllers
             if (string.IsNullOrEmpty(code) == false)
             {
                 // 获取微信id
-                dp2WeiXinService.Instance.WriteDebug("微信入口，根据微信code=[" + code + "]获取weixinId");
+                dp2WeiXinService.Instance.WriteDebug2("微信入口,根据code=[" + code + "]获取weixinId");
 
                 // 根据微信接口得到weixinid
 
@@ -380,19 +380,21 @@ namespace dp2weixinWeb.Controllers
                 // 把传过来的code设在session信息里
                 sessionInfo.oauth2_return_code = code;
 
-                dp2WeiXinService.Instance.WriteDebug("根据微信code获到的weixinId=[" + weixinId + "]");
+                dp2WeiXinService.Instance.WriteDebug2("根据微信code获到的weixinId=[" + weixinId + "]");
 
+                // 下面这一步很重要，在微信进入我爱图书web后，内部其实就没有weixinId，所以把weixinId直接写入cookies
                 // 写到微信浏览器的cookies里，以解决微信不退出，但web页面失效的问题
                 HttpCookie aCookie = new HttpCookie("browseId");
                 aCookie.Value = weixinId;
                 aCookie.Expires = DateTime.MaxValue;//设为永久不失效， DateTime.Now.AddDays(1); 
                 Response.Cookies.Add(aCookie);
-                dp2WeiXinService.Instance.WriteDebug("将微信入口的weixinid写入微信浏览器的cookies=" + weixinId);
+                dp2WeiXinService.Instance.WriteDebug2("将微信入口的weixinid写入微信浏览器的cookies=" + weixinId);
             }
             else
             {
-                // 浏览器id
-                //dp2WeiXinService.Instance.WriteDebug("浏览器入口，准备获取browseId");
+                // 浏览器入口
+                // 注意在微信进入的web页面后，则看作是浏览器入口了，只有在微信界面点菜单时，才是微信入口。
+                dp2WeiXinService.Instance.WriteDebug2("浏览器入口,准备获取browseId");  
 
 
                 string browseId = "";
@@ -401,7 +403,7 @@ namespace dp2weixinWeb.Controllers
                     HttpCookie aCookie = Request.Cookies["browseId"];
                     browseId = aCookie.Value;
 
-                    //dp2WeiXinService.Instance.WriteDebug("浏览器存在cookies=" + browseId); //sessionInfo.AddDebugInfo("浏览器存在cookies=" + browseId);
+                    dp2WeiXinService.Instance.WriteDebug2("浏览器存在cookies=" + browseId); //sessionInfo.AddDebugInfo("浏览器存在cookies=" + browseId);
                 }
 
                 if (string.IsNullOrEmpty(browseId) == true)
@@ -409,7 +411,7 @@ namespace dp2weixinWeb.Controllers
                     string guid = Guid.NewGuid().ToString();
                     browseId = "~~" + guid;
 
-                    //dp2WeiXinService.Instance.WriteDebug("浏览器不存在cookies或值为空,创建一个临时id=" + browseId);
+                    dp2WeiXinService.Instance.WriteDebug2("浏览器不存在cookies或值为空,创建一个临时id=" + browseId);
 
                     // 写到cookies
                     HttpCookie aCookie = new HttpCookie("browseId");
@@ -417,7 +419,7 @@ namespace dp2weixinWeb.Controllers
                     aCookie.Expires = DateTime.MaxValue;//设为永久不失效， DateTime.Now.AddDays(1); 
                     Response.Cookies.Add(aCookie);
 
-                    //dp2WeiXinService.Instance.WriteDebug("将临时id写入cookies=" + browseId);
+                    dp2WeiXinService.Instance.WriteDebug2("将临时id写入cookies=" + browseId);
                 }
 
                 // 设到weixinId变量

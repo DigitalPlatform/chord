@@ -4,10 +4,69 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+@section Scripts {
+    <script>
+
+        // 删除一项
+        function deleteMsg(id)
+        {
+            if (id == null)
+                id = "";
+
+            var gnl = confirm("你确定要删除全部消息吗?");
+            if (gnl == false) {
+                return false;
+            }
+
+            var userId = $("#_userId").text();
+            if (userId == "") {
+                alert("异常情况：userId为空");
+                return;
+            }
+
+            if (id != "" && id != null)
+                userId = "";
+
+            //显示等待图层
+            //var index = loadLayer();
+            showMaskLayer();
+
+            //alert("remove-"+item.libId);
+            var url = "/api/UserMessageApi?userId=" + userId + "&id=" + id;
+            sendAjaxRequest(url, "GET", function (result) {
+
+                if (result.errorCode == -1) {
+                    alert(result.errorInfo);
+                    return;
+                }
+
+                alert("删除完成");
+
+                // 重新加载页面
+                window.location.reload();
+
+                // 关闭等待层
+                hideLoading();
+
+            }, function (xhq, textStatus, errorThrown) {
+                // 关闭等待层
+                hideLoading();
+
+                alert(errorThrown);
+            });
+
+
+        }
+    </script>
+}
+
 @section header {
     <h1 class="mui-title">我的消息</h1>
 }
 
+
+
+<span id="_userId" style="display:none">@ViewBag.userId</span>
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {
     <div class="mui-content-padded">
@@ -44,25 +103,32 @@ else
                 </center>
             </div>
         }
-
-
         if (Model != null)
         {
-            <div class="mui-card message">
-                <div class="view">
-                    <table class="view-top">
-                        @foreach (dp2weixin.service.UserMessageItem item in Model)
-                        {
+            <div class="mui-card message" style="padding:10px">
+                <table class="view-top">
+                    @foreach (dp2weixin.service.UserMessageItem item in Model)
+                    {
 
                         <tbody>
                             <tr>
-                                <td class="title">@item.msgType</td>
-                                <td class="xml">@Html.Raw(item.xml)</td>
+                                <!--<td class="title">@item.msgType</td>-->
+                                <td class="xml" style="padding-top:10px">@Html.Raw(item.xml)</td>
+                                <td>
+                                    <button class="mui-btn" onclick="deleteMsg('@item.id')">
+                                        删除
+                                    </button>
+
+                                </td>
                             </tr>
                         </tbody>
-                        }
-                    </table>
-                </div>
+                    }
+                </table>
+            </div>
+            <div style="padding:10px">
+                <button class="mui-btn" onclick="deleteMsg()">
+                    删除全部
+                </button>
             </div>
         }
     }

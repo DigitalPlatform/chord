@@ -611,7 +611,8 @@ namespace dp2weixin.service
             {
                 filter = filter & Builders<WxUserItem>.Filter.Eq("state", fromState); 
             }
-                
+
+
             var update = Builders<WxUserItem>.Update
                 .Set("state", toState)
                 .Set("updateTime", DateTimeUtil.DateTimeToString(DateTime.Now));
@@ -780,7 +781,8 @@ namespace dp2weixin.service
         }
 
         // 20170509
-        //绑定时选择的分馆代码，与自己的实际分馆代码 不同，比如绑定时选择的空（总馆），但实际是方洲小学。
+        //绑定时选择的分馆代码，与自己的实际分馆代码 不同，
+        //比如绑定时选择的星洲小学，但实际馆代码是总馆的，因为对于工作人员来说，可能管理多个分馆，所以总馆帐户或管理多个分馆的帐户，是可以绑定管理的每个分馆的。
         public string bindLibraryCode { get; set; } 
 
         // 读者证条码号

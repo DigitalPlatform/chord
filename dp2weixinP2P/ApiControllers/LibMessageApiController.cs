@@ -259,52 +259,52 @@ namespace dp2weixinWeb.ApiControllers
         }
 
         public WxMessageResult CoverMessage(string weixinId,
-    string group,
-    string libId,
-    MessageItem item,
-    string style,
-    string parameters)
-        {
+            string group,
+            string libId,
+            MessageItem item,
+            string style,
+            string parameters)
+                {
 
-            WxMessageResult result = new WxMessageResult();
-            string strError = "";
+                    WxMessageResult result = new WxMessageResult();
+                    string strError = "";
 
-            if (HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo] == null)
-            {
-                result.errorInfo = "session失效。";
-                result.errorCode = -1;
-                return result;
-            }
-            SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
-            if (sessionInfo == null)
-            {
-                result.errorInfo = "session失效2。";
-                result.errorCode = -1;
-                return result;
-            }
+                    if (HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo] == null)
+                    {
+                        result.errorInfo = "session失效。";
+                        result.errorCode = -1;
+                        return result;
+                    }
+                    SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
+                    if (sessionInfo == null)
+                    {
+                        result.errorInfo = "session失效2。";
+                        result.errorCode = -1;
+                        return result;
+                    }
 
-            MessageItem returnItem = null;
-            int nRet = dp2WeiXinService.Instance.CoverMessage(sessionInfo.ActiveUser,
-                weixinId,
-                group,
-                libId,
-                item,
-                style,
-                parameters,
-                out returnItem,
-                out strError);
-            if (nRet == -1)
-            {
-                result.errorCode = -1;
-                result.errorInfo = strError;
-                return result;
-            }
+                    MessageItem returnItem = null;
+                    int nRet = dp2WeiXinService.Instance.CoverMessage(sessionInfo.ActiveUser,
+                        weixinId,
+                        group,
+                        libId,
+                        item,
+                        style,
+                        parameters,
+                        out returnItem,
+                        out strError);
+                    if (nRet == -1)
+                    {
+                        result.errorCode = -1;
+                        result.errorInfo = strError;
+                        return result;
+                    }
 
-            List<MessageItem> list = new List<MessageItem>();
-            list.Add(returnItem);
-            result.items = list;
-            return result;
-        }
+                    List<MessageItem> list = new List<MessageItem>();
+                    list.Add(returnItem);
+                    result.items = list;
+                    return result;
+                }
 
         // 修改消息
         public WxMessageResult Put(string weixinId,

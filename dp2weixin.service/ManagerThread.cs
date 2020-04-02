@@ -21,7 +21,8 @@ namespace dp2weixin.service
         // 工作线程每一轮循环的实质性工作
         public override void Worker()
         {
-            dp2WeiXinService.Instance.WriteDebug("===轮循线程begin===\r\n");
+
+            dp2WeiXinService.Instance.WriteDebug("===轮循线程begin===");
 
             if (this.Stopped == true)
                 return;

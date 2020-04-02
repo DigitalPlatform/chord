@@ -164,14 +164,14 @@ namespace dp2weixinWeb.Controllers
             dp2weixinMessageHandler messageHandler = new dp2weixinMessageHandler(Request.InputStream, postModel, maxRecordCount);
             try
             {
-                dp2WeiXinService.Instance.WriteDebug("执行前");
+                //dp2WeiXinService.Instance.WriteDebug("执行前");
                 //CancellationToken cancellationToken = new CancellationToken();
                 //await messageHandler.ExecuteAsync(cancellationToken);
 
                 // 2020-3-9 必须得用同步函数，用异常函数，只返回default消息。
                 messageHandler.Execute();//执行微信处理过程（关键）
 
-                dp2WeiXinService.Instance.WriteDebug("执行后");
+                //dp2WeiXinService.Instance.WriteDebug("执行后");
 
                 return new WeixinResult(messageHandler);
 

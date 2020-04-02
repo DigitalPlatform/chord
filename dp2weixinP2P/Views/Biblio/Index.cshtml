@@ -453,7 +453,7 @@
                         var li = "<li class='mui-table-view-cell mui-collapse' id='" + id + "'> "
                             + "<a class='mui-navigate-right'  href='javascript:void(0)' onclick='expand(\"" + id + "\")' style='padding-top:5px;padding-bottom:5px'>"
                             + "<table width='100%' class='result-biblio'>"
-                            + "<tr><td style='width:" + noWidth + ";min-width:18px'>" + record.no + "</td><td style='padding-right:10px'><div style='width:100%; white-space:nowrap;overflow:hidden;text-overflow:ellipsis; ' >" + record.name + "</div></td></tr>"
+                            + "<tr><td style='width:" + noWidth + ";min-width:18px'>" + record.no + "</td><td style='padding-right:10px'><div id='"+id+"-name' style='width:100%; white-space:nowrap;overflow:hidden;text-overflow:ellipsis; ' >" + record.name + "</div></td></tr>"
                             + "<tr><td >&nbsp;</td><td style='color:#cccccc'>" + record.recPath + "</td></tr>"
                             + "</table>"
                             + "</a>"
@@ -530,6 +530,11 @@
             var id = "#" + expId;
             var obj = $(id);
 
+            // 书名
+            var nameId = "#" + expId + "-name";
+            var biblioName = $(nameId).text();
+            //alert(biblioName);
+
             // 如果自己是展开状态，则收缩
             var state = $(obj).find(".mui-collapse-content").first().css("display");
             if (state == "block") { //自己本来是展开状态，要关闭
@@ -565,7 +570,7 @@
 
                         // 图书馆
                         var libId = getLibId();
-                        var myhtml = getDetail(libId, recPath, o, "index");
+                        var myhtml = getDetail(libId, recPath, o, "index",biblioName);
 
                         // 去掉css
                         o.removeClass("pendingDetail");

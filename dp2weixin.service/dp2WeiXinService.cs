@@ -76,7 +76,7 @@ namespace dp2weixin.service
 
         #region 成员变量
         // 日志级别
-        public int LogLevel = 3;
+        public int LogLevel = 1;
 
         // 微信数据目录
         public string _weiXinDataDir = "";
@@ -554,14 +554,7 @@ namespace dp2weixin.service
 
         }
 
-        // 得到模板id
-        //private string GetTemplateId(XmlNode root, string type)
-        //{
-        //    XmlNode templateNode = root.SelectSingleNode("templates/template[@name='" + type + "']");
-        //    if (templateNode == null)
-        //        throw new Exception("尚未配置" + type + "模板");
-        //    return DomUtil.GetAttr(templateNode, "id");
-        //}
+
 
         public void Close()
         {
@@ -785,10 +778,9 @@ namespace dp2weixin.service
                 return;
             }
 
-            this.WriteDebug("收到消息[" + record.id + "]准备处理，publishTime=" + record.publishTime);
-
-            //this.WriteErrorLog("走进_msgRouter_SendMessageEvent");
-
+            this.WriteDebug("========");
+            this.WriteDebug("收到消息[" + record.id + "]");
+            this.WriteDebug2("publishTime=" + record.publishTime);
             try
             {
                 LibEntity lib = null;
@@ -797,7 +789,7 @@ namespace dp2weixin.service
                     lib = LibDatabase.Current.GetLibByCapoUserName(record.userName);
                     if (lib == null)
                     {
-                        this.WriteErrorLog("未找到[" + record.userName + "]对应的图书馆。");
+                        this.WriteErrorLog("SendMessageEvent(),未找到[" + record.userName + "]对应的图书馆。");
                     }
 
                     // todo 20170531 
@@ -809,7 +801,7 @@ namespace dp2weixin.service
                 }
                 else
                 {
-                    this.WriteErrorLog("异常：消息[" + record.id + "]传过来的userName为空。");
+                    this.WriteErrorLog("SendMessageEvent()异常：消息[" + record.id + "]传过来的userName为空。");
                 }
 
 
@@ -821,17 +813,17 @@ namespace dp2weixin.service
                 int nRet = this.InternalDoMessage(record, lib, out strError);
                 if (nRet == -1)
                 {
-                    this.WriteErrorLog("[" + record.id + "]未发送成功:" + strError);
+                    this.WriteErrorLog("消息[" + record.id + "]处理失败:" + strError);
                 }
                 else
                 {
                     this.WriteDebug("消息[" + record.id + "]处理完成。");
+                    this.WriteDebug("========");
                 }
             }
             catch (Exception ex)
             {
-                this.WriteErrorLog("[" + record.id + "]异常：" + ex.Message);
-
+                this.WriteErrorLog("[" + record.id + "]处理异常：" + ex.Message);
             }
         }
 
@@ -924,6 +916,8 @@ namespace dp2weixin.service
             }
             string strType = DomUtil.GetNodeText(typeNode);
 
+            this.WriteDebug("消息类型为["+strType+"]");
+
             //===数据处理消息================
             if (strType == "工作人员账户变动")
             {
@@ -948,9 +942,7 @@ namespace dp2weixin.service
                 return nRet;
             }
 
-
-
-            //===微信通知====
+            //===以下都是关于读者的微信通知====
             string libName = "";
             string libId = "";
             if (lib != null)
@@ -963,24 +955,53 @@ namespace dp2weixin.service
             string patronBarcode = "";
             string patronName = "";
             string libraryCode = "";
-            List<string> bindWeixinIds = this.GetBindWeiXinIds(libId,
-                bodyDom,
-                out patronBarcode,
-                out patronName,
-                out libraryCode);
+            //List<string> bindWeixinIds = this.GetBindWeiXinIds(libId,
+            //    bodyDom,
+            //    out patronBarcode,
+            //    out patronName,
+            //    out libraryCode);
+
+            //XmlNode root = bodyDom.DocumentElement;
+            XmlNode patronRecordNode = root.SelectSingleNode("patronRecord");
+            if (patronRecordNode == null)
+            {
+                strError = "消息data尚未定义<patronRecordNode>节点。";
+                return -1;
+            }
+
+            // barcode
+            XmlNode node = patronRecordNode.SelectSingleNode("barcode");
+            if (node != null)
+                patronBarcode = DomUtil.GetNodeText(node);
+
+            // name
+            node = patronRecordNode.SelectSingleNode("name");
+            if (node != null)
+                patronName = DomUtil.GetNodeText(node);
+
+            // libraryCode
+            node = patronRecordNode.SelectSingleNode("libraryCode");
+            if (node != null)
+                libraryCode = DomUtil.GetNodeText(node);
+
+            // 获取用户绑定库中有多少用户绑定这个读者，给绑定这位读者的用户都要发通过
+            List<WxUserItem> bindPatronList = WxUserDatabase.Current.Get("", libId, null, WxUserDatabase.C_Type_Patron,
+                 patronBarcode,
+                 "",
+                 true);
 
             // patronInfo = "";  //姓名 证条码号（图书馆/分馆）
             string fullPatronName = this.GetFullPatronName(patronName, patronBarcode, libName, libraryCode, false);
             string markFullPatronName = this.GetFullPatronName(patronName, patronBarcode, libName, libraryCode, true);
 
 
-            // 得到找开tracing功能的工作人员微信id
-            List<WxUserItem> workerWeixinIds = this.GetTraceUsers(libId, libraryCode);
+            // 得到这个馆绑定的工作人员，且工作人员打开tracing功能
+            List<WxUserItem> workerList = this.GetTraceUsers(libId, libraryCode);
 
-            // 没有绑定微信id,也没有打开tracing的工作人员，不处理消息
-            if (bindWeixinIds.Count == 0 && workerWeixinIds.Count == 0)
+            // 没有绑定这位读者的用户,也没有打开tracing的工作人员，不处理消息
+            if (bindPatronList.Count == 0 && workerList.Count == 0)
             {
-                strError = "未绑定微信id,也没有打开tracing的工作人员";
+                this.WriteDebug("没有找到绑定该读者帐户的用户,也没有打开tracing的工作人员，所以没有发消息的接收对象。");
                 return 0;
             }
 
@@ -989,71 +1010,71 @@ namespace dp2weixin.service
             {
                 nRet = this.SendArrived(bodyDom,
                     lib,//libName,
-                    bindWeixinIds,
+                    bindPatronList,
                     fullPatronName,
                     markFullPatronName,
-                    workerWeixinIds,
+                    workerList,
                     out strError);
             }
             else if (strType == "超期通知")
             {
                 nRet = this.SendCaoQi(bodyDom,
                     libName,
-                    bindWeixinIds,
+                    bindPatronList,
                     fullPatronName,
                     markFullPatronName,
-                    workerWeixinIds,
+                    workerList,
                     out strError);
             }
             else if (strType == "借书成功")
             {
                 nRet = this.SendBorrowMsg(bodyDom,
                     libName,
-                    bindWeixinIds,
+                    bindPatronList,
                     patronBarcode,
                     patronName,
                     libraryCode,
-                    workerWeixinIds,
+                    workerList,
                     out strError);
             }
             else if (strType == "还书成功")
             {
                 nRet = this.SendReturnMsg(bodyDom,
                     libName,
-                    bindWeixinIds,
+                    bindPatronList,
                     fullPatronName,
                     markFullPatronName,
-                    workerWeixinIds,
+                    workerList,
                     out strError);
             }
             else if (strType == "交费")
             {
                 nRet = this.SendPayMsg(bodyDom,
                     libName,
-                    bindWeixinIds,
+                    bindPatronList,
                     fullPatronName,
                     markFullPatronName,
-                    workerWeixinIds,
+                    workerList,
                     out strError);
             }
             else if (strType == "撤销交费")
             {
                 nRet = this.SendCancelPayMsg(bodyDom,
                     libName,
-                    bindWeixinIds,
+                    bindPatronList,
                     fullPatronName,
                     markFullPatronName,
-                    workerWeixinIds,
+                    workerList,
                     out strError);
             }
             else if (strType == "以停代金到期")
             {
                 nRet = this.SendYtdjMsg(bodyDom,
                     libName,
-                    bindWeixinIds,
+                    bindPatronList,
                     fullPatronName,
                     markFullPatronName,
-                    workerWeixinIds,
+                    workerList,
                     out strError);
             }
             else
@@ -1127,12 +1148,12 @@ namespace dp2weixin.service
             }
 
             // 20170508 发现民族所的校验码没有发送成功，这里特别写一个日志
-            WriteDebug("发送校验码成功:" + strBody);
+            WriteDebug("发送登录验证码成功:" + strBody);
 
             return 0;
         }
 
-        #region 内容函数
+        #region 内部函数
 
         private string _msgFirstLeft = "尊敬的读者：您好，";
         private string _msgRemark = "如有疑问，请联系系统管理员。";
@@ -1145,22 +1166,7 @@ namespace dp2weixin.service
 
             return text.Substring(text.Length - 1).PadLeft(text.Length, '*');
         }
-
-        /*
-        private int SendWeixinMsg3(List<string> weixinIds,
-          string templateId,
-          object msgData,
-          string linkUrl,
-          out string strError)
-        {
-            return this.SendWeixinMsg1(weixinIds,
-                templateId,
-                msgData,
-                linkUrl,
-                "",
-                out strError);
-        }
-         */
+       
 
 
         /// <summary>
@@ -1176,7 +1182,7 @@ namespace dp2weixin.service
         /// </param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        private int SendTemplateMsgInternal(List<string> weixinIds,
+        private int SendTemplateMsgInternal(List<WxUserItem> userList1,//List<string> weixinIds,
           string templateName,
           object msgData,
           string linkUrl,
@@ -1195,19 +1201,19 @@ namespace dp2weixin.service
                 templateData.remark.value = templateData.remark.value + " " + theOperator;
 
             // 一个人给微信用户发送通知
-            foreach (string oneWeixinId in weixinIds)
+            foreach (WxUserItem user1 in userList1)//string oneWeixinId in weixinIds)
             {
                 try
                 {
-                    string weixinId = oneWeixinId;
+                    string weixinId = user1.weixinId;//oneWeixinId;
                     GzhCfg gzh = null;
 
                     // 检查weixinid是否包括@
-                    int nIndex = oneWeixinId.IndexOf("@");
+                    int nIndex = user1.weixinId.IndexOf("@");
                     if (nIndex > 0)
                     {
-                        weixinId = oneWeixinId.Substring(0, nIndex);
-                        string gzhAppId = oneWeixinId.Substring(nIndex + 1);
+                        weixinId = user1.weixinId.Substring(0, nIndex);
+                        string gzhAppId = user1.weixinId.Substring(nIndex + 1);
                         if (gzhAppId != "")
                         {
                             gzh = this._gzhContainer.GetByAppId(gzhAppId);
@@ -1224,20 +1230,31 @@ namespace dp2weixin.service
                         continue;
                     }
 
-                    string appId = gzh.appId;
-
-                    if (WxUserDatabase.CheckIsFromWeb(weixinId) == true) //weixinId.Length > 2 && weixinId.Substring(0, 2) == "~~")
+                    // 把消息信息写日志和本地库
+                    string messageXml = templateData.Dump();
+                    // 写到日志里
                     {
-                        // web入口，把消息把加本地库中
-                        UserMessageItem myMsg = new UserMessageItem();
-                        myMsg.userId = weixinId;
-                        myMsg.msgType = templateName;
-                        myMsg.xml = templateData.Dump();
-                        UserMessageDb.Current.Add(myMsg);
+                        string msgType = templateName;
+                        if (user1.type == WxUserDatabase.C_Type_Patron)
+                            this.WriteDebug("给[" + user1.libName + "]的读者[" + user1.readerName + "(" + user1.readerBarcode + ")]" + "发送[" + msgType + "]通知");
+                        else
+                            this.WriteDebug("给["+user1.libName+"]的工作人员[" +  user1.userName + "]" + "发送[" + msgType + "]通知");
+                        this.WriteDebug(messageXml);
                     }
-                    else
+
+                    // 2020/4/1 发微信通知前，都写到本地库中
+                    UserMessageItem myMsg = new UserMessageItem();
+                    myMsg.userId = user1.id;// 2020/4/2 这里应该用userId,这样可以关联到绑定帐户,而不是用单纯的weixinId
+                    myMsg.msgType = templateName;
+                    myMsg.xml = messageXml;
+                    myMsg.createTime = GetNowTime();
+                    UserMessageDb.Current.Add(myMsg);
+
+                    // 发微信通知
+                    if (WxUserDatabase.CheckIsFromWeb(weixinId) == false) //weixinId.Length > 2 && weixinId.Substring(0, 2) == "~~")
                     {
                         // 调微信接口发送消息
+                        string appId = gzh.appId;
                         string templateId = gzh.GetTemplateId(templateName);
                         var accessToken = AccessTokenContainer.GetAccessToken(appId);
                         var result1 = TemplateApi.SendTemplateMessage(accessToken,
@@ -1258,7 +1275,7 @@ namespace dp2weixin.service
                 }
                 catch (Exception ex0)
                 {
-                    strError = "给[" + oneWeixinId + "]发送" + templateName + "微信通知异常:" + ex0.Message;
+                    strError = "给[" + user1.weixinId + "]发送" + templateName + "微信通知异常:" + ex0.Message;
                     //return -1;
                     this.WriteErrorLog(strError);
 
@@ -1266,12 +1283,23 @@ namespace dp2weixin.service
                     // 遇到43004的问题，表示用户未关注公众号。那么将这些帐户删除。
                     if (ex0.Message.IndexOf("43004") != -1)
                     {
-                        List<WxUserItem> userList = WxUserDatabase.Current.Get(oneWeixinId, "", -1);
-                        foreach (WxUserItem user in userList)
+
+                        string tempInfo = "";
+                        List <WxUserItem> uList = WxUserDatabase.Current.Get(user1.weixinId, "", -1);
+                        foreach (WxUserItem u in uList)
                         {
-                            WxUserDatabase.Current.SimpleDelete(user.id);
+                            if (tempInfo != "")
+                                tempInfo += ",";
+
+                            if (user1.type == WxUserDatabase.C_Type_Patron)
+                                tempInfo += u.libName + "-" + u.readerName + "[" + u.readerBarcode + "]";
+                            else
+                                tempInfo += u.libName + "-" + u.userName;
+                            //WxUserDatabase.Current.SimpleDelete(user.id); //2020/4/2先不要轻易删除
                         }
-                        this.WriteErrorLog("删除" + oneWeixinId + "对应的" + userList.Count + "条记录");
+
+                        this.WriteDebug("发通知时发现微信号" + user1.weixinId + "已取消关注公众号,之前绑定的帐户有:"+tempInfo);
+
                     }
 
 
@@ -1299,7 +1327,7 @@ namespace dp2weixin.service
         /// <param name="strError"></param>
         /// <returns></returns>
         public int SendTemplateMsg(string templateName,
-            List<string> weixinIds,
+            List<WxUserItem> patrons, //List<string> weixinIds,
             List<WxUserItem> workers,
             object msgData,
             object maskMsgData,
@@ -1311,9 +1339,9 @@ namespace dp2weixin.service
             strError = "";
 
             // 发给本人
-            if (weixinIds.Count > 0)
+            if (patrons.Count > 0)
             {
-                nRet = this.SendTemplateMsgInternal(weixinIds,
+                nRet = this.SendTemplateMsgInternal(patrons,
                     templateName,
                     msgData,
                     linkUrl,
@@ -1326,21 +1354,15 @@ namespace dp2weixin.service
             // 发给工作人员
             if (workers.Count > 0)
             {
-                string info = "";
-                foreach (WxUserItem user in workers)
-                {
-                    info += user.weixinId + "\r\n";
-                }
-                this.WriteDebug("给下面" + workers.Count + "个工作人员发监控消息\r\n" + info);
-
+                this.WriteDebug("给下面" + workers.Count + "个工作人员发监控消息");
 
                 // 将工作人员分成两组，一组是发全文内容，一组是发mask内容
-                List<string> workerIds = null;
-                List<string> maskWorkerIds = null;
-                SplitWorkers(workers, out workerIds, out maskWorkerIds);
-                if (workerIds.Count > 0)
+                List<WxUserItem> noMaskWorkers = null;
+                List<WxUserItem> maskWorkers = null;
+                SplitWorkers(workers, out noMaskWorkers, out maskWorkers);
+                if (noMaskWorkers.Count > 0)
                 {
-                    nRet = this.SendTemplateMsgInternal(workerIds,
+                    nRet = this.SendTemplateMsgInternal(noMaskWorkers,
                         templateName,
                         msgData,
                         linkUrl,
@@ -1350,9 +1372,9 @@ namespace dp2weixin.service
                         return -1;
                 }
 
-                if (maskWorkerIds.Count > 0)
+                if (maskWorkers.Count > 0)
                 {
-                    nRet = this.SendTemplateMsgInternal(maskWorkerIds,
+                    nRet = this.SendTemplateMsgInternal(maskWorkers,
                         templateName,
                         maskMsgData,
                         linkUrl,
@@ -1368,12 +1390,12 @@ namespace dp2weixin.service
         // 将工作人员分成两类，一类是不隐藏敏感信息的，一类是隐藏敏感信息的
         // 是否mask是每个工作人员自己在页面开关上设置的
         private void SplitWorkers(List<WxUserItem> users,
-             out List<string> workerIds,
-            out List<string> maskWorkerIds)
+            out List<WxUserItem> noMaskWorkers,  //out List<string> workerIds,
+            out List<WxUserItem> maskWorkers)
         {
 
-            workerIds = new List<string>();
-            maskWorkerIds = new List<string>();
+            noMaskWorkers = new List<WxUserItem>();
+            maskWorkers= new List<WxUserItem>();
 
             // 将这边tracing on的工作人员分为2组，一组是mask的，一组是不mask的
             foreach (WxUserItem user in users)
@@ -1382,9 +1404,9 @@ namespace dp2weixin.service
 
                 // 是否mask是每个工作人员自己在页面开关上设置的
                 if (user.IsMask == false)
-                    workerIds.Add(user.weixinId);
+                    noMaskWorkers.Add(user);
                 else
-                    maskWorkerIds.Add(user.weixinId);
+                    maskWorkers.Add(user);
             }
         }
 
@@ -1394,7 +1416,7 @@ namespace dp2weixin.service
         /// <param name="bodyDom"></param>
         /// <param name="patronName"></param>
         /// <returns></returns>
-        private List<string> GetBindWeiXinIds(string libId,
+        private List<WxUserItem> GetBindWeiXinIds(string libId,
             XmlDocument bodyDom,
             out string patronBarcode,
             out string patronName,
@@ -1425,26 +1447,26 @@ namespace dp2weixin.service
                 libraryCode = DomUtil.GetNodeText(node);
 
             // 取微信id
-            List<string> weixinIdList = new List<string>();
-            //XmlNode emailNode = patronRecordNode.SelectSingleNode("email");
-            //if (emailNode != null)
-            //{
-            //    string email = DomUtil.GetNodeText(emailNode);
-            //    //<email>test@163.com,123,weixinid:o4xvUviTxj2HbRqbQb9W2nMl4fGg,weixinid:o4xvUvnLTg6NnflbYdcS-sxJCGFo,weixinid:testid</email>
-            //    weixinIdList = this.GetWeixinIds(email);
-            //}
-
+            //List<string> weixinIdList = new List<string>();
             List<WxUserItem> userList = WxUserDatabase.Current.Get("", libId, null, WxUserDatabase.C_Type_Patron,
                  patronBarcode,
                  "",
                  true);
-            foreach (WxUserItem user in userList)
-            {
-                weixinIdList.Add(user.weixinId);
-            }
+
+            return userList;
+
+            //foreach (WxUserItem user in userList)
+            //{
+            //    // 不是weixin的会写到一个本地消息库中。
+            //    //// 如果是web过来的，不处理
+            //    //if (WxUserDatabase.CheckIsFromWeb(user.weixinId) == true)
+            //    //    continue;
+
+            //    weixinIdList.Add(user.weixinId);
+            //}
 
 
-            return weixinIdList;
+            //return weixinIdList;
         }
 
 
@@ -1457,9 +1479,10 @@ namespace dp2weixin.service
             // 从内存中查找
             foreach (WxUserItem tUser in this.TracingOnUserList)
             {
-                // web入口的weixin不用发通知
-                if (WxUserDatabase.CheckIsFromWeb(tUser.weixinId) == true)//tUser.weixinId.Length > 2 && tUser.weixinId.Substring(0, 2) == WxUserDatabase.C_Prefix_fromWeb) // "~~")
-                    continue;
+                // 要写到
+                //// web入口的weixin不用发通知
+                //if (WxUserDatabase.CheckIsFromWeb(tUser.weixinId) == true)//tUser.weixinId.Length > 2 && tUser.weixinId.Substring(0, 2) == WxUserDatabase.C_Prefix_fromWeb) // "~~")
+                //    continue;
 
                 // 数字平台工作人员
                 if (tUser.IsdpAdmin == true)
@@ -1576,7 +1599,7 @@ namespace dp2weixin.service
         /// </returns>
         private int SendYtdjMsg(XmlDocument bodyDom,
             string libName,
-            List<string> bindWeixinIds,
+            List<WxUserItem> bindPatronList,
             string fullPatronName,
             string maskFullPatronName,
             List<WxUserItem> workers,
@@ -1684,7 +1707,7 @@ namespace dp2weixin.service
                 remark);
 
             int nRet = this.SendTemplateMsg(GzhCfg.C_Template_Message,
-                bindWeixinIds,
+                bindPatronList,//bindWeixinIds,
                 workers,
                 msgData,
                 maskMsgData,
@@ -1706,7 +1729,7 @@ namespace dp2weixin.service
         /// </returns>
         private int SendBorrowMsg(XmlDocument bodyDom,
             string libName,
-            List<string> bindWeixinIds,
+            List<WxUserItem> bindPatronList,//List<string> bindWeixinIds,
             string patronBarcode,
             string patronName,
             string patronLibraryCode,
@@ -1900,7 +1923,7 @@ namespace dp2weixin.service
                 tempRemark);
 
             int nRet = this.SendTemplateMsg(GzhCfg.C_Template_Borrow,
-                bindWeixinIds,
+                bindPatronList,//bindWeixinIds,
                 workers,
                 msgData,
                 maskMsgData,
@@ -1922,7 +1945,7 @@ namespace dp2weixin.service
         /// </returns>
         private int SendReturnMsg(XmlDocument bodyDom,
             string libName,
-            List<string> bindWeixinIds,
+            List<WxUserItem> bindPatronList,//List<string> bindWeixinIds,
             string fullPatronName,
             string markFullPatronName,
             List<WxUserItem> workers,
@@ -2111,7 +2134,7 @@ namespace dp2weixin.service
 
             // 发送消息
             int nRet = this.SendTemplateMsg(GzhCfg.C_Template_Return,
-                bindWeixinIds,
+                bindPatronList,//bindWeixinIds,
                 workers,
                 msgData,
                 maskMsgData,
@@ -2132,7 +2155,7 @@ namespace dp2weixin.service
         /// </returns>
         private int SendPayMsg(XmlDocument bodyDom,
             string libName,
-            List<string> bindWeixinIds,
+            List<WxUserItem> bindPatronList,//List<string> bindWeixinIds,
             string fullPatronName,
             string markFullPatronName,
             List<WxUserItem> workers,
@@ -2240,7 +2263,7 @@ namespace dp2weixin.service
 
                 // 发送消息
                 int nRet = this.SendTemplateMsg(GzhCfg.C_Template_Pay,
-                    bindWeixinIds,
+                    bindPatronList,//bindWeixinIds,
                     workers,
                     msgData,
                     maskMsgData,
@@ -2263,7 +2286,7 @@ namespace dp2weixin.service
         /// </returns>
         private int SendCancelPayMsg(XmlDocument bodyDom,
             string libName,
-            List<string> bindWeixinIds,
+            List<WxUserItem> bindPatronList,//List<string> bindWeixinIds,
             string fullPatronName,
             string markFullPatronName,
             List<WxUserItem> workers,
@@ -2372,7 +2395,7 @@ namespace dp2weixin.service
 
                 // 发送消息
                 int nRet = this.SendTemplateMsg(GzhCfg.C_Template_CancelPay,
-                    bindWeixinIds,
+                    bindPatronList,//bindWeixinIds,
                     workers,
                     msgData,
                     maskMsgData,
@@ -2392,7 +2415,7 @@ namespace dp2weixin.service
         /// <param name="bodyDom"></param>
         private int SendCaoQi(XmlDocument bodyDom,
             string libName,
-            List<string> bindWeixinIds,
+            List<WxUserItem> bindPatronList,//List<string> bindWeixinIds,
             string fullPatronName,
             string markFullPatronName,
             List<WxUserItem> workers,
@@ -2498,7 +2521,7 @@ namespace dp2weixin.service
 
                     // 发送消息
                     int nRet = this.SendTemplateMsg(GzhCfg.C_Template_CaoQi,
-                        bindWeixinIds,
+                        bindPatronList,//bindWeixinIds,
                         workers,
                         msgData,
                         maskMsgData,
@@ -2537,7 +2560,7 @@ namespace dp2weixin.service
 
                     // 发送消息
                     int nRet = this.SendTemplateMsg(GzhCfg.C_Template_KuaiCaoQi,
-                        bindWeixinIds,
+                        bindPatronList,//bindWeixinIds,
                         workers,
                         msgData,
                         maskMsgData,
@@ -2568,7 +2591,7 @@ namespace dp2weixin.service
         /// </returns>
         private int SendArrived(XmlDocument bodyDom,
             LibEntity lib,
-            List<string> bindWeixinIds,
+            List<WxUserItem> bindPatronList,//List<string> bindWeixinIds,
             string fullPatronName,
             string markFullPatronName,
             List<WxUserItem> workers,
@@ -2633,7 +2656,7 @@ namespace dp2weixin.service
             if(lib.IsSendArrivedNotice=="N") //2020/3/22 改为直接使用变量
             {
                 //return 0;  //2020-3-9改为不给读者立即发，还是给监控的工作人员发送
-                bindWeixinIds.Clear();
+                bindPatronList.Clear(); //bindWeixinIds.Clear();
             }
 
             // 摘要
@@ -2788,7 +2811,7 @@ namespace dp2weixin.service
 
             // 发送消息
             int nRet = this.SendTemplateMsg(GzhCfg.C_Template_Arrived,
-                bindWeixinIds,
+                bindPatronList,
                 workers,
                 msgData,
                 maskMsgData,
@@ -3011,35 +3034,47 @@ namespace dp2weixin.service
         public List<Library> GetHangupLibs()
         {
             string strError = "";
+            //this.WriteDebug("0-0");
+
 
             // 先执行一次检查
             this.LibManager.RedoCheckHangup(null);
 
+            //this.WriteDebug("0-1");
+
             // 本次挂起图书馆
             List<Library> hangupLibs = new List<Library>();
 
+            //this.WriteDebug("0-2");
 
             // 先拉出配置的所有图书
             List<Library> libs = dp2WeiXinService.Instance.LibManager.Librarys; //LibDatabase.Current.GetLibs();  // 20161016 jane 这里应该用内存的数据库集合是好了 todo
             foreach (Library lib in libs)
             {
+                //this.WriteDebug("0-3");
+
+
                 // 可以图书馆的备注信息设为notwart，则不进行检查是否在线
-                if (lib.Entity.comment.IndexOf("notwarn") != -1) // 任延华测试用的图书馆
+                if (lib.Entity.comment !=null && lib.Entity.comment.IndexOf("notwarn") != -1) // 任延华测试用的图书馆
                     continue;
+
+                //this.WriteDebug("0-4");
 
                 //20171003 到期的图书馆不再提醒
                 if (lib.Entity.state == C_State_Expire)
                     continue;
 
+                //this.WriteDebug("0-5");
+
                 // 如果是挂起状态，加入不在线列表
                 if (lib.IsHangup == true)
                 {
+                    //this.WriteDebug("0-6");
                     hangupLibs.Add(lib);
                     continue;
                 }
-
-                continue;
             }
+            //this.WriteDebug("0-7");
 
 
             this.WriteDebug("本轮检查有" + hangupLibs.Count + "个离线图书馆");
@@ -3062,19 +3097,27 @@ namespace dp2weixin.service
             string strError = "";
             try
             {
-
+                //this.WriteDebug("1");
+                
                 // 本次不在线的图书馆
                 List<Library> thisHangupLibs = this.GetHangupLibs();
+
+                //this.WriteDebug("2");
 
                 // 整理缓存中不在线的图书馆
                 if (thisHangupLibs.Count == 0)
                 {
                     // 清除内存中保存的不在线图书馆
-                    this._offlineLibs.Clear();
-                    this.WriteDebug("清除内存中离线图书馆hashtable");
+                    if (this._offlineLibs.Count > 0)
+                    {
+                        this.WriteDebug("清除内存中原先的"+this._offlineLibs.Count+"个离线图书馆");
+                        this._offlineLibs.Clear();
+                    }
                 }
                 else
                 {
+                    //this.WriteDebug("3");
+
                     // 已经恢复在线的图书馆，要从内存不在线图书馆中删除 
                     List<string> removeIds = new List<string>();
                     foreach (string libid in this._offlineLibs.Keys)
@@ -3095,22 +3138,29 @@ namespace dp2weixin.service
                         }
                     }
 
+                    //this.WriteDebug("4");
+
                     // 移除已经连线的图书馆
                     foreach (string oneId in removeIds)
                     {
                         this.WriteDebug("图书馆 " + this.LibManager.GetLibrary(oneId).Entity.libName + " 恢复在线，从内存离线图书馆列表移除。");
                         this._offlineLibs.Remove(oneId);
                     }
+                    //this.WriteDebug("5");
                 }
 
                 // 处理本次的离线图书馆，得到需要发通知的图书馆
                 List<Library> warningLibs = new List<Library>();
                 if (thisHangupLibs.Count > 0)
                 {
+                    //this.WriteDebug("6");
+
                     DateTime now = DateTime.Now;
                     TimeSpan delta = new TimeSpan(1, 0, 0);
                     foreach (Library lib in thisHangupLibs)
                     {
+                        //this.WriteDebug("7");
+
                         if (this._offlineLibs.ContainsKey(lib.Entity.id) == false)
                         {
                             this.WriteDebug("离线图书馆 " + lib.Entity.libName + " 之前不在内存列表中，加到发通知列表");
@@ -3132,6 +3182,8 @@ namespace dp2weixin.service
                             }
                         }
                     }
+
+                    //this.WriteDebug("8");
                 }
 
                 //===给图书馆发通知=====
@@ -3143,6 +3195,8 @@ namespace dp2weixin.service
                     dp2003Workers = this.GetDp2003WorkerWeixinIds();
                     this.WriteDebug("找到 " + dp2003Workers.Count.ToString() + " 位数字平台工作人员");
                 }
+
+               // this.WriteDebug("9");
 
                 foreach (Library lib in warningLibs)
                 {
@@ -3186,6 +3240,7 @@ namespace dp2weixin.service
                         text,
                         "");
 
+                    // 给图书馆工作人员发不在线通知
                     foreach (WxUserItem worker in libWorkers)
                     {
                         if (worker.weixinId == C_Supervisor)
@@ -3194,11 +3249,14 @@ namespace dp2weixin.service
                         string tempText = worker.userName + "，贵馆 " + text;
                         msgData.keyword3 = new TemplateDataItem(tempText, "#000000");
 
-                        List<string> ids = new List<string>();
-                        string fullWeixinId = worker.weixinId;//2016-11-16 weixinId带了@appId //+ "@" + worker.appId;
-                        ids.Add(fullWeixinId);
+                        //List<string> ids = new List<string>();
+                        //string fullWeixinId = worker.weixinId;//2016-11-16 weixinId带了@appId //+ "@" + worker.appId;
+                        //ids.Add(fullWeixinId);
 
-                        int nRet = this.SendTemplateMsgInternal(ids,
+                        // 2020-4-2 改为传入对象参数，因为在发送消息的函数里，要写日志和本地库,所以日志需要多一些
+                        List<WxUserItem> tempWorkers = new List<WxUserItem>();
+                        tempWorkers.Add(worker);
+                        int nRet = this.SendTemplateMsgInternal(tempWorkers,//ids,
                             GzhCfg.C_Template_Message,//this.Template_Message,
                              msgData,
                              "",
@@ -3219,11 +3277,15 @@ namespace dp2weixin.service
                     {
                         msgData.keyword3 = new TemplateDataItem(text, "#000000");
 
-                        List<string> ids = new List<string>();
-                        string fullWeixinId = worker.weixinId;//2016-11-16 weixinId带了@appId // + "@" + worker.appId;
+                        //List<string> ids = new List<string>();
+                        //string fullWeixinId = worker.weixinId;//2016-11-16 weixinId带了@appId // + "@" + worker.appId;
+                        //ids.Add(fullWeixinId);
 
-                        ids.Add(fullWeixinId);
-                        int nRet = this.SendTemplateMsgInternal(ids,
+                        // 2020-4-2 改为传参数
+                        List<WxUserItem> tempWorkers = new List<WxUserItem>();
+                        tempWorkers.Add(worker);
+
+                        int nRet = this.SendTemplateMsgInternal(tempWorkers,
                             GzhCfg.C_Template_Message,//this.Template_Message,
                              msgData,
                              "",
@@ -3243,7 +3305,7 @@ namespace dp2weixin.service
                     this.WriteDebug("记下图书馆 " + libName + " 最后发送通知时间" + DateTimeUtil.DateTimeToString(((DateTime)this._offlineLibs[lib.Entity.id])));
                 }
 
-                // 返回
+
                 return;
 
             }
@@ -4112,7 +4174,7 @@ ErrorInfo成员里可能会有报错信息。
 
 
                     //// 不发本人
-                    List<string> bindWeixinIds = new List<string>();
+                    List<WxUserItem> bindPatronList = new List<WxUserItem>();
 
                     // 工作人员
                     // 2020-3-17 发给本馆绑定的工作人员，不管是否打开监控消息没有关系，
@@ -4132,7 +4194,7 @@ ErrorInfo成员里可能会有报错信息。
                         workers.Add(one);
                     }
 
-                    if (bindWeixinIds.Count > 0 || workers.Count > 0)
+                    if (bindPatronList.Count > 0 || workers.Count > 0)
                     {
                         // 不加mask的通知数据
                         string thisTime = dp2WeiXinService.GetNowTime();
@@ -4143,7 +4205,7 @@ ErrorInfo成员里可能会有报错信息。
 
                         // 发送待审核的微信消息
                         nRet = this.SendTemplateMsg(GzhCfg.C_Template_PatronInfoChanged,
-                           bindWeixinIds,
+                           bindPatronList,
                            workers,
                            msgData,
                            msgData, //用的同一组数据，不做马赛克
@@ -4193,7 +4255,7 @@ ErrorInfo成员里可能会有报错信息。
 
 
                     //// 不发本人
-                    List<string> bindWeixinIds = new List<string>();
+                    List<WxUserItem> bindPatronList = new List<WxUserItem>();
 
                     // 工作人员
                     // 2020-3-17 发给本馆绑定的工作人员，不管是否打开监控消息没有关系，
@@ -4213,7 +4275,7 @@ ErrorInfo成员里可能会有报错信息。
                         workers.Add(one);
                     }
 
-                    if (bindWeixinIds.Count > 0 || workers.Count > 0)
+                    if (bindPatronList.Count > 0 || workers.Count > 0)
                     {
                         // 不加mask的通知数据
                         string thisTime = dp2WeiXinService.GetNowTime();
@@ -4224,7 +4286,7 @@ ErrorInfo成员里可能会有报错信息。
 
                         // 发送待审核的微信消息
                         nRet = this.SendTemplateMsg(GzhCfg.C_Template_PatronInfoChanged,
-                           bindWeixinIds,
+                           bindPatronList,
                            workers,
                            msgData,
                            msgData, //用的同一组数据，不做马赛克
@@ -4311,7 +4373,7 @@ ErrorInfo成员里可能会有报错信息。
 
 
                     //// 本人
-                    List<string> bindWeixinIds = new List<string>();
+                    List<WxUserItem> bindPatronList = new List<WxUserItem>();
                     //string tempfullWeixinId = weixinId;//2016-11-16 传进来的weixinId带了@appId // +"@" + appId;
                     //bindWeixinIds.Add(tempfullWeixinId);
 
@@ -4335,7 +4397,7 @@ ErrorInfo成员里可能会有报错信息。
                         workers.Add(one);
                     }
 
-                    if (bindWeixinIds.Count > 0 || workers.Count > 0)
+                    if (bindPatronList.Count > 0 || workers.Count > 0)
                     {
                         // 不加mask的通知数据
                         string thisTime = dp2WeiXinService.GetNowTime();
@@ -4352,7 +4414,7 @@ ErrorInfo成员里可能会有报错信息。
 
                         // 发送待审核的微信消息
                         nRet = this.SendTemplateMsg(GzhCfg.C_Template_ReviewPatron,
-                           bindWeixinIds,
+                           bindPatronList,
                            workers,
                            msgData,
                            msgData, //用的同一组数据，不做马赛克
@@ -4765,6 +4827,9 @@ ErrorInfo成员里可能会有报错信息。
                 return -1;
             }
 
+            // 2020/3/31 把发送短信记录下来
+            this.WriteDebug("发送短信成功：" + strMessageText);
+
             return nRet;
         }
 
@@ -5045,9 +5110,11 @@ ErrorInfo成员里可能会有报错信息。
                     string linkUrl = "";//dp2WeiXinService.Instance.OAuth2_Url_AccountIndex,//详情转到账户管理界面
 
                     // 本人
-                    List<string> bindWeixinIds = new List<string>();
-                    string tempfullWeixinId = weixinId;//2016-11-16 传进来的weixinId带了@appId // +"@" + appId;
-                    bindWeixinIds.Add(tempfullWeixinId);
+                    List<WxUserItem> bindPatronList = new List<WxUserItem>();
+                    if (userItem != null)
+                        bindPatronList.Add(userItem);
+                    //string tempfullWeixinId = weixinId;//2016-11-16 传进来的weixinId带了@appId // +"@" + appId;
+                    //bindWeixinIds.Add(tempfullWeixinId);
 
                     // 工作人员
                     List<WxUserItem> workers = this.GetTraceUsers(libId, userItem.libraryCode);
@@ -5074,7 +5141,7 @@ ErrorInfo成员里可能会有报错信息。
 
                     // 发送微信消息
                     nRet = this.SendTemplateMsg(GzhCfg.C_Template_Bind,
-                       bindWeixinIds,
+                       bindPatronList,
                        workers,
                        msgData,
                        maskMsgData,
@@ -5480,9 +5547,10 @@ ErrorInfo成员里可能会有报错信息。
                     string first_color = "#000000";
 
                     // 本人
-                    List<string> bindWeixinIds = new List<string>();
-                    string temp = userItem.weixinId;//2016-11-16 传进来的weixinId带了@appId //+ "@"+userItem.appId;
-                    bindWeixinIds.Add(temp);//weixinId);
+                    List<WxUserItem> bindPatronList = new List<WxUserItem>();
+                    bindPatronList.Add(userItem);
+                    //string temp = userItem.weixinId;//2016-11-16 传进来的weixinId带了@appId //+ "@"+userItem.appId;
+                    //bindWeixinIds.Add(temp);//weixinId);
 
                     // 打开监控功能的工作你听见
                     List<WxUserItem> workers = this.GetTraceUsers(lib.id, userItem.libraryCode);
@@ -5507,7 +5575,7 @@ ErrorInfo成员里可能会有报错信息。
                         strRemark);
 
                     int nRet = this.SendTemplateMsg(GzhCfg.C_Template_UnBind,
-                        bindWeixinIds,
+                        bindPatronList,
                         workers,
                         msgData,
                         maskMsgData,
@@ -9158,9 +9226,12 @@ ErrorInfo成员里可能会有报错信息。
 
                         string remark = user.readerName + "，您已对上述图书取消预约,该书将不再为您保留。";
 
-                        List<string> bindWeixinIds = new List<string>();
-                        string fullWeixinId = weixinId;//2016-11-16 传进来的weixinId带了@appId // + "@" + user.appId;
-                        bindWeixinIds.Add(fullWeixinId);
+                        //List<string> bindWeixinIds = new List<string>();
+                        //string fullWeixinId = weixinId;//2016-11-16 传进来的weixinId带了@appId // + "@" + user.appId;
+                        //bindWeixinIds.Add(fullWeixinId);
+
+                        List<WxUserItem> bindPatronList = new List<WxUserItem>();
+                        bindPatronList.Add(user);
 
                         // 得到找开tracing功能的工作人员微信id
                         List<WxUserItem> workers = this.GetTraceUsers(lib.id, user.libraryCode);
@@ -9178,13 +9249,13 @@ ErrorInfo成员里可能会有报错信息。
                         string fullPatronBarcode = this.GetFullPatronName("", patron, lib.libName, user.libraryCode, false);
 
                         CancelReserveTemplateData mData = new CancelReserveTemplateData(first,
-    first_color,
-    summary,
-    items,
-    reserDate,
-    operTime,
-    fullPatronBarcode,
-    remark);
+                            first_color,
+                            summary,
+                            items,
+                            reserDate,
+                            operTime,
+                            fullPatronBarcode,
+                            remark);
 
 
                         //{{first.DATA}}
@@ -9207,13 +9278,13 @@ ErrorInfo成员里可能会有报错信息。
                         string markPatronName = this.markString(user.readerName);
                         string tempRemark = remark.Replace(user.readerName, markPatronName);// +theOperator; ;
                         CancelReserveTemplateData maskMsgData = new CancelReserveTemplateData(first,
-first_color,
-summary,
-items,
-reserDate,
-operTime,
-markFullPatronBarcode,
-tempRemark);
+                            first_color,
+                            summary,
+                            items,
+                            reserDate,
+                            operTime,
+                            markFullPatronBarcode,
+                            tempRemark);
 
                         //MessageTemplateData maskMsgData = new MessageTemplateData(first,
                         //    first_color,
@@ -9223,7 +9294,7 @@ tempRemark);
                         //    remark);
 
                         int nRet = this.SendTemplateMsg(GzhCfg.C_Template_CancelReserve,
-                            bindWeixinIds,
+                            bindPatronList,
                             workers,
                             mData,
                             maskMsgData,
@@ -9299,9 +9370,14 @@ tempRemark);
 
         #region 错误日志
 
-        public void WriteDebug(string strText)
+        public void WriteDebug2(string strText)
         {
             this.WriteLogInternal("DEBUG:" + strText, 2);
+        }
+
+        public void WriteDebug(string strText)
+        {
+            this.WriteLogInternal("DEBUG:" + strText, 1);
         }
 
         public void WriteErrorLog(string strText)
@@ -11790,16 +11866,16 @@ tempRemark);
 
 
                     //// 本人
-                    List<string> bindWeixinIds = new List<string>();
-                    bindWeixinIds.Add(userItem.weixinId);
-                    //string tempfullWeixinId = weixinId;//2016-11-16 传进来的weixinId带了@appId // +"@" + appId;
-                    //bindWeixinIds.Add(tempfullWeixinId);
+                    //List<string> bindWeixinIds = new List<string>();
+                    //bindWeixinIds.Add(userItem.weixinId);
+                    List<WxUserItem> bindPatronList = new List<WxUserItem>();
+                    bindPatronList.Add(userItem);
 
                     // 2020-3-8 改为不给工作人员发消息，怕把管理员弄混了。
                     // 工作人员
                     List<WxUserItem> workers = new List<WxUserItem>(); //this.GetTraceUsers(userItem.libId, userItem.libraryCode);
 
-                    if (bindWeixinIds.Count > 0 || workers.Count > 0)
+                    if (bindPatronList.Count > 0 || workers.Count > 0)
                     {
                         // 不加mask的通知数据
                         string thisTime = dp2WeiXinService.GetNowTime();
@@ -11816,7 +11892,7 @@ tempRemark);
 
                         // 发送消息
                         nRet = this.SendTemplateMsg(GzhCfg.C_Template_ReviewResult,
-                           bindWeixinIds,
+                           bindPatronList,
                            workers,
                            msgData,
                            msgData, // todo 没有做马赛克，看看后面是否需要

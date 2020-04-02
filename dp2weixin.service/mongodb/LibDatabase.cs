@@ -137,6 +137,9 @@ namespace dp2weixin.service
                     if (item.capoUserName == null)
                         item.capoUserName = "";
 
+                    if (item.comment == null)
+                        item.comment = "";
+
                     // 2020/3/22 预约相关参数
                     if (item.ReserveScope == null)
                         item.ReserveScope = "all";

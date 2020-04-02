@@ -12,28 +12,39 @@ using DigitalPlatform.Core;
 
 namespace dp2weixin.service
 {
+    // 消息路由器，记得这个类还是15年时谢老师帮忙写的，当初我自己写了很长时间也没搞清楚。
     public class MsgRouter : ThreadBase
     {
+        // 发消息事件
         public event SendMessageEventHandler SendMessageEvent = null;
 
-        // 这里是引用外部的对象，不负责创建和销毁
+        // 消息通道集合，这里是引用外部的对象，不负责创建和销毁
         public MessageConnectionCollection Channels = null;
 
+        // 服务器地址和群名称
         public string Url { get; set; }
         public string GroupName { get; set; }
 
         // 存储从 AddMessage() 得到的消息
         List<MessageRecord> _messageList = new List<MessageRecord>();
-        private static readonly Object _syncRoot_messageList = new Object();
+        private static readonly Object _syncRoot_messageList = new Object();   //做锁
 
         // 记忆已经发送过的消息，避免重复发送
         Hashtable _sendedTable = new Hashtable();
 
+        // 构造函数，里面设置运行时间
         public MsgRouter()
         {
             this.PerTime = 3*60 * 1000;  //改为3分钟了 2016-6-13 // 60 * 1000
         }
 
+
+        /// <summary>
+        /// 启动
+        /// </summary>
+        /// <param name="channels">通道集合</param>
+        /// <param name="url"></param>
+        /// <param name="groupName"></param>
         public void Start(MessageConnectionCollection channels,
             string url,
             string groupName)
@@ -42,16 +53,22 @@ namespace dp2weixin.service
             this.GroupName = groupName;
             this.Channels = channels;
 
-            //Channels.Login += _channels_Login;
+            // 通道消息事件，一有消息就立即收到，与getmessage公众号这边主动获取是两个类别。
+            // 注意设置消息接管事件时先减再加
             Channels.AddMessage -= _channels_AddMessage;
             Channels.AddMessage += _channels_AddMessage;
 
+            // 通道连接状态变化消息
             Channels.ConnectionStateChange -= _channels_ConnectionStateChange;
             Channels.ConnectionStateChange += _channels_ConnectionStateChange;
 
+            // 开始
             this.BeginThread();
         }
 
+        /// <summary>
+        /// 停止
+        /// </summary>
         public void Stop()
         {
             Channels.AddMessage -= _channels_AddMessage;
@@ -60,6 +77,11 @@ namespace dp2weixin.service
             this.StopThread(true);//2016-9-22 StopThread() 的参数最好修改为 true，以便在重启之类情况下尽快关闭线程。
         }
 
+        /// <summary>
+        /// 通道状态重连时，把线程激活
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         void _channels_ConnectionStateChange(object sender, ConnectionEventArgs e)
         {
             if (e.Action == "Reconnected"
@@ -73,12 +95,15 @@ namespace dp2weixin.service
         StringBuilder _msgBuffer = new StringBuilder();
         public const long C_StringBuffer_MaxLength = 1024 * 1024;
         public const long C_SendTable_MaxCount = 5000;
+
+        // 接管新增消息事件
         void _channels_AddMessage(object sender, AddMessageEventArgs e)
         {
             if (e.Action != "create")
                 return;
 
             MessageConnection connection = (MessageConnection)sender;
+            // 这一断没太看懂，只有通道名为_traceMessage才处理吗
             if (connection.Name != dp2WeiXinService.C_ConnName_TraceMessage)
                 return;
 
@@ -95,7 +120,6 @@ namespace dp2weixin.service
                         _msgBuffer.Clear();//消空消息缓存
                         return;
                     }
-
 
                     // 中间的片断消息
                     if (string.IsNullOrEmpty(record.id) == true)
@@ -121,7 +145,10 @@ namespace dp2weixin.service
                     if (this._messageList.Count < 10000)
                         this._messageList.AddRange(fullRecords);//e.Records);
                 }
-                dp2WeiXinService.Instance.WriteDebug("AddMessage得到" + fullRecords.Count.ToString() + "条消息。");
+
+                dp2WeiXinService.Instance.WriteDebug2("AddMessage得到" + fullRecords.Count.ToString() + "条消息。");
+                
+                // 收到消息后，触发线程处理，即会走到worker里
                 this.Activate();
             }
         }
@@ -129,9 +156,10 @@ namespace dp2weixin.service
         // 工作线程每一轮循环的实质性工作
         public override void Worker()
         {
-            //this.WriteLog("走到worker1");
             List<MessageRecord> records = new List<MessageRecord>();
-            if (this._messageList.Count == 0)  // 2016-12-2 不是从addMessage过来的才调GetMessage，否则总是重复取消息
+ 
+            // 2016-12-2 不是从addMessage过来的才调GetMessage，否则总是重复取消息
+            if (this._messageList.Count == 0) 
             {
                 records = GetMessage();
                 if (records.Count > 0)
@@ -143,7 +171,6 @@ namespace dp2weixin.service
                 }
             }
 
-            //this.WriteErrorLog("走到worker2:" +records.Count);
             bool bDeleteOk = false;
             if (this._messageList.Count > 0)
             {
@@ -163,20 +190,13 @@ namespace dp2weixin.service
                     this._messageList.RemoveRange(0, temp_records.Count);
                 }
 
-                //this.WriteErrorLog("走到worker3:" + temp_records.Count);
-
-
-
-
                 // 发送消息给下游模块
                 SendMessage(temp_records);
 
-                //this.WriteErrorLog("走到worker4:");
 
                 // 从 dp2mserver 中删除这些消息
                 bDeleteOk = DeleteMessage(temp_records);//jane 2016-6-20 不需要传group参数了, this.GroupName);
 
-                //this.WriteErrorLog("走到worker5:");
             }
 
             // 如果本轮主动获得过消息，就要连续激活线程，让线程下次继续处理。
@@ -196,6 +216,7 @@ DeleteMessage(temp_records, this.GroupName);
                 */
                 this.Activate();
             }
+
             CleanSendedTable(); // TODO: 可以改进为判断间隔至少 5 分钟才做一次
         }
 
@@ -204,18 +225,16 @@ DeleteMessage(temp_records, this.GroupName);
         {
             SendMessageEventHandler handler = this.SendMessageEvent;
 
-
-
-
-
             // 下级的代码不影响
             foreach (MessageRecord record in records)
             {
                 if (this._sendedTable.ContainsKey(record.id))
                     continue;
 
-                dp2WeiXinService.Instance.WriteDebug("开始处理:" + record.id);
-                //this.WriteLog(, dp2WeiXinService.C_LogLevel_3);
+                dp2WeiXinService.Instance.WriteDebug2("开始处理:" + record.id);
+                
+                // 内容太多了，不适合加
+                //dp2WeiXinService.Instance.WriteDebug2("消息内容：" + record.data);
 
                 // 发送
                 if (handler != null)
@@ -224,8 +243,7 @@ DeleteMessage(temp_records, this.GroupName);
                     e.Message = record;
                     handler(this, e);
                 }
-                dp2WeiXinService.Instance.WriteDebug("处理结束:" + record.id);
-                //this.WriteLog("处理结束:" + record.id, dp2WeiXinService.C_LogLevel_3);
+                dp2WeiXinService.Instance.WriteDebug2("处理结束:" + record.id);
 
                 if (this._sendedTable.Count < C_SendTable_MaxCount)  //大于了5K则不再给里面增加了。
                 {
@@ -235,29 +253,6 @@ DeleteMessage(temp_records, this.GroupName);
         }
 
 
-        /*
-        private List<MessageRecord> JoinRecords(List<MessageRecord> records)
-        {
-            List<MessageRecord> retRecords = new List<MessageRecord>();
-
-            foreach (MessageRecord rec in records)
-            {
-                // 中间的片断消息
-                if (string.IsNullOrEmpty(rec.id) == true)
-                {
-                    _msgBuffer.Append(rec.data);
-                    continue;
-                }
-
-                // 收尾消息
-                _msgBuffer.Append(rec.data); //串上自己的data
-                rec.data = _msgBuffer.ToString();  //设上完整的data
-                retRecords.Add(rec); //设为正式的消息
-                _msgBuffer.Clear();//消空消息缓存
-            }
-            return retRecords;
-        }
-        */
         // 清理超过一定时间的“已发送”记忆事项
         void CleanSendedTable()
         {
@@ -276,11 +271,6 @@ DeleteMessage(temp_records, this.GroupName);
                 this._sendedTable.Remove(key);
             }
         }
-
-        //void WriteLog(string strText,int logLevel)
-        //{
-        //    dp2WeiXinService.Instance.WriteLog(strText,logLevel);
-        //}
 
         // 从 dp2mserver 获得消息
         // 每次最多获得 100 条
@@ -362,6 +352,7 @@ DeleteMessage(temp_records, this.GroupName);
                 MessageConnection connection = this.Channels.GetConnectionTaskAsync(
                     this.Url,
                     dp2WeiXinService.C_ConnName_TraceMessage).Result;
+
                 SetMessageRequest param = new SetMessageRequest("expire",
                     "dontNotifyMe",
                     delete_records);//records);这里应该用delete_records吧，用records好像也没错
