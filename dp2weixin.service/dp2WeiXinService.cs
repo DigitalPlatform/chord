@@ -6485,7 +6485,7 @@ ErrorInfo成员里可能会有报错信息。
                 LoginInfo loginInfo = this.Getdp2AccoutForSearch(weixinId);
 
                 // 取出summary
-                this.WriteDebug("开始获取biblio info");
+                this.WriteDebug2("开始获取biblio info");
 
                 string strBiblioInfo = "";
                 string imgHtml = "";// 封面图像
@@ -6585,7 +6585,7 @@ ErrorInfo成员里可能会有报错信息。
                 result.info = biblioInfo + recommendBtn; ;
                 time_length = DateTime.Now - start_time;
                 string info = "获取[" + biblioPath + "]的table信息完毕 time span: " + time_length.TotalSeconds.ToString() + " secs";
-                this.WriteDebug(info);
+                this.WriteDebug2(info);
 
 
                 // 得到读者证条码号
@@ -6596,7 +6596,7 @@ ErrorInfo成员里可能会有报错信息。
                 }
 
                 // 取item
-                this.WriteDebug("开始获取items");
+                this.WriteDebug2("开始获取items");
                 List<BiblioItem> itemList = null;
                 nRet = (int)this.GetItemInfo(weixinId,
                     lib,
@@ -6616,7 +6616,7 @@ ErrorInfo成员里可能会有报错信息。
                 // 计算用了多少时间
                 time_length = DateTime.Now - start_time;
                 logInfo = "获取[" + biblioPath + "]的item信息完毕 time span: " + time_length.TotalSeconds.ToString() + " secs";
-                this.WriteDebug(logInfo);
+                this.WriteDebug2(logInfo);
 
                 result.itemList = itemList;
                 result.errorCode = 1;
