@@ -54,7 +54,105 @@
 
         function saveItem() {
 
-            alert("1");
+           // alert("1");
+
+            var barcode = $("#barcode").val();
+            if (barcode == "") {
+                alert("您尚未输入册条码。");
+                return;
+            }
+
+            var location = $("#location").val();
+            if (location == "") {
+                alert("您尚未输入馆藏地。");
+                return;
+            }
+
+            var bookType = $("#bookType").val();
+            if (bookType == "") {
+                alert("您尚未输入册类型。");
+                return;
+            }
+            //alert("bookType=[" + bookType + "]");
+
+            var accessNo = $("#accessNo").val();
+            if (accessNo == "") {
+                alert("您尚未输入册条码。");
+                return;
+            }
+
+            var price = $("#price").val();
+            if (price == "") {
+                alert("您尚未输入册价格。");
+                return;
+            }
+
+
+            var batchNo = $("#batchNo").val();
+            if (batchNo == "") {
+                alert("您尚未输入批次号。");
+                return;
+            }
+
+            //显示等待图层
+            //var index = loadLayer();
+            showMaskLayer();
+
+            var url = "";
+            var actionType = "";
+            var id = "";
+            if (id == null || id == "") {
+                actionType = "POST";
+                url = "/api/BiblioApi";
+            }
+            else {
+                actionType = "PUT";
+                url = "/api/BiblioApi?id=" + id;
+            }
+            //alert("id=["+id+"]");
+
+
+            sendAjaxRequest(url, actionType,
+                function (result) {
+
+                    // 关闭等待层
+                    //layer.close(index);
+                    hideMaskLayer();
+
+                    if (result.errorCode == -1) {
+                        alert("保存出错:" + result.errorInfo);
+                        return;
+                    }
+
+                    alert("保存成功。");
+
+                    //model.librarys.push(newItem);
+                    model.displaySummary(true);
+                    getAllLib();
+
+                    //清空编辑界面信息
+                    clearEditModel();
+
+                },
+                function (xhq, textStatus, errorThrown) {
+                    // 关闭等待层
+                    layer.close(index);
+                    hideMaskLayer();
+
+                    alert(errorThrown);
+
+                },
+                {
+                    //id: id,
+                    barcode: barcode,
+                    location: location,
+                    bookType: bookType,
+                    accessNo: accessNo,
+                    price: price,
+                    batchNo: batchNo
+                }
+            );
+
         }
 
     </script>
@@ -104,11 +202,11 @@ else
         </div>
         <div class="mui-input-row ">
             <label style="color:#cccccc">馆藏地</label>
-            <input id='location' type="text" class="mui-input mui-input-clear" value="">
+            <input id='location' type="text" class="mui-input mui-input-clear" value="" placeholder="请输入 馆藏地">
         </div>
         <div class="mui-input-row ">
             <label style="color:#cccccc">册类型</label>
-            <input id='bookType' type="text" class="mui-input mui-input-clear" value="">
+            <input id='bookType' type="text" class="mui-input mui-input-clear" value=""  placeholder="请输入 册类型">
         </div>
         <div class="mui-input-row ">
             <label style="color:#cccccc">索取号</label>
@@ -120,7 +218,7 @@ else
         </div>
         <div class="mui-input-row ">
             <label style="color:#cccccc">批次号</label>
-            <input id='batchNo' type="text" class="mui-input mui-input-clear" value="" placeholder="请输入 册价格">
+            <input id='batchNo' type="text" class="mui-input mui-input-clear" value="" placeholder="请输入 批次号">
         </div>
         <div class="mui-content-padded">
             <button id='btn' class="mui-btn mui-btn-block mui-btn-primary" onclick="saveItem()">保存</button>

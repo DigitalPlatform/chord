@@ -3053,7 +3053,6 @@ namespace dp2weixin.service
             {
                 //this.WriteDebug("0-3");
 
-
                 // 可以图书馆的备注信息设为notwart，则不进行检查是否在线
                 if (lib.Entity.comment !=null && lib.Entity.comment.IndexOf("notwarn") != -1) // 任延华测试用的图书馆
                     continue;
@@ -3332,6 +3331,7 @@ namespace dp2weixin.service
             return this.getWarningWorkerWeixinIds(lib);
         }
 
+        // 得到图书馆有接收权限的工作人员帐户
         public List<WxUserItem> getWarningWorkerWeixinIds(LibEntity lib)
         {
             List<WxUserItem> adminWeixinIds = new List<WxUserItem>();
