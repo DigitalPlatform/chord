@@ -1067,6 +1067,10 @@ ex.GetType().ToString());
                 else
                 {
                     record.id = ""; // 表示非最后一个 chunk
+
+                    // 2020/4/27
+                    // 中间的 chunk message 也要有 groups，否则前端收到这样的消息的时候无法判断它是属于什么群的
+                    record.groups = item.groups?.ToArray();
                 }
 
                 results.Add(record);
@@ -3162,7 +3166,10 @@ ex.GetType().ToString());
                     }
 
                     // 强行覆盖
-                    responseParam.LibraryUID = connection_info.LibraryName + "|" + connection_info.LibraryUID;
+                    // responseParam.LibraryUID = connection_info.LibraryName + "|" + connection_info.LibraryUID;
+                    if (string.IsNullOrEmpty(connection_info.LibraryName) == false
+                        || string.IsNullOrEmpty(connection_info.LibraryUID) == false)
+                        responseParam.LibraryUID = connection_info.LibraryName + "|" + connection_info.LibraryUID;
 
 #if NO
                     string strLongPostfix = connection_info.LibraryName + "|" + connection_info.LibraryUID;
