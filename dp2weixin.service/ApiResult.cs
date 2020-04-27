@@ -50,6 +50,11 @@ namespace dp2weixin.service
         public List<WxUserItem> users { get; set; }
     }
 
+    public class UserMessageResult : ApiResult
+    {
+        public List<UserMessageItem> messages { get; set; }
+    }
+
     public class ReservationResult:ApiResult
     {
         // 在借册

@@ -534,10 +534,6 @@ namespace dp2weixinWeb.ApiControllers
         }
 
 
-
-
-
-
         // 修改密码
         [HttpPost]
         public ApiResult ChangePassword(string libId,
@@ -650,8 +646,6 @@ namespace dp2weixinWeb.ApiControllers
             return result;
             
         }
-
-
 
     }
 }

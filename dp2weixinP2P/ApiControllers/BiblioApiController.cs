@@ -181,6 +181,51 @@ namespace dp2weixinWeb.ApiControllers
             return result;
         }
 
+
+        // 绑定
+        [HttpPost]
+        public ApiResult SetBibiloItem(BiblioItem item)
+        {
+            string error = "";
+            // 返回对象
+            ApiResult result = new ApiResult();
+
+
+
+            //int nRet = dp2WeiXinService.Instance.Bind(item.libId,
+            //    item.bindLibraryCode,
+            //    item.prefix,
+            //    item.word,
+            //    item.password,
+            //    item.weixinId,
+            //    out userItem,
+            //    out error);
+            //if (nRet == -1)
+            //{
+            //    result.errorCode = -1;
+            //    result.errorInfo = error;
+            //    return result;
+            //}
+            //result.users = new List<WxUserItem>();
+            //result.users.Add(userItem);
+
+
+
+
+
+            return result;
+        }
+
+        // PUT api/<controller>/5
+        public ApiResult Put(string id, BiblioItem item)
+        {
+            string error = "";
+            // 返回对象
+            ApiResult result = new ApiResult();
+
+            return result;
+        }
+
         /*
         /// <summary>
         /// 获取items

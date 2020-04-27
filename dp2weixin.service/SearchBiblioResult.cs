@@ -34,6 +34,8 @@ namespace dp2weixin.service
 
         public string info { get; set; }
         public List<BiblioItem> itemList { get; set; }
+
+        //public string biblioName { get; set; }
     }
 
     public class BiblioItemResult : ApiResult
@@ -89,5 +91,9 @@ namespace dp2weixin.service
 
          public bool isGray = false;
          public bool isNotCareLoc = false;
+
+        // 2020/4/4，注意如果调api的前端传上此参数，则一定要做成属性。
+        public string batchNo  { get; set; }
+    public string bookType  { get; set; }
     }
 }

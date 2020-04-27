@@ -90,23 +90,20 @@
             // 调web api
             var url = "/api/LibrarySettingApi";
             sendAjaxRequest(url, "GET", function (data) {
+
                 for (var i = 0; i < data.length; i++) {
                     //遍历从服务器得到的结果，以push方法对该数组填充新数据
                     model.librarys.push(data[i]);
                 }
 
                 // 关闭等待层
-                //layer.close(index);
                 hideLoading();
 
             }, function (xhq, textStatus, errorThrown) {
                 // 关闭等待层
-                //layer.close(index);
                 hideLoading();
 
                 alert(errorThrown);
-
-
             });
         }
 
@@ -162,13 +159,7 @@
             return count
         }
 
-        //function getVerifyBarcode() {
-        //    var count = 0;
-        //    $("#ckbVerifyBarcode:checked").each(function () {
-        //        count = 1;
-        //    });
-        //    return count
-        //}
+
 
         function detectUser()
         {

@@ -278,6 +278,7 @@
     <Compile Include="ApiControllers\LibrarySettingApiController.cs" />
     <Compile Include="ApiControllers\PatronApiController.cs" />
     <Compile Include="ApiControllers\ReservationApiController.cs" />
+    <Compile Include="ApiControllers\UserMessageApiController.cs" />
     <Compile Include="ApiControllers\WxUserApiController.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />

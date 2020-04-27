@@ -89,7 +89,7 @@ namespace dp2weixinWeb.Controllers
         }
 
         // 书目查询详细界面
-        public ActionResult Detail(string code, string state, string biblioPath)
+        public ActionResult Detail(string code, string state, string biblioPath,string biblioName)
         {
             string strError = "";
             int nRet = 0;
@@ -113,6 +113,14 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
 
+            if (sessionInfo.ActiveUser != null
+                && sessionInfo.ActiveUser.type == WxUserDatabase.C_Type_Worker
+                && sessionInfo.ActiveUser.userName != WxUserDatabase.C_Public)
+            {
+                ViewBag.Worker = sessionInfo.ActiveUser.userName;
+            }
+
+            ViewBag.BiblioName = biblioName;
             ViewBag.PatronBarcode = sessionInfo.ActiveUser.readerBarcode;
             ViewBag.BiblioPath = biblioPath;
             return View();

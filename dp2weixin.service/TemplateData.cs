@@ -17,9 +17,9 @@ namespace dp2weixin.service
 
         public virtual string Dump()
         {
-            return "<root>"
-                + "<first>"+first.value + "</first>"
-                + "<remark>"+remark.value + "</remark>"
+            return "<root>" +"\r\n"
+                + "<first>"+first.value + "</first>" + "\r\n"
+                + "<remark>"+remark.value + "</remark>" + "\r\n"
                 + "</root>";
         }
     }
@@ -42,11 +42,11 @@ namespace dp2weixin.service
 
         public override string Dump()
         {
-            return "<root>"
-                + "<first>" + first.value + "</first>"
-                + "<keyword1>"+keyword1.value + "</keyword1>"
-                + "<keyword2>"+keyword2.value + "</keyword2>"
-                + "<remark>" + remark.value + "</remark>"
+            return "<root>" + "\r\n"
+                + "<first>" + first.value + "</first>" + "\r\n"
+                + "<keyword1>"+keyword1.value + "</keyword1>" + "\r\n"
+                + "<keyword2>"+keyword2.value + "</keyword2>" + "\r\n"
+                + "<remark>" + remark.value + "</remark>" + "\r\n"
                 + "</root>";
         }
     }
@@ -71,12 +71,12 @@ namespace dp2weixin.service
 
         public override string Dump()
         {
-            return "<root>"
-                + "<first>" + first.value + "</first>"
-                + "<keyword1>" + keyword1.value + "</keyword1>"
-                + "<keyword2>" + keyword2.value + "</keyword2>"
-                + "<keyword3>" + keyword3.value + "</keyword3>"
-                + "<remark>" + remark.value + "</remark>"
+            return "<root>" + "\r\n"
+                + "<first>" + first.value + "</first>" + "\r\n"
+                + "<keyword1>" + keyword1.value + "</keyword1>" + "\r\n"
+                + "<keyword2>" + keyword2.value + "</keyword2>" + "\r\n"
+                + "<keyword3>" + keyword3.value + "</keyword3>" + "\r\n"
+                + "<remark>" + remark.value + "</remark>" + "\r\n"
                 + "</root>";
         }
     }
@@ -102,13 +102,13 @@ namespace dp2weixin.service
 
         public override string Dump()
         {
-            return "<root>"
-                + "<first>" + first.value + "</first>"
-                + "<keyword1>" + keyword1.value + "</keyword1>"
-                + "<keyword2>" + keyword2.value + "</keyword2>"
-                + "<keyword3>" + keyword3.value + "</keyword3>"
-                + "<keyword4>" + keyword4.value + "</keyword4>"
-                + "<remark>" + remark.value + "</remark>"
+            return "<root>" + "\r\n"
+                + "<first>" + first.value + "</first>" + "\r\n"
+                + "<keyword1>" + keyword1.value + "</keyword1>" + "\r\n"
+                + "<keyword2>" + keyword2.value + "</keyword2>" + "\r\n"
+                + "<keyword3>" + keyword3.value + "</keyword3>" + "\r\n"
+                + "<keyword4>" + keyword4.value + "</keyword4>" + "\r\n"
+                + "<remark>" + remark.value + "</remark>" + "\r\n"
                 + "</root>";
         }
     }
@@ -138,14 +138,14 @@ namespace dp2weixin.service
 
         public override string Dump()
         {
-            return "<root>"
-                + "<first>" + first.value + "</first>"
-                + "<keyword1>" + keyword1.value + "</keyword1>"
-                + "<keyword2>" + keyword2.value + "</keyword2>"
-                + "<keyword3>" + keyword3.value + "</keyword3>"
-                + "<keyword4>" + keyword4.value + "</keyword4>"
-                + "<keyword5>" + keyword5.value + "</keyword5>"
-                + "<remark>" + remark.value + "</remark>"
+            return "<root>" + "\r\n"
+                + "<first>" + first.value + "</first>" + "\r\n"
+                + "<keyword1>" + keyword1.value + "</keyword1>" + "\r\n"
+                + "<keyword2>" + keyword2.value + "</keyword2>" + "\r\n"
+                + "<keyword3>" + keyword3.value + "</keyword3>" + "\r\n"
+                + "<keyword4>" + keyword4.value + "</keyword4>" + "\r\n"
+                + "<keyword5>" + keyword5.value + "</keyword5>" + "\r\n"
+                + "<remark>" + remark.value + "</remark>" + "\r\n"
                 + "</root>";
         }
     }
