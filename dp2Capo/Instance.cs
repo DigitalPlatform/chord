@@ -1609,6 +1609,111 @@ namespace dp2Capo
         }
 #endif
 
+        public class NormalResult
+        {
+            public int Value { get; set; }
+            public string ErrorInfo { get; set; }
+            public string ErrorCode { get; set; }
+
+            public NormalResult(NormalResult result)
+            {
+                this.Value = result.Value;
+                this.ErrorInfo = result.ErrorInfo;
+                this.ErrorCode = result.ErrorCode;
+            }
+
+            public NormalResult(int value, string error)
+            {
+                this.Value = value;
+                this.ErrorInfo = error;
+            }
+
+            public NormalResult()
+            {
+
+            }
+
+            public override string ToString()
+            {
+                return $"Value={Value},ErrorInfo={ErrorInfo},ErrorCode={ErrorCode}";
+            }
+        }
+
+        public class GetFromNameResult : NormalResult
+        {
+            public string DbName { get; set; }
+            public string From { get; set; }
+        }
+
+        // 根据书目库名(或者别名)获得检索途径名
+        // parameters:
+        //      strOutputDbName 输出的数据库名。不是Z39.50服务器定义的别名，而是正规数据库名。
+        public GetFromNameResult GetFromName(string strDbNameOrAlias,
+            long lAttributeValue)
+        {
+            string strOutputDbName = "";
+
+            // 因为XMLDOM中无法进行大小写不敏感的搜索，所以把搜索别名的这个任务交给properties
+            Debug.Assert(_root != null, "");
+            BiblioDbProperty prop = this.GetDbProperty(strDbNameOrAlias, true);
+            if (prop == null)
+            {
+                return new GetFromNameResult
+                {
+                    Value = -1,
+                    ErrorInfo = $"名字或者别名为 '{ strDbNameOrAlias}' 的数据库不存在",
+                    ErrorCode = "databaseNotFound"
+                };
+            }
+
+            strOutputDbName = prop.DbName;
+
+            XmlNode nodeDatabase = _root.SelectSingleNode("databases/database[@name='" + strOutputDbName + "']");
+
+            if (nodeDatabase == null)
+            {
+                return new GetFromNameResult
+                {
+                    Value = -1,
+                    ErrorInfo = $"名字为 '{ strOutputDbName }' 的数据库没有定义",
+                    ErrorCode = "databaseNotDefine",
+                    DbName = strOutputDbName
+                };
+            }
+
+            XmlNode nodeUse = nodeDatabase.SelectSingleNode("use[@value='" + lAttributeValue.ToString() + "']");
+            if (nodeUse == null)
+            {
+                return new GetFromNameResult
+                {
+                    Value = -1,
+                    ErrorInfo = $"数据库 '{ strDbNameOrAlias }' 中没有找到关于 '{ lAttributeValue.ToString() }' 的检索途径定义",
+                    ErrorCode = "useNotFound",
+                    DbName = strOutputDbName
+                };
+            }
+
+            string strFrom = DomUtil.GetAttr(nodeUse, "from");
+            if (String.IsNullOrEmpty(strFrom) == true)
+            {
+                return new GetFromNameResult
+                {
+                    Value = -1,
+                    ErrorInfo = $"数据库 '{ strDbNameOrAlias }' <database> 元素中关于 '{ lAttributeValue.ToString() }' 的 <use> 元素缺乏 from 属性值",
+                    ErrorCode = "fromAttrNotFound",
+                    DbName = strOutputDbName
+                };
+            }
+
+            return new GetFromNameResult
+            {
+                Value = 1,
+                DbName = strOutputDbName,
+                From = strFrom
+            };
+        }
+
+#if OLD
         // 根据书目库名(或者别名)获得检索途径名
         // parameters:
         //      strOutputDbName 输出的数据库名。不是Z39.50服务器定义的别名，而是正规数据库名。
@@ -1655,6 +1760,7 @@ namespace dp2Capo
             return strFrom;
         }
 
+#endif
         #endregion
     }
 

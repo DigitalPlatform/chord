@@ -483,7 +483,8 @@ SetMessageRequest param
                 // 转换类型
                 foreach (MessageRecord record in param.Records)
                 {
-
+                    // 2020/4/29 .groups 可以为空。等同于当前用户所属的全部群名
+                    /*
                     if (string.IsNullOrEmpty(string.Join(",", record.groups)))
                     {
                         result.String = "InvalidData";
@@ -491,6 +492,7 @@ SetMessageRequest param
                         result.ErrorInfo = "messages 中包含不合法的 MessageRecord 记录，groups 成员不允许为空(可以使用 '<default>' 作为默认群组的名字)";
                         return result;
                     }
+                    */
                     items.Add(CanonicalizeMessageItemSubjects(BuildMessageItem(record)));
                 }
 
@@ -510,6 +512,21 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
 
                     foreach (MessageItem item in items)
                     {
+                        // 2020/4/29
+                        // 当 .groups 为 null 时表示发送给当前用户所参与的所有群
+                        if (item.groups == null || item.groups.Count == 0)
+                        {
+                            if (connection_info.UserItem == null || connection_info.UserItem.groups == null)
+                            {
+                                result.String = "MapGroupNamesFail";
+                                result.Value = -1;
+                                result.ErrorInfo = "发出的消息记录的 groups 为空时，尝试获得当前用户的所有群名，但条件不满足: connection_info.UserItem.groups != null";
+                                return result;
+                            }
+                            item.groups = new List<string>(connection_info.UserItem.groups);
+                        }
+                        
+                        
                         // 正规化组名
                         CanonicalizeMessageItemGroups(item, connection_info);
 
@@ -851,6 +868,7 @@ ex.GetType().ToString());
                 foreach (MessageItem item in messages)
                 {
                     Debug.Assert(string.IsNullOrEmpty(item.id) == false, "");
+                    Debug.Assert(item.groups != null, "item.groups 不应为 null");
 
                     string groupName = string.Join(",", item.groups).ToLower(); // 注意标准化以后的群名都是小写的
                     if (string.IsNullOrEmpty(groupName) == true)
@@ -1067,6 +1085,10 @@ ex.GetType().ToString());
                 else
                 {
                     record.id = ""; // 表示非最后一个 chunk
+
+                    // 2020/4/27
+                    // 中间的 chunk message 也要有 groups，否则前端收到这样的消息的时候无法判断它是属于什么群的
+                    record.groups = item.groups?.ToArray();
                 }
 
                 results.Add(record);
@@ -1792,6 +1814,10 @@ ex.GetType().ToString());
 
                     if (userName == "*" || string.IsNullOrEmpty(userName) == true)
                         userName = strCurrentUserName;
+                    else if (userName == strCurrentUserName)
+                    {
+                        // 2020/4/29
+                    }
                     else
                     {
                         // userName 参数为 * 或者 空 以外的值
@@ -3162,7 +3188,10 @@ ex.GetType().ToString());
                     }
 
                     // 强行覆盖
-                    responseParam.LibraryUID = connection_info.LibraryName + "|" + connection_info.LibraryUID;
+                    // responseParam.LibraryUID = connection_info.LibraryName + "|" + connection_info.LibraryUID;
+                    if (string.IsNullOrEmpty(connection_info.LibraryName) == false
+                        || string.IsNullOrEmpty(connection_info.LibraryUID) == false)
+                        responseParam.LibraryUID = connection_info.LibraryName + "|" + connection_info.LibraryUID;
 
 #if NO
                     string strLongPostfix = connection_info.LibraryName + "|" + connection_info.LibraryUID;

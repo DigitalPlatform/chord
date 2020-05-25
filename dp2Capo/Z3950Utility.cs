@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Security;
 using System.Text;
-
+using DigitalPlatform.Text;
 using DigitalPlatform.Z3950;
 
 namespace dp2Capo
@@ -243,12 +244,17 @@ namespace dp2Capo
                 Debug.Assert(props.Count > 0, "不为空的props才能推入 (2)");
                 prop_groups.Add(props); // 将最后一个props加入到group数组中
 
+                // 没有找到 From 的列表
+                // use编号 --> 关于没有找到的报错字符串
+                Hashtable notFoundTable = new Hashtable();
+
                 for (int i = 0; i < prop_groups.Count; i++)
                 {
                     props = prop_groups[i];
 
                     string strTargetListValue = "";
                     int nMaxResultCount = -1;
+
                     for (int j = 0; j < props.Count; j++)
                     {
                         BiblioDbProperty prop = props[j];
@@ -264,20 +270,39 @@ namespace dp2Capo
                         if (j == 0)
                             nMaxResultCount = prop.MaxResultCount;  // 只取第一个prop的值即可
 
+                        /*
                         string strFrom = zhost.GetFromName(strDbName,
                             lAttritueValue,
                             out string strOutputDbName,
                             out strError);
                         if (strFrom == null)
                             return -1;  // 寻找from名的过程发生错误
+                            */
+                        var result = zhost.GetFromName(strDbName, lAttritueValue);
+                        if (result.Value == -1)
+                        {
+                            // 2020/5/23
+                            // 如果是 use 没有找到，这里暂时不急于判断。如果后面找到了至少一次，就不报错；否则(就是说一次都没有找到)就要报错
+                            if (result.ErrorCode == "useNotFound")
+                            {
+                                notFoundTable[$"{lAttritueValue}"] = result.ErrorInfo;
+                                continue;
+                            }
+                            strError = result.ErrorInfo;
+                            return -1;
+                        }
 
                         if (strTargetListValue != "")
                             strTargetListValue += ";";
 
-                        Debug.Assert(strOutputDbName != "", "");
+                        Debug.Assert(string.IsNullOrEmpty(result.DbName) == false, "");
+                        Debug.Assert(string.IsNullOrEmpty(result.From) == false, "");
 
-                        strTargetListValue += strOutputDbName + ":" + strFrom;
+                        strTargetListValue += result.DbName + ":" + result.From;
                     }
+
+                    if (string.IsNullOrEmpty(strTargetListValue))
+                        continue;
 
                     if (i != 0)
                         strQueryXml += "<operator value='OR' />";
@@ -287,6 +312,17 @@ namespace dp2Capo
                     + "</word><match>left</match><relation>=</relation><dataType>string</dataType>"
                     + "<maxCount>" + nMaxResultCount.ToString() + "</maxCount></item>"
                     + "<lang>zh</lang></target>";
+                }
+
+                if (string.IsNullOrEmpty(strQueryXml) == true)
+                {
+                    List<string> keys = new List<string>();
+                    foreach(string key in notFoundTable.Keys)
+                    {
+                        keys.Add(key);
+                    }
+                    strError = $"use '{StringUtil.MakePathList(keys)}' 没有定义";
+                    return -1;
                 }
 
                 // 如果有多个props，则需要在检索XML外面包裹一个<target>元素，以作为一个整体和其他部件进行逻辑操作
