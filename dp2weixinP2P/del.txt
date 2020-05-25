@@ -1,4 +1,6 @@
-﻿                // 成员册 不显示“在借情况”和“预约信息”
+﻿            <div class="mui-content-padded"><span style="@ViewBag.subLibGray">馆藏限定范围</span><span style="color:#cccccc">（工作人员 或 有流通权限的读者 有效） @ViewBag.accountInfo</span> </div>
+
+                // 成员册 不显示“在借情况”和“预约信息”
                 if (bMember == false)
                 {
                     string strBorrowInfo = "在架";

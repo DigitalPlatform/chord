@@ -132,7 +132,7 @@
             var url = "/api/wxuserApi?workerId=" + workerId
                 + "&tracing=" + tracing;
 
-            
+
             //alert(url);
             sendAjaxRequest(url, "POST",
                 function (result) {
@@ -455,7 +455,6 @@ else
     }
     else
     {
-
         <table style="width:100%">
             <tr>
                 <td style="width:100%">
@@ -472,16 +471,21 @@ else
 
 
         <div class="mui-card" style="margin-top:10px">
-            <div class='mui-input-row mui-checkbox mui-left'>
-                <label>显示头像</label>
-                <input id='ckbPhoto' onchange="save()" type='checkbox' @ViewBag.photoChecked />
-            </div>
+            @if (ViewBag.isPatron == 1)
+            {
+                <div class='mui-input-row mui-checkbox mui-left'>
+                    <label>显示头像</label>
+                    <input id='ckbPhoto' onchange="save()" type='checkbox' @ViewBag.photoChecked />
+                </div>
+            }
+
             <div class='mui-input-row mui-checkbox mui-left'>
                 <label>显示图书封面</label>
                 <input id='ckbCover' onchange="save()" type='checkbox' @ViewBag.coverChecked />
             </div>
         </div>
 
+        if (ViewBag.isPatron == 0 && String.IsNullOrEmpty(ViewBag.workerId) == false)
         {
             string style = "";
             string disabledstr = "";
@@ -502,46 +506,44 @@ else
             </div>
         }
 
-        <div class="mui-card" style="margin-top:10px">
-            <div class="mui-content-padded"><span style="@ViewBag.subLibGray">馆藏限定范围</span><span style="color:#cccccc">（工作人员 或 有流通权限的读者 有效） @ViewBag.accountInfo</span> </div>
-            @if (ViewBag.libList != null)
-            {
-                foreach (dp2weixin.service.SubLib sublib in ViewBag.libList)
+        if ((ViewBag.isPatron == 1) || (ViewBag.isPatron == 0 && String.IsNullOrEmpty(ViewBag.workerId) == false))
+        {
+
+            <div class="mui-card" style="margin-top:10px">
+                <div class="mui-content-padded"><span style="@ViewBag.subLibGray">关注的馆藏地</span><span style="color:#cccccc"> @ViewBag.accountInfo</span> </div>
+                @if (ViewBag.libList != null)
                 {
-                    <div class='mui-input-row mui-checkbox mui-left'>
-                        <label>@sublib.libCode &nbsp;<span style="color:#cccccc;font-size:18pt" onclick="expand(this,'lib-@sublib.libCode')">-</span></label>
-                        <input id='ckbSubLib-@sublib.libCode' class="library" type='checkbox' @sublib.Checked onchange="selSubLib(this)" value="@sublib.libCode" />
-                        <div style="padding-left:30px" id="lib-@sublib.libCode">
-                            @foreach (dp2weixin.service.Location location in sublib.Locations)
-                            {
-                                <div class='mui-input-row mui-checkbox mui-left'>
-                                    <label>@location.Name</label>
-                                    <input id='ckbLocation-@sublib.libCode' class='location' @location.Checked type='checkbox' onchange='selLoc(this)' value='@location.Name' />
-                                </div>
-                            }
+                    foreach (dp2weixin.service.SubLib sublib in ViewBag.libList)
+                    {
+                        <div class='mui-input-row mui-checkbox mui-left'>
+                            <label>@sublib.libCode &nbsp;<span style="color:#cccccc;font-size:18pt" onclick="expand(this,'lib-@sublib.libCode')">-</span></label>
+                            <input id='ckbSubLib-@sublib.libCode' class="library" type='checkbox' @sublib.Checked onchange="selSubLib(this)" value="@sublib.libCode" />
+                            <div style="padding-left:30px" id="lib-@sublib.libCode">
+                                @foreach (dp2weixin.service.Location location in sublib.Locations)
+                                {
+                                    <div class='mui-input-row mui-checkbox mui-left'>
+                                        <label>@location.Name</label>
+                                        <input id='ckbLocation-@sublib.libCode' class='location' @location.Checked type='checkbox' onchange='selLoc(this)' value='@location.Name' />
+                                    </div>
+                                }
+                            </div>
                         </div>
-                    </div>
+                    }
                 }
-            }
-
-
-
-
-
-
-
-
-
-        </div>
-
-        <div class="mui-card" style="margin-top:10px">
-            <div class="mui-content-padded">
-                <span style="color:#cccccc">专业借还设置</span>
-</div>
-            <div class='mui-input-row mui-checkbox mui-left' style="background-color:#eeeeee">
-                <label>校验输入的条码号</label>
-                <input id='ckbVerifyBarcode' type='checkbox' @ViewBag.verifyBarcode onchange='saveVerifyBarcode()' />
             </div>
+        }
+
+
+        if ((ViewBag.allowPatronBorrow == true) || (ViewBag.isPatron == 0 && String.IsNullOrEmpty(ViewBag.workerId) == false))
+        {
+            <div class="mui-card" style="margin-top:10px">
+                <div class="mui-content-padded">
+                    <span style="color:#cccccc">专业借还设置</span>
+                </div>
+                <div class='mui-input-row mui-checkbox mui-left' style="background-color:#eeeeee">
+                    <label>校验输入的条码号</label>
+                    <input id='ckbVerifyBarcode' type='checkbox' @ViewBag.verifyBarcode onchange='saveVerifyBarcode()' />
+                </div>
 
 
                 <div class="mui-input-row " style=" background-image:url('../img/arrowright.png');background-position:right;background-repeat:no-repeat">
@@ -553,14 +555,11 @@ else
                         <option value="4">提示语音+具体信息语音</option>
                     </select>
 
-            </div>
-
-        </div>
-
-                <!--
-                <div class="mui-content-padded">
-                    <button class="mui-btn mui-btn-block mui-btn-primary" onclick="save()">保存</button>
                 </div>
-                    -->
+
+            </div>
+        }
+
+
     }
 }

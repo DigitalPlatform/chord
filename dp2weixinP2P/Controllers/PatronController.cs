@@ -259,7 +259,6 @@ namespace dp2weixinWeb.Controllers
         #endregion
 
 
-
         /// <summary>
         /// 我的信息主界面
         /// </summary>
@@ -302,6 +301,7 @@ namespace dp2weixinWeb.Controllers
             return View();
 
         }
+
 
         public ActionResult PatronSearch(string code, string state,string patronName)
         {
@@ -549,7 +549,7 @@ namespace dp2weixinWeb.Controllers
             patron = dp2WeiXinService.Instance.ParsePatronXml(libId,
                     patronXml,
                     recPath,
-                    ViewBag.showPhoto,
+                    sessionInfo.ActiveUser.showPhoto,//ViewBag.showPhoto,
                     false);
 
             // 2020-3-12 已审核过的读者不需要再次审核
@@ -571,8 +571,16 @@ namespace dp2weixinWeb.Controllers
                 ViewBag.womanSel = " selected ";
             }
 
-            // 读者类别
-            ViewBag.readerTypeHtml = this.GetReaderTypeHtml(sessionInfo.ReaderTypes, patron.readerType);// typesHtml;
+            // 读者类别 2020/4/7更新
+            string readerType = sessionInfo.GetReaderType(sessionInfo.ActiveUser,
+                out strError);
+            if (string.IsNullOrEmpty(strError) == false)
+            {
+                ViewBag.Error = strError;
+                return View(patron);
+            }
+            ViewBag.readerTypeHtml = this.GetReaderTypeHtml(readerType, 
+                patron.readerType);// typesHtml;
 
             // 来源
             ViewBag.From = f;
@@ -656,6 +664,9 @@ namespace dp2weixinWeb.Controllers
 
             return typesHtml;
         }
+
+
+
 
         /// <summary>
         /// 读者自助注册功能
@@ -802,46 +813,16 @@ namespace dp2weixinWeb.Controllers
             // 管理的分馆
             string[] libraryList = sessionInfo.ActiveUser.libraryCode.Split(new[] { ',' });
 
-            // 读者类别
-            /*
-            string types = sessionInfo.ReaderTypes;
-            string typesHtml = "";
-            if (String.IsNullOrEmpty(types) == false)
+            // 获取读者类别 2020/4/7更新
+            string readerType = sessionInfo.GetReaderType(sessionInfo.ActiveUser,
+                out strError);
+            if (string.IsNullOrEmpty(strError) == false)
             {
-                string[] typeList = types.Split(new char[] { ',' });
-                foreach (string type in typeList)
-                {
-                    // 如果这个类型的分馆 是当前帐户可用的分馆，才列出来
-                    if (sessionInfo.ActiveUser.libraryCode != "")
-                    {
-                        int nIndex = type.LastIndexOf("}");
-                        if (nIndex > 0)
-                        {
-                            string left = type.Substring(0, nIndex);
-                            nIndex = left.IndexOf("{");
-                            if (nIndex != -1)
-                            {
-                                left = left.Substring(nIndex + 1);
-
-                                if (libraryList.Contains(left) == true)
-                                {
-                                    typesHtml += "<option value='" + type + "'>" + type + "</option>";
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        typesHtml += "<option value='" + type + "'>" + type + "</option>";
-                    }
-                }
+                ViewBag.Error = strError;
+                return View();
             }
-            typesHtml = "<select id='selReaderType' name='selReaderType' class='selArrowRight'>"
-                    + "<option value=''>请选择</option>"
-                    + typesHtml
-                    + "</select>";
-            */
-            ViewBag.readerTypeHtml = this.GetReaderTypeHtml(sessionInfo.ReaderTypes, "");//typesHtml;
+
+            ViewBag.readerTypeHtml = this.GetReaderTypeHtml(readerType, "");//typesHtml;
 
 
             // 新增时，统一使用配置的数据库
@@ -946,7 +927,7 @@ namespace dp2weixinWeb.Controllers
             patron = dp2WeiXinService.Instance.ParsePatronXml(libId,
                     patronXml,
                     recPath,
-                    ViewBag.showPhoto,
+                    sessionInfo.ActiveUser.showPhoto,//ViewBag.showPhoto,
                     true);
 
             return View(patron);
@@ -1261,13 +1242,13 @@ namespace dp2weixinWeb.Controllers
 
             // 是否显示头像
             string photoChecked = "";
-            if (ViewBag.showPhoto == 1)
+            if (sessionInfo.ActiveUser.showPhoto==1)  //ViewBag.showPhoto == 1)
                 photoChecked = " checked='checked' ";
             ViewBag.photoChecked = photoChecked;
 
             // 是否显示图书封面
             string coverChecked = "";
-            if (ViewBag.showCover == 1)
+            if (sessionInfo.ActiveUser.showCover==1) //ViewBag.showCover == 1)
                 coverChecked = " checked='checked' ";
             ViewBag.coverChecked = coverChecked;
 
@@ -1359,13 +1340,16 @@ namespace dp2weixinWeb.Controllers
                     string[] selLocList = selLocation.Split(new char[] { ',' });
                     foreach (SubLib subLib in subLibs)
                     {
-                        foreach (Location loc in subLib.Locations)
+                        if (subLib.libCode == sessionInfo.ActiveUser.bindLibraryCode)
                         {
-                            string locPath = subLib.libCode + "/" + loc.Name;
-                            if (selLocList.Contains(locPath) == true)
+                            foreach (Location loc in subLib.Locations)
                             {
-                                subLib.Checked = "checked";
-                                loc.Checked = "checked";
+                                string locPath = subLib.libCode + "/" + loc.Name;
+                                if (selLocList.Contains(locPath) == true)
+                                {
+                                    subLib.Checked = "checked";
+                                    loc.Checked = "checked";
+                                }
                             }
                         }
                     }
@@ -1390,6 +1374,8 @@ namespace dp2weixinWeb.Controllers
             {
                 ViewBag.audioType = sessionInfo.ActiveUser.audioType;
             }
+
+            ViewBag.allowPatronBorrow = false;
 
             return View();
 

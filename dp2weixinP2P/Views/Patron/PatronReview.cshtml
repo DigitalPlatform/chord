@@ -59,7 +59,7 @@
             }
 
 
-            var libId = getLibId(); 
+            var libId = getLibId();
             if (libId == "") {
                 alert("异常情况：libId为空。");
                 return;
@@ -103,7 +103,7 @@
                     return;
                 }
 
-                if (readerType.indexOf("临时读者") != -1) {
+                if (readerType=="" || readerType.indexOf("临时读者") != -1) {
                     alert("审核通过时，需为读者选择正式的读者类型。");
                     return;
                 }
@@ -173,7 +173,7 @@
                     $("#btnPass").attr("disabled", true);
                     $("#btnReject").attr("disabled", true);
 
-                    var returnUrl = "/Patron/PatronList"; 
+                    var returnUrl = "/Patron/PatronList";
                     gotoUrl(returnUrl);
 
                 },
@@ -192,7 +192,7 @@
                     department: department,
                     phone: phone,
                     reason: reason,
-                    state:state
+                    state: state
                 }
             );
         }
@@ -253,86 +253,79 @@ else
     else
     {
 
-<div class="mui-input-group">
+        <div class="mui-input-group">
 
-    <table style="width:100%">
-        <tr>
-            <td style="width:100%;">
-                <div class="mui-input-group" style="background-color:white">
-                    <div class="mui-input-row">
-                        <label id="lblName" style="color:#cccccc">证条码号</label>
-                        <input id='txtBarcode' type="text" class="mui-input mui-input-clear" placeholder="请输入 证条码号" value="@Model.barcode">
-                    </div>
+            <table style="width:100%">
+                <tr>
+                    <td style="width:100%;">
+                        <div class="mui-input-group" style="background-color:white">
+                            <div class="mui-input-row">
+                                <label id="lblName" style="color:#cccccc">证条码号</label>
+                                <input id='txtBarcode' type="text" class="mui-input mui-input-clear" placeholder="请输入 证条码号" value="@Model.barcode">
+                            </div>
+                        </div>
+                    </td>
+                    <td><button onclick="getPatronBarcode()" id='login' class="" style="border:0px;margin-right:2px;width:30px;height:30px;background-image:url('../img/banshou3.jfif');background-repeat:round"></button></td>
+                </tr>
+            </table>
+
+            <table style="width:100%">
+                <tr>
+                    <td style="width:100%">
+                        <div class="mui-input-group" style="background-color:white">
+                            <div class="mui-input-row">
+                                <label id="lblName" style="color:#cccccc">姓名</label>
+                                <input id='txtName' type="text" class="mui-input mui-input-clear" placeholder="请输入 姓名" value="@Model.name">
+                            </div>
+                        </div>
+                    </td>
+                    <td><button onclick="searchPatron()" id='login' class="" style="border:0px;margin-right:2px;width:32px;height:30px;background-image:url('../img/search2.jfif');background-repeat:round;"></button></td>
+                </tr>
+            </table>
+
+
+            <!--
+                <div class="mui-input-row ">
+                    <label id="lblName" style="color:#cccccc">姓名</label>
+                    <input id='txtName' type="text" class="mui-input mui-input-clear" value="@Model.name">
                 </div>
-            </td>
-            <td><button onclick="getPatronBarcode()" id='login' class="" style="border:0px;margin-right:2px;width:30px;height:30px;background-image:url('../img/banshou3.jfif');background-repeat:round"></button></td>
-        </tr>
-    </table>
+            -->
+            <div class="mui-input-row selArrowRightContainer">
+                <label id="lblGender" style="color:#cccccc">性别</label>
+                <select id="selGender" name="selGender" class='selArrowRight'>
+                    <option value=''>请选择 性别</option>"
+                    <option value="男" @ViewBag.manSel>男</option>
+                    <option value="女" @ViewBag.womanSel>女</option>
+                </select>
+            </div>
+            <div class="mui-input-row selArrowRightContainer">
+                <label id="lblType" style="color:#cccccc">读者类别</label>
+                @Html.Raw(ViewBag.readerTypeHtml)
+            </div>
 
-    <table style="width:100%">
-        <tr>
-            <td style="width:100%">
-                <div class="mui-input-group" style="background-color:white">
-                    <div class="mui-input-row">
-                        <label id="lblName" style="color:#cccccc">姓名</label>
-                        <input id='txtName' type="text" class="mui-input mui-input-clear" placeholder="请输入 姓名" value="@Model.name">
-                    </div>
-                </div>
-            </td>
-            <td><button onclick="searchPatron()" id='login' class="" style="border:0px;margin-right:2px;width:32px;height:30px;background-image:url('../img/search2.jfif');background-repeat:round;"></button></td>
-        </tr>
-    </table>
+            <div class="mui-input-row selArrowRightContainer">
+                <label id="lblDepartment" style="color:#cccccc">部门</label>
+                <select id="selDept" name="selDept" class='selArrowRight' onchange="setdept(this.value)">
+                    @Html.Raw(ViewBag.deptHtml)
+                </select>
+            </div>
 
+            <div id='otherDept' class="mui-input-row " @Html.Raw(ViewBag.displayText)>
+                <label id="lblDept" style="color:#cccccc">其它部门</label>
+                <input id='txtDepartment' type="text" class="mui-input mui-input-clear" placeholder="请输入 部门" value="@Model.department">
+            </div>
 
-    <!--
-        <div class="mui-input-row ">
-            <label id="lblName" style="color:#cccccc">姓名</label>
-            <input id='txtName' type="text" class="mui-input mui-input-clear" value="@Model.name">
+            <div class="mui-input-row ">
+                <label id="lblPhone" style="color:#cccccc">手机号</label>
+                <input id='txtPhone' type="text" class="mui-input mui-input-clear" value="@Model.phone" placeholder="请输入 手机号">
+            </div>
+
+            <div class="mui-input-row ">
+                <label id="lblReason" style="color:#cccccc">不通过原因</label>
+                <input id='txtReason' type="text" class="mui-input mui-input-clear" placeholder="请输入 不通过原因">
+            </div>
+
         </div>
-    -->
-    <div class="mui-input-row selArrowRightContainer">
-        <label id="lblGender" style="color:#cccccc">性别</label>
-        <select id="selGender" name="selGender" class='selArrowRight'>
-            <option value=''>请选择 性别</option>"
-            <option value="男" @ViewBag.manSel>男</option>
-            <option value="女" @ViewBag.womanSel>女</option>
-        </select>
-    </div>
-    <div class="mui-input-row selArrowRightContainer">
-        <label id="lblType" style="color:#cccccc">读者类别</label>
-        @Html.Raw(ViewBag.readerTypeHtml)
-    </div>
-
-
-
-
-
-
-
-
-    <div class="mui-input-row selArrowRightContainer">
-        <label id="lblDepartment" style="color:#cccccc">部门</label>
-        <select id="selDept" name="selDept" class='selArrowRight' onchange="setdept(this.value)">
-            @Html.Raw(ViewBag.deptHtml)
-        </select>
-    </div>
-
-    <div id='otherDept' class="mui-input-row " @Html.Raw(ViewBag.displayText)>
-        <label id="lblDept" style="color:#cccccc">其它部门</label>
-        <input id='txtDepartment' type="text" class="mui-input mui-input-clear" placeholder="请输入 部门" value="@Model.department">
-    </div>
-
-    <div class="mui-input-row ">
-        <label id="lblPhone" style="color:#cccccc">手机号</label>
-        <input id='txtPhone' type="text" class="mui-input mui-input-clear" value="@Model.phone" placeholder="请输入 手机号">
-    </div>
-
-    <div class="mui-input-row ">
-        <label id="lblReason" style="color:#cccccc">不通过原因</label>
-        <input id='txtReason' type="text" class="mui-input mui-input-clear" placeholder="请输入 不通过原因">
-    </div>
-
-</div>
         <div class="mui-content-padded">
             <table style="width:100%">
                 <tr>
