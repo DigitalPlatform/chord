@@ -35,6 +35,9 @@
             var url = "/api/UserMessageApi?userId=" + userId + "&id=" + id;
             sendAjaxRequest(url, "GET", function (result) {
 
+                                    // 关闭等待层
+                hideMaskLayer();
+
                 if (result.errorCode == -1) {
                     alert(result.errorInfo);
                     return;
@@ -45,12 +48,10 @@
                 // 重新加载页面
                 window.location.reload();
 
-                // 关闭等待层
-                hideLoading();
 
             }, function (xhq, textStatus, errorThrown) {
-                // 关闭等待层
-                hideLoading();
+                    // 关闭等待层
+                    hideMaskLayer();
 
                 alert(errorThrown);
             });

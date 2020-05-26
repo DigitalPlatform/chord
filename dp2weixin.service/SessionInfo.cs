@@ -22,9 +22,186 @@ namespace dp2weixin.service
         // 当前图书馆信息
         public Library CurrentLib = null;
 
-        // 当前图书馆配置的读者类型和读者库，用于读者登记
-        public string ReaderTypes = "";
-        
+        // 当前图书馆配置的读者类型，用于读者登记
+        public string _readerTypes = null;
+        public  string GetReaderType(WxUserItem user,
+            out string error)
+        {
+            error = "";
+            if (user == null)
+            {
+                error = "传入的user为null";
+                return "";
+            }
+
+            if (_readerTypes == null)
+            {
+                // 从服务器获取
+                string tempReaderTypes = "";
+                int nRet = dp2WeiXinService.Instance.GetReaderType(user.libId,
+                    user,
+                    out tempReaderTypes,
+                    out error);
+                if (nRet == -1)
+                {
+                    error = "获取读者类型出错:" + error;
+                    dp2WeiXinService.Instance.WriteErrorLog("" + error);
+                    return "";
+                }
+
+                string types = "";
+                string[] typeList = tempReaderTypes.Trim().Split(new char[] { ',' });
+
+                //这里要把不与当前馆匹配的 总馆或分馆的读者类型过滤掉，只剩下有用的类型
+                // 为什么要用bindLibraryCode参数，而不用libraryCode，
+                // 是因为libraryCode可能是多个分馆也可能是空，但绑定的只能选择一个范围内的馆，所以用bindLibraryCode表示当前馆更准备，而且是一个
+                if (string.IsNullOrEmpty(this.ActiveUser.bindLibraryCode) == true)
+                {
+                    foreach (string type in typeList)
+                    {
+                        if (type.Length >= 1 && type.Substring(0, 1) == "{")
+                            continue;
+
+                        if (types != "")
+                            types += ",";
+
+                        types += type;
+                    }
+                }
+                else
+                {
+                    string fullLibCode = "{" + this.ActiveUser.bindLibraryCode + "}";
+                    foreach (string type in typeList)
+                    {
+                        if (type.IndexOf(fullLibCode) == -1)
+                            continue;
+
+                        if (types != "")
+                            types += ",";
+
+                        types += type;
+                    }
+
+                }
+
+                // 设到内存里，下次就不用再获取了。
+                this._readerTypes = types;
+
+            }
+
+            return _readerTypes;
+
+        }
+
+        // 当前图书馆配置的读者类型，用于读者登记
+        public string _bookType = null;
+        public string GetBookType(out string error)
+        {
+            error = "";
+            if (this.ActiveUser == null)
+            {
+                error = "当前帐户为null";
+                return "";
+            }
+
+            if (_bookType == null)
+            {
+                // 从服务器获取
+                string output = "";
+                int nRet = dp2WeiXinService.Instance.GetBookType(this.ActiveUser.libId,
+                    this.ActiveUser,
+                    out output,
+                    out error);
+                if (nRet == -1)
+                {
+                    error = "获取读者类型出错:" + error;
+                    dp2WeiXinService.Instance.WriteErrorLog("" + error);
+                    return "";
+                }
+
+                string result = "";
+                string[] list = output.Trim().Split(new char[] { ',' });
+
+                //这里要把不与当前馆匹配的 总馆或分馆的读者类型过滤掉，只剩下有用的类型
+                // 为什么要用bindLibraryCode参数，而不用libraryCode，
+                // 是因为libraryCode可能是多个分馆也可能是空，但绑定的只能选择一个范围内的馆，所以用bindLibraryCode表示当前馆更准备，而且是一个
+                if (string.IsNullOrEmpty(this.ActiveUser.bindLibraryCode) == true)
+                {
+                    foreach (string one in list)
+                    {
+                        if (one.Length >= 1 && one.Substring(0, 1) == "{")
+                            continue;
+
+                        if (result != "")
+                            result += ",";
+
+                        result += one;
+                    }
+                }
+                else
+                {
+                    string fullLibCode = "{" + this.ActiveUser.bindLibraryCode + "}";
+                    foreach (string one in list)
+                    {
+                        if (one.IndexOf(fullLibCode) == -1)
+                            continue;
+
+                        if (result != "")
+                            result += ",";
+
+                        result += one;
+                    }
+
+                }
+
+                // 设到内存里，下次就不用再获取了。
+                this._bookType = result;
+
+            }
+
+            return this._bookType;
+
+        }
+
+
+        // 当前图书馆配置的读者类型，用于读者登记
+        public string _location = null;
+        public string GetLocation(out string error)
+        {
+            error = "";
+            if (this.ActiveUser == null)
+            {
+                error = "当前帐户为null";
+                return "";
+            }
+
+            if (_location == null)
+            {
+                // 从服务器获取
+                string output = "";
+                int nRet = dp2WeiXinService.Instance.GetLocation(this.ActiveUser.libId,
+                    this.ActiveUser,
+                    out output,
+                    out error);
+                if (nRet == -1)
+                {
+                    error = "获取读者类型出错:" + error;
+                    dp2WeiXinService.Instance.WriteErrorLog("" + error);
+                    return "";
+                }
+
+
+
+                // 设到内存里，下次就不用再获取了。
+                this._location = output;
+
+            }
+
+            return _location;
+
+        }
+
+
         // 2020-3-1 ryh注释掉，新增时统一使用配置文件定义的读者库，与读者注册一致。编辑时原来是哪个库是保存到原来的库
         //public string ReaderDbnames = "";
 
@@ -149,62 +326,63 @@ namespace dp2weixin.service
                 // 当前图书馆
                 this.CurrentLib = dp2WeiXinService.Instance.LibManager.GetLibrary(this.ActiveUser.libId);
 
-                // 如果是工作人员，获取地应图书馆的读者类型和读者库，用于读者登记
-                if (this.ActiveUser.type == WxUserDatabase.C_Type_Worker 
-                    && this.ActiveUser.userName != WxUserDatabase.C_Public)
-                {
-                    List<string> dataList = null;
-                    nRet = dp2WeiXinService.Instance.GetSystemParameter(
-                        this.CurrentLib.Entity,
-                        "_valueTable",
-                        "readerType",
-                        out dataList,
-                        out error);
-                    if (nRet == -1)
-                    {
-                        dp2WeiXinService.Instance.WriteErrorLog("!!!" + error);
-                        //return -1;
-                    }
-                    if (dataList != null && dataList.Count > 0)
-                    {
-                        string tempReaderTypes = dataList[0];
-                        string[] typeList = tempReaderTypes.Trim().Split(new char[] { ',' });
+                //// 如果是工作人员，获取地应图书馆的读者类型和读者库，用于读者登记
+                //if (this.ActiveUser.type == WxUserDatabase.C_Type_Worker 
+                //    && this.ActiveUser.userName != WxUserDatabase.C_Public)
+                //{
 
-                        string types = "";
-                        //这里要把不与当前馆匹配的 总馆或分馆的读者类型过滤掉，只剩下有用的类型
-                        // 为什么要用bindLibraryCode参数，而不用libraryCode，
-                        // 是因为libraryCode可能是多个分馆也可能是空，但绑定的只能选择一个范围内的馆，所以用bindLibraryCode表示当前馆更准备，而且是一个
-                        if (string.IsNullOrEmpty(this.ActiveUser.bindLibraryCode) == true)
-                        {
-                            foreach (string type in typeList)
-                            {
-                                if (type.Length >= 1 && type.Substring(0, 1) == "{")
-                                    continue;
+                //    List<string> dataList = null;
+                //    nRet = dp2WeiXinService.Instance.GetSystemParameter(
+                //        this.CurrentLib.Entity,
+                //        "_valueTable",
+                //        "readerType",
+                //        out dataList,
+                //        out error);
+                //    if (nRet == -1)
+                //    {
+                //        dp2WeiXinService.Instance.WriteErrorLog("!!!" + error);
+                //        //return -1;
+                //    }
+                //    if (dataList != null && dataList.Count > 0)
+                //    {
+                //        string tempReaderTypes = dataList[0];
+                //        string[] typeList = tempReaderTypes.Trim().Split(new char[] { ',' });
 
-                                if (types != "")
-                                    types += ",";
+                //        string types = "";
+                //        //这里要把不与当前馆匹配的 总馆或分馆的读者类型过滤掉，只剩下有用的类型
+                //        // 为什么要用bindLibraryCode参数，而不用libraryCode，
+                //        // 是因为libraryCode可能是多个分馆也可能是空，但绑定的只能选择一个范围内的馆，所以用bindLibraryCode表示当前馆更准备，而且是一个
+                //        if (string.IsNullOrEmpty(this.ActiveUser.bindLibraryCode) == true)
+                //        {
+                //            foreach (string type in typeList)
+                //            {
+                //                if (type.Length >= 1 && type.Substring(0, 1) == "{")
+                //                    continue;
 
-                                types += type;
-                            }
-                        }
-                        else
-                        {
-                            string fullLibCode = "{" + this.ActiveUser.bindLibraryCode + "}";
-                            foreach (string type in typeList)
-                            {
-                                if (type.IndexOf(fullLibCode) == -1)
-                                    continue;
+                //                if (types != "")
+                //                    types += ",";
 
-                                if (types != "")
-                                    types += ",";
+                //                types += type;
+                //            }
+                //        }
+                //        else
+                //        {
+                //            string fullLibCode = "{" + this.ActiveUser.bindLibraryCode + "}";
+                //            foreach (string type in typeList)
+                //            {
+                //                if (type.IndexOf(fullLibCode) == -1)
+                //                    continue;
 
-                                types += type;
-                            }
+                //                if (types != "")
+                //                    types += ",";
 
-                        }
+                //                types += type;
+                //            }
 
-                        this.ReaderTypes = types;
-                    }
+                //        }
+
+                //        this.ReaderTypes = types;
+                //    }
 
 
                     // 2020-3-1觉得让馆员选择可能搞不清楚，还是统一使用配置文件设置的吧，与读者自助注册一样
@@ -228,7 +406,7 @@ namespace dp2weixin.service
                     }
                     */
 
-                }
+                //}
             }
 
             return 0;

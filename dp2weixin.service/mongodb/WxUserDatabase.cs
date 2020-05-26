@@ -724,8 +724,8 @@ namespace dp2weixin.service
                 .Set("rights", item.rights)
                 .Set("appId", item.appId)
                 .Set("tracing", item.tracing)
-                .Set("location", item.location)
-                .Set("selLocation", item.selLocation)
+                .Set("location", item.location)  // 自己可管理的馆藏地
+                .Set("selLocation", item.selLocation)  // 关注的馆藏地
                .Set("verifyBarcode", item.verifyBarcode)
                .Set("audioType", item.audioType) //2018/1/2
 

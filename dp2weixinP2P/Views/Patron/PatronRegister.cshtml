@@ -60,7 +60,7 @@
                     $("#_verifyCode").text(result.verifyCode);
 
 
-                    alert("短信验证码已发送到您手机号，请查收。" + result.verifyCode);  //todo正式版本删除码提示
+                    alert("短信验证码已发送到您手机号，请查收。");// + result.verifyCode);  //todo正式版本删除码提示
 
                 }, function (xhq, textStatus, errorThrown) {
                     // 关闭等待层
@@ -159,6 +159,8 @@
                 //+ "&bMergeInfo=false"; //+ bMergeInfo;
                 + "&checkNull=false";
 
+            //alert(url);
+
             sendAjaxRequest(url, "POST",
                 function (result) {
 
@@ -201,7 +203,7 @@
                 },
                 {
                     barcode: "", //readerBarcord,
-                    readerType: "临时读者",// readerType,
+                    readerType: "",//临时读者",// readerType, 2020/5/25 设为空的读者类型
                     name: name,
                     gender: gender,
                     department: department,

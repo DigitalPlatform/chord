@@ -4,8 +4,127 @@
 @section Scripts {
     <script>
 
+//===========================
+//关于微信扫码
+function callbackFunction() {
+    //alert("1");
+    if (wx != null) {
+        //alert("走进wx");
+
+        //alert('@ViewData["AppId"]');
+        wx.config({
+            debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+            appId: '@ViewData["AppId"]', // 必填，公众号的唯一标识
+            timestamp: '@ViewData["Timestamp"]', // 必填，生成签名的时间戳
+            nonceStr: '@ViewData["NonceStr"]', // 必填，生成签名的随机串
+            signature: '@ViewData["Signature"]',// 必填，签名
+            jsApiList: [
+                "checkJsApi",
+                'onMenuShareTimeline',
+                'onMenuShareAppMessage',
+                'onMenuShareQQ',
+                'onMenuShareWeibo',
+                'hideMenuItems',
+                'showMenuItems',
+                'hideAllNonBaseMenuItem',
+                'showAllNonBaseMenuItem',
+                'translateVoice',
+                'startRecord',
+                'stopRecord',
+                'onRecordEnd',
+                'playVoice',
+                'pauseVoice',
+                'stopVoice',
+                'uploadVoice',
+                'downloadVoice',
+                'chooseImage',
+                'previewImage',
+                'uploadImage',
+                'downloadImage',
+                'getNetworkType',
+                'openLocation',
+                'getLocation',
+                'hideOptionMenu',
+                'showOptionMenu',
+                'closeWindow',
+                'scanQRCode',
+                'chooseWXPay',
+                'openProductSpecificView',
+                'addCard',
+                'chooseCard',
+                'openCard'
+            ] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2。详见：http://mp.weixin.qq.com/wiki/7/aaa137b55fb2e0456bf8dd9148dd613f.html
+        });
+
+        wx.error(function (res) {
+            //alert('JSSDK config信息验证失败：' + JSON.stringify(res));
+            jssdkReady = -1;
+        });
+
+        wx.ready(function () {
+            jssdkReady = 1;
+        });
+    }
+}
+
+// 加载微信扫
+function loadJs(sid, jsurl, callback) {
+    var nodeHead = document.getElementsByTagName('head')[0];
+
+    //alert("0-1");
+    var nodeScript = null;
+    if (document.getElementById(sid) == null) {
+        nodeScript = document.createElement('script');
+        nodeScript.setAttribute('type', 'text/javascript');
+        nodeScript.setAttribute('src', jsurl);
+        nodeScript.setAttribute('id', sid);
+
+        //alert("0-2");
+
+        if (callback != null) {
+            nodeScript.onload = nodeScript.onreadystatechange = function () {
+
+                //alert("0-3");
+
+                if (nodeScript.ready) {
+
+                    //alert("0-4");
+
+                    return false;
+                }
+                if (!nodeScript.readyState || nodeScript.readyState == "loaded" || nodeScript.readyState == 'complete') {
+                    //alert("0-5");
+
+                    nodeScript.ready = true;
+                    callback();
+                }
+            };
+        }
+        nodeHead.appendChild(nodeScript);
+
+        //alert("0-6");
+
+    } else {
+        if (callback != null) {
+
+            //alert("0-7");
+
+            callback();
+        }
+    }
+        }
+//===========================
+
+
         //浏览器加载并处理了文档的所有HTML元素之后才会执行。
         $(document).ready(function () {
+
+            // 如果是web来源，才加载JSSDK
+            if (browser.versions.weixin == true) {
+                //alert("动态加载JSSDK...");
+                var myUrl = getRootPath() + "/Scripts/jweixin-1.0.0.js";
+                loadJs("yy", myUrl, callbackFunction);
+            }
 
             // 设顶部菜单不固定
             $("#myheader").css("position", "absolute");
@@ -20,41 +139,57 @@
                     var libId = getLibId();
                     var myhtml = getDetail(libId, recPath, o, "detail", "");
                 }
+
+
+                var biblioName = $("#_biblioName").text();
+                if (biblioName != null && biblioName != "") {
+                    expand("d1", true);
+                }
             }
         });
 
         // 2016-6-17 jane 为了返回时记住展开项，expand函数由原来传一个对象，改为传一个id
-        function expand(expId) {
+        function expand(expId,needClose) {
             //根据id找到<li>元素
             var id = "#" + expId;
             var obj = $(id);
 
             //alert(id);
             //alert(obj);
-
-            // 如果自己是展开状态，则收缩
-            var state = $(obj).find(".mui-collapse-content").first().css("display");
-            if (state == "block") { //自己本来是展开状态，要关闭
-                $(obj).find(".mui-collapse-content").css("display", "none");
-                $(obj).removeClass("mui-active");
-                // alert("1");
+            if (needClose == true) {
+                    $(obj).find(".mui-collapse-content").css("display", "none");
+                    $(obj).removeClass("mui-active");
             }
             else {
-                //其它收缩
-                //$(".mui-collapse-content").css("display", "none");
-                //$(".mui-collapse").removeClass("mui-active");
 
-                //自己展开
-                $(obj).find(".mui-collapse-content").css("display", "block");
-                $(obj).addClass("mui-active");
+                // 如果自己是展开状态，则收缩
+                var state = $(obj).find(".mui-collapse-content").first().css("display");
+                if (state == "block") { //自己本来是展开状态，要关闭
+                    $(obj).find(".mui-collapse-content").css("display", "none");
+                    $(obj).removeClass("mui-active");
+                    // alert("1");
+                }
+                else {
 
-                //alert("2");
+                    //自己展开
+                    $(obj).find(".mui-collapse-content").css("display", "block");
+                    $(obj).addClass("mui-active");
+
+                    //alert("2");
+                }
             }
         }
 
         function saveItem() {
 
-           // alert("1");
+            // alert("1");
+
+            // 图书馆
+            var libId = $("#libId").text();
+            if (libId == "" || libId == null) {
+                alert("您尚未选择图书馆。");
+                return;
+            }
 
             var barcode = $("#barcode").val();
             if (barcode == "") {
@@ -62,14 +197,14 @@
                 return;
             }
 
-            var location = $("#location").val();
-            if (location == "") {
+            var location = $("#selLocation").val();
+            if (location == "" || location == null) {
                 alert("您尚未输入馆藏地。");
                 return;
             }
 
-            var bookType = $("#bookType").val();
-            if (bookType == "") {
+            var bookType = $("#selBookType").val();
+            if (bookType == "" || bookType == null) {
                 alert("您尚未输入册类型。");
                 return;
             }
@@ -77,14 +212,14 @@
 
             var accessNo = $("#accessNo").val();
             if (accessNo == "") {
-                alert("您尚未输入册条码。");
+                alert("您尚未输入索取号。");
                 return;
             }
 
             var price = $("#price").val();
-            if (price == "") {
-                alert("您尚未输入册价格。");
-                return;
+            if (price == "" || price == null) {
+                //alert("您尚未输入册价格。");
+                //return;
             }
 
 
@@ -94,29 +229,26 @@
                 return;
             }
 
+            var biblioPath = $("#biblioPath").text();
+            if (biblioPath == "") {
+                alert("异常，尚未指定biblioPath。");
+                return;
+            }
+
             //显示等待图层
             //var index = loadLayer();
             showMaskLayer();
 
-            var url = "";
-            var actionType = "";
-            var id = "";
-            if (id == null || id == "") {
-                actionType = "POST";
-                url = "/api/BiblioApi";
-            }
-            else {
-                actionType = "PUT";
-                url = "/api/BiblioApi?id=" + id;
-            }
-            //alert("id=["+id+"]");
+            var url = "/api/BiblioApi?libId=" + libId
+                + "&biblioPath=" + encodeURIComponent(biblioPath)
+                + "&action=new";
 
+            //alert(url);
 
-            sendAjaxRequest(url, actionType,
+            sendAjaxRequest(url, "POST",
                 function (result) {
 
                     // 关闭等待层
-                    //layer.close(index);
                     hideMaskLayer();
 
                     if (result.errorCode == -1) {
@@ -126,21 +258,14 @@
 
                     alert("保存成功。");
 
-                    //model.librarys.push(newItem);
-                    model.displaySummary(true);
-                    getAllLib();
-
-                    //清空编辑界面信息
-                    clearEditModel();
+                    // 重新加载页面
+                    window.location.reload();
 
                 },
                 function (xhq, textStatus, errorThrown) {
                     // 关闭等待层
-                    layer.close(index);
                     hideMaskLayer();
-
                     alert(errorThrown);
-
                 },
                 {
                     //id: id,
@@ -155,12 +280,68 @@
 
         }
 
+        function scanBarcode() {
+
+            if (browser.versions.weixin == false) {
+                alert("在手机微信端才能使用该扫码功能，如果是电脑浏览器请连接扫描枪扫码或者手工输入。");
+                return;
+            }
+
+            if (jssdkReady == -1) {
+                alert('JSSDK config信息验证失败，不能使用扫码功能。');
+                return;
+            }
+            else if (jssdkReady == 0) {
+                alert('JSSDK config未初始化完成，请稍候再试。');
+                return;
+            }
+
+            //alert("扫码1");
+
+            try {
+                wx.scanQRCode({
+                    needResult: 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
+                    scanType: ["qrCode", "barCode"], // 可以指定扫二维码还是一维码，默认二者都有
+                    success: function (res)
+                    {
+                        var code = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
+
+                        //alert("扫码结果=" + code);
+
+                        //alert("得到的isbn=" + isbn);
+                        var left = "";
+                        var right = "";
+                        if (code.indexOf(",") != -1) {
+                            left = code.substring(0, code.indexOf(","))//EAN_13
+                            right = code.substring(code.indexOf(",") + 1)
+                        }
+
+                        //alert("left=" + left + ",right=" + right);
+
+
+                        if (right != null && right != "") {
+                            //设到
+                            $("#barcode").val(right);
+                        }
+                    },
+                    fail: function (res) {
+                        alert("error:" + JSON.stringify(res));
+                        return "";
+                    }
+                });
+            }
+            catch (err) {
+                alert("扫码出错：" + err);
+            }
+        }
+
     </script>
 }
 
 @section header {
     <h1 class="mui-title">书目信息</h1>
 }
+<span id="libId" style="display:none">@ViewBag.LibId</span>
 <span id="weixinId" style="display:none;">@ViewBag.weixinId</span>
 <span id="patronBarcode" style="display:none">@ViewBag.PatronBarcode</span>
 <span id="biblioPath" style="display:none;">@ViewBag.BiblioPath</span>
@@ -179,11 +360,13 @@ else
 {
 
     <li class='mui-table-view-cell mui-collapse' id='d1'>
-        <a class='mui-navigate-right' href='javascript:void(0)' onclick="expand('d1')" style='padding-top:5px;padding-bottom:5px'>
+        <a class='mui-navigate-right' href='javascript:void(0)' onclick="expand('d1',false)" style='padding-top:5px;padding-bottom:5px'>
             <table width='100%' class='result-biblio'>
                 <tr>
-                    <td style='color:#cccccc;width:77px'>@ViewBag.BiblioPath</td>
                     <td style='padding-right:10px;'><div id="_biblioName" style='width:100%; white-space:nowrap;overflow:hidden;text-overflow:ellipsis; '>@ViewBag.BiblioName</div></td>
+                </tr>
+                <tr>
+                    <td style='color:#cccccc;'>@ViewBag.BiblioPath</td>
                 </tr>
             </table>
         </a>
@@ -196,28 +379,41 @@ else
     </li>
 
     <div class="mui-input-group" style="padding:10px">
-        <div class="mui-input-row ">
-            <label style="color:#cccccc">册条码</label>
-            <input id='barcode' type="text" class="mui-input mui-input-clear" value="" placeholder="请输入 册条码">
-        </div>
+
+
+
+        <table style="width:100%">
+            <tr>
+                <td style="width:100%;">
+                    <div class="mui-input-group" style="background-color:white">
+                        <div class="mui-input-row">
+                            <label id="lblName" style="color:#cccccc">册条码</label>
+                            <input id='barcode' type="text" class="mui-input mui-input-clear" placeholder="请输入或扫入册条码" value="">
+                        </div>
+                    </div>
+                </td>
+                <td><img src='../img/barcode.png' onclick="scanBarcode()" /></td>
+            </tr>
+        </table>
+
         <div class="mui-input-row ">
             <label style="color:#cccccc">馆藏地</label>
-            <input id='location' type="text" class="mui-input mui-input-clear" value="" placeholder="请输入 馆藏地">
+            @Html.Raw(ViewBag.LocationHtml)
         </div>
         <div class="mui-input-row ">
             <label style="color:#cccccc">册类型</label>
-            <input id='bookType' type="text" class="mui-input mui-input-clear" value=""  placeholder="请输入 册类型">
+            @Html.Raw(ViewBag.BookTypeHtml)
         </div>
         <div class="mui-input-row ">
-            <label style="color:#cccccc">索取号</label>
+            <label style="color:#cccccc">索取号(可不填)</label>
             <input id='accessNo' type="text" class="mui-input mui-input-clear" value="" placeholder="请输入 索取号">
         </div>
         <div class="mui-input-row ">
-            <label style="color:#cccccc">册价格</label>
+            <label style="color:#cccccc">册价格(可不填)</label>
             <input id='price' type="text" class="mui-input mui-input-clear" value="" placeholder="请输入 册价格">
         </div>
         <div class="mui-input-row ">
-            <label style="color:#cccccc">批次号</label>
+            <label style="color:#cccccc">批次号(可不填)</label>
             <input id='batchNo' type="text" class="mui-input mui-input-clear" value="" placeholder="请输入 批次号">
         </div>
         <div class="mui-content-padded">

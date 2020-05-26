@@ -255,7 +255,14 @@ namespace dp2weixin.service
         }
 
 
-
+        /// <summary>
+        /// 获取馆藏地
+        /// </summary>
+        /// <param name="libId"></param>
+        /// <param name="user"></param>
+        /// <param name="location"></param>
+        /// <param name="error"></param>
+        /// <returns></returns>
         public int GetLocation(string libId,
             WxUserItem user,
             out string location,
@@ -271,24 +278,7 @@ namespace dp2weixin.service
                 return -1;
             }
 
-            string userName = "";
-            bool isPatron = false;
-            if (user.type == WxUserDatabase.C_Type_Worker)
-            {
-                userName = user.userName;
-            }
-            else
-            {
-                userName = user.readerBarcode;
-                isPatron = true;
-            }
-            LoginInfo loginInfo = new LoginInfo(userName, isPatron);
-
-            // todo,这里不一定正确，因为还是需要按对应的帐户来获取，因为管辖范围不一样。2020-2-29
-            if (userName.IndexOf("@refid:") != -1)
-            {
-                loginInfo = new LoginInfo("", false);
-            }
+            LoginInfo loginInfo = GetLoginInfo(user);
 
 
             List<string> dataList = null;
@@ -301,10 +291,115 @@ namespace dp2weixin.service
                 out error);
             if (nRet == -1 || nRet == 0)
                 return -1;
-
             location = dataList[0];
             return 1;
         }
+
+        /// <summary>
+        /// 得到图书类型
+        /// </summary>
+        /// <param name="libId"></param>
+        /// <param name="user"></param>
+        /// <param name="bookType"></param>
+        /// <param name="error"></param>
+        /// <returns></returns>
+        public int GetBookType(string libId,
+            WxUserItem user,
+            out string bookType,
+            out string error)
+        {
+            bookType = "";
+            error = "";
+
+            LibEntity lib = this.GetLibById(libId);
+            if (lib == null)
+            {
+                error = "未找到id为[" + libId + "]的图书馆定义。";
+                return -1;
+            }
+
+            LoginInfo loginInfo = GetLoginInfo(user);
+            List<string> dataList = null;
+            int nRet = this.GetInfo(lib,
+                loginInfo,
+                "getSystemParameter",
+                "_valueTable",
+                "bookType",
+                out dataList,
+                out error);
+            if (nRet == -1 || nRet == 0)
+                return -1;
+
+            bookType = dataList[0];
+            return 1;
+        }
+
+
+        /// <summary>
+        /// 得到读者类型
+        /// </summary>
+        /// <param name="libId"></param>
+        /// <param name="user"></param>
+        /// <param name="readerType"></param>
+        /// <param name="error"></param>
+        /// <returns></returns>
+        public int GetReaderType(string libId,
+            WxUserItem user,
+            out string readerType,
+            out string error)
+        {
+            readerType = "";
+            error = "";
+
+            LibEntity lib = this.GetLibById(libId);
+            if (lib == null)
+            {
+                error = "未找到id为[" + libId + "]的图书馆定义。";
+                return -1;
+            }
+
+            LoginInfo loginInfo = GetLoginInfo(user);
+            List<string> dataList = null;
+            int nRet = this.GetInfo(lib,
+                loginInfo,
+                "getSystemParameter",
+                "_valueTable",
+                "readerType",
+                out dataList,
+                out error);
+            if (nRet == -1 || nRet == 0)
+                return -1;
+
+            readerType = dataList[0];
+            return 1;
+        }
+
+        /// <summary>
+        /// 根据本地用户，获取loginInfo
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public LoginInfo GetLoginInfo(WxUserItem user)
+        {
+            // 如果传入的user为null，则返回默认的代码帐户capo
+            if (user == null)
+                return new LoginInfo("", false);
+
+            string userName = "";
+            bool isPatron = false;
+            if (user.type == WxUserDatabase.C_Type_Worker)
+            {
+                userName = user.userName;
+                isPatron = false;
+            }
+            else
+            {
+                userName = user.readerBarcode;
+                isPatron = true;
+            }
+           return new LoginInfo(userName, isPatron);
+        }
+
 
         public int GetLibName(string capoUserName,
             out string libName,
@@ -4565,7 +4660,7 @@ ErrorInfo成员里可能会有报错信息。
                 "<全部>",  //todo 这里后面考虑是否指定总分馆对应的数据库
                 patronName,
                 "姓名",  //状态 途径
-                "left",
+                "exact",//"left",
                 "patrons",
                 "id,xml",
                 1000,
@@ -4875,14 +4970,14 @@ ErrorInfo成员里可能会有报错信息。
 
 
             // todo 正常版本打开
-            ////发送短信
-            //nRet = this.SendSMS("~temp",//patronBarcode,
-            //   phone,
-            //   strMessageText,
-            //   libId,
-            //   out error);
-            //if (nRet == -1)
-            //    return -1;
+            //发送短信
+            nRet = this.SendSMS("~temp",//patronBarcode,
+               phone,
+               strMessageText,
+               libId,
+               out error);
+            if (nRet == -1)
+                return -1;
 
             return nRet;
         }
@@ -7196,6 +7291,180 @@ ErrorInfo成员里可能会有报错信息。
             return -1;
         }
 
+
+
+        public int SetBibiloItem(string libId,
+            string biblioPath,
+            string action,
+            BiblioItem item,
+            out string strError)
+        {
+            strError = "";
+
+            //if (item.price == null || item.price == "")
+            //    item.price = "@price";
+
+            // 使用代理账号capo 20161024 jane
+            LoginInfo loginInfo = new LoginInfo("", false);
+
+            // 根据id找到图书馆对象
+            LibEntity lib = this.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为[" + libId + "]的图书馆定义。";
+                return -1;
+            }
+
+            int nIndex = biblioPath.IndexOf("/");
+            string parent = "";
+            if (nIndex > 0)
+                parent = biblioPath.Substring(nIndex + 1);
+            if (parent == "")
+            {
+                strError = "未得到书目id。";
+                return -1;
+            }
+
+            string itemXml = "";
+            /*
+ <root>
+  <barcode>B002</barcode> 
+  <location>流通库</location> 
+  <bookType>普通</bookType> 
+  <accessNo>I563.85/H022</accessNo> 
+  <price>CNY28.80</price> 
+  <batchNo>20200405</batchNo>
+</root>
+             */
+            //2020-3-17统一用action来判断，原来的bMergeInfo好像没有用了
+            if (action == C_Action_new)
+            {
+                itemXml = "<root>"
+                    + "<parent>"+parent+"</parent>"
+                       + "<barcode>" + item.barcode + "</barcode>"
+                       + "<location>"+item.location+"</location> "
+                       + "<bookType>" + item.bookType + "</bookType>"
+                       + "<accessNo>" + item.accessNo + "</accessNo>"
+                       + "<price>" + item.price + "</price>"
+                       + "<batchNo>" + item.batchNo + "</batchNo>"
+                       + "</root>";
+            }
+            else if (action == C_Action_change)
+            {
+                // todo,是否需要合并
+            }
+            else if (action == C_Action_delete)
+            {
+               // todo
+            }
+            else
+            {
+                strError = "SetItemInfo()接口不能识别的action[" + action + "]";
+                return -1;
+            }
+
+            // 点对点消息实体
+            /*
+            public class Entity
+            {
+                public string Action { get; set; }
+                public string RefID { get; set; }
+                public Record OldRecord { get; set; }
+                public Record NewRecord { get; set; }
+                public string Style { get; set; }
+                public string ErrorInfo { get; set; }
+                public string ErrorCode { get; set; }
+            }
+
+            public class Record
+            {
+                public string RecPath { get; set; }
+                public string Format { get; set; }
+                public string Data { get; set; }
+                public string Timestamp { get; set; }
+            }
+            */
+            Record newRecord = new Record();
+            //newRecord.RecPath = recPath; 
+            newRecord.Format = "xml";
+            newRecord.Data = itemXml;
+
+            Entity entity = new Entity();
+            entity.Action = action;
+            entity.NewRecord = newRecord;
+
+            List<Entity> entities = new List<Entity>();
+            entities.Add(entity);
+
+            // 修改读者记录的情况
+            if (action == "change" || action == "delete")
+            {
+                // todo
+                //Record oldRecord = new Record();
+                //oldRecord.Timestamp = timestamp;
+                //entity.OldRecord = oldRecord;
+            }
+
+            string outputXml = "";
+
+            // 调点对点接口
+            CancellationToken cancel_token = new CancellationToken();
+            string id = Guid.NewGuid().ToString();
+            SetInfoRequest request = new SetInfoRequest(id,
+                loginInfo,
+                "setItemInfo",
+                biblioPath,
+                entities);
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
+                    this._dp2MServerUrl,
+                    "").Result;
+
+                SetInfoResult result = connection.SetInfoTaskAsync(
+                    lib.capoUserName,
+                    request,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token).Result;
+
+                if (result.Value == -1)
+                {
+                    strError = "图书馆 " + lib.libName + " 的保存册信息时出错:" + result.ErrorInfo;
+                    return -1;
+                }
+
+                // 取出读者信息
+                if (result.Entities.Count > 0)
+                {
+                    //Entity e = result.Entities[0];
+                    //if (string.IsNullOrEmpty(e.ErrorInfo) == false)
+                    //{
+                    //    strError = "图书馆 " + lib.libName + " 的保存册信息时出错2:" + e.ErrorInfo;
+                    //    return -1;
+                    //}
+                    //outputRecPath = result.Entities[0].NewRecord.RecPath;
+                    //outputTimestamp = result.Entities[0].NewRecord.Timestamp;
+                    outputXml = result.Entities[0].NewRecord.Data;
+                }
+
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                return -1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                return -1;
+            }
+        
+
+
+
+            return 0;
+        }
+
         //
         private long GetIssue(LibEntity lib,
             LoginInfo loginInfo,
@@ -8855,8 +9124,8 @@ ErrorInfo成员里可能会有报错信息。
 
                 foreach (Library lib in this.LibManager.Librarys)
                 {
-                    if (libs.Contains(lib.Entity.capoUserName) == true
-                        && string.IsNullOrEmpty(lib.Entity.state) == true) // 没有到期等
+                    if (libs.Contains(lib.Entity.capoUserName) == true)
+                       // && string.IsNullOrEmpty(lib.Entity.state) == true) // 没有到期等  //todo 好像不应这里检查，如果这里不加入集合，后面会报找不到。
                     {
                         // WriteErrorLog1("***" + lib.Entity.capoUserName +"--"+lib.Entity.state);
 

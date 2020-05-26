@@ -447,10 +447,10 @@ namespace dp2weixinWeb.Controllers
             // 书目查询 与 借还 使用 JSSDK
             try
             {
-                if (Request.Path.Contains("/Biblio/Index") == true
-                    || Request.Path.Contains("/Library/Charge2") == true
-                    || Request.Path.Contains("/Account/ScanQRCodeBind") == true)
-                {
+                //if (Request.Path.Contains("/Biblio/Index") == true
+                //    || Request.Path.Contains("/Library/Charge2") == true
+                //    || Request.Path.Contains("/Account/ScanQRCodeBind") == true)
+                //{
                     GzhCfg gzh = sessionInfo.gzh;
                     bool bJsReg = JsApiTicketContainer.CheckRegistered(gzh.appId);
                     // 注意这里有时异常
@@ -461,7 +461,7 @@ namespace dp2weixinWeb.Controllers
                     ViewData["Timestamp"] = package.Timestamp;
                     ViewData["NonceStr"] = package.NonceStr;
                     ViewData["Signature"] = package.Signature;
-                }
+                //}
             }
             catch (Exception ex)
             { }
@@ -482,7 +482,7 @@ namespace dp2weixinWeb.Controllers
                 ViewBag.remeberBookSubject = sessionInfo.ActiveUser.bookSubject;
             }
 
-            //设到ViewBag里
+            //设到ViewBag里，当前帐户信息
             string userName = "";
             string userNameInfo = "";
             if (sessionInfo.ActiveUser.type == WxUserDatabase.C_Type_Worker)
@@ -529,9 +529,6 @@ namespace dp2weixinWeb.Controllers
                     return -1;
                 }
             }
-
-            ViewBag.showPhoto = sessionInfo.ActiveUser.showPhoto;
-            ViewBag.showCover = sessionInfo.ActiveUser.showCover;
 
             ViewBag.LibState = sessionInfo.CurrentLib.IsHangup.ToString();
             if (isCheckLibState == true && sessionInfo.CurrentLib.IsHangup == true)  

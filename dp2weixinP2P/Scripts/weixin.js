@@ -92,17 +92,41 @@ function setImgSize(obj)
 //    return count
 //}
 
-
-//======书目详细信息==========
-
-function gotoSetItem(biblioPath,biblioName)
-{
+//===册登记相关=======
+// 新增册
+function gotoSetItem(biblioPath, biblioName) {
     //alert("biblioPath=" + biblioPath);
 
-    var url = "/Biblio/Detail?biblioPath=" + encodeURIComponent(biblioPath)
+    var url = "/Biblio/Detail?action=new"
+        + "&biblioPath = " + encodeURIComponent(biblioPath)
         + "&biblioName=" + encodeURIComponent(biblioName);
     gotoUrl(url);
 }
+
+// 编辑册
+function gotoEditItem(biblioPath, biblioName) {
+    //alert("biblioPath=" + biblioPath);
+
+    var url = "/Biblio/Detail?action=edit"
+        + "&biblioPath=" + encodeURIComponent(biblioPath)
+        + "&biblioName=" + encodeURIComponent(biblioName);
+    gotoUrl(url);
+}
+
+// 删除册
+function deleteItem(itemBarcode) {
+
+
+    var gnl = confirm("你确定要删除册[" + itemBarcode + "]吗?");
+    if (gnl == false) {
+        return false;
+    }
+
+    // 调接口
+}
+
+
+//======书目详细信息==========
 
 // 获取详细书目记录
 function getDetail(libId, recPath, obj, from,biblioName) {
@@ -157,6 +181,10 @@ function getDetail(libId, recPath, obj, from,biblioName) {
                 + "</div>"
         }
 
+        // 工作人员帐号
+        var worker = $("#_worker").text();
+
+        // 循环显示每一册
         for (var i = 0; i < result.itemList.length; i++) {
             var record = result.itemList[i];
 
@@ -253,12 +281,31 @@ function getDetail(libId, recPath, obj, from,biblioName) {
             + "<td class='titleGray' " + addStyle + ">" + record.refID + "</td>"
             + "</tr>";
 
-            //从属于
+
+            //从属于，
             if (record.parentInfo != null && record.parentInfo != "") {
                 itemTables += "<tr>"
-                + "<td class='label'>从属于</td>"
-                + "<td class='value' " + addStyle + ">" + record.parentInfo + "</td>"
-                + "</tr>";
+                    + "<td class='label'>从属于</td>"
+                    + "<td class='value' " + addStyle + ">" + record.parentInfo + "</td>"
+                    + "</tr>";
+
+                //当一个期刊册被做了合订的册，则不允许再编辑和删除
+            }
+            else {
+
+                // 如果当前是工作人员帐户，则显示编辑和删除按钮
+
+                if (worker != null && worker != "") {
+
+                    itemTables += "<tr>"
+                        + "<td class='label' colspan='2'>"
+                        + "<button  class='mui-btn' onclick='gotoEditItem(\"" + recPath + "\",\"" + biblioName + "\")'>编辑</button>"
+                        + "<button  class='mui-btn' onclick='deleteItem(\"" + tempBarcode + "\")'>删除</button>"
+                        +"</td > "
+                        + "</tr>";
+
+                    myHtml += "<div style='padding-top:10px'><button  class='mui-btn' onclick='gotoSetItem(\"" + recPath + "\",\"" + biblioName + "\")'>新增册</button></div>";
+                }
             }
 
             //
@@ -271,9 +318,8 @@ function getDetail(libId, recPath, obj, from,biblioName) {
         var myHtml = result.info + itemTables;
 
         // 检查要不要出现册登记按钮
-        var worker = $("#_worker").text();
         if (worker != null && worker != "") {
-            myHtml += "<div style='padding-top:10px'><button  class='mui-btn' onclick='gotoSetItem(\"" + recPath + "\",\"" + biblioName+"\")'>册登记</button></div>";
+            myHtml += "<div style='padding-top:10px'><button  class='mui-btn' onclick='gotoSetItem(\"" + recPath + "\",\"" + biblioName+"\")'>新增册</button></div>";
         }
 
         obj.html(myHtml);
@@ -1849,5 +1895,3 @@ function sendAjaxRequest(url,
     //    async: myasync
     //});
 }
-
-

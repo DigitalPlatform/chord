@@ -94,6 +94,18 @@ namespace dp2weixinWeb.Controllers
             string strError = "";
             int nRet = 0;
 
+            if (string.IsNullOrEmpty(biblioPath) == true)
+            {
+                ViewBag.Error = "尚未传入biblioPath,请从书目查询窗进入。";
+                return View();
+            }
+
+            //if (string.IsNullOrEmpty(biblioName) == true)
+            //{
+            //    ViewBag.Error = "尚未传入biblioName,请从书目查询窗进入。";
+            //    return View();
+            //}
+
             // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
             // -1 出错
             // 0 成功
@@ -120,11 +132,111 @@ namespace dp2weixinWeb.Controllers
                 ViewBag.Worker = sessionInfo.ActiveUser.userName;
             }
 
+            // 馆藏地
+            string location = sessionInfo.GetLocation(out strError);
+            if (string.IsNullOrEmpty(strError) == false)
+            {
+                ViewBag.Error = strError;
+                return View();
+            }
+            ViewBag.LocationHtml = this.GetLocationHtml(location, "");
+
+            // 图书类型
+            string bookType = sessionInfo.GetBookType(out strError);
+            if (string.IsNullOrEmpty(strError) == false)
+            {
+                ViewBag.Error = strError;
+                return View();
+            }
+            ViewBag.BookTypeHtml = this.GetBookTypeHtml(bookType, "");
+
+
             ViewBag.BiblioName = biblioName;
+            
             ViewBag.PatronBarcode = sessionInfo.ActiveUser.readerBarcode;
             ViewBag.BiblioPath = biblioPath;
             return View();
         }
 
+
+        public string GetLocationHtml(string locationXml, string currentLocation)
+        {
+            string html = "";
+            if (String.IsNullOrEmpty(locationXml) == false)
+            {
+
+                string location = "";
+                // 解析本帐户拥有的全部馆藏地
+                List<SubLib> subLibs = SubLib.ParseSubLib(locationXml, true);
+                foreach (SubLib subLib in subLibs)
+                {
+                    foreach (Location loc in subLib.Locations)
+                    {
+                        string locPath = "";
+                        if (string.IsNullOrEmpty(subLib.libCode) == true)
+                            locPath = loc.Name;
+                        else
+                            locPath = subLib.libCode + "/" + loc.Name;
+
+                        if (location != "")
+                            location += ",";
+
+                        location += locPath;
+
+                    }
+                }
+
+                string[] list = location.Split(new char[] { ',' });
+                foreach (string one in list)
+                {
+                    string temp = one;
+                    int nIndex = one.IndexOf("}");
+                    if (nIndex != -1)
+                    {
+                        temp = one.Substring(nIndex + 1).Trim();
+                    }
+
+                    string sel = "";
+                    if (currentLocation == temp)
+                        sel = " selected ";
+                    html += "<option value='" + one + "' " + sel + ">" + one + "</option>";
+                }
+            }
+            html = "<select id='selLocation' name='selLocation' class='selArrowRight'>"
+                    + "<option value=''>请选择</option>"
+                    + html
+                    + "</select>";
+
+            return html;
+        }
+
+        public string GetBookTypeHtml(string bookType, string currentBookType)
+        {
+            string html = "";
+            if (String.IsNullOrEmpty(bookType) == false)
+            {
+                string[] list = bookType.Split(new char[] { ',' });
+                foreach (string one in list)
+                {
+                    string temp = one;
+                    int nIndex = one.IndexOf("}");
+                    if (nIndex != -1)
+                    {
+                        temp = one.Substring(nIndex + 1).Trim();
+                    }
+
+                    string sel = "";
+                    if (currentBookType == temp)
+                        sel = " selected ";
+                    html += "<option value='" + one + "' " + sel + ">" + one + "</option>";
+                }
+            }
+            html = "<select id='selBookType' name='selBookType' class='selArrowRight'>"
+                    + "<option value=''>请选择</option>"
+                    + html
+                    + "</select>";
+
+            return html;
+        }
     }
 }
