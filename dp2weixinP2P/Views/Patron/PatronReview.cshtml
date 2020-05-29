@@ -39,14 +39,24 @@
     <script>
 
         // 保存读者信息
-        function save(action) {
+        function save(opeType) {
 
-            var pass = true;
-            if (action == "n")
-                pass = false;
+            // 调接口时传的action
+            var action = "change";
+            if (opeType == "d")
+                action = "delete";
 
-            var state = "";  // 通过的时候，把状态置为空就可以了。
+            // 是否通过
+            var pass = false;
+            if (opeType == "y")
+                pass = true;
 
+            // 通过的时候，把状态置为空。
+            var state = "";
+            if (pass == false)
+                state = "审核不通过";
+
+            // 不通过时需要填写原因
             var reason = $("#txtReason").val();
             if (pass == false) {
                 // 证条码号
@@ -54,16 +64,15 @@
                     alert("请输入审核不通过原因！");
                     return;
                 }
-
-                state = "不通过";
             }
 
-
+            // 图书馆id
             var libId = getLibId();
             if (libId == "") {
                 alert("异常情况：libId为空。");
                 return;
             }
+            // 当前绑定的工作人员帐号
             var userName = $("#_userName").text();
             if (userName == "") {
                 alert("异常情况：userName为空。");
@@ -88,12 +97,12 @@
 
             // 证条码号
             var readerBarcord = $("#txtBarcode").val();
-            if (pass == true) {
-                if (readerBarcord == "") {
-                    alert("读者证条码号不能为空。");
-                    return;
-                }
+            // 不论是否通过，证条码号都不能设置为空
+            if (readerBarcord == "") {
+                alert("读者证条码号不能为空。");
+                return;
             }
+            
 
             //读者类型
             var readerType = $('#selReaderType option:checked').val();
@@ -103,9 +112,15 @@
                     return;
                 }
 
-                if (readerType=="" || readerType.indexOf("临时读者") != -1) {
+                if (readerType == "" || readerType.indexOf("临时读者") != -1) {
                     alert("审核通过时，需为读者选择正式的读者类型。");
                     return;
+                }
+            }
+            else {
+                //不通过时，可以不选择读者类型
+                if (readerType == "") {
+                    readerType = "[blank]";
                 }
             }
             var nIndex = readerType.indexOf("}");
@@ -148,7 +163,7 @@
             // 调Patron的SetPatron()
             var url = "/api/PatronApi?libId=" + libId
                 + "&userName=" + encodeURIComponent(userName)
-                + "&action=change" // + encodeURIComponent(action)
+                + "&action="+ encodeURIComponent(action)
                 + "&recPath=" + encodeURIComponent(recPath)
                 + "&timestamp=" + encodeURIComponent(timestamp)
                 + "&weixinId="
@@ -335,6 +350,10 @@ else
                     <td width="10px">&nbsp;</td>
                     <td>
                         <button id='btnReject' class="mui-btn mui-btn-block mui-btn-default" onclick="save('n')">不通过</button>
+                    </td>
+                    <td width="10px">&nbsp;</td>
+                    <td>
+                        <button id='btnRejectDel' class="mui-btn mui-btn-block mui-btn-default" onclick="save('d')">不通过+删除</button>
                     </td>
                 </tr>
             </table>

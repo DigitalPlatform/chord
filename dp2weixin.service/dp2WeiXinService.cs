@@ -4155,6 +4155,10 @@ ErrorInfo成员里可能会有报错信息。
 
             Entity entity = new Entity();
             entity.Action = action;
+
+            if (patron.state == "审核不通过" && action == "change")
+                entity.Action = "changestate";
+
             entity.NewRecord = newRecord;
 
             List<Entity> entities = new List<Entity>();
@@ -4198,7 +4202,7 @@ ErrorInfo成员里可能会有报错信息。
                     }
                     else
                     {
-                        strError = "图书馆 " + lib.libName + " 的保存读者信息时出错:" + result.ErrorInfo;
+                        strError = "图书馆 " + lib.libName + " 保存读者信息时出错:" + result.ErrorInfo;
                     }
 
 
@@ -4225,7 +4229,7 @@ ErrorInfo成员里可能会有报错信息。
                 return -1;
             }
 
-            // 删除的话，需要删除库里的记录，同时给馆员发通知 todo
+            // 删除的话，需要删除库里的记录
             if (action == C_Action_delete)
             {
                 WxUserItem userItem = WxUserDatabase.Current.GetById(userItemId);
@@ -4237,8 +4241,9 @@ ErrorInfo成员里可能会有报错信息。
                 // 删除mongodb库的记录
                 WxUserDatabase.Current.Delete1(userItemId, out WxUserItem newActiveUser);
 
-                // 如果不是待审核的读者，会给馆员发通知。
-                if (userItem.patronState != WxUserDatabase.C_PatronState_TodoReview)
+                // 如果当前帐户是读者，且不是待审核的读者，则给馆员发通知。
+                if (userItem.type==WxUserDatabase.C_Type_Patron
+                    && userItem.patronState != WxUserDatabase.C_PatronState_TodoReview)
                 {
 
                     // 给馆员发消息
