@@ -121,7 +121,7 @@ namespace DigitalPlatform.MessageServer
         }
 
         public new IEnumerator GetEnumerator()
-        {  
+        {
             foreach (string key in this.Keys)
             {
                 ConnectionInfo info = this[key];
@@ -386,14 +386,18 @@ namespace DigitalPlatform.MessageServer
         }
 
         // 根据 user id 列表，获得当前在线的 connection id 列表
-        public List<string> GetConnectionIds(string [] groups)
+        public List<string> GetConnectionIds(string[] groups, 
+            string[] excludeIds)
         {
             List<string> results = new List<string>();
             foreach (string name in groups)
             {
                 string id = GetConnectionId(name);
                 if (id != null)
-                    results.Add(id);
+                {
+                    if (excludeIds == null || Array.IndexOf(excludeIds, id) == -1)
+                        results.Add(id);
+                }
             }
 
             return results;
@@ -537,7 +541,7 @@ namespace DigitalPlatform.MessageServer
             }
         }
 
-        public string [] Groups
+        public string[] Groups
         {
             get
             {

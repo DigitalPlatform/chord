@@ -477,7 +477,6 @@ SetMessageRequest param
                         result.String = "_continue";
                         return result;
                     }
-
                 }
 
                 // 转换类型
@@ -506,7 +505,8 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
 
                 bool bSupervisor = (StringUtil.Contains(connection_info.Rights, "supervisor"));
 
-                if (param.Action == "create")
+                // 创建，或者回响。回响的意思是模拟返回消息记录，其中的 groups 已经被正规化(为 ui:xxx,ui:xxx 形态)
+                if (param.Action == "create" || param.Action == "echo")
                 {
                     // 注: 超级用户可以在任何群组发布消息
 
@@ -525,8 +525,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                             }
                             item.groups = new List<string>(connection_info.UserItem.groups);
                         }
-                        
-                        
+
                         // 正规化组名
                         CanonicalizeMessageItemGroups(item, connection_info);
 
@@ -566,7 +565,8 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                         item.creator = BuildMessageUserID(connection_info);
                         item.userName = connection_info.UserName;
                         item.SetID(Guid.NewGuid().ToString());  // 确保 id 字段有值。是否可以允许前端指定这个 ID 呢？如果要进行查重就麻烦了
-                        await ServerInfo.MessageDatabase.Add(item).ConfigureAwait(false); // .Wait();
+                        if (param.Action == "create")
+                            await ServerInfo.MessageDatabase.Add(item).ConfigureAwait(false); // .Wait();
                         saved_items.Add(item);
 
 #if NO
@@ -825,24 +825,27 @@ ex.GetType().ToString());
                     result.Results.Add(record);
                 }
 
-                string[] excludeConnectionIds = null;
-                // 通知消息的时候，排除掉请求者自己
-                if (StringUtil.IsInList("dontNotifyMe", param.Style) == true)
+                if (param.Action != "echo")
                 {
-                    excludeConnectionIds = new string[1];
-                    excludeConnectionIds[0] = Context.ConnectionId;
-                }
-                // 即便遇到抛出异常的情况，先前保存成功的部分消息也可以发送出去
-                // 启动一个任务，向相关的前端推送消息，以便它们在界面上显示消息或者变化(比如删除或者修改以后的效果)
-                /*
-                await Task.Run(() => PushMessageToClient(param.Action,
-                    excludeConnectionIds,
-                    saved_items));
-                    */
+                    string[] excludeConnectionIds = null;
+                    // 通知消息的时候，排除掉请求者自己
+                    if (StringUtil.IsInList("dontNotifyMe", param.Style) == true)
+                    {
+                        excludeConnectionIds = new string[1];
+                        excludeConnectionIds[0] = Context.ConnectionId;
+                    }
+                    // 即便遇到抛出异常的情况，先前保存成功的部分消息也可以发送出去
+                    // 启动一个任务，向相关的前端推送消息，以便它们在界面上显示消息或者变化(比如删除或者修改以后的效果)
+                    /*
+                    await Task.Run(() => PushMessageToClient(param.Action,
+                        excludeConnectionIds,
+                        saved_items));
+                        */
 
-                await PushMessageToClient(param.Action,
-                excludeConnectionIds,
-                saved_items);
+                    await PushMessageToClient(param.Action,
+                    excludeConnectionIds,
+                    saved_items);
+                }
             }
 
             return result;
@@ -891,7 +894,7 @@ ex.GetType().ToString());
 #if ARRAY
                         List<string> ids = ServerInfo.ConnectionTable.GetConnectionIds(item.groups);
 #else
-                        List<string> ids = ServerInfo.ConnectionTable.GetConnectionIds(item.groups?.ToArray());
+                        List<string> ids = ServerInfo.ConnectionTable.GetConnectionIds(item.groups?.ToArray(), excludeConnectionIds);
 #endif
                         if (ids.Count > 0)
                         {
@@ -984,7 +987,7 @@ ex.GetType().ToString());
             {
                 List<MessageRecord> temp = CopyPrevElements(records, chunk_size);
                 var result = await proc(temp);
-                if (result  == false)
+                if (result == false)
                     return;
                 records.RemoveRange(0, temp.Count);
             }
