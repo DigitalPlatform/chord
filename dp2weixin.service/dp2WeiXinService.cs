@@ -397,7 +397,7 @@ namespace dp2weixin.service
                 userName = user.readerBarcode;
                 isPatron = true;
             }
-           return new LoginInfo(userName, isPatron);
+            return new LoginInfo(userName, isPatron);
         }
 
 
@@ -1011,7 +1011,7 @@ namespace dp2weixin.service
             }
             string strType = DomUtil.GetNodeText(typeNode);
 
-            this.WriteDebug("消息类型为["+strType+"]");
+            this.WriteDebug("消息类型为[" + strType + "]");
 
             //===数据处理消息================
             if (strType == "工作人员账户变动")
@@ -1261,7 +1261,7 @@ namespace dp2weixin.service
 
             return text.Substring(text.Length - 1).PadLeft(text.Length, '*');
         }
-       
+
 
 
         /// <summary>
@@ -1333,7 +1333,7 @@ namespace dp2weixin.service
                         if (user1.type == WxUserDatabase.C_Type_Patron)
                             this.WriteDebug("给[" + user1.libName + "]的读者[" + user1.readerName + "(" + user1.readerBarcode + ")]" + "发送[" + msgType + "]通知");
                         else
-                            this.WriteDebug("给["+user1.libName+"]的工作人员[" +  user1.userName + "]" + "发送[" + msgType + "]通知");
+                            this.WriteDebug("给[" + user1.libName + "]的工作人员[" + user1.userName + "]" + "发送[" + msgType + "]通知");
                         this.WriteDebug(messageXml);
                     }
 
@@ -1380,7 +1380,7 @@ namespace dp2weixin.service
                     {
 
                         string tempInfo = "";
-                        List <WxUserItem> uList = WxUserDatabase.Current.Get(user1.weixinId, "", -1);
+                        List<WxUserItem> uList = WxUserDatabase.Current.Get(user1.weixinId, "", -1);
                         foreach (WxUserItem u in uList)
                         {
                             if (tempInfo != "")
@@ -1393,7 +1393,7 @@ namespace dp2weixin.service
                             //WxUserDatabase.Current.SimpleDelete(user.id); //2020/4/2先不要轻易删除
                         }
 
-                        this.WriteDebug("发通知时发现微信号" + user1.weixinId + "已取消关注公众号,之前绑定的帐户有:"+tempInfo);
+                        this.WriteDebug("发通知时发现微信号" + user1.weixinId + "已取消关注公众号,之前绑定的帐户有:" + tempInfo);
 
                     }
 
@@ -1490,7 +1490,7 @@ namespace dp2weixin.service
         {
 
             noMaskWorkers = new List<WxUserItem>();
-            maskWorkers= new List<WxUserItem>();
+            maskWorkers = new List<WxUserItem>();
 
             // 将这边tracing on的工作人员分为2组，一组是mask的，一组是不mask的
             foreach (WxUserItem user in users)
@@ -2748,7 +2748,7 @@ namespace dp2weixin.service
             //if (bOnShelf == true
             //    && string.IsNullOrEmpty(lib.comment) == false
             //    && lib.comment.IndexOf("OnshelfArrivedNoNotice") != -1)
-            if(lib.IsSendArrivedNotice=="N") //2020/3/22 改为直接使用变量
+            if (lib.IsSendArrivedNotice == "N") //2020/3/22 改为直接使用变量
             {
                 //return 0;  //2020-3-9改为不给读者立即发，还是给监控的工作人员发送
                 bindPatronList.Clear(); //bindWeixinIds.Clear();
@@ -3149,7 +3149,7 @@ namespace dp2weixin.service
                 //this.WriteDebug("0-3");
 
                 // 可以图书馆的备注信息设为notwart，则不进行检查是否在线
-                if (lib.Entity.comment !=null && lib.Entity.comment.IndexOf("notwarn") != -1) // 任延华测试用的图书馆
+                if (lib.Entity.comment != null && lib.Entity.comment.IndexOf("notwarn") != -1) // 任延华测试用的图书馆
                     continue;
 
                 //this.WriteDebug("0-4");
@@ -3192,7 +3192,7 @@ namespace dp2weixin.service
             try
             {
                 //this.WriteDebug("1");
-                
+
                 // 本次不在线的图书馆
                 List<Library> thisHangupLibs = this.GetHangupLibs();
 
@@ -3204,7 +3204,7 @@ namespace dp2weixin.service
                     // 清除内存中保存的不在线图书馆
                     if (this._offlineLibs.Count > 0)
                     {
-                        this.WriteDebug("清除内存中原先的"+this._offlineLibs.Count+"个离线图书馆");
+                        this.WriteDebug("清除内存中原先的" + this._offlineLibs.Count + "个离线图书馆");
                         this._offlineLibs.Clear();
                     }
                 }
@@ -3290,7 +3290,7 @@ namespace dp2weixin.service
                     this.WriteDebug("找到 " + dp2003Workers.Count.ToString() + " 位数字平台工作人员");
                 }
 
-               // this.WriteDebug("9");
+                // this.WriteDebug("9");
 
                 foreach (Library lib in warningLibs)
                 {
@@ -4242,7 +4242,7 @@ ErrorInfo成员里可能会有报错信息。
                 WxUserDatabase.Current.Delete1(userItemId, out WxUserItem newActiveUser);
 
                 // 如果当前帐户是读者，且不是待审核的读者，则给馆员发通知。
-                if (userItem.type==WxUserDatabase.C_Type_Patron
+                if (userItem.type == WxUserDatabase.C_Type_Patron
                     && userItem.patronState != WxUserDatabase.C_PatronState_TodoReview)
                 {
 
@@ -7345,9 +7345,9 @@ ErrorInfo成员里可能会有报错信息。
             if (action == C_Action_new)
             {
                 itemXml = "<root>"
-                    + "<parent>"+parent+"</parent>"
+                    + "<parent>" + parent + "</parent>"
                        + "<barcode>" + item.barcode + "</barcode>"
-                       + "<location>"+item.location+"</location> "
+                       + "<location>" + item.location + "</location> "
                        + "<bookType>" + item.bookType + "</bookType>"
                        + "<accessNo>" + item.accessNo + "</accessNo>"
                        + "<price>" + item.price + "</price>"
@@ -7360,7 +7360,7 @@ ErrorInfo成员里可能会有报错信息。
             }
             else if (action == C_Action_delete)
             {
-               // todo
+                // todo
             }
             else
             {
@@ -7463,7 +7463,7 @@ ErrorInfo成员里可能会有报错信息。
                 strError = ex.Message;
                 return -1;
             }
-        
+
 
 
 
@@ -7528,7 +7528,7 @@ ErrorInfo成员里可能会有报错信息。
                 goto ERROR1;
             }
 
-        
+
             // 得到分馆代码
             string libraryCode = "";
             WxUserItem activeItem = WxUserDatabase.Current.GetActive(weixinId);
@@ -7628,8 +7628,8 @@ ErrorInfo成员里可能会有报错信息。
                 {
                     if (lib.NoViewLocation.IndexOf(item.location) != -1)
                     {
-                        if (string.IsNullOrEmpty(patronBarcode) == false 
-                            || activeItem.userName==WxUserDatabase.C_Public)
+                        if (string.IsNullOrEmpty(patronBarcode) == false
+                            || activeItem.userName == WxUserDatabase.C_Public)
                         {
                             // 读者身份的话，直接不显示
                             continue;
@@ -7638,7 +7638,7 @@ ErrorInfo成员里可能会有报错信息。
                         {
                             // 馆员身份，灰色显示
                             item.isGray = true;
-                            
+
                         }
                     }
                 }
@@ -7670,7 +7670,7 @@ ErrorInfo成员里可能会有报错信息。
                 item.borrowDate = borrowDate;
                 item.borrowPeriod = borrowPeriod;
 
-                
+
                 if (string.IsNullOrEmpty(cmdType) == false)//(isPatron1 == false)
                 {
                     if (cmdType == "borrow")
@@ -7751,7 +7751,7 @@ ErrorInfo成员里可能会有报错信息。
                     }
                     else if (lib.ReserveScope == LibDatabase.C_ReserveScope_All)
                     {
-                        if (string.IsNullOrEmpty(patronBarcode) ==false && item.borrower == patronBarcode)
+                        if (string.IsNullOrEmpty(patronBarcode) == false && item.borrower == patronBarcode)
                         {
                             reservationInfo = "该册目前是您在借中，不能预约。";
                             bCanReservation = false;
@@ -7773,7 +7773,7 @@ ErrorInfo成员里可能会有报错信息。
                             }
                         }
                     }
-                    else if(lib.ReserveScope == LibDatabase.C_ReserveScope_OnlyOnshelf)
+                    else if (lib.ReserveScope == LibDatabase.C_ReserveScope_OnlyOnshelf)
                     {
                         if (string.IsNullOrEmpty(item.borrower) == false)
                         {
@@ -7792,9 +7792,9 @@ ErrorInfo成员里可能会有报错信息。
                         }
                     }
 
-                     // 如果不是读者帐户，提示不是读者帐号，不能预约
-                     // 如果前面已经判断是不能预约，就不走进这里，优先用前面的提示
-                    if (bCanReservation==true && string.IsNullOrEmpty(patronBarcode) == true)
+                    // 如果不是读者帐户，提示不是读者帐号，不能预约
+                    // 如果前面已经判断是不能预约，就不走进这里，优先用前面的提示
+                    if (bCanReservation == true && string.IsNullOrEmpty(patronBarcode) == true)
                     {
                         reservationInfo = "<span class='remark'>您当前帐户不是读者账号，不能预约图书，"
                             + "点击<a href='javascript:void(0)' onclick='gotoUrl(\"/Account/Index?returnUrl="
@@ -7927,7 +7927,7 @@ ErrorInfo成员里可能会有报错信息。
         }
 
         // 得到预约状态和操作按钮
-        private string getReservationHtml(string reservationState, 
+        private string getReservationHtml(string reservationState,
             string barcode,
             bool bOnlyReserRow,
             bool showBtn)//List<ReservationInfo> list, string barcode)
@@ -9130,7 +9130,7 @@ ErrorInfo成员里可能会有报错信息。
                 foreach (Library lib in this.LibManager.Librarys)
                 {
                     if (libs.Contains(lib.Entity.capoUserName) == true)
-                       // && string.IsNullOrEmpty(lib.Entity.state) == true) // 没有到期等  //todo 好像不应这里检查，如果这里不加入集合，后面会报找不到。
+                    // && string.IsNullOrEmpty(lib.Entity.state) == true) // 没有到期等  //todo 好像不应这里检查，如果这里不加入集合，后面会报找不到。
                     {
                         // WriteErrorLog1("***" + lib.Entity.capoUserName +"--"+lib.Entity.state);
 
@@ -9468,7 +9468,7 @@ ErrorInfo成员里可能会有报错信息。
                     // 图书馆设置为支持在线预约，预约成功后，同时提示简化。2020/2/14 编译局使用的馆员备书功能
                     //if (string.IsNullOrEmpty(lib.comment) == false
                     //    && lib.comment.IndexOf("ReserveOnshelf") != -1)
-                    if (lib.ReserveScope== LibDatabase.C_ReserveScope_OnlyOnshelf)  // 2020/3/22 改为使用参数
+                    if (lib.ReserveScope == LibDatabase.C_ReserveScope_OnlyOnshelf)  // 2020/3/22 改为使用参数
                     {
                         strError = ""; //将在架预约的提示清掉。
                     }
