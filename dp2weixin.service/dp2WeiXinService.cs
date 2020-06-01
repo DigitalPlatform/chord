@@ -4048,7 +4048,7 @@ ErrorInfo成员里可能会有报错信息。
             userItem1 = null;
             int nRet = 0;
 
-            string userItemId = "";
+            //string userItemId = "";
 
             // 根据id找到图书馆对象
             LibEntity lib = this.GetLibById(libId);
@@ -4115,7 +4115,7 @@ ErrorInfo成员里可能会有报错信息。
             }
             else if (action == C_Action_delete)
             {
-                userItemId = patron.barcode;
+               // userItemId = patron.barcode;
 
                 // todo，默认设为读者不允许删除
                 // this._areaMgr.GetLibCfg(libId, patron.libraryCode);
@@ -4229,100 +4229,109 @@ ErrorInfo成员里可能会有报错信息。
                 return -1;
             }
 
+            // 2020/6/1 统一在收到dp2读者变更消息时，进行处理
+
             // 删除的话，需要删除库里的记录
             if (action == C_Action_delete)
             {
-                WxUserItem userItem = WxUserDatabase.Current.GetById(userItemId);
-                if (userItem == null)
-                {
-                    strError = "绑定账号未找到";
-                    return -1;
-                }
-                // 删除mongodb库的记录
-                WxUserDatabase.Current.Delete1(userItemId, out WxUserItem newActiveUser);
-
-                // 如果当前帐户是读者，且不是待审核的读者，则给馆员发通知。
-                if (userItem.type == WxUserDatabase.C_Type_Patron
-                    && userItem.patronState != WxUserDatabase.C_PatronState_TodoReview)
+                List<WxUserItem> userList = WxUserDatabase.Current.GetPatron(null,
+                    libId,
+                    patron.barcode);
+                foreach (WxUserItem userItem in userList)
                 {
 
-                    // 给馆员发消息
-                    /*
-    您好，下面读者删除了个人信息。
-    用户名：李四
-    联系方式：13788888888
-    变更类型：删除读者记录
-    变更时间：2016年1月2日 14:00
-      */
+                    //WxUserItem userItem = WxUserDatabase.Current.GetById(userItemId);
+                    //if (userItem == null)
+                    //{
+                    //    strError = "绑定账号未找到";
+                    //    return -1;
+                    //}
+                    // 删除mongodb库的记录
+                    WxUserDatabase.Current.Delete1(userItem.id, out WxUserItem newActiveUser);
 
-                    //WxUserItem patronInfo = this.GetPatronInfoByXml(outputPatronXml, out List<string> tempWeixinIds);
-
-
-                    string strFirst = "您好，下面读者删除了个人信息。";
-                    string strRemark = "请登录图书馆系统查看操作日志。";
-
-                    string patronName = userItem.readerName;
-
-                    // todo
-                    GzhCfg gzh = dp2WeiXinService.Instance._gzhContainer.GetDefault();//.GetByAppId(this.AppId);
-                    if (gzh == null)
+                    // 如果当前帐户是读者，且不是待审核的读者，则给馆员发通知。
+                    if (userItem.type == WxUserDatabase.C_Type_Patron
+                        && userItem.patronState != WxUserDatabase.C_PatronState_TodoReview)
                     {
-                        strError = "未找到默认的公众号配置";
-                        return -1;
-                    }
-                    string linkUrl = "";
+
+                        // 给馆员发消息
+                        //                
+                        //您好，下面读者删除了个人信息。
+                        //用户名：李四
+                        //联系方式：13788888888
+                        //变更类型：删除读者记录
+                        //变更时间：2016年1月2日 14:00
+                        // 
+
+                        //WxUserItem patronInfo = this.GetPatronInfoByXml(outputPatronXml, out List<string> tempWeixinIds);
 
 
-                    //// 不发本人
-                    List<WxUserItem> bindPatronList = new List<WxUserItem>();
+                        string strFirst = "您好，下面读者删除了个人信息。";
+                        string strRemark = "请登录图书馆系统查看操作日志。";
 
-                    // 工作人员
-                    // 2020-3-17 发给本馆绑定的工作人员，不管是否打开监控消息没有关系，
-                    //只要图书馆工作人员绑定了帐户，就发给馆员。也不再发给dp2003的监控，意义不大。
-                    string libraryCode = userItem.libraryCode;
-                    if (libraryCode == "")
-                        libraryCode = "空";
-                    List<WxUserItem> tempWorkers = WxUserDatabase.Current.GetWorkers("", libId, libraryCode, "");
-                    List<WxUserItem> workers = new List<WxUserItem>();
-                    foreach (WxUserItem one in tempWorkers)
-                    {
-                        // 2020-3-11 还要加上public帐户
-                        if (WxUserDatabase.CheckIsFromWeb(one.weixinId) == true
-                            || one.userName == WxUserDatabase.C_Public)
-                            continue;
+                        string patronName = userItem.readerName;
 
-                        workers.Add(one);
-                    }
-
-                    if (bindPatronList.Count > 0 || workers.Count > 0)
-                    {
-                        // 不加mask的通知数据
-                        string thisTime = dp2WeiXinService.GetNowTime();
-                        string first_color = "#000000";
-                        ReviewPatronTemplateData msgData = new ReviewPatronTemplateData(strFirst, first_color,
-                            patronName, userItem.phone, "删除读者记录", thisTime,
-                            strRemark);
-
-                        // 发送待审核的微信消息
-                        nRet = this.SendTemplateMsg(GzhCfg.C_Template_PatronInfoChanged,
-                           bindPatronList,
-                           workers,
-                           msgData,
-                           msgData, //用的同一组数据，不做马赛克
-                           linkUrl,
-                           "",
-                           out strError);
-                        if (nRet == -1)
+                        // todo
+                        GzhCfg gzh = dp2WeiXinService.Instance._gzhContainer.GetDefault();//.GetByAppId(this.AppId);
+                        if (gzh == null)
                         {
+                            strError = "未找到默认的公众号配置";
                             return -1;
                         }
+                        string linkUrl = "";
+
+
+                        //// 不发本人
+                        List<WxUserItem> bindPatronList = new List<WxUserItem>();
+
+                        // 工作人员
+                        // 2020-3-17 发给本馆绑定的工作人员，不管是否打开监控消息没有关系，
+                        //只要图书馆工作人员绑定了帐户，就发给馆员。也不再发给dp2003的监控，意义不大。
+                        string libraryCode = userItem.libraryCode;
+                        if (libraryCode == "")
+                            libraryCode = "空";
+                        List<WxUserItem> tempWorkers = WxUserDatabase.Current.GetWorkers("", libId, libraryCode, "");
+                        List<WxUserItem> workers = new List<WxUserItem>();
+                        foreach (WxUserItem one in tempWorkers)
+                        {
+                            // 2020-3-11 还要加上public帐户
+                            if (WxUserDatabase.CheckIsFromWeb(one.weixinId) == true
+                                || one.userName == WxUserDatabase.C_Public)
+                                continue;
+
+                            workers.Add(one);
+                        }
+
+                        if (bindPatronList.Count > 0 || workers.Count > 0)
+                        {
+                            // 不加mask的通知数据
+                            string thisTime = dp2WeiXinService.GetNowTime();
+                            string first_color = "#000000";
+                            ReviewPatronTemplateData msgData = new ReviewPatronTemplateData(strFirst, first_color,
+                                patronName, userItem.phone, "删除读者记录", thisTime,
+                                strRemark);
+
+                            // 发送一条修改读者信息的微信通知
+                            nRet = this.SendTemplateMsg(GzhCfg.C_Template_PatronInfoChanged,
+                               bindPatronList,
+                               workers,
+                               msgData,
+                               msgData, //用的同一组数据，不做马赛克
+                               linkUrl,
+                               "",
+                               out strError);
+                            if (nRet == -1)
+                            {
+                                return -1;
+                            }
+                        }
                     }
+
                 }
-
             }
+    
 
-
-            // 如果是读者自己修改信息，则通过管理员
+            // 如果是读者自己修改信息，则通知管理员
             if (checkNull == true)
             {
                 /*
@@ -12045,7 +12054,7 @@ ErrorInfo成员里可能会有报错信息。
             XmlNode actionNode = root.SelectSingleNode("action");
             string action = DomUtil.GetNodeText(actionNode);
             // 如果不是修改信息，则不用做什么事情
-            if (action != "change")
+            if (action != "change") // && action!="delete")
                 return 0;
 
             XmlNode patronRecord = root.SelectSingleNode("patronRecord");
@@ -12062,6 +12071,20 @@ ErrorInfo成员里可能会有报错信息。
             List<WxUserItem> userList = WxUserDatabase.Current.GetPatron(null,
                 lib.id,
                 WxUserDatabase.C_Prefix_RefId + patronInfo.refID); //patronInfo.readerBarcode);
+
+            // 2020/6/1 试验通过delete消息，希望删除公众号本地数据，
+            // 发现delete传过来的信息非常少，没办法进一步处理，所以还是在具体的功能地方删除本地数据。
+            // 如果dp2端删除了读者记录，公众号这端也跟着删除
+            //if (action == "delete" && userList !=null)
+            //{
+            //    foreach (WxUserItem userItem in userList)
+            //    {
+            //        // 删除mongodb库的记录
+            //        WxUserDatabase.Current.Delete1(userItem.id, out WxUserItem newActiveUser);
+            //    }
+            //    return 0;
+            //}
+
 
             //  2020-3-7 不使用下面比对两者weixinId分出3批数据的做法，
             // 修改为直接根据变更帐户修改mongodb库的中该帐户对应所有记录的信息，

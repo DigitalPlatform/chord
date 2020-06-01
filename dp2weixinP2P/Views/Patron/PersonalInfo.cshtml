@@ -46,8 +46,8 @@
 
 
             // 本地帐号id
-            var userItemId = $("#_userItemId").text();
-            if (userItemId == "") {
+            var patronBarcode = $("#_patronBarcode").text();
+            if (patronBarcode == "") {
                 alert("异常情况：本地帐号id为空");
                 return;
             }
@@ -62,13 +62,13 @@
             // 读者状态
             var state = $("#_state").text();
             // 只有状态为 待审核 或者 为正常状态即空情况才允许读者自己删除。
-            if (state != "待审核" ) {  //&& state !=""
+            if (state != "待审核") {  //&& state !=""
                 alert("您的状态不符合删除要求，请联系系统管理员。");
                 return;
             }
             //alert(state);
 
-            var timestamp= $("#_timestamp").text();
+            var timestamp = $("#_timestamp").text();
 
             // 调setReaderInfo接口删除读者
             //显示等待图层
@@ -79,7 +79,7 @@
                 + "&userName=" //+ encodeURIComponent(userName)
                 + "&action=delete"// + encodeURIComponent(action)
                 + "&recPath=" + encodeURIComponent(recPath)
-                + "&timestamp="+ encodeURIComponent(timestamp)
+                + "&timestamp=" + encodeURIComponent(timestamp)
                 + "&weixinId=" //+ encodeURIComponent(weixinId)
                 //+ "&bMergeInfo=false"
                 + "&checkNull=false"; //+ bMergeInfo;
@@ -119,7 +119,7 @@
                     alert(errorThrown);
                 },
                 {
-                    barcode: userItemId,    // 如果是删除，传的是本地userItem表中的id
+                    barcode: patronBarcode,    // 如果是删除，传的是本地userItem表中的id 2020/6/1还是传证条码呈
                     readerType: "",
                     name: "",
                     gender: "",
@@ -153,8 +153,9 @@ else
     {
         <span id="_recPath" style="display:none">@Model.recPath</span>
         <span id="_state" style="display:none">@Model.state</span>
-        <span id="_userItemId" style="display:none">@ViewBag.userItemId</span>
+        //<span id="_userItemId" style="display:none">@ViewBag.userItemId</span>
         <span id="_timestamp" style="display:none">@ViewBag.timestamp</span>
+        <span id="_patronBarcode" style="display:none">@Model.barcode</span>
 
         <ul class="mui-table-view">
             <li class="mui-table-view-cell">
