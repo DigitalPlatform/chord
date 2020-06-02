@@ -58,7 +58,7 @@
 
             // 不通过时需要填写原因
             var reason = $("#txtReason").val();
-            if (pass == false) {
+            if (pass == false && opeType != "d") {
                 // 证条码号
                 if (reason == "") {
                     alert("请输入审核不通过原因！");
@@ -184,7 +184,7 @@
                     $("#_recPath").text(result.recPath);
                     $("#_timestamp").text(result.timestamp);
 
-                    alert("提交成功");
+                    alert("操作成功");
                     $("#btnPass").attr("disabled", true);
                     $("#btnReject").attr("disabled", true);
 

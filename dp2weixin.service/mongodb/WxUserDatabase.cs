@@ -32,7 +32,7 @@ namespace dp2weixin.service
         // 读者状态
         public const string C_PatronState_TodoReview = "待审核";
         public const string C_PatronState_Pass= "";
-        public const string C_PatronState_NoPass = "不通过";
+        public const string C_PatronState_NoPass = "审核不通过";
 
         // public
         public const string C_Public = "public";
@@ -392,6 +392,7 @@ namespace dp2weixin.service
             userItem.readerName = "";
             userItem.department = "";
             userItem.phone = "";
+            userItem.gender = "";
             userItem.patronState = ""; //2020-3-7加
             userItem.noPassReason = "";
             userItem.isRegister = false;
@@ -701,6 +702,7 @@ namespace dp2weixin.service
                 .Set("readerName", item.readerName)
                 .Set("department", item.department)
                 .Set("phone", item.phone)
+                .Set("gender", item.gender) // 2020/6/2 性别
                 .Set("patronState", item.patronState) 
                  .Set("noPassReason", item.noPassReason)  // 2020-3-8 不通过原因
                 .Set("isRegister", item.isRegister)  //2020-3-7 是否读者自助注册的
@@ -795,8 +797,12 @@ namespace dp2weixin.service
         public string department { get; set; }  //部门，二维码下方显示 // 2016-6-16 新增
 
         public string phone { get; set; } // 读者手机号 2020-3-1 新增
+        public string gender { get; set; } //2020/6/2增加 性别
+
         public string patronState { get; set; }  // 2020-3-7 读者状态，读者注册提交后是待审核
         public string noPassReason { get; set; } // 2020-3-8 不通过原因
+
+
 
         // 是否是读者自助注册的
         public bool isRegister = false;   // 1表示是读者自助注册的
@@ -881,6 +887,8 @@ namespace dp2weixin.service
         public int showCover { get; set; }
         public string bookSubject { get; set; } // 20170509加
 
+
+
         public string Dump()
         {
             StringBuilder sb = new StringBuilder();
@@ -893,7 +901,8 @@ namespace dp2weixin.service
             sb.AppendLine("readerBarcode=[" + this.readerBarcode + "] ");
             sb.AppendLine("readerName=[" + this.readerName + "] ");
             sb.AppendLine("department=[" + this.department + "] ");
-            sb.AppendLine("phone=[" + this.phone + "] ");
+            sb.AppendLine("phone=[" + this.phone + "] ");  //
+            sb.AppendLine("gender=[" + this.gender + "] ");  //2020/6/2 性别
             sb.AppendLine("patronState=[" + this.patronState + "] ");  //2020-3-7  //noPassReason
             sb.AppendLine("noPassReason=[" + this.noPassReason + "] ");  //2020-3-8
             sb.AppendLine("isRegister=[" + this.isRegister + "] ");  // 2020-3-7

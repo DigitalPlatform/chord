@@ -22,10 +22,25 @@
             gotoUrl(url);
         }
 
+        // 修改注册信息
+        function editRegister() {
+
+             // 本地帐号id
+            var userItemId = $("#_userItemId").text();
+            if (userItemId == "") {
+                alert("异常情况：本地帐号id为空");
+                return;
+            }
+
+            // 跑转到注册界面，参数带上id
+            var url = "/Patron/PatronRegister?userId=" + encodeURIComponent(userItemId);
+            gotoUrl(url);
+        }
+
+        // 删除记录
         function deletePatron() {
 
             //alert("1");
-
 
             // 图书馆ID
             var libId = getLibId();
@@ -33,7 +48,6 @@
                 alert("异常情况：libId为空。");
                 return;
             }
-
 
             // 读者路径
             var recPath = $("#_recPath").text();
@@ -43,9 +57,7 @@
             }
             //alert(recPath);
 
-
-
-            // 本地帐号id
+            // 读者证条码号
             var patronBarcode = $("#_patronBarcode").text();
             if (patronBarcode == "") {
                 alert("异常情况：本地帐号id为空");
@@ -58,11 +70,10 @@
                 return false;
             }
 
-
             // 读者状态
             var state = $("#_state").text();
             // 只有状态为 待审核 或者 为正常状态即空情况才允许读者自己删除。
-            if (state != "待审核") {  //&& state !=""
+            if (state != "待审核" && state!="审核不通过") {  //&& state !=""
                 alert("您的状态不符合删除要求，请联系系统管理员。");
                 return;
             }
@@ -144,7 +155,6 @@
 }
 else
 {
-
     if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
     {
         @Html.Raw(ViewBag.RedirectInfo);
@@ -153,7 +163,7 @@ else
     {
         <span id="_recPath" style="display:none">@Model.recPath</span>
         <span id="_state" style="display:none">@Model.state</span>
-        //<span id="_userItemId" style="display:none">@ViewBag.userItemId</span>
+        <span id="_userItemId" style="display:none">@ViewBag.userItemId</span>
         <span id="_timestamp" style="display:none">@ViewBag.timestamp</span>
         <span id="_patronBarcode" style="display:none">@Model.barcode</span>
 
@@ -219,16 +229,19 @@ else
                 </a>
             </li>
         </ul>
-
-
         <br />
 
         <table class='personalinfo'>
             <tr class='barcode'> <td class='name'>证条码号</td> <td class='value'>@Model.barcode</td> </tr>
             <tr class='person_name'> <td class='name'>姓名</td> <td class='value'>@Model.name</td> </tr>
             <tr> <td class='name'>性别</td> <td class='value'>@Model.gender</td> </tr>
-            <tr class='state'> <td class='name'> 证状态</td> <td class='value'>@Model.state</td> </tr>
-            <tr> <td class='name'>电话</td> <td class='value'>@Model.phone   <button type="button" onclick="gotoChangePhone()">修改手机号</button></td> </tr>
+            <tr class='state'> <td class='name'> 证状态</td> 
+            <td class='value'>@Model.state
+                <button style="margin:2px;background-color:lightblue" type="button" onclick="editRegister()">修改注册信息</button>   
+             </td> 
+            </tr>
+            <tr> <td class='name'>电话</td> <td class='value'>@Model.phone   
+                <button type="button" onclick="gotoChangePhone()"  style="margin:2px;background-color:lightblue">修改手机号</button></td> </tr>
             <tr> <td class='name'>读者类型</td> <td class='value'>@Model.readerType</td> </tr>
             <tr> <td class='name'>单位</td> <td class='value'>@Model.department</td> </tr>
             <tr> <td class='name'>出生日期</td> <td class='value'>@Model.dateOfBirth</td> </tr>

@@ -4240,18 +4240,13 @@ ErrorInfo成员里可能会有报错信息。
                 foreach (WxUserItem userItem in userList)
                 {
 
-                    //WxUserItem userItem = WxUserDatabase.Current.GetById(userItemId);
-                    //if (userItem == null)
-                    //{
-                    //    strError = "绑定账号未找到";
-                    //    return -1;
-                    //}
                     // 删除mongodb库的记录
                     WxUserDatabase.Current.Delete1(userItem.id, out WxUserItem newActiveUser);
 
                     // 如果当前帐户是读者，且不是待审核的读者，则给馆员发通知。
                     if (userItem.type == WxUserDatabase.C_Type_Patron
-                        && userItem.patronState != WxUserDatabase.C_PatronState_TodoReview)
+                        && userItem.patronState != WxUserDatabase.C_PatronState_TodoReview
+                        && userItem.patronState != WxUserDatabase.C_PatronState_NoPass)
                     {
 
                         // 给馆员发消息
@@ -5328,6 +5323,7 @@ ErrorInfo成员里可能会有报错信息。
             string refID = "";
             string department = "";
             string phone = "";
+            string gender = "";
             string patronState = "";
             string noPassReason = "";
 
@@ -5359,6 +5355,7 @@ ErrorInfo成员里可能会有报错信息。
                 refID = patronInfo.refID;
                 department = patronInfo.department;
                 phone = patronInfo.phone;
+                gender = patronInfo.gender;
                 patronState = patronInfo.patronState;
                 noPassReason = patronInfo.noPassReason;
                 libraryCode = patronInfo.libraryCode;
@@ -5462,8 +5459,10 @@ ErrorInfo成员里可能会有报错信息。
 
             userItem.readerBarcode = readerBarcode;
             userItem.readerName = readerName;
+            
             userItem.department = department;
             userItem.phone = phone;
+            userItem.gender = gender;
             userItem.patronState = patronState;
             userItem.noPassReason = noPassReason;
             userItem.xml = partonXml;
@@ -11517,8 +11516,10 @@ ErrorInfo成员里可能会有报错信息。
 
             userItem.readerBarcode = patronInfo.readerBarcode;
             userItem.readerName = patronInfo.readerName;
+            userItem.gender = patronInfo.gender;
             userItem.department = patronInfo.department;
             userItem.phone = patronInfo.phone;
+            userItem.gender = patronInfo.gender;
             userItem.patronState = patronInfo.patronState;
             userItem.noPassReason = patronInfo.noPassReason;
             userItem.xml = patronInfo.xml;
@@ -11576,6 +11577,7 @@ ErrorInfo成员里可能会有报错信息。
             userItem.readerName = "";
             userItem.department = "";
             userItem.phone = "";
+            userItem.gender = "";
             userItem.patronState = "";
             userItem.noPassReason = "";
             userItem.xml = "";
@@ -11645,6 +11647,12 @@ ErrorInfo成员里可能会有报错信息。
             node = root.SelectSingleNode("tel");
             if (node != null)
                 phone = DomUtil.GetNodeText(node);
+
+            // gender
+            string gender = "";
+            node = root.SelectSingleNode("gender");
+            if (node != null)
+                gender = DomUtil.GetNodeText(node);
 
             // 读者状态
             string patronState = "";
@@ -11717,6 +11725,7 @@ ErrorInfo成员里可能会有报错信息。
             userItem.readerName = readerName;
             userItem.department = department;
             userItem.phone = phone;
+            userItem.gender = gender;
             userItem.patronState = patronState;
             userItem.noPassReason = noPassReason;
             userItem.refID = refID;
@@ -12109,6 +12118,7 @@ ErrorInfo成员里可能会有报错信息。
                 userItem.readerName = patronInfo.readerName;
                 userItem.department = patronInfo.department;
                 userItem.phone = patronInfo.phone;
+                userItem.gender = patronInfo.gender;
                 userItem.patronState = patronInfo.patronState;  //更新为dp2读者记录的最新状态
                 userItem.noPassReason = patronInfo.noPassReason;//更新不通过原因
                 userItem.xml = patronInfo.xml;
