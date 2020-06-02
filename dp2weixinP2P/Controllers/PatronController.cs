@@ -754,7 +754,7 @@ namespace dp2weixinWeb.Controllers
             sel = "";
             if (deptHtml != "")
             {
-                if (bFind == false)
+                if (bFind == false && string.IsNullOrEmpty(userItem.department)==false)
                 {
                     sel = " selected ";
                     displayText = "  style='display: block' ";

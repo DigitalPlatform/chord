@@ -3878,6 +3878,7 @@ ErrorInfo成员里可能会有报错信息。
             string recPath,
             SimplePatron patron,
             bool checkNull,
+             bool   bWorker,
             out string patronXml,
             out string timestamp,
             out string strError)
@@ -3974,12 +3975,27 @@ ErrorInfo成员里可能会有报错信息。
             }
 
             // 把不通过的原因放在注释里，2020-3-17 先检查是否需要修改
-            if (CheckFieldIsNeedChange(checkNull, patron.reason) == true)
+            if (CheckFieldIsNeedChange(checkNull, patron.comment) == true)
             {
+                // 备注是一直累加的
+                string oldComment = "";
                 XmlNode commentNode = root.SelectSingleNode("comment");
                 if (commentNode == null)
                     commentNode = DomUtil.CreateNodeByPath(root, "comment");
-                DomUtil.SetNodeText(commentNode, patron.reason);
+                else
+                    oldComment = DomUtil.GetNodeText(commentNode);
+
+                string thisComment = "";
+                string dateTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+                if (bWorker == true)
+                    thisComment = dateTime + " 馆员备注:" + patron.comment;
+                else
+                    thisComment = dateTime + " 读者备注:" + patron.comment;
+
+
+
+
+                DomUtil.SetNodeText(commentNode, oldComment+"\r\n"+thisComment);
             }
 
             StringWriter textWrite = new StringWriter();
@@ -4059,10 +4075,12 @@ ErrorInfo成员里可能会有报错信息。
             }
 
             // 读者自助注册时使用代理账号capo 2020/1/21
+            bool bWorker = false;
             LoginInfo loginInfo = new LoginInfo("", false);
             if (string.IsNullOrEmpty(userName) == false)
             {
                 loginInfo = new LoginInfo(userName, false);
+                bWorker = true;
             }
 
             string patronXml = "";
@@ -4098,6 +4116,7 @@ ErrorInfo成员里可能会有报错信息。
                        + "<department>" + patron.department + "</department>"
                        + "<tel>" + patron.phone + "</tel>"
                        + "<email>" + email + "</email>"
+                       +"<comment>"+patron.comment+"</comment>"
                        + "</root>";
             }
             else if (action == C_Action_change)
@@ -4107,6 +4126,7 @@ ErrorInfo成员里可能会有报错信息。
                     recPath,
                     patron,
                     checkNull,
+                bWorker,
                     out patronXml,
                     out timestamp,
                     out strError);
@@ -4228,8 +4248,6 @@ ErrorInfo成员里可能会有报错信息。
                 strError = ex.Message;
                 return -1;
             }
-
-            // 2020/6/1 统一在收到dp2读者变更消息时，进行处理
 
             // 删除的话，需要删除库里的记录
             if (action == C_Action_delete)

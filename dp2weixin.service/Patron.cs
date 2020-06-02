@@ -62,8 +62,8 @@ namespace dp2weixin.service
         public string state { get; set; }
 
 
-        // 不通过原因
-        public string reason { get; set; }
+        //备注信息或不通过原因
+        public string comment { get; set; }
 
     }
 

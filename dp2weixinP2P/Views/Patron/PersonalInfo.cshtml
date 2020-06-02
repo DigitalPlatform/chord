@@ -237,8 +237,11 @@ else
             <tr> <td class='name'>性别</td> <td class='value'>@Model.gender</td> </tr>
             <tr class='state'> <td class='name'> 证状态</td> 
             <td class='value'>@Model.state
+                @if (Model.state == "待审核" || Model.state == "审核不通过")
+                {
                 <button style="margin:2px;background-color:lightblue" type="button" onclick="editRegister()">修改注册信息</button>   
-             </td> 
+                }
+                </td> 
             </tr>
             <tr> <td class='name'>电话</td> <td class='value'>@Model.phone   
                 <button type="button" onclick="gotoChangePhone()"  style="margin:2px;background-color:lightblue">修改手机号</button></td> </tr>
@@ -262,7 +265,7 @@ else
                     }
                 </td>
             </tr>
-            <tr><td colspan="2"><button type="button" onclick="deletePatron()">删除</button></td></tr>
+            <tr><td colspan="2"><button type="button" onclick="deletePatron()" style="margin:2px;background-color:lightblue">删除</button></td></tr>
         </table>
         <div class="mui-content-padded">
             <center>
