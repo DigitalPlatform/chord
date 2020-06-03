@@ -54,7 +54,7 @@
                     $("#_verifyCode").text(result.verifyCode);
 
 
-                    alert("短信验证码已发送到您手机号，请查收。" + result.verifyCode);  //todo正式版本删除码提示
+                    alert("短信验证码已发送到您手机号，请查收。");// + result.verifyCode);  //todo正式版本删除码提示
 
                 }, function (xhq, textStatus, errorThrown) {
                     // 关闭等待层
@@ -118,13 +118,10 @@
             // 调Patron的SetPatron()
             var url = "/api/PatronApi?libId=" + libId
                 + "&userName=" //+ encodeURIComponent(userName)
-                + "&action=change"// + encodeURIComponent(action)
+                + "&opeType=changeByPatron"
                 + "&recPath=" + encodeURIComponent(recPath)
                 + "&timestamp=" // + encodeURIComponent(timestamp)
-                + "&weixinId=" //+ encodeURIComponent(weixinId)
-                //+ "&bMergeInfo=true"
-                + "&checkNull=true"; //+ bMergeInfo;
-
+                + "&weixinId="; //+ encodeURIComponent(weixinId)
             sendAjaxRequest(url, "POST",
                 function (result) {
 

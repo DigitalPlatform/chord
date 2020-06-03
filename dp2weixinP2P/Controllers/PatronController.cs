@@ -608,6 +608,7 @@ namespace dp2weixinWeb.Controllers
 
             foreach (string dept in deptList)
             {
+                sel = "";
                 if (dept == patron.department)
                 {
                     sel = " selected ";
@@ -943,6 +944,11 @@ namespace dp2weixinWeb.Controllers
                     recPath,
                     sessionInfo.ActiveUser.showPhoto,//ViewBag.showPhoto,
                     true);
+
+            string comment = patron.comment;
+            comment = comment.Replace("\r\n", "\n");
+            comment = comment.Replace("\n", "<br/>");
+            patron.comment = comment;
 
             return View(patron);
 

@@ -70,25 +70,32 @@ namespace dp2weixinWeb.ApiControllers
         /// <summary>
         /// 设置读者信息
         /// </summary>
-        /// <param name="libId"></param>
-        /// <param name="userName"></param>
-        /// <param name="action"></param>
-        /// <param name="recPath"></param>
-        /// <param name="timestamp"></param>
-        /// <param name="weixinId"></param>
-        /// <param name="patron"></param>
-        /// <param name="bMergeInfo"></param>
+        /// <param name="libId">图书馆id，找本地mongodb的id</param>
+        /// <param name="userName">工作人员帐号名</param>
+        /// <param name="opeType">操作类型：
+        /// 1 register:读者自助注册，转换为new
+        /// 2 reRegister:读者重新提交注册，转换为change,当状态是"待审核"，读者类型为空时才能保存成功
+        /// 3 reviewPass:馆员审核通过，转换为change
+        /// 4 reviewNopass:馆员审核不通过,转换为changestate
+        /// 5 reviewNopassDel:馆员审核不通过+删除，转换为delete
+        /// 6 changeByPatron:读者自己修改信息，转换为change,注意只允许读者修改几个字段，其它字段传过来为null，表示不修改
+        /// 7 deleteByPatron:读者自己删除信息，转换为delete,只有当状态为"待审核"或者"审核不通过"时，读者才能自己删除记录
+        /// 8 newByWorker:馆员登记读者，转换为new
+        /// 9 changeByWorker:馆员修改读者信息，转换为change
+        /// </param>
+        /// <param name="recPath">读者记录路径</param>
+        /// <param name="timestamp">读者记录时间戳</param>
+        /// <param name="weixinId">读者weixinId，当opeType=register/reRegister时有值</param>
+        /// <param name="patron">传递的读者信息对象</param>
         /// <returns></returns>
         [HttpPost]
         public SetReaderInfoResult SetPatron(string libId,
             string userName,
-            string action,
+            string opeType,
             string recPath,
             string timestamp,
             string weixinId,
-            SimplePatron patron,
-            //bool bMergeInfo,
-            bool checkNull)
+            SimplePatron patron)
         {
             SetReaderInfoResult result = new SetReaderInfoResult();
             string strError="";
@@ -99,13 +106,11 @@ namespace dp2weixinWeb.ApiControllers
             WxUserItem userItem = null;
             int nRet = dp2WeiXinService.Instance.SetReaderInfo(libId,
                 userName,
-                action,
+                opeType,
                 recPath,
                 timestamp,
                 weixinId,
                 patron,
-                //bMergeInfo,
-                checkNull,
                 out outputRecPath,
                 out outputTimestamp,
                 out userItem,
@@ -122,8 +127,8 @@ namespace dp2weixinWeb.ApiControllers
             result.timestamp = outputTimestamp;
 
             // 如果是读者自助注册过来的，需要把注册的这个帐户设置为当前帐户
-            if ((string.IsNullOrEmpty(weixinId) ==false && userItem !=null ))
-               // || action== dp2WeiXinService.C_Action_delete)
+            // reregister不需要设置活动帐户，因为当前帐户就是他本身。
+            if (opeType== "register")
             {
                 result.info = userItem.readerBarcode;
 

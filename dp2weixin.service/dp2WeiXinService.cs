@@ -3867,11 +3867,18 @@ ErrorInfo成员里可能会有报错信息。
 
         #region 找回密码，修改密码，二维码
 
+
+
         /// <summary>
-        /// 合并读者信息，主要用于馆员登记读者信息
-        /// 因为界面上只有几个简单信息，几个简单信息要跟读者原有信息进行合并
+        /// 合并读者信息，将修改的某几个字段与读者原有信息进行合并
         /// </summary>
-        /// <param name="patron"></param>
+        /// <param name="libId">图书馆id</param>
+        /// <param name="recPath">读者记录</param>
+        /// <param name="patron">传过来的对象，包含要修改的信息</param>
+        /// <param name="checkNull">是否检查patron对象的字段为空（null或空字符串），如果checkNull==true则表示,字段为空时，不进行修改</param>
+        /// <param name="bWorker">是否是工作人员进行操作，影响备注字段的表达</param>
+        /// <param name="patronXml">输出合并后的xml</param>
+        /// <param name="timestamp">读者时间戳</param>
         /// <param name="strError"></param>
         /// <returns></returns>
         public int MergePatronXml(string libId,
@@ -3985,15 +3992,8 @@ ErrorInfo成员里可能会有报错信息。
                 else
                     oldComment = DomUtil.GetNodeText(commentNode);
 
-                string thisComment = "";
-                string dateTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-                if (bWorker == true)
-                    thisComment = dateTime + " 馆员备注:" + patron.comment;
-                else
-                    thisComment = dateTime + " 读者备注:" + patron.comment;
-
-
-
+                // 本次comment的完整表达
+                string thisComment = this.GetFullComment(patron.comment, bWorker);
 
                 DomUtil.SetNodeText(commentNode, oldComment+"\r\n"+thisComment);
             }
@@ -4007,7 +4007,25 @@ ErrorInfo成员里可能会有报错信息。
         }
 
         /// <summary>
-        /// 2020-3-17 检查读者字段是否需要修改，如果只修改某个字段，其实字段会传空值，则不需要修改。
+        /// 得到完整的备注信息
+        /// </summary>
+        /// <param name="comment"></param>
+        /// <param name="bWorker"></param>
+        /// <returns></returns>
+        private string GetFullComment(string comment, bool bWorker)
+        {
+            string thisComment = "";
+            string dateTime = DateTimeUtil.DateTimeToString(DateTime.Now);
+            if (bWorker == true)
+                thisComment = dateTime + " 馆员备注:" + comment;
+            else
+                thisComment = dateTime + " 读者备注:" + comment;
+
+            return thisComment;
+        }
+
+        /// <summary>
+        /// 2020-3-17 检查读者字段是否需要修改，如果只修改某个字段，其它字段会传空值，则不需要修改。
         /// </summary>
         /// <param name="checkNull">是否检查空</param>
         /// <param name="field">字段值</param>
@@ -4025,47 +4043,112 @@ ErrorInfo成员里可能会有报错信息。
             return false;
         }
 
+        // dp2library的SetReaderInfo的action
         public const string C_Action_new = "new";
         public const string C_Action_change = "change";
+        public const string C_Action_changestate = "changestate";
         public const string C_Action_delete = "delete";
 
+        // 公众号这边针对读者的操作类型
+        public const string C_OpeType_register = "register"; //读者自助注册，转换为new
+        public const string C_OpeType_reRegister = "reRegister"; //读者重新提交注册，转换为change,当状态是"待审核"，读者类型为空时才能保存成功
+        public const string C_OpeType_reviewPass = "reviewPass";  //馆员审核通过，转换为change
+        public const string C_OpeType_reviewNopass = "reviewNopass"; //馆员审核不通过,转换为changestate
+        public const string C_OpeType_reviewNopassDel = "reviewNopassDel"; //馆员审核不通过+删除，转换为delete
+        public const string C_OpeType_changeByPatron = "changeByPatron"; //读者自己修改信息，转换为change,注意只允许读者修改几个字段，其它字段传过来为null，表示不修改
+        public const string C_OpeType_deleteByPatron = "deleteByPatron"; //读者自己删除信息，转换为delete,只有当状态为"待审核"或者"审核不通过"时，读者才能自己删除记录
+        public const string C_OpeType_newByWorker = "newByWorker"; //馆员登记读者，转换为new
+        public const string C_OpeType_changeByWorker = "changeByWorker"; //馆员修改读者信息，转换为change
+
+
         /// <summary>
-        /// 
+        /// 设置读者信息
         /// </summary>
-        /// <param name="libId"></param>
-        /// <param name="userName"></param>
-        /// <param name="action"></param>
-        /// <param name="recPath"></param>
-        /// <param name="timestamp"></param>
-        /// <param name="weixinId">当读者自助注册帐号时，会传入weixinId</param>
-        /// <param name="patron"></param>
-        /// <param name="bMergeInfo"></param>
-        /// <param name="outputRecPath"></param>
-        /// <param name="outputTimestamp"></param>
-        /// <param name="strError"></param>
-        /// <returns></returns>
+        /// <param name="libId">图书馆id，找本地mongodb的id</param>
+        /// <param name="userName">工作人员帐号名</param>
+        /// <param name="opeType">操作类型：
+        /// 1 register:读者自助注册，转换为new
+        /// 2 reRegister:读者重新提交注册，转换为change,当状态是"待审核"，读者类型为空时才能保存成功
+        /// 3 reviewPass:馆员审核通过，转换为change
+        /// 4 reviewNopass:馆员审核不通过,转换为changestate
+        /// 5 reviewNopassDel:馆员审核不通过+删除，转换为delete
+        /// 6 changeByPatron:读者自己修改信息，转换为change,注意只允许读者修改几个字段，其它字段传过来为null，表示不修改
+        /// 7 deleteByPatron:读者自己删除信息，转换为delete,只有当状态为"待审核"或者"审核不通过"时，读者才能自己删除记录
+        /// 8 newByWorker:馆员登记读者，转换为new
+        /// 9 changeByWorker:馆员修改读者信息，转换为change
+        /// </param>
+        /// <param name="recPath">读者记录路径</param>
+        /// <param name="timestamp">读者记录时间戳</param>
+        /// <param name="weixinId">读者weixinId，当opeType=register/reRegister时有值</param>
+        /// <param name="patron">传递的读者信息对象</param>
+        /// <param name="outputRecPath">返回的读者路径</param>
+        /// <param name="outputTimestamp">返回的读者记录时间戳</param>
+        /// <param name="userItem">返回的本地库对象</param>
+        /// <param name="strError">出错信息</param>
+        /// <returns>
+        /// -1 出错
+        /// 0 正常
+        /// </returns>
         public int SetReaderInfo(string libId,
             string userName,
-            string action,
+            string opeType,
             string recPath,
             string timestamp,
             string weixinId,
             SimplePatron patron,
-            //bool bMergeInfo,
-            bool checkNull,
             out string outputRecPath,
             out string outputTimestamp,
-            out WxUserItem userItem1,  //只有当读者注册时才能值，馆员编辑读者时返回null
+            out WxUserItem userItem2,  //只有当读者注册时才能值，馆员编辑读者时返回null
             out string strError)
         {
             strError = "";
             outputRecPath = "";
             outputTimestamp = "";
-            userItem1 = null;
+            userItem2 = null;
             int nRet = 0;
 
-            //string userItemId = "";
+            //===
+            //将前端传的操作类型转换为dp2可以识别的action
+            string action = "";
+            switch (opeType)
+            {
+                case C_OpeType_register:
+                    action = C_Action_new;
+                    break;
+                case C_OpeType_reRegister:
+                    action = C_Action_change;
+                    break;
+                case C_OpeType_reviewPass:
+                    action = C_Action_change;
+                    break;
+                case C_OpeType_reviewNopass:
+                    action = C_Action_changestate;
+                    break;
+                case C_OpeType_reviewNopassDel:
+                    action = C_Action_delete;
+                    break;
+                case C_OpeType_changeByPatron:
+                    action = C_Action_change;
+                    break;
+                case C_OpeType_deleteByPatron:
+                    action = C_Action_delete;
+                    break;
+                case C_OpeType_newByWorker:
+                    action = C_Action_new;
+                    break;
+                case C_OpeType_changeByWorker:
+                    action = C_Action_change;
+                    break;
+                default:
+                    break;
+            }
+            if (action == "")
+            {
+                strError = "无法将opeType=" + opeType + "转换为action";
+                return -1;
+            }
 
+            //===
             // 根据id找到图书馆对象
             LibEntity lib = this.GetLibById(libId);
             if (lib == null)
@@ -4084,29 +4167,18 @@ ErrorInfo成员里可能会有报错信息。
             }
 
             string patronXml = "";
-            // 是否需要合并读者信息，当馆员编辑读者信息时，需要合并读者信息
-            //if (bMergeInfo == false)
-
-            //2020-3-17统一用action来判断，原来的bMergeInfo好像没有用了
             if (action == C_Action_new)
             {
+                // 如果传入weixinid，则表示是读者自助注册，需要给email字段设上weixinId，建立绑定关系
                 string email = "";
-
-                // 如果传入weixinid，则表示是读者自助注册，需要给email字段设上weixinId
                 if (string.IsNullOrEmpty(weixinId) == false)
                 {
                     email = "weixinid:" + weixinId;//传入的weixinId带着后缀 + "@" + wxAppId;
                 }
 
-                if (string.IsNullOrEmpty(patron.barcode) == true)
-                {
-                    // 2020-3-5 之前注册的读者帐户是没有证条码的，但有些功能是用代理帐户代替当前帐登录
-                    // 比如借还要知道当前操作者，检索也是传的当前帐户信息，但因为读者注册时的证条码还没有，传的RI:refid
-                    // 但点不对api不认，会报缺证条码，后面又报缺channel.userName，和谢老师语音，要全面支持要入很多地方
-                    // 所以在注册时，还是生成一个随机的guid，让这条记录合规，审核的时候可以不显示
-                    patron.barcode = patron.phone;//Guid.NewGuid().ToString().ToUpper();  //注册要大写
-                }
-
+                // 将读者提交的备注，转换成完整表达，例如 2020/6/3 14:02 读者备注:我是办公室的。
+                // 备注字段一般是累积增加的。
+                string thisComment = this.GetFullComment(patron.comment, bWorker);
                 patronXml = "<root>"
                        + "<barcode>" + patron.barcode + "</barcode>"
                        + "<state>" + WxUserDatabase.C_PatronState_TodoReview + "</state> "
@@ -4116,17 +4188,25 @@ ErrorInfo成员里可能会有报错信息。
                        + "<department>" + patron.department + "</department>"
                        + "<tel>" + patron.phone + "</tel>"
                        + "<email>" + email + "</email>"
-                       +"<comment>"+patron.comment+"</comment>"
+                       + "<comment>" + thisComment + "</comment>"
                        + "</root>";
             }
-            else if (action == C_Action_change)
+            else if (action == C_Action_change || action == C_Action_changestate)
             {
+                bool bCheckNull = false;
+                // 如果是读者自己修改个人信息，例如手机号。一般情况下只让读者修改小部分字段，那么作为参数传进来的读者对象，其它字段是传的null，
+                // 检查发现字段是null,则原来的字段信息不变。
+                if (opeType == C_OpeType_changeByPatron)
+                {
+                    bCheckNull = true;
+                }
+
                 // 将dp2服务器的读者信息与界面提交的信息合并
                 nRet = this.MergePatronXml(libId,
                     recPath,
                     patron,
-                    checkNull,
-                bWorker,
+                    bCheckNull,
+                    bWorker,
                     out patronXml,
                     out timestamp,
                     out strError);
@@ -4135,11 +4215,7 @@ ErrorInfo成员里可能会有报错信息。
             }
             else if (action == C_Action_delete)
             {
-               // userItemId = patron.barcode;
-
-                // todo，默认设为读者不允许删除
-                // this._areaMgr.GetLibCfg(libId, patron.libraryCode);
-
+                //删除
             }
             else
             {
@@ -4175,23 +4251,20 @@ ErrorInfo成员里可能会有报错信息。
 
             Entity entity = new Entity();
             entity.Action = action;
-
-            if (patron.state == "审核不通过" && action == "change")
-                entity.Action = "changestate";
-
             entity.NewRecord = newRecord;
 
             List<Entity> entities = new List<Entity>();
             entities.Add(entity);
 
-            // 修改读者记录的情况
-            if (action == "change" || action == "delete")
+            // 修改 或 删除 读者，需要传入老记录和时间戳
+            if (action != C_Action_new)
             {
                 Record oldRecord = new Record();
                 oldRecord.Timestamp = timestamp;
                 entity.OldRecord = oldRecord;
             }
 
+            // 接口返回的读者xml
             string outputPatronXml = "";
 
             // 调点对点接口
@@ -4213,19 +4286,9 @@ ErrorInfo成员里可能会有报错信息。
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
-
                 if (result.Value == -1)
                 {
-                    if (result.ErrorInfo.IndexOf("已经被下列读者记录使用了") != -1)
-                    {
-                        strError = "该手机号" + patron.phone + "已被注册，不能重复注册。";
-                    }
-                    else
-                    {
-                        strError = "图书馆 " + lib.libName + " 保存读者信息时出错:" + result.ErrorInfo;
-                    }
-
-
+                    strError = "图书馆 " + lib.libName + " 操作出错:" + result.ErrorInfo;
                     return -1;
                 }
 
@@ -4249,103 +4312,10 @@ ErrorInfo成员里可能会有报错信息。
                 return -1;
             }
 
-            // 删除的话，需要删除库里的记录
-            if (action == C_Action_delete)
-            {
-                List<WxUserItem> userList = WxUserDatabase.Current.GetPatron(null,
-                    libId,
-                    patron.barcode);
-                foreach (WxUserItem userItem in userList)
-                {
-
-                    // 删除mongodb库的记录
-                    WxUserDatabase.Current.Delete1(userItem.id, out WxUserItem newActiveUser);
-
-                    // 如果当前帐户是读者，且不是待审核的读者，则给馆员发通知。
-                    if (userItem.type == WxUserDatabase.C_Type_Patron
-                        && userItem.patronState != WxUserDatabase.C_PatronState_TodoReview
-                        && userItem.patronState != WxUserDatabase.C_PatronState_NoPass)
-                    {
-
-                        // 给馆员发消息
-                        //                
-                        //您好，下面读者删除了个人信息。
-                        //用户名：李四
-                        //联系方式：13788888888
-                        //变更类型：删除读者记录
-                        //变更时间：2016年1月2日 14:00
-                        // 
-
-                        //WxUserItem patronInfo = this.GetPatronInfoByXml(outputPatronXml, out List<string> tempWeixinIds);
 
 
-                        string strFirst = "您好，下面读者删除了个人信息。";
-                        string strRemark = "请登录图书馆系统查看操作日志。";
-
-                        string patronName = userItem.readerName;
-
-                        // todo
-                        GzhCfg gzh = dp2WeiXinService.Instance._gzhContainer.GetDefault();//.GetByAppId(this.AppId);
-                        if (gzh == null)
-                        {
-                            strError = "未找到默认的公众号配置";
-                            return -1;
-                        }
-                        string linkUrl = "";
-
-
-                        //// 不发本人
-                        List<WxUserItem> bindPatronList = new List<WxUserItem>();
-
-                        // 工作人员
-                        // 2020-3-17 发给本馆绑定的工作人员，不管是否打开监控消息没有关系，
-                        //只要图书馆工作人员绑定了帐户，就发给馆员。也不再发给dp2003的监控，意义不大。
-                        string libraryCode = userItem.libraryCode;
-                        if (libraryCode == "")
-                            libraryCode = "空";
-                        List<WxUserItem> tempWorkers = WxUserDatabase.Current.GetWorkers("", libId, libraryCode, "");
-                        List<WxUserItem> workers = new List<WxUserItem>();
-                        foreach (WxUserItem one in tempWorkers)
-                        {
-                            // 2020-3-11 还要加上public帐户
-                            if (WxUserDatabase.CheckIsFromWeb(one.weixinId) == true
-                                || one.userName == WxUserDatabase.C_Public)
-                                continue;
-
-                            workers.Add(one);
-                        }
-
-                        if (bindPatronList.Count > 0 || workers.Count > 0)
-                        {
-                            // 不加mask的通知数据
-                            string thisTime = dp2WeiXinService.GetNowTime();
-                            string first_color = "#000000";
-                            ReviewPatronTemplateData msgData = new ReviewPatronTemplateData(strFirst, first_color,
-                                patronName, userItem.phone, "删除读者记录", thisTime,
-                                strRemark);
-
-                            // 发送一条修改读者信息的微信通知
-                            nRet = this.SendTemplateMsg(GzhCfg.C_Template_PatronInfoChanged,
-                               bindPatronList,
-                               workers,
-                               msgData,
-                               msgData, //用的同一组数据，不做马赛克
-                               linkUrl,
-                               "",
-                               out strError);
-                            if (nRet == -1)
-                            {
-                                return -1;
-                            }
-                        }
-                    }
-
-                }
-            }
-    
-
-            // 如果是读者自己修改信息，则通知管理员
-            if (checkNull == true)
+            // 如果是普通读者自己修改信息（目前只是修改手机号），系统发微信通知管理员。注意这里不是读者重新提交注册
+            if (opeType == C_OpeType_changeByPatron)
             {
                 /*
 张三客户经理，您有客户更新了基本信息，更新情况如下：
@@ -4424,10 +4394,8 @@ ErrorInfo成员里可能会有报错信息。
             }
 
 
-
-
             // 如果是读者自助的情况，给本地mongodb创建一笔绑定记录
-            if (string.IsNullOrEmpty(weixinId) == false)
+            if (opeType == C_OpeType_register)
             {
                 string bindLibraryCode = patron.libraryCode;
 
@@ -4440,12 +4408,15 @@ ErrorInfo成员里可能会有报错信息。
                     outputPatronXml,
                     "new",
                     true,
-                    out userItem1,
+                    out userItem2,
                     out strError);
                 if (nRet == -1)
                 {
                     return -1;
                 }
+
+
+
 
                 // 给馆员发送微信通知（需要馆员先绑定微信帐户，然后监控本馆消息），
                 // 同时消息也发给打开了监控数字平台工作
@@ -4465,7 +4436,7 @@ ErrorInfo成员里可能会有报错信息。
 
                     //string strAccount = this.GetFullPatronName(userItem.readerName, 
                     //    userItem.readerBarcode, "", "", false);
-                    string strAccount = userItem1.readerName;
+                    string strAccount = userItem2.readerName;
                     // string fullLibName = this.GetFullLibName(userItem.libName, userItem.libraryCode, "");
 
                     // todo
@@ -4484,10 +4455,10 @@ ErrorInfo成员里可能会有报错信息。
                                         //    );
 
                     linkUrl = dp2WeiXinService.Instance.GetOAuth2Url(gzh,
-                        HttpUtility.UrlEncode("Patron/PatronReview?libId=" + userItem1.libId
-                            + "&patronLibCode=" + userItem1.bindLibraryCode
-                            + "&patronPath=" + userItem1.recPath
-                            + "&barcode=" + userItem1.readerBarcode
+                        HttpUtility.UrlEncode("Patron/PatronReview?libId=" + userItem2.libId
+                            + "&patronLibCode=" + userItem2.bindLibraryCode
+                            + "&patronPath=" + userItem2.recPath
+                            + "&barcode=" + userItem2.readerBarcode
                             + "&f=notice")
                         );
 
@@ -4504,7 +4475,7 @@ ErrorInfo成员里可能会有报错信息。
 
                     // 2020-3-9 改为发给本馆绑定的工作人员，不管是否打开监控消息没有关系，
                     //只要图书馆工作人员绑定了帐户，就发给馆员。也不再发给dp2003的监控，意义不大。
-                    string libraryCode = userItem1.libraryCode;
+                    string libraryCode = userItem2.libraryCode;
                     if (libraryCode == "")
                         libraryCode = "空";
                     List<WxUserItem> tempWorkers = WxUserDatabase.Current.GetWorkers("", libId, libraryCode, "");
@@ -4525,7 +4496,7 @@ ErrorInfo成员里可能会有报错信息。
                         string thisTime = dp2WeiXinService.GetNowTime();
                         string first_color = "#000000";
                         ReviewPatronTemplateData msgData = new ReviewPatronTemplateData(strFirst, first_color,
-                            strAccount, userItem1.phone, "等待审核", thisTime,
+                            strAccount, userItem2.phone, "等待审核", thisTime,
                             strRemark);
 
                         ////加mask的通知数据
@@ -4553,6 +4524,176 @@ ErrorInfo成员里可能会有报错信息。
 
 
 
+            }
+
+
+            // 馆员审核的情况，给读者发通过
+            if (opeType == C_OpeType_reviewPass
+                || opeType == C_OpeType_reviewNopass
+                || opeType == C_OpeType_reviewNopassDel)
+            {
+                //尊敬的用户：您好！您提交的书柜帐户注册信息已审核完成。
+                //申请人：张三
+                //手机号码：13866668888
+                //审核结果：通过
+                //您现在使用智能书柜借书了。
+
+                string strFirst = "尊敬的用户：您好！您提交的注册信息已审核完成。";
+                string strRemark = "您现在可以使用智能书柜或到图书馆借还书了。";
+                string result = "通过";
+                if (opeType == C_OpeType_reviewNopass || opeType == C_OpeType_reviewNopassDel)
+                {
+                    result = "不通过";
+                    strRemark = "审核不通过原因：" + patron.comment;
+                }
+
+                // 查找到本地库的记录
+                List<WxUserItem> userList = WxUserDatabase.Current.GetPatron(null,
+                    libId,
+                    patron.barcode);
+                foreach (WxUserItem user in userList)
+                {
+                    // todo，这里使用的default公众号，后面如果有些单位用自己的公众号再改进
+                    GzhCfg gzh = dp2WeiXinService.Instance._gzhContainer.GetDefault();//.GetByAppId(this.AppId);
+                    if (gzh == null)
+                    {
+                        strError = "未找到默认的公众号配置";
+                        return -1;
+                    }
+
+                    // 到我的信息
+                    string linkUrl = dp2WeiXinService.Instance.GetOAuth2Url(gzh, "Patron/PersonalInfo");
+
+
+                    //// 本人
+                    //List<string> bindWeixinIds = new List<string>();
+                    //bindWeixinIds.Add(userItem.weixinId);
+                    List<WxUserItem> bindPatronList = new List<WxUserItem>();
+                    bindPatronList.Add(user);
+
+                    // 2020-3-8 改为不给工作人员发消息，怕把管理员弄混了。
+                    // 工作人员
+                    List<WxUserItem> workers = new List<WxUserItem>(); //this.GetTraceUsers(userItem.libId, userItem.libraryCode);
+
+                    if (bindPatronList.Count > 0 || workers.Count > 0)
+                    {
+                        // 不加mask的通知数据
+                        string thisTime = dp2WeiXinService.GetNowTime();
+                        string first_color = "#000000";
+                        ReviewResultTemplateData msgData = new ReviewResultTemplateData(strFirst, first_color,
+                            user.readerName, user.phone, result,
+                            strRemark);
+
+                        ////加mask的通知数据
+                        //strAccount = this.GetFullPatronName(userItem.readerName, userItem.readerBarcode, "", "", true);//this.markString(userItem.readerName) + " " + this.markString(userItem.readerBarcode) + "";
+                        //ReviewPatronTemplateData maskMsgData = new ReviewPatronTemplateData(strFirst, first_color,
+                        //    strAccount, userItem.phone, "等待审核", thisTime,
+                        //    strRemark);
+
+                        // 发送消息
+                        nRet = this.SendTemplateMsg(GzhCfg.C_Template_ReviewResult,
+                           bindPatronList,
+                           workers,
+                           msgData,
+                           msgData, // todo 没有做马赛克，看看后面是否需要
+                           linkUrl,
+                           "",
+                           out strError);
+                        if (nRet == -1)
+                        {
+                            return -1;
+                        }
+                    }
+
+
+                }
+            }
+
+            // 删除记录要放在最后，有一种情况是审核不通过+删除，审核不通过先要发完通知，才能删除
+            // 另一种情况是自己自己删除，这种情况不需要发消息，现在前端卡了只有待审核和审核不通过才能删除
+            // 如果后面放开任何状态读者都可以删除的话，删除记录要给馆员发通知。
+            if (action == C_Action_delete)
+            {
+                // 查找到本地库的记录
+                List<WxUserItem> userList = WxUserDatabase.Current.GetPatron(null,
+                    libId,
+                    patron.barcode);
+                foreach (WxUserItem user in userList)
+                {
+                    // 删除mongodb库的记录
+                    WxUserDatabase.Current.Delete1(user.id, out WxUserItem newActiveUser);
+
+                    // 读者自己删除，且状态不是待审核和审核不通过，则给馆员发通知。
+                    if (opeType == C_OpeType_deleteByPatron
+                        && user.patronState != WxUserDatabase.C_PatronState_TodoReview
+                        && user.patronState != WxUserDatabase.C_PatronState_NoPass)
+                    {
+                        //您好，下面读者删除了个人信息。
+                        //用户名：李四
+                        //联系方式：13788888888
+                        //变更类型：删除读者记录
+                        //变更时间：2016年1月2日 14:00
+                        string strFirst = "您好，下面读者删除了个人信息。";
+                        string strRemark = "请登录图书馆系统查看操作日志。";
+                        string patronName = user.readerName;
+
+                        // todo 会改为根据帐户对应的公众号来发消息
+                        GzhCfg gzh = dp2WeiXinService.Instance._gzhContainer.GetDefault();//.GetByAppId(this.AppId);
+                        if (gzh == null)
+                        {
+                            strError = "未找到默认的公众号配置";
+                            return -1;
+                        }
+                        string linkUrl = ""; // 删除的记录，没有链接地址了。
+
+
+                        //// 不发本人
+                        List<WxUserItem> bindPatronList = new List<WxUserItem>();
+
+                        // 工作人员
+                        // 2020-3-17 发给本馆绑定的工作人员，不管是否打开监控消息没有关系，
+                        //只要图书馆工作人员绑定了帐户，就发给馆员。也不再发给dp2003的监控，意义不大。
+                        string libraryCode = user.libraryCode;
+                        if (libraryCode == "")
+                            libraryCode = "空";
+                        List<WxUserItem> tempWorkers = WxUserDatabase.Current.GetWorkers("", libId, libraryCode, "");
+                        List<WxUserItem> workers = new List<WxUserItem>();
+                        foreach (WxUserItem worker in tempWorkers)
+                        {
+                            // 2020-3-11 非微信入口和public不发通知
+                            if (WxUserDatabase.CheckIsFromWeb(worker.weixinId) == true
+                                || worker.userName == WxUserDatabase.C_Public)
+                                continue;
+
+                            workers.Add(worker);
+                        }
+
+                        if (bindPatronList.Count > 0 || workers.Count > 0)
+                        {
+                            // 不加mask的通知数据
+                            string thisTime = dp2WeiXinService.GetNowTime();
+                            string first_color = "#000000";
+                            ReviewPatronTemplateData msgData = new ReviewPatronTemplateData(strFirst, first_color,
+                                patronName, user.phone, "删除读者记录", thisTime,
+                                strRemark);
+
+                            // 发送一条修改读者信息的微信通知
+                            nRet = this.SendTemplateMsg(GzhCfg.C_Template_PatronInfoChanged,
+                               bindPatronList,
+                               workers,
+                               msgData,
+                               msgData, //用的同一组数据，不做马赛克
+                               linkUrl,
+                               "",
+                               out strError);
+                            if (nRet == -1)
+                            {
+                                return -1;
+                            }
+                        }
+                    }
+
+                }
             }
 
             return 0;
@@ -8432,6 +8573,10 @@ ErrorInfo成员里可能会有报错信息。
             string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
             patron.state = strState;
 
+            // 备注
+            string strComment = DomUtil.GetElementText(dom.DocumentElement, "comment");
+            patron.comment = strComment;
+
             // 发证日期
             string strCreateDate = DomUtil.GetElementText(dom.DocumentElement, "createDate");
             strCreateDate = DateTimeUtil.LocalDate(strCreateDate);
@@ -11678,7 +11823,7 @@ ErrorInfo成员里可能会有报错信息。
             if (node != null)
                 patronState = DomUtil.GetNodeText(node);
 
-            // 读者状态
+            // 备注
             string noPassReason = "";
             node = root.SelectSingleNode("comment");
             if (node != null)
@@ -12118,15 +12263,16 @@ ErrorInfo成员里可能会有报错信息。
             // 不论dp2端的weixinId是否与mongodb一致,都不会根据dp2中的weixinId处理公众号mongodb的记录
             foreach (WxUserItem userItem in userList)
             {
-                // 判断mongo库的读者是否是 待审核
-                int nPass = -1;
-                if (userItem.patronState == WxUserDatabase.C_PatronState_TodoReview)
-                {
-                    if (patronInfo.patronState == WxUserDatabase.C_PatronState_Pass)
-                        nPass = 1;
-                    else if (patronInfo.patronState == WxUserDatabase.C_PatronState_NoPass)
-                        nPass = 0;
-                }
+                // 2020/6/3 将发审核结果的通知移到SetReaderInfo函数里，这样代码逻辑更紧凑些
+                //// 判断mongo库的读者是否是 待审核
+                //int nPass = -1;
+                //if (userItem.patronState == WxUserDatabase.C_PatronState_TodoReview)
+                //{
+                //    if (patronInfo.patronState == WxUserDatabase.C_PatronState_Pass)
+                //        nPass = 1;
+                //    else if (patronInfo.patronState == WxUserDatabase.C_PatronState_NoPass)
+                //        nPass = 0;
+                //}
 
 
                 //string weixinId = this.AddAppIdForWeixinId(user.weixinId,null);
@@ -12154,82 +12300,82 @@ ErrorInfo成员里可能会有报错信息。
                 // 直接更新库中记录，不涉及到更新其它状态。
                 WxUserDatabase.Current.Update(userItem);
 
+                // 2020/6/3 将发审核结果的通知移到SetReaderInfo函数里，这样代码逻辑更紧凑些
+                //// 如果是微信入口，且是审核引起的读者信息变化，则给注册用户发通知
+                //if ((nPass == 0 || nPass == 1))
+                ////&&(WxUserDatabase.CheckIsFromWeb(userItem.weixinId)==false)  
+                //{
 
-                // 如果是微信入口，且是审核引起的读者信息变化，则给注册用户发通知
-                if ((nPass == 0 || nPass == 1))
-                //&&(WxUserDatabase.CheckIsFromWeb(userItem.weixinId)==false)  
-                {
-                    /*
-尊敬的用户：您好！您提交的书柜帐户注册信息已审核完成。
-申请人：张三
-手机号码：13866668888
-审核结果：通过
-您现在使用智能书柜借书了。
-                    */
-                    string strFirst = "尊敬的用户：您好！您提交的书柜帐户注册信息已审核完成。";
-                    string strRemark = "您现在可以使用智能书柜借书了。";
+                //    //尊敬的用户：您好！您提交的书柜帐户注册信息已审核完成。
+                //    //申请人：张三
+                //    //手机号码：13866668888
+                //    //审核结果：通过
+                //    //您现在使用智能书柜借书了。
 
-                    string result = "通过";
-                    if (nPass == 0)
-                    {
-                        result = "不通过";
-                        strRemark = "审核不通过原因：" + userItem.noPassReason;
-                    }
+                //    string strFirst = "尊敬的用户：您好！您提交的书柜帐户注册信息已审核完成。";
+                //    string strRemark = "您现在可以使用智能书柜借书了。";
 
-                    // todo，这里使用的default公众号，后面如果有些单位用自己的公众号再改进
-                    GzhCfg gzh = dp2WeiXinService.Instance._gzhContainer.GetDefault();//.GetByAppId(this.AppId);
-                    if (gzh == null)
-                    {
-                        strError = "未找到默认的公众号配置";
-                        return -1;
-                    }
+                //    string result = "通过";
+                //    if (nPass == 0)
+                //    {
+                //        result = "不通过";
+                //        strRemark = "审核不通过原因：" + userItem.noPassReason;
+                //    }
 
-                    // 到我的信息
-                    string linkUrl = "";//dp2WeiXinService.Instance.OAuth2_Url_AccountIndex,//详情转到账户管理界面
-                    linkUrl = dp2WeiXinService.Instance.GetOAuth2Url(gzh,
-                        "Patron/PersonalInfo");
+                //    // todo，这里使用的default公众号，后面如果有些单位用自己的公众号再改进
+                //    GzhCfg gzh = dp2WeiXinService.Instance._gzhContainer.GetDefault();//.GetByAppId(this.AppId);
+                //    if (gzh == null)
+                //    {
+                //        strError = "未找到默认的公众号配置";
+                //        return -1;
+                //    }
+
+                //    // 到我的信息
+                //    string linkUrl = "";//dp2WeiXinService.Instance.OAuth2_Url_AccountIndex,//详情转到账户管理界面
+                //    linkUrl = dp2WeiXinService.Instance.GetOAuth2Url(gzh,
+                //        "Patron/PersonalInfo");
 
 
-                    //// 本人
-                    //List<string> bindWeixinIds = new List<string>();
-                    //bindWeixinIds.Add(userItem.weixinId);
-                    List<WxUserItem> bindPatronList = new List<WxUserItem>();
-                    bindPatronList.Add(userItem);
+                //    //// 本人
+                //    //List<string> bindWeixinIds = new List<string>();
+                //    //bindWeixinIds.Add(userItem.weixinId);
+                //    List<WxUserItem> bindPatronList = new List<WxUserItem>();
+                //    bindPatronList.Add(userItem);
 
-                    // 2020-3-8 改为不给工作人员发消息，怕把管理员弄混了。
-                    // 工作人员
-                    List<WxUserItem> workers = new List<WxUserItem>(); //this.GetTraceUsers(userItem.libId, userItem.libraryCode);
+                //    // 2020-3-8 改为不给工作人员发消息，怕把管理员弄混了。
+                //    // 工作人员
+                //    List<WxUserItem> workers = new List<WxUserItem>(); //this.GetTraceUsers(userItem.libId, userItem.libraryCode);
 
-                    if (bindPatronList.Count > 0 || workers.Count > 0)
-                    {
-                        // 不加mask的通知数据
-                        string thisTime = dp2WeiXinService.GetNowTime();
-                        string first_color = "#000000";
-                        ReviewResultTemplateData msgData = new ReviewResultTemplateData(strFirst, first_color,
-                            userItem.readerName, userItem.phone, result,
-                            strRemark);
+                //    if (bindPatronList.Count > 0 || workers.Count > 0)
+                //    {
+                //        // 不加mask的通知数据
+                //        string thisTime = dp2WeiXinService.GetNowTime();
+                //        string first_color = "#000000";
+                //        ReviewResultTemplateData msgData = new ReviewResultTemplateData(strFirst, first_color,
+                //            userItem.readerName, userItem.phone, result,
+                //            strRemark);
 
-                        ////加mask的通知数据
-                        //strAccount = this.GetFullPatronName(userItem.readerName, userItem.readerBarcode, "", "", true);//this.markString(userItem.readerName) + " " + this.markString(userItem.readerBarcode) + "";
-                        //ReviewPatronTemplateData maskMsgData = new ReviewPatronTemplateData(strFirst, first_color,
-                        //    strAccount, userItem.phone, "等待审核", thisTime,
-                        //    strRemark);
+                //        ////加mask的通知数据
+                //        //strAccount = this.GetFullPatronName(userItem.readerName, userItem.readerBarcode, "", "", true);//this.markString(userItem.readerName) + " " + this.markString(userItem.readerBarcode) + "";
+                //        //ReviewPatronTemplateData maskMsgData = new ReviewPatronTemplateData(strFirst, first_color,
+                //        //    strAccount, userItem.phone, "等待审核", thisTime,
+                //        //    strRemark);
 
-                        // 发送消息
-                        nRet = this.SendTemplateMsg(GzhCfg.C_Template_ReviewResult,
-                           bindPatronList,
-                           workers,
-                           msgData,
-                           msgData, // todo 没有做马赛克，看看后面是否需要
-                           linkUrl,
-                           "",
-                           out strError);
-                        if (nRet == -1)
-                        {
-                            return -1;
-                        }
-                    }
-                }
+                //        // 发送消息
+                //        nRet = this.SendTemplateMsg(GzhCfg.C_Template_ReviewResult,
+                //           bindPatronList,
+                //           workers,
+                //           msgData,
+                //           msgData, // todo 没有做马赛克，看看后面是否需要
+                //           linkUrl,
+                //           "",
+                //           out strError);
+                //        if (nRet == -1)
+                //        {
+                //            return -1;
+                //        }
+                //    }
+                //}
             }
 
 

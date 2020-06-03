@@ -113,7 +113,7 @@
         }
 
         // 新增和保存
-        function save(action) {
+        function save(opeType) {
 
             var libId = getLibId(); //$("#selLib").val();
             if (libId == "") {
@@ -130,7 +130,7 @@
             var recPath = "";
             var timestamp = "";
             var bMergeInfo = false;
-            if (action == "change") {
+            if (opeType == "changeByWorker") {
                 recPath = $("#_recPath").text();
                 if (recPath == "") {
                     alert("异常情况：读者记录路径为空");
@@ -198,7 +198,7 @@
             //}
 
             //新增时读者路径
-            if (action == "new") {
+            if (opeType == "newByWorker") {
 
                 // 使用配置的数据库
                 var recPath = $("#_recPath").text();//"读者/?";
@@ -207,15 +207,6 @@
                     return;
                 }
 
-                /*
-                // 读者库
-                var dbName = $('#selDbName option:checked').val();
-                if (dbName == "") {
-                    alert("您尚未选择读者库。");
-                    return;
-                }
-                var recPath = dbName + "/?";
-                */
             }
 
             //显示等待图层
@@ -224,12 +215,10 @@
             // 调Patron的SetPatron()
             var url = "/api/PatronApi?libId=" + libId
                 + "&userName=" + encodeURIComponent(userName)
-                + "&action=" + encodeURIComponent(action)
+                + "&opeType=" + encodeURIComponent(opeType)
                 + "&recPath=" + encodeURIComponent(recPath)
                 + "&timestamp=" + encodeURIComponent(timestamp)
-                + "&weixinId="
-                //+ "&bMergeInfo=" + bMergeInfo;
-                + "&checkNull=false";
+                + "&weixinId=";
 
             sendAjaxRequest(url, "POST",
                 function (result) {
@@ -245,13 +234,13 @@
                     $("#_recPath").text(result.recPath);
                     $("#_timestamp").text(result.timestamp);
 
-                    if (action == "new") {
+                    if (opeType == "newByWorker") {
                         $("#btnSave").attr("disabled", false);
                         $("#_bLoad").text("0");
                         alert("新增读者成功");
                     }
 
-                    if (action == "change") {
+                    if (opeType == "changeByWorker") {
                         alert("保存读者成功");
                     }
 
@@ -353,11 +342,11 @@ else
             <table style="width:100%">
                 <tr>
                     <td>
-                        <button id='btnAdd' class="mui-btn mui-btn-block mui-btn-default" onclick="save('new')">新增</button>
+                        <button id='btnAdd' class="mui-btn mui-btn-block mui-btn-default" onclick="save('newByWorker')">新增</button>
                     </td>
                     <td width="10px">&nbsp;</td>
                     <td>
-                        <button id='btnSave' disabled class="mui-btn mui-btn-block mui-btn-default" onclick="save('change')">保存</button>
+                        <button id='btnSave' disabled class="mui-btn mui-btn-block mui-btn-default" onclick="save('changeByWorker')">保存</button>
                     </td>
                 </tr>
             </table>

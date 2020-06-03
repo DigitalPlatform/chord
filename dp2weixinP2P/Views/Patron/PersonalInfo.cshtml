@@ -88,13 +88,10 @@
             // 调Patron的SetPatron()
             var url = "/api/PatronApi?libId=" + libId
                 + "&userName=" //+ encodeURIComponent(userName)
-                + "&action=delete"// + encodeURIComponent(action)
+                + "&opeType=deleteByPatron"
                 + "&recPath=" + encodeURIComponent(recPath)
                 + "&timestamp=" + encodeURIComponent(timestamp)
-                + "&weixinId=" //+ encodeURIComponent(weixinId)
-                //+ "&bMergeInfo=false"
-                + "&checkNull=false"; //+ bMergeInfo;
-
+                + "&weixinId=";
             sendAjaxRequest(url, "POST",
                 function (result) {
 
@@ -235,37 +232,51 @@ else
             <tr class='barcode'> <td class='name'>证条码号</td> <td class='value'>@Model.barcode</td> </tr>
             <tr class='person_name'> <td class='name'>姓名</td> <td class='value'>@Model.name</td> </tr>
             <tr> <td class='name'>性别</td> <td class='value'>@Model.gender</td> </tr>
-            <tr class='state'> <td class='name'> 证状态</td> 
-            <td class='value'>@Model.state
+            <tr class='state'>
+                <td class='name'> 证状态</td>
+                <td class='value'>
+                    @Model.state
                 @if (Model.state == "待审核" || Model.state == "审核不通过")
                 {
-                <button style="margin:2px;background-color:lightblue" type="button" onclick="editRegister()">修改注册信息</button>   
+                    <button style="margin:2px;background-color:lightblue" type="button" onclick="editRegister()">修改注册信息</button>
                 }
-                </td> 
-            </tr>
-            <tr> <td class='name'>电话</td> <td class='value'>@Model.phone   
-                <button type="button" onclick="gotoChangePhone()"  style="margin:2px;background-color:lightblue">修改手机号</button></td> </tr>
-            <tr> <td class='name'>读者类型</td> <td class='value'>@Model.readerType</td> </tr>
-            <tr> <td class='name'>单位</td> <td class='value'>@Model.department</td> </tr>
-            <tr> <td class='name'>出生日期</td> <td class='value'>@Model.dateOfBirth</td> </tr>
-            <tr> <td class='name'>证号</td> <td class='value'>@Model.cardNumber</td> </tr>
-            <tr> <td class='name'>身份证号</td> <td class='value'>@Model.idCardNumber</td> </tr>
-            <tr> <td class='name'>职务</td> <td class='value'>@Model.post</td> </tr>
-            <tr> <td class='name'>地址</td> <td class='value'>@Model.address</td> </tr>
-            <tr> <td class='name'>Email</td> <td class='value'>@Model.email</td> </tr>
-            <tr class='createdate'> <td class='name'>发证日期</td> <td class='value'>@Model.createDate</td> </tr>
-            <tr class='expiredate'> <td class='name'>证失效期</td> <td class='value'>@Model.expireDate</td> </tr>
-            <tr class='hire'> <td class='name'>租金</td> <td class='value'>@Model.hire</td> </tr>
-            <tr class='photo'>
-                <td class='name'>头像</td>
-                <td class='value'>
-                    @if (String.IsNullOrEmpty(Model.imageUrl) == false)
-                    {
-                        <img src="@Model.imageUrl" style="max-width:200px" />
-                    }
-                </td>
-            </tr>
-            <tr><td colspan="2"><button type="button" onclick="deletePatron()" style="margin:2px;background-color:lightblue">删除</button></td></tr>
+            </td>
+        </tr>
+        <tr>
+            <td class='name'>电话</td>
+            <td class='value'>
+                @Model.phone
+            <button type="button" onclick="gotoChangePhone()" style="margin:2px;background-color:lightblue">修改手机号</button>
+        </td>
+        </tr>
+        <tr> <td class='name'>读者类型</td> <td class='value'>@Model.readerType</td> </tr>
+        <tr> <td class='name'>单位</td> <td class='value'>@Model.department</td> </tr>
+        <tr> <td class='name'>出生日期</td> <td class='value'>@Model.dateOfBirth</td> </tr>
+        <tr> <td class='name'>证号</td> <td class='value'>@Model.cardNumber</td> </tr>
+        <tr> <td class='name'>身份证号</td> <td class='value'>@Model.idCardNumber</td> </tr>
+        <tr> <td class='name'>职务</td> <td class='value'>@Model.post</td> </tr>
+        <tr> <td class='name'>地址</td> <td class='value'>@Model.address</td> </tr>
+        <tr> <td class='name'>Email</td> <td class='value'>@Model.email</td> </tr>
+        <tr class='createdate'> <td class='name'>发证日期</td> <td class='value'>@Model.createDate</td> </tr>
+        <tr class='expiredate'> <td class='name'>证失效期</td> <td class='value'>@Model.expireDate</td> </tr>
+        <tr class='hire'> <td class='name'>租金</td> <td class='value'>@Model.hire</td> </tr>
+        <tr class='photo'>
+            <td class='name'>头像</td>
+            <td class='value'>
+                @if (String.IsNullOrEmpty(Model.imageUrl) == false)
+                {
+                    <img src="@Model.imageUrl" style="max-width:200px" />
+                }
+            </td>
+        </tr>
+        <tr> <td class='name'>备注</td> <td class='value'> @Html.Raw(Model.comment)</td> </tr>
+
+        <tr><td colspan="2">
+    @if (Model.state == "待审核" || Model.state == "审核不通过")
+    {
+        <button type="button" onclick="deletePatron()" style="margin:2px;background-color:lightblue">删除</button>
+    }
+    </td></tr>
         </table>
         <div class="mui-content-padded">
             <center>

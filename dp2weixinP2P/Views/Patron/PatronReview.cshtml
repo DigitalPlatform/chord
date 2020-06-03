@@ -41,14 +41,9 @@
         // 保存读者信息
         function save(opeType) {
 
-            // 调接口时传的action
-            var action = "change";
-            if (opeType == "d")
-                action = "delete";
-
             // 是否通过
             var pass = false;
-            if (opeType == "y")
+            if (opeType == "reviewPass")
                 pass = true;
 
             // 通过的时候，把状态置为空。
@@ -58,7 +53,7 @@
 
             // 不通过时需要填写原因
             var reason = $("#txtReason").val();
-            if (pass == false && opeType != "d") {
+            if (opeType!="reviewPass") {
                 // 证条码号
                 if (reason == "") {
                     alert("请输入审核不通过原因！");
@@ -104,7 +99,7 @@
             }
             
 
-            //读者类型
+            //审核通过的话，需要选择读者类型
             var readerType = $('#selReaderType option:checked').val();
             if (pass == true) {
                 if (readerType == "") {
@@ -117,12 +112,8 @@
                     return;
                 }
             }
-            else {
-                //不通过时，可以不选择读者类型
-                if (readerType == "") {
-                    readerType = "[blank]";
-                }
-            }
+
+
             var nIndex = readerType.indexOf("}");
             if (nIndex != -1) {
                 readerType = readerType.substring(nIndex + 1).trim();
@@ -163,13 +154,10 @@
             // 调Patron的SetPatron()
             var url = "/api/PatronApi?libId=" + libId
                 + "&userName=" + encodeURIComponent(userName)
-                + "&action="+ encodeURIComponent(action)
+                + "&opeType=" + encodeURIComponent(opeType)
                 + "&recPath=" + encodeURIComponent(recPath)
                 + "&timestamp=" + encodeURIComponent(timestamp)
-                + "&weixinId="
-                //+ "&bMergeInfo=" + bMergeInfo;
-                + "&checkNull=false";
-
+                + "&weixinId=";
             sendAjaxRequest(url, "POST",
                 function (result) {
 
@@ -206,7 +194,7 @@
                     gender: gender,
                     department: department,
                     phone: phone,
-                    reason: reason,
+                    comment: reason,
                     state: state
                 }
             );
@@ -345,15 +333,15 @@ else
             <table style="width:100%">
                 <tr>
                     <td>
-                        <button id='btnPass' class="mui-btn mui-btn-block mui-btn-default" onclick="save('y')">通过</button>
+                        <button id='btnPass' class="mui-btn mui-btn-block mui-btn-default" onclick="save('reviewPass')">通过</button>
                     </td>
                     <td width="10px">&nbsp;</td>
                     <td>
-                        <button id='btnReject' class="mui-btn mui-btn-block mui-btn-default" onclick="save('n')">不通过</button>
+                        <button id='btnReject' class="mui-btn mui-btn-block mui-btn-default" onclick="save('reviewNopass')">不通过</button>
                     </td>
                     <td width="10px">&nbsp;</td>
                     <td>
-                        <button id='btnRejectDel' class="mui-btn mui-btn-block mui-btn-default" onclick="save('d')">不通过+删除</button>
+                        <button id='btnRejectDel' class="mui-btn mui-btn-block mui-btn-default" onclick="save('reviewNopassDel')">不通过+删除</button>
                     </td>
                 </tr>
             </table>

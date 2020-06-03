@@ -72,7 +72,7 @@
         }
 
         // 保存读者信息
-        function save1() {
+        function save() {
             //alert("1");
 
             // 图书馆ID
@@ -95,13 +95,15 @@
             }            
             //alert(recPath);
             var readerType = "[blank]";
-            var action = "new";
+            var opeType = "register";
+
+            // 如果最后一段不是?，表示重新提交
             var lastChar = recPath.substring(recPath.length - 1);
             if (lastChar != "?") {
-                action = "change";
+                opeType = "reRegister";
                 readerType = "";
             }
-            alert(action + "-" + lastChar);
+            //alert(opeType + "-" + lastChar);
 
             //姓名
             var name = $("#txtName").val();
@@ -164,12 +166,10 @@
             // 调Patron的SetPatron()
             var url = "/api/PatronApi?libId=" + libId
                 + "&userName=" //+ encodeURIComponent(userName)
-                + "&action=" + encodeURIComponent(action)  // 2020/6/2增加了编辑的功能，审核不通过时，读者可以编辑重新提交。
+                + "&opeType=" + encodeURIComponent(opeType)  // 2020/6/2增加了编辑的功能，审核不通过时，读者可以编辑重新提交。
                 + "&recPath=" + encodeURIComponent(recPath)
                 + "&timestamp=" // + encodeURIComponent(timestamp)
-                + "&weixinId=" + encodeURIComponent(weixinId)
-                //+ "&bMergeInfo=false"; //+ bMergeInfo;
-                + "&checkNull=false";
+                + "&weixinId=" + encodeURIComponent(weixinId);
 
             //alert(url);
 
@@ -333,7 +333,7 @@ else
     </div>
 
     <div class="mui-content-padded">
-        <button id='btn' class="mui-btn mui-btn-block mui-btn-primary" onclick="save1()">提交</button>
+        <button id='btn' class="mui-btn mui-btn-block mui-btn-primary" onclick="save()">提交</button>
     </div>
 </div>
     }
