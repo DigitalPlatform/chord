@@ -645,7 +645,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                             if (string.IsNullOrEmpty(strParameters) == false
     && StringUtil.ContainsRight(strParameters, "ca") == 1)
                             {
-                                // 特殊许可了修改全部消息
+                                // +ca 特殊许可了修改全部消息
                             }
                             else
                             {
@@ -744,7 +744,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                             if (string.IsNullOrEmpty(strParameters) == false
     && StringUtil.ContainsRight(strParameters, "da") == 1)
                             {
-                                // 特殊许可了删除全部消息
+                                // +da 特殊许可了删除全部消息
                                 bDeleteAllRights = true;
                             }
                             else
@@ -4242,6 +4242,7 @@ ex.GetType().ToString());
                     if (string.IsNullOrEmpty(def.Definition) == false
                         && StringUtil.ContainsRight(def.Definition, "n") == -1)
                     {
+                        // -n 表示禁止发送通知消息
                         Console.WriteLine("'" + s + "' Skip join or un-join SignalR group '" + def.GroupNameString + "'");
                         goto CONTINUE;
                     }
