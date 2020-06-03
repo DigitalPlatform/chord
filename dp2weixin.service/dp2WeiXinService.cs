@@ -4464,7 +4464,6 @@ ErrorInfo成员里可能会有报错信息。
 
                     //this.WriteDebug("链接地址-"+linkUrl);
 
-
                     //// 本人
                     List<WxUserItem> bindPatronList = new List<WxUserItem>();
                     //string tempfullWeixinId = weixinId;//2016-11-16 传进来的weixinId带了@appId // +"@" + appId;
@@ -4520,10 +4519,6 @@ ErrorInfo成员里可能会有报错信息。
                         }
                     }
                 }
-
-
-
-
             }
 
 
@@ -4604,8 +4599,6 @@ ErrorInfo成员里可能会有报错信息。
                             return -1;
                         }
                     }
-
-
                 }
             }
 
