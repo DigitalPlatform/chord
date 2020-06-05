@@ -171,6 +171,52 @@ namespace dp2weixinWeb.ApiControllers
         }
 
 
+        /// <summary>
+        /// 自动生成一个增量的证条码号
+        /// </summary>
+        /// <param name="libId"></param>
+        /// <param name="libraryCode"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public ApiResult IncrementPatronBarcode(string libId,
+            string libraryCode)
+        {
+            ApiResult result = new ApiResult();
+
+
+            LibModel libCfg = dp2WeiXinService.Instance._areaMgr.GetLibCfg(
+                libId,
+                libraryCode);
+            if (libCfg != null)
+            {
+                string patronBarcodeTail = libCfg.patronBarcodeTail;
+
+                if (string.IsNullOrEmpty(patronBarcodeTail) == true)
+                {
+                    result.errorCode = -1;
+                    result.errorInfo = "尚未配置证条码尾号";
+                }
+                else
+                {
+
+                    dp2WeiXinService.IncrementBarcode(ref patronBarcodeTail);
+                    libCfg.patronBarcodeTail = patronBarcodeTail;
+
+                    // 保存到xml
+                    dp2WeiXinService.Instance._areaMgr.Save2Xml();
+
+                    result.info = patronBarcodeTail;
+                }
+            }
+            else
+            {
+                result.errorCode = -1;
+                result.errorInfo = "未找到lib=["+libId+"] libraryCode=["+libraryCode+"]对应的配置。";
+            }
+
+
+            return result;
+        }
 
     }
 

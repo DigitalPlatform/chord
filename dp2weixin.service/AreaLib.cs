@@ -49,7 +49,10 @@ namespace dp2weixin.service
                         string patronDbName = DomUtil.GetAttr(libNode, "patronDbName");
 
                         //2020-3-6 增加部门配置，方便读者注册时选择
-                        string departments = DomUtil.GetAttr(libNode, "departments"); 
+                        string departments = DomUtil.GetAttr(libNode, "departments");
+
+                        // 2020-6-5 增加证条码尾号
+                        string patronBarcoeTail = DomUtil.GetAttr(libNode, "patronBarcodeTail");
 
 
                         LibModel lib = new LibModel();
@@ -58,6 +61,7 @@ namespace dp2weixin.service
                         lib.libraryCode = libraryCode;
                         lib.patronDbName = patronDbName; //2020-2-29 读者注册对应的读者库
                         lib.departments = departments;//2020-3-6
+                        lib.patronBarcodeTail = patronBarcoeTail;//2020-6-5
 
                         area.libs.Add(lib);
                     }
@@ -121,6 +125,7 @@ namespace dp2weixin.service
                         + " libraryCode='" + lib.libraryCode + "'"
                         + " patronDbName='" + lib.patronDbName + "'"
                         + " departments='"+lib.departments+"'"
+                        + " patronBarcodeTail='"+ lib.patronBarcodeTail+"'" //2020/6/5增加证条码号尾号
                         + " />";
                 }
                 xml += "</area>";
@@ -251,6 +256,10 @@ namespace dp2weixin.service
         public string patronDbName = "";
 
         public string departments = "";
+
+        // 2020/6/5 加证条码尾号，在馆员审核时，可以点按钮，增量
+        public string patronBarcodeTail = "B000000";
+
 
         // 对应的capo帐户
         public string capoUser = "";

@@ -4415,9 +4415,6 @@ ErrorInfo成员里可能会有报错信息。
                     return -1;
                 }
 
-
-
-
                 // 给馆员发送微信通知（需要馆员先绑定微信帐户，然后监控本馆消息），
                 // 同时消息也发给打开了监控数字平台工作
                 // 给馆员发消息似乎不用关心是否是web入口
@@ -6077,6 +6074,16 @@ ErrorInfo成员里可能会有报错信息。
                     || (userList.Count == 1 && userList[0].userName == WxUserDatabase.C_Public))
                 {
                     strError = "图书馆\"" + lib.libName + "\"不对外公开书目信息。请点击'我的图书馆/绑定帐户'菜单进行绑定。";
+                    return -1;
+                }
+
+                // 2020/6/5 增加对注册用户的状态进行检查，待审核和审核不通过，不能检索
+                if (userList.Count == 1 &&
+                    (userList[0].patronState == WxUserDatabase.C_PatronState_TodoReview
+                        || userList[0].patronState == WxUserDatabase.C_PatronState_NoPass)
+                    )
+                {
+                    strError = "您的帐户还未审核通过，不能检索书刊，请联系管理员。";
                     return -1;
                 }
             }
@@ -12964,6 +12971,43 @@ ErrorInfo成员里可能会有报错信息。
         }
 
 
+        /// <summary>
+        /// 增量一个条码尾号
+        /// </summary>
+        /// <param name="barcodeTail"></param>
+        /// <returns></returns>
+        public static string IncrementBarcode(ref string barcodeTail)
+        {
+
+            int nSplitInde = 0;
+            for (int i = barcodeTail.Length - 1; i >= 0; i--)
+            {
+                char s = barcodeTail[i];
+                if (s > '9' || s < '0')
+                {
+                    nSplitInde = i + 1;
+                    break;
+                }
+            }
+
+            string left = barcodeTail.Substring(0, nSplitInde);
+            string right = barcodeTail.Substring(nSplitInde);
+            if (right != "")
+            {
+                try
+                {
+                    int nRight = Convert.ToInt32(right) + 1;
+                    right = nRight.ToString().PadLeft(right.Length, '0');
+                }
+                catch
+                { }
+            }
+
+            barcodeTail = left + right;
+
+
+            return barcodeTail;
+        }
 
 
     }

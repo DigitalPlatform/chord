@@ -38,6 +38,54 @@
 @section Scripts {
     <script>
 
+        // 获取证条码号
+        function getPatronBarcode() {
+
+            //alert("test");
+
+            // 图书馆ID
+            var libId = getLibId();
+            if (libId == "") {
+                alert("异常情况：libId为空。");
+                return;
+            }
+
+            var libraryCode = $("#libraryCode").text();
+            if (libraryCode == null)
+                libraryCode = "";
+
+            //alert("2");
+
+            //显示等待图层
+            showLoading();
+
+            // 调patron发送验证码接口
+            var url = "/api/patronapi?libId=" + encodeURIComponent(libId)
+                + "&libraryCode=" + encodeURIComponent(libraryCode)
+
+            //alert(url);
+            sendAjaxRequest(url, "GET",
+                function (result) {
+
+                    // 关闭等待层
+                    hideLoading();
+
+                    if (result.errorCode == -1) {
+                        alert("获取证条码号出错：" + result.errorInfo);
+                        return;
+                    }
+
+                    //alert(result.info);
+
+                    $("#txtBarcode").val(result.info);
+
+                }, function (xhq, textStatus, errorThrown) {
+                    // 关闭等待层
+                    hideLoading();
+                    alert(errorThrown);
+                });
+        }
+
         // 保存读者信息
         function save(opeType) {
 
@@ -53,7 +101,7 @@
 
             // 不通过时需要填写原因
             var reason = $("#txtReason").val();
-            if (opeType!="reviewPass") {
+            if (opeType != "reviewPass") {
                 // 证条码号
                 if (reason == "") {
                     alert("请输入审核不通过原因！");
@@ -97,7 +145,7 @@
                 alert("读者证条码号不能为空。");
                 return;
             }
-            
+
 
             //审核通过的话，需要选择读者类型
             var readerType = $('#selReaderType option:checked').val();
@@ -215,9 +263,7 @@
             //alert("test-"+$("#txtDepartment").val());
         }
 
-        function getPatronBarcode() {
-            alert("自动获取证条码");
-        }
+
 
         function searchPatron() {
 
@@ -236,6 +282,8 @@
 
     </script>
 }
+<span id="libId" style="display:none">@ViewBag.LibId</span>
+<span id="libraryCode" style="display:none">@ViewBag.LibraryCode</span>
 <span id="_userName" style="display:none">@ViewBag.userName</span>
 <span id="_recPath" style="display:none">@ViewBag.recPath</span>
 <span id="_timestamp" style="display:none">@ViewBag.timestamp</span>
