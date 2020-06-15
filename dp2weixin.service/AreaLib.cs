@@ -182,6 +182,10 @@ namespace dp2weixin.service
 
         public LibModel GetLibCfg(string id, string libraryCode)
         {
+            // 把null转为空字符串，这样才能查找
+            if (libraryCode == null)
+                libraryCode = "";
+
             List<Area> delAreas = new List<Area>();
 
             foreach (Area area in this._areas)

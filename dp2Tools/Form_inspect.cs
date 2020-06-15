@@ -1096,6 +1096,258 @@ rjtsx+5位数字 如rjtsx12773
             this.txtResult.Text = result;
             MessageBox.Show("ok");
         }
+
+        private void button_checkAccessNo_Click(object sender, EventArgs e)
+        {
+            this.txtResult.Text = "";
+
+            string[] lines = this.GetLines();
+            string firstBiblioPath = "";
+            string firstAcssessNo = "";
+            string temp = "";
+            string result = "";
+            bool berror = false;
+            int i = 0;
+            foreach (string line in lines)
+            {
+                if (line == "")
+                    continue;
+
+                string[] subs = line.Split(new char[] {'\t'});
+
+                string itemPath = subs[0];
+
+                string accessNo = subs[1];
+
+                // 如果输入的记录中有非种次号的，提示重新处理
+                if (IsZch(accessNo) == false)
+                {
+                    MessageBox.Show(this, "第行是非种号索取号，请整理数据后，再执行检查");
+                    return;
+                }
+
+                int nIndex = accessNo.IndexOf(":");
+                if (nIndex != -1)
+                    accessNo = accessNo.Substring(0, nIndex);
+
+                string biblioPath = subs[2];
+
+
+
+                if (firstBiblioPath != biblioPath)
+                {
+                    if (berror == true)
+                    {
+                        result += temp + "\r\n";
+                    }
+
+                    firstBiblioPath = biblioPath;
+                    firstAcssessNo = accessNo;
+
+                    temp = "";
+                    berror = false;
+                }
+
+                if (temp != "")
+                    temp += "\r\n";
+                temp += line;
+
+                if (firstAcssessNo != accessNo  )
+                    berror = true;
+
+
+
+                this.toolStripStatusLabel_info.Text = (++i).ToString();
+                Application.DoEvents();
+            }
+
+            // 如果最后的不一致，要补上，因为进不了循环
+            if (berror == true)
+            {
+                result += temp + "\r\n";
+
+            }
+
+
+            this.txtResult.Text = result;
+        }
+
+        private void button_checkNoZch_Click(object sender, EventArgs e)
+        {
+            this.txtResult.Text = "";
+            this.textBox1_result2.Text = "";
+            StringBuilder zcResult = new StringBuilder();
+            StringBuilder otherResult = new StringBuilder();
+
+            string[] lines = this.GetLines();
+            int i = 0;
+            foreach (string line in lines)
+            {
+                if (line == "")
+                    continue;
+
+                string[] subs = line.Split(new char[] { '\t' });
+
+                string itemPath = subs[0];
+
+                string accessNo = subs[1];
+
+                // 如果输入的记录中有非种次号的，提示重新处理
+                if (IsZch(accessNo) == true)
+                {
+                    zcResult.AppendLine(line);
+                }
+                else
+                {
+                    otherResult.AppendLine(line);
+                }
+
+
+
+                this.toolStripStatusLabel_info.Text = (++i).ToString();
+                Application.DoEvents();
+            }
+
+
+
+            this.txtResult.Text = zcResult.ToString();
+            this.textBox1_result2.Text = otherResult.ToString();
+        }
+
+        private void button_accessNo1_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show(this, "此项功能要求先将书目路径排序");
+
+            this.CheckAccessNo(1);
+        }
+
+        // type=1 书目相同，索取号不同
+        // type=2 书目不同，索取号相同
+        public void CheckAccessNo(int type)
+        {
+
+            this.txtResult.Text = "";
+            string[] lines = this.GetLines();
+
+
+            string prevBiblioPath = "";
+            string prevAcssessNo = "";
+            string temp = "";
+            string result = "";
+            bool berror = false;
+            int i = 0;
+            foreach (string line in lines)
+            {
+                if (line == "")
+                    continue;
+
+                string[] subs = line.Split(new char[] { '\t' });
+
+                string itemPath = subs[0];
+
+                string accessNo = subs[1];
+
+                // 如果输入的记录中有非种次号的，提示重新处理
+                if (IsZch(accessNo) == false)
+                {
+                    MessageBox.Show(this,"第"+(i+1).ToString()+"行是非种号，请整理数据后，再执行检查");
+                    return;
+                }
+
+                int nIndex = accessNo.IndexOf(":");
+                if (nIndex != -1)
+                    accessNo = accessNo.Substring(0, nIndex);
+
+                string biblioPath = subs[2];
+
+
+
+                if (( type==1 && prevBiblioPath != biblioPath)
+                    || (type==2 && prevAcssessNo != accessNo))
+                {
+                    if (berror == true)
+                    {
+                        result += temp + "\r\n";
+                    }
+
+                    prevBiblioPath = biblioPath;
+                    prevAcssessNo = accessNo;
+
+                    temp = "";
+                    berror = false;
+                }
+
+                if (temp != "")
+                    temp += "\r\n";
+                temp += line;
+
+                if ((type == 1 && prevAcssessNo != accessNo)
+                    || (type == 2 && prevBiblioPath != biblioPath))
+                {
+                    berror = true;
+                }
+
+
+
+                this.toolStripStatusLabel_info.Text = (++i).ToString();
+                Application.DoEvents();
+            }
+
+            // 如果最后的不一致，要补上，因为进不了循环
+            if (berror == true)
+            {
+                result += temp + "\r\n";
+
+            }
+
+            this.txtResult.Text = result;
+        }
+
+        private void button_accessNo2_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show(this, "此项功能要求先将索取号排序");
+
+            this.CheckAccessNo(2);
+        }
+
+        /// <summary>
+        /// 检查是否是种次号
+        /// </summary>
+        /// <param name="accessNo"></param>
+        /// <returns></returns>
+        bool IsZch(string accessNo)
+        {
+            if (string.IsNullOrEmpty(accessNo) == true)
+                return false;
+
+            int n = accessNo.LastIndexOf("/");
+            if (n == -1) // 只有第一部分
+                return false;
+
+            if (n != -1)
+            {
+                string last = accessNo.Substring(n + 1);
+                if (last.Length > 0 && (last[0] > '9' || last[0] < '0'))
+                {
+                    return false;
+                }
+
+                int nIndex = last.IndexOf(":");
+                if (nIndex != -1)
+                    last = last.Substring(0, nIndex);
+
+                try {
+                    int acc = Convert.ToInt32(last);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    return false;
+                }
+
+            }
+            return false;
+        }
     }
 
 
