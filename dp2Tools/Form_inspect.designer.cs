@@ -48,12 +48,13 @@
             this.btnBu0 = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.textBox1_result2 = new System.Windows.Forms.TextBox();
+            this.button_accessNo2 = new System.Windows.Forms.Button();
+            this.button_checkNoZch = new System.Windows.Forms.Button();
             this.button_accessNo1 = new System.Windows.Forms.Button();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel_info = new System.Windows.Forms.ToolStripStatusLabel();
-            this.button_checkNoZch = new System.Windows.Forms.Button();
-            this.button_accessNo2 = new System.Windows.Forms.Button();
-            this.textBox1_result2 = new System.Windows.Forms.TextBox();
+            this.button_compareClassNoAccessNo = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -251,6 +252,7 @@
             // 
             // splitContainer1.Panel2
             // 
+            this.splitContainer1.Panel2.Controls.Add(this.button_compareClassNoAccessNo);
             this.splitContainer1.Panel2.Controls.Add(this.textBox1_result2);
             this.splitContainer1.Panel2.Controls.Add(this.button_accessNo2);
             this.splitContainer1.Panel2.Controls.Add(this.button_checkNoZch);
@@ -266,6 +268,41 @@
             this.splitContainer1.Size = new System.Drawing.Size(1238, 547);
             this.splitContainer1.SplitterDistance = 181;
             this.splitContainer1.TabIndex = 12;
+            // 
+            // textBox1_result2
+            // 
+            this.textBox1_result2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox1_result2.Location = new System.Drawing.Point(4, 209);
+            this.textBox1_result2.Multiline = true;
+            this.textBox1_result2.Name = "textBox1_result2";
+            this.textBox1_result2.ReadOnly = true;
+            this.textBox1_result2.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.textBox1_result2.Size = new System.Drawing.Size(1231, 98);
+            this.textBox1_result2.TabIndex = 15;
+            // 
+            // button_accessNo2
+            // 
+            this.button_accessNo2.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.button_accessNo2.Location = new System.Drawing.Point(439, 53);
+            this.button_accessNo2.Name = "button_accessNo2";
+            this.button_accessNo2.Size = new System.Drawing.Size(201, 45);
+            this.button_accessNo2.TabIndex = 14;
+            this.button_accessNo2.Text = "书目不同，索取号相同";
+            this.button_accessNo2.UseVisualStyleBackColor = true;
+            this.button_accessNo2.Click += new System.EventHandler(this.button_accessNo2_Click);
+            // 
+            // button_checkNoZch
+            // 
+            this.button_checkNoZch.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.button_checkNoZch.Location = new System.Drawing.Point(3, 54);
+            this.button_checkNoZch.Name = "button_checkNoZch";
+            this.button_checkNoZch.Size = new System.Drawing.Size(201, 45);
+            this.button_checkNoZch.TabIndex = 13;
+            this.button_checkNoZch.Text = "筛选非种次号";
+            this.button_checkNoZch.UseVisualStyleBackColor = true;
+            this.button_checkNoZch.Click += new System.EventHandler(this.button_checkNoZch_Click);
             // 
             // button_accessNo1
             // 
@@ -296,40 +333,16 @@
             this.toolStripStatusLabel_info.Size = new System.Drawing.Size(195, 24);
             this.toolStripStatusLabel_info.Text = "toolStripStatusLabel1";
             // 
-            // button_checkNoZch
+            // button_compareClassNoAccessNo
             // 
-            this.button_checkNoZch.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.button_checkNoZch.Location = new System.Drawing.Point(3, 54);
-            this.button_checkNoZch.Name = "button_checkNoZch";
-            this.button_checkNoZch.Size = new System.Drawing.Size(201, 45);
-            this.button_checkNoZch.TabIndex = 13;
-            this.button_checkNoZch.Text = "筛选非种次号";
-            this.button_checkNoZch.UseVisualStyleBackColor = true;
-            this.button_checkNoZch.Click += new System.EventHandler(this.button_checkNoZch_Click);
-            // 
-            // button_accessNo2
-            // 
-            this.button_accessNo2.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.button_accessNo2.Location = new System.Drawing.Point(439, 53);
-            this.button_accessNo2.Name = "button_accessNo2";
-            this.button_accessNo2.Size = new System.Drawing.Size(201, 45);
-            this.button_accessNo2.TabIndex = 14;
-            this.button_accessNo2.Text = "书目不同，索取号相同";
-            this.button_accessNo2.UseVisualStyleBackColor = true;
-            this.button_accessNo2.Click += new System.EventHandler(this.button_accessNo2_Click);
-            // 
-            // textBox1_result2
-            // 
-            this.textBox1_result2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox1_result2.Location = new System.Drawing.Point(4, 209);
-            this.textBox1_result2.Multiline = true;
-            this.textBox1_result2.Name = "textBox1_result2";
-            this.textBox1_result2.ReadOnly = true;
-            this.textBox1_result2.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBox1_result2.Size = new System.Drawing.Size(1231, 98);
-            this.textBox1_result2.TabIndex = 15;
+            this.button_compareClassNoAccessNo.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.button_compareClassNoAccessNo.Location = new System.Drawing.Point(646, 53);
+            this.button_compareClassNoAccessNo.Name = "button_compareClassNoAccessNo";
+            this.button_compareClassNoAccessNo.Size = new System.Drawing.Size(201, 45);
+            this.button_compareClassNoAccessNo.TabIndex = 16;
+            this.button_compareClassNoAccessNo.Text = "比对分类号与索取号";
+            this.button_compareClassNoAccessNo.UseVisualStyleBackColor = true;
+            this.button_compareClassNoAccessNo.Click += new System.EventHandler(this.button_compareClassNoAccessNo_Click);
             // 
             // Form_inspect
             // 
@@ -386,6 +399,7 @@
         private System.Windows.Forms.Button button_accessNo2;
         private System.Windows.Forms.Button button_checkNoZch;
         private System.Windows.Forms.TextBox textBox1_result2;
+        private System.Windows.Forms.Button button_compareClassNoAccessNo;
     }
 }
 

@@ -1348,6 +1348,48 @@ rjtsx+5位数字 如rjtsx12773
             }
             return false;
         }
+
+        private void button_compareClassNoAccessNo_Click(object sender, EventArgs e)
+        {
+            this.txtResult.Text = "";
+            string[] lines = this.GetLines();
+            string result = "";
+
+
+            int i = 0;
+            foreach (string line in lines)
+            {
+                if (line == "")
+                    continue;
+
+                string[] subs = line.Split(new char[] { '\t' });
+
+                string classNo = subs[0];
+                int nIndex = classNo.IndexOf("中图法分类号: ");
+                if (nIndex != -1)
+                    classNo = classNo.Substring(7);
+                nIndex = classNo.IndexOf("中图法分类号: ");
+                if (nIndex != -1)
+                    classNo = classNo.Substring(0, nIndex);
+                classNo = classNo.Trim();
+
+
+                string accessNo = subs[1];
+                nIndex = accessNo.IndexOf("/");
+                if (nIndex != -1)
+                    accessNo = accessNo.Substring(0,nIndex);
+
+                if (classNo != accessNo)
+                {
+                    result += line + "\r\n";
+                }
+
+                this.toolStripStatusLabel_info.Text = (++i).ToString();
+                Application.DoEvents();
+            }
+
+            this.txtResult.Text = result;
+        }
     }
 
 
