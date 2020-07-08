@@ -237,9 +237,6 @@
     <Content Include="img\search2.jfif" />
     <Content Include="img\wait2.gif" />
     <Content Include="fonts\mui-icons-extra.ttf" />
-    <Content Include="DongshifangMessageInterface.dll.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <None Include="Scripts\jquery-3.4.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.4.1.js" />
     <Content Include="Scripts\jquery-3.4.1.min.js" />
