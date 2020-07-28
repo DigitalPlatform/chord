@@ -1615,11 +1615,12 @@ namespace dp2Capo
             try
             {
                 string strPassword = request.AD_PatronPassword_o;
-                string strBarcode = request.AA_PatronIdentifier_r;
+                // 用于检索的证条码号或者证号等等。和读者记录中的 barcode 元素不一定相同
+                string strQueryBarcode = request.AA_PatronIdentifier_r;
                 if (!string.IsNullOrEmpty(strPassword))
                 {
                     lRet = info.LibraryChannel.VerifyReaderPassword(
-                        strBarcode,
+                        strQueryBarcode,
                         strPassword,
                         out strError);
                     if (lRet == -1)
@@ -1641,23 +1642,23 @@ namespace dp2Capo
 
                 string[] results = null;
                 lRet = info.LibraryChannel.GetReaderInfo(
-                    strBarcode, //读者卡号,
+                    strQueryBarcode, //读者卡号,
                     "advancexml",   // this.RenderFormat, // "html",
                     out results,
                     out strError);
                 if (lRet <= -1)
                 {
-                    strError = "查询读者('" + strBarcode + "')信息出错：" + strError;
+                    strError = "查询读者('" + strQueryBarcode + "')信息出错：" + strError;
                     goto ERROR1;
                 }
                 else if (lRet == 0)
                 {
-                    strError = "查无此证 '" + strBarcode + "'";
+                    strError = "查无此证 '" + strQueryBarcode + "'";
                     goto ERROR1;
                 }
                 else if (lRet > 1)
                 {
-                    strError = "证号重复 '" + strBarcode + "'";
+                    strError = "证号重复 '" + strQueryBarcode + "'";
                     goto ERROR1;
                 }
 
@@ -1810,6 +1811,8 @@ namespace dp2Capo
                     response.BV_feeAmount_o = "-" + currItem.Value.ToString(); //设为负值
                     response.BH_CurrencyType_3 = currItem.Prefix;
                 }
+
+                string strBarcode = DomUtil.GetElementText(dom.DocumentElement, "barcode");
 
                 response.AA_PatronIdentifier_r = strBarcode;
                 response.AE_PersonalName_r = DomUtil.GetElementText(dom.DocumentElement, "name");
