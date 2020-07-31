@@ -683,7 +683,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                             {
                                 result.String = "Denied";
                                 result.Value = -1;
-                                result.ErrorInfo = "因 id 为 '" + item.id + "' 的消息记录原先不是当前用户创建的，修改操作被拒绝";
+                                result.ErrorInfo = $"因 id 为 '{ item.id }' 的消息记录(创建者为 {exist.creator})原先不是当前用户 {creator_string} 创建的，修改操作被拒绝";
                                 return result;
                             }
                         }
@@ -784,7 +784,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                             {
                                 result.String = "Denied";
                                 result.Value = -1;
-                                result.ErrorInfo = "因 id 为 '" + item.id + "' 的消息不是当前用户创建的，" + strActionName + "操作被拒绝";
+                                result.ErrorInfo = $"因 id 为 '{ item.id }' 的消息(创建者为 {exist.creator})不是当前用户 {creator_string} 创建的，{ strActionName }操作被拒绝";
                                 return result;
                             }
                         }
