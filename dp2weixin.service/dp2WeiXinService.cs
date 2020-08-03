@@ -881,13 +881,17 @@ namespace dp2weixin.service
                 LibEntity lib = null;
                 if (string.IsNullOrEmpty(record.userName) == false)
                 {
+                    //根据capo_xxx找到对应的图书馆
                     lib = LibDatabase.Current.GetLibByCapoUserName(record.userName);
+
+                    // 没有找到图书馆
                     if (lib == null)
                     {
                         this.WriteErrorLog("SendMessageEvent(),未找到[" + record.userName + "]对应的图书馆。");
+                        return; // 2020/8/3 发现这里没写return
                     }
 
-                    // todo 20170531 
+                    // 如果图书馆的状态是已到期，则不继续发送消息
                     if (lib.state == C_State_Expire)
                     {
                         this.WriteErrorLog("" + record.userName + " 已到期，不支持将消息发送到用户微信，自行删除。");
@@ -897,6 +901,7 @@ namespace dp2weixin.service
                 else
                 {
                     this.WriteErrorLog("SendMessageEvent()异常：消息[" + record.id + "]传过来的userName为空。");
+                    return; // 2020/8/3 发现这里没写return
                 }
 
 
@@ -905,7 +910,9 @@ namespace dp2weixin.service
                 /// -1 不符合条件，不处理
                 /// 1 成功
                 /// </returns>
-                int nRet = this.InternalDoMessage(record, lib, out strError);
+                int nRet = this.InternalDoMessage(record, 
+                    lib, 
+                    out strError);
                 if (nRet == -1)
                 {
                     this.WriteErrorLog("消息[" + record.id + "]处理失败:" + strError);
@@ -915,6 +922,7 @@ namespace dp2weixin.service
                     this.WriteDebug("消息[" + record.id + "]处理完成。");
                     this.WriteDebug("========");
                 }
+
             }
             catch (Exception ex)
             {
@@ -928,11 +936,13 @@ namespace dp2weixin.service
         /// <param name="record"></param>
         /// <param name="strError"></param>
         /// <returns>
-        /// -1 不符合条件，不处理
+        /// -1 出错，或不符合处理条件
         /// 0 未绑定微信id，未处理
         /// 1 成功
         /// </returns>
-        public int InternalDoMessage(MessageRecord record, LibEntity lib, out string strError)
+        public int InternalDoMessage(MessageRecord record, 
+            LibEntity lib, 
+            out string strError)
         {
             strError = "";
 
@@ -941,13 +951,7 @@ namespace dp2weixin.service
             string[] group = record.groups;
             string create = record.creator;
 
-            //===检查是不是patronNotify通知===
-            //<root>
-            //    <type>patronNotify</type>
-            //    <recipient>R0000001@LUID:62637a12-1965-4876-af3a-fc1d3009af8a</recipient>
-            //    <mime>xml</mime>
-            //    <body>...</body>
-            //</root>
+            // 将消息体加载到dom
             XmlDocument dataDom = new XmlDocument();
             try
             {
@@ -959,6 +963,14 @@ namespace dp2weixin.service
                 return -1;
             }
 
+
+            //检查是不是patronNotify通知
+            //<root>
+            //    <type>patronNotify</type>
+            //    <recipient>R0000001@LUID:62637a12-1965-4876-af3a-fc1d3009af8a</recipient>
+            //    <mime>xml</mime>
+            //    <body>...</body>
+            //</root>
             XmlNode nodeType = dataDom.DocumentElement.SelectSingleNode("type");
             if (nodeType == null)
             {
@@ -972,6 +984,7 @@ namespace dp2weixin.service
                 return -1;
             }
 
+            // 检查是否存在body
             XmlNode nodeBody = dataDom.DocumentElement.SelectSingleNode("body");
             if (nodeBody == null)
             {
@@ -979,7 +992,7 @@ namespace dp2weixin.service
                 return -1;
             }
 
-            //===处理各类通知===
+            //从body元素内容里，查看各种消息类型
             /*
             body元素里面是预约到书通知记录(注意这是一个字符串，需要另行装入一个XmlDocument解析)，其格式如下：
             <?xml version="1.0" encoding="utf-8"?>
@@ -1009,11 +1022,12 @@ namespace dp2weixin.service
                 strError = "消息data的body中未定义type节点。";
                 return -1;
             }
+
+
             string strType = DomUtil.GetNodeText(typeNode);
+            this.WriteDebug("a消息类型为[" + strType + "]");
 
-            this.WriteDebug("消息类型为[" + strType + "]");
-
-            //===数据处理消息================
+            //处理每类消息
             if (strType == "工作人员账户变动")
             {
                 nRet = this.UpdateWorker(lib, bodyDom, out strError);
@@ -1050,13 +1064,9 @@ namespace dp2weixin.service
             string patronBarcode = "";
             string patronName = "";
             string libraryCode = "";
-            //List<string> bindWeixinIds = this.GetBindWeiXinIds(libId,
-            //    bodyDom,
-            //    out patronBarcode,
-            //    out patronName,
-            //    out libraryCode);
 
-            //XmlNode root = bodyDom.DocumentElement;
+            // todo 这里拷一段读者消息格式
+            // 找到读者节点
             XmlNode patronRecordNode = root.SelectSingleNode("patronRecord");
             if (patronRecordNode == null)
             {
@@ -1074,16 +1084,35 @@ namespace dp2weixin.service
             if (node != null)
                 patronName = DomUtil.GetNodeText(node);
 
-            // libraryCode
+            // 分馆代码，libraryCode
             node = patronRecordNode.SelectSingleNode("libraryCode");
             if (node != null)
                 libraryCode = DomUtil.GetNodeText(node);
 
-            // 获取用户绑定库中有多少用户绑定这个读者，给绑定这位读者的用户都要发通过
-            List<WxUserItem> bindPatronList = WxUserDatabase.Current.Get("", libId, null, WxUserDatabase.C_Type_Patron,
+            // 从微信本地库获取有多少用户绑定这个读者，给绑定这位读者的用户都要发通知
+            List<WxUserItem> bindPatronList = WxUserDatabase.Current.Get("",
+                libId,
+                libraryCode,  //null, 2020/8/3发现这里传的null，应该是传librarycode
+                WxUserDatabase.C_Type_Patron,
                  patronBarcode,
                  "",
                  true);
+
+            // 写一下日志，2020/8/1发现会收到两条消息
+            if (bindPatronList.Count > 0)
+            {
+                string temp = "";
+                foreach (WxUserItem u in bindPatronList)
+                {
+                    temp += "id=[" + u.id + "],readerBarcode=[" + u.readerBarcode + "],readerName=[" + u.readerName + "]\r\n";
+                }
+                this.WriteDebug("从本地库找到[" + bindPatronList.Count + "]条绑定了该读者帐号，详情如下：\r\n" + temp);
+            }
+            else
+            {
+                this.WriteDebug("从本地库找到[0]条绑定了该读者帐号。");
+            }
+
 
             // patronInfo = "";  //姓名 证条码号（图书馆/分馆）
             string fullPatronName = this.GetFullPatronName(patronName, patronBarcode, libName, libraryCode, false);
@@ -1092,6 +1121,21 @@ namespace dp2weixin.service
 
             // 得到这个馆绑定的工作人员，且工作人员打开tracing功能
             List<WxUserItem> workerList = this.GetTraceUsers(libId, libraryCode);
+            // 写一下日志，2020/8/1发现会收到两条消息
+            if (workerList.Count > 0)
+            {
+                string temp = "";
+                foreach (WxUserItem u in workerList)
+                {
+                    temp += "id=[" + u.id + "],userName=[" + u.userName + "]\r\n";
+                }
+                this.WriteDebug("从本地库找到[" + workerList.Count + "]条打开监控功能的工作人员，详情如下：\r\n" + temp);
+            }
+            else
+            {
+                this.WriteDebug("从本地库找到[0]条打开监控功能的工作人员。");
+            }
+
 
             // 没有绑定这位读者的用户,也没有打开tracing的工作人员，不处理消息
             if (bindPatronList.Count == 0 && workerList.Count == 0)
@@ -1267,7 +1311,7 @@ namespace dp2weixin.service
         /// <summary>
         /// 发送微信通知
         /// </summary>
-        /// <param name="weixinIds">微信id数组</param>
+        /// <param name="weixinIds">需发送给的绑定帐户对象数组</param>
         /// <param name="templateName">模板名</param>
         /// <param name="msgData">发送内容</param>
         /// <param name="linkUrl">链接地址</param>
@@ -1276,9 +1320,12 @@ namespace dp2weixin.service
         /// 而日期是在这里统一加上的
         /// </param>
         /// <param name="strError"></param>
-        /// <returns></returns>
-        private int SendTemplateMsgInternal(List<WxUserItem> userList1,//List<string> weixinIds,
-          string templateName,
+        /// <returns>
+        /// -1 出错
+        /// 0 成功
+        /// </returns>
+        private int SendTemplateMsgInternal(List<WxUserItem> userList,
+            string templateName,
           object msgData,
           string linkUrl,
           string theOperator,
@@ -1295,110 +1342,116 @@ namespace dp2weixin.service
             if (theOperator != "")
                 templateData.remark.value = templateData.remark.value + " " + theOperator;
 
-            // 一个人给微信用户发送通知
-            foreach (WxUserItem user1 in userList1)//string oneWeixinId in weixinIds)
+            // 给每个帐户发通知
+            foreach (WxUserItem u in userList)//string oneWeixinId in weixinIds)
             {
+                // 把消息信息写日志和本地库
+                string messageXml = templateData.Dump();
+                // 写到日志里
+                {
+                    string msgType = templateName;
+                    if (u.type == WxUserDatabase.C_Type_Patron)
+                        this.WriteDebug("即将给weixin=["+u.weixinId+"],图书馆为[" + u.libName + "]的读者[" + u.readerName + "(" + u.readerBarcode + ")]" + "发送[" + msgType + "]通知");
+                    else
+                        this.WriteDebug("即将给weixin=["+u.weixinId+"],图书馆为[" + u.libName + "]的工作人员[" + u.userName + "]" + "发送[" + msgType + "]通知");
+                    this.WriteDebug(messageXml);
+                }
+
                 try
                 {
-                    string weixinId = user1.weixinId;//oneWeixinId;
+                    string pureWeixinId = u.weixinId;//oneWeixinId;
                     GzhCfg gzh = null;
 
-                    // 检查weixinid是否包括@
-                    int nIndex = user1.weixinId.IndexOf("@");
+                    // 先检查通知发到哪个公众号，即检查weixinid是否包括@，
+                    // 有一些用户单位是用自己单位的公众号关联到我爱图书馆，通知要发到用户单位
+                    int nIndex = u.weixinId.IndexOf("@");
                     if (nIndex > 0)
                     {
-                        weixinId = user1.weixinId.Substring(0, nIndex);
-                        string gzhAppId = user1.weixinId.Substring(nIndex + 1);
+                        pureWeixinId = u.weixinId.Substring(0, nIndex);
+
+                        // 得到对应的公众号信息
+                        string gzhAppId = u.weixinId.Substring(nIndex + 1);
                         if (gzhAppId != "")
                         {
                             gzh = this._gzhContainer.GetByAppId(gzhAppId);
                         }
                     }
+
                     // 如果微信id中没带appid，取默认公众号设置
                     if (gzh == null)
                     {
                         gzh = this._gzhContainer.GetDefault();
                     }
+
+                    // 此时如果为null，则处理下一条
                     if (gzh == null)
                     {
-                        this.WriteErrorLog("未找到对应的公众号");
+                        this.WriteErrorLog("发送失败：[" + u.weixinId + "]未找到对应的公众号");
                         continue;
-                    }
-
-                    // 把消息信息写日志和本地库
-                    string messageXml = templateData.Dump();
-                    // 写到日志里
-                    {
-                        string msgType = templateName;
-                        if (user1.type == WxUserDatabase.C_Type_Patron)
-                            this.WriteDebug("给[" + user1.libName + "]的读者[" + user1.readerName + "(" + user1.readerBarcode + ")]" + "发送[" + msgType + "]通知");
-                        else
-                            this.WriteDebug("给[" + user1.libName + "]的工作人员[" + user1.userName + "]" + "发送[" + msgType + "]通知");
-                        this.WriteDebug(messageXml);
                     }
 
                     // 2020/4/1 发微信通知前，都写到本地库中
                     UserMessageItem myMsg = new UserMessageItem();
-                    myMsg.userId = user1.id;// 2020/4/2 这里应该用userId,这样可以关联到绑定帐户,而不是用单纯的weixinId
+                    myMsg.userId = u.id;// 2020/4/2 这里应该用userId,这样可以关联到绑定帐户,而不是用单纯的weixinId
                     myMsg.msgType = templateName;
                     myMsg.xml = messageXml;
                     myMsg.createTime = GetNowTime();
                     UserMessageDb.Current.Add(myMsg);
 
                     // 发微信通知
-                    if (WxUserDatabase.CheckIsFromWeb(weixinId) == false) //weixinId.Length > 2 && weixinId.Substring(0, 2) == "~~")
+                    if (WxUserDatabase.CheckIsFromWeb(u.weixinId) == false) //weixinId.Length > 2 && weixinId.Substring(0, 2) == "~~")
                     {
                         // 调微信接口发送消息
                         string appId = gzh.appId;
                         string templateId = gzh.GetTemplateId(templateName);
                         var accessToken = AccessTokenContainer.GetAccessToken(appId);
-                        var result1 = TemplateApi.SendTemplateMessage(accessToken,
-                            weixinId,
+                        var ret = TemplateApi.SendTemplateMessage(accessToken,
+                            pureWeixinId,  // 用单纯的weixinId
                             templateId,
                             linkUrl,
                             templateData);
-                        if (result1.errcode != 0)
+                        if (ret.errcode != 0)
                         {
-                            strError = result1.errmsg;
-                            //return -1;
-                            this.WriteErrorLog(strError);
+                            // 出错，写日志，继续下一条
+                            this.WriteErrorLog("发送失败：" + ret.errmsg);
                             continue;
                         }
                     }
-
-
                 }
                 catch (Exception ex0)
                 {
-                    strError = "给[" + user1.weixinId + "]发送" + templateName + "微信通知异常:" + ex0.Message;
-                    //return -1;
-                    this.WriteErrorLog(strError);
-
                     // 2018/3/18 4:46:29 ERROR:给[o4xvUvpencKbMoW2wPVe1mswD9O4@wx57aa3682c59d16c2]发送CaoQi微信通知异常:微信Post请求发生错误！错误代码：43004，说明：require subscribe hint: [UJ5fwa0589ge21]
                     // 遇到43004的问题，表示用户未关注公众号。那么将这些帐户删除。
                     if (ex0.Message.IndexOf("43004") != -1)
                     {
+                        strError = "发送失败:"+u.weixinId+"已取消关注。\r\n" + ex0.Message;
+                        this.WriteErrorLog(strError);
 
-                        string tempInfo = "";
-                        List<WxUserItem> uList = WxUserDatabase.Current.Get(user1.weixinId, "", -1);
-                        foreach (WxUserItem u in uList)
-                        {
-                            if (tempInfo != "")
-                                tempInfo += ",";
+                        // 2020/8/3先注册掉，以后再处理，优先级不高
+                        //string tempInfo = "";
+                        //List<WxUserItem> uList = WxUserDatabase.Current.Get(u.weixinId, "", -1);
+                        //foreach (WxUserItem one in uList)
+                        //{
+                        //    if (tempInfo != "")
+                        //        tempInfo += ",";
 
-                            if (user1.type == WxUserDatabase.C_Type_Patron)
-                                tempInfo += u.libName + "-" + u.readerName + "[" + u.readerBarcode + "]";
-                            else
-                                tempInfo += u.libName + "-" + u.userName;
-                            //WxUserDatabase.Current.SimpleDelete(user.id); //2020/4/2先不要轻易删除
-                        }
+                        //    if (one.type == WxUserDatabase.C_Type_Patron)
+                        //        tempInfo += u.libName + "-" + u.readerName + "[" + u.readerBarcode + "]";
+                        //    else
+                        //        tempInfo += u.libName + "-" + u.userName;
+                        //    //WxUserDatabase.Current.SimpleDelete(user.id); //2020/4/2先不要轻易删除
+                        //}
 
-                        this.WriteDebug("发通知时发现微信号" + user1.weixinId + "已取消关注公众号,之前绑定的帐户有:" + tempInfo);
+                        //this.WriteDebug("发通知时发现微信号" + u.weixinId + "已取消关注公众号,之前绑定的帐户有:" + tempInfo);
 
+                    }
+                    else
+                    {
+                        strError = "发送失败:" + ex0.Message;
+                        this.WriteErrorLog(strError);
                     }
 
 
-                    continue;
                 }
             }
 
@@ -1818,13 +1871,12 @@ namespace dp2weixin.service
 
         /// 借书成功
         /// <returns>
-        /// -1 出错，格式出错或者发送模板消息出错
-        /// 0 未绑定微信id
-        /// 1 成功
+        /// -1 出错，
+        /// 0 成功
         /// </returns>
         private int SendBorrowMsg(XmlDocument bodyDom,
             string libName,
-            List<WxUserItem> bindPatronList,//List<string> bindWeixinIds,
+            List<WxUserItem> bindPatronList,
             string patronBarcode,
             string patronName,
             string patronLibraryCode,
@@ -1907,7 +1959,7 @@ namespace dp2weixin.service
             XmlNode nodeItemBarcode = root.SelectSingleNode("itemBarcode");
             if (nodeItemBarcode == null)
             {
-                strError = "尚未定义<itemBarcode>节点";
+                strError = "未定义<itemBarcode>节点";
                 return -1;
             }
             string itemBarcode = DomUtil.GetNodeText(nodeItemBarcode);
@@ -1916,7 +1968,7 @@ namespace dp2weixin.service
             XmlNode nodeBorrowPeriod = root.SelectSingleNode("borrowPeriod");
             if (nodeBorrowPeriod == null)
             {
-                strError = "尚未定义<borrowPeriod>节点";
+                strError = "未定义<borrowPeriod>节点";
                 return -1;
             }
             string borrowPeriod = DomUtil.GetNodeText(nodeBorrowPeriod);
@@ -1926,7 +1978,7 @@ namespace dp2weixin.service
             XmlNode nodeBorrowDate = root.SelectSingleNode("borrowDate");
             if (nodeBorrowDate == null)
             {
-                strError = "尚未定义<borrowDate>节点";
+                strError = "未定义<borrowDate>节点";
                 return -1;
             }
             string borrowDate = DomUtil.GetNodeText(nodeBorrowDate);
@@ -1938,7 +1990,7 @@ namespace dp2weixin.service
             XmlNode nodeReturningDate = root.SelectSingleNode("returningDate");
             if (nodeReturningDate == null)
             {
-                strError = "尚未定义<returningDate>节点";
+                strError = "未定义<returningDate>节点";
                 return -1;
             }
             string returningDate = DomUtil.GetNodeText(nodeReturningDate);
@@ -1948,7 +2000,7 @@ namespace dp2weixin.service
             XmlNode nodeSummary = root.SelectSingleNode("itemRecord/summary");
             if (nodeSummary == null)
             {
-                strError = "尚未定义itemRecord/summary节点";
+                strError = "未定义itemRecord/summary节点";
                 return -1;
             }
             string summary = DomUtil.GetNodeText(nodeSummary);
@@ -2035,12 +2087,11 @@ namespace dp2weixin.service
         /// 还书成功
         /// <returns>
         /// -1 出错，格式出错或者发送模板消息出错
-        /// 0 未绑定微信id
-        /// 1 成功
+        /// 0 成功
         /// </returns>
         private int SendReturnMsg(XmlDocument bodyDom,
             string libName,
-            List<WxUserItem> bindPatronList,//List<string> bindWeixinIds,
+            List<WxUserItem> bindPatronList,
             string fullPatronName,
             string markFullPatronName,
             List<WxUserItem> workers,
