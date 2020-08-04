@@ -154,7 +154,8 @@ namespace dp2weixin.service
             //this.Template_CaoQi_Id = this.GetTemplateId(node, "CaoQi");
 
             //全局只需注册一次
-            AccessTokenContainer.Register(this.appId, this.secret);
+            AccessTokenContainer.RegisterAsync(this.appId, this.secret);
+            dp2WeiXinService.Instance.WriteDebug("注册"+this.appName+"-"+this.appId+"-"+this.secret);
         }
 
 

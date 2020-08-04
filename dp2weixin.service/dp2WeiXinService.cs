@@ -1104,7 +1104,7 @@ namespace dp2weixin.service
                 string temp = "";
                 foreach (WxUserItem u in bindPatronList)
                 {
-                    temp += "id=[" + u.id + "],readerBarcode=[" + u.readerBarcode + "],readerName=[" + u.readerName + "]\r\n";
+                    temp += "weixinid=["+u.weixinId+"],id=[" + u.id + "],readerBarcode=[" + u.readerBarcode + "],readerName=[" + u.readerName + "]\r\n";
                 }
                 this.WriteDebug("从本地库找到[" + bindPatronList.Count + "]条绑定了该读者帐号，详情如下：\r\n" + temp);
             }
@@ -1127,7 +1127,7 @@ namespace dp2weixin.service
                 string temp = "";
                 foreach (WxUserItem u in workerList)
                 {
-                    temp += "id=[" + u.id + "],userName=[" + u.userName + "]\r\n";
+                    temp += "weixinid=[" + u.weixinId + "],id=[" + u.id + "],userName=[" + u.userName + "]\r\n";
                 }
                 this.WriteDebug("从本地库找到[" + workerList.Count + "]条打开监控功能的工作人员，详情如下：\r\n" + temp);
             }
@@ -1354,7 +1354,10 @@ namespace dp2weixin.service
                         this.WriteDebug("即将给weixin=["+u.weixinId+"],图书馆为[" + u.libName + "]的读者[" + u.readerName + "(" + u.readerBarcode + ")]" + "发送[" + msgType + "]通知");
                     else
                         this.WriteDebug("即将给weixin=["+u.weixinId+"],图书馆为[" + u.libName + "]的工作人员[" + u.userName + "]" + "发送[" + msgType + "]通知");
-                    this.WriteDebug(messageXml);
+
+                    // 写到本地库的就不写日志了，节省一点日志空间
+                    if (WxUserDatabase.CheckIsFromWeb(u.weixinId) == false)
+                        this.WriteDebug(messageXml);
                 }
 
                 try
@@ -1404,12 +1407,16 @@ namespace dp2weixin.service
                         // 调微信接口发送消息
                         string appId = gzh.appId;
                         string templateId = gzh.GetTemplateId(templateName);
+                        WriteDebug("开始获取accessToken");
                         var accessToken = AccessTokenContainer.GetAccessToken(appId);
+                        WriteDebug("完成获取accessToken=["+accessToken+"]");
                         var ret = TemplateApi.SendTemplateMessage(accessToken,
                             pureWeixinId,  // 用单纯的weixinId
                             templateId,
                             linkUrl,
                             templateData);
+
+                        WriteDebug("SendTemplateMessage完成,errorcode=["+ret.errcode+"],errorstr=["+ret.errmsg+"]");
                         if (ret.errcode != 0)
                         {
                             // 出错，写日志，继续下一条
@@ -1420,11 +1427,13 @@ namespace dp2weixin.service
                 }
                 catch (Exception ex0)
                 {
+                    this.WriteErrorLog("走进异常");
+
                     // 2018/3/18 4:46:29 ERROR:给[o4xvUvpencKbMoW2wPVe1mswD9O4@wx57aa3682c59d16c2]发送CaoQi微信通知异常:微信Post请求发生错误！错误代码：43004，说明：require subscribe hint: [UJ5fwa0589ge21]
                     // 遇到43004的问题，表示用户未关注公众号。那么将这些帐户删除。
                     if (ex0.Message.IndexOf("43004") != -1)
                     {
-                        strError = "发送失败:"+u.weixinId+"已取消关注。\r\n" + ex0.Message;
+                        strError = "走进异常,发送失败:"+u.weixinId+"已取消关注。\r\n" + ex0.Message;
                         this.WriteErrorLog(strError);
 
                         // 2020/8/3先注册掉，以后再处理，优先级不高
@@ -1447,12 +1456,14 @@ namespace dp2weixin.service
                     }
                     else
                     {
-                        strError = "发送失败:" + ex0.Message;
+                        strError = "走进异常,发送失败:" + ex0.Message;
                         this.WriteErrorLog(strError);
                     }
 
 
                 }
+
+
             }
 
             // 还回原来的值，因为是引用型，外面还在用这个data
