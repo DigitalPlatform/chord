@@ -258,14 +258,15 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtMsg.BackColor = System.Drawing.Color.Silver;
             this.txtMsg.Location = new System.Drawing.Point(6, 0);
-            this.txtMsg.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.txtMsg.Margin = new System.Windows.Forms.Padding(4);
             this.txtMsg.Name = "txtMsg";
-            this.txtMsg.Size = new System.Drawing.Size(623, 28);
+            this.txtMsg.Size = new System.Drawing.Size(774, 28);
             this.txtMsg.TabIndex = 18;
             this.txtMsg.KeyUp += new System.Windows.Forms.KeyEventHandler(this.txtMsg_KeyUp);
             // 
             // menuStrip1
             // 
+            this.menuStrip1.GripMargin = new System.Windows.Forms.Padding(2, 2, 0, 2);
             this.menuStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.文件ToolStripMenuItem,
@@ -274,7 +275,7 @@
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Padding = new System.Windows.Forms.Padding(4, 2, 0, 2);
-            this.menuStrip1.Size = new System.Drawing.Size(945, 32);
+            this.menuStrip1.Size = new System.Drawing.Size(1207, 32);
             this.menuStrip1.TabIndex = 24;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -283,13 +284,13 @@
             this.文件ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.参数配置ToolStripMenuItem});
             this.文件ToolStripMenuItem.Name = "文件ToolStripMenuItem";
-            this.文件ToolStripMenuItem.Size = new System.Drawing.Size(58, 28);
+            this.文件ToolStripMenuItem.Size = new System.Drawing.Size(62, 28);
             this.文件ToolStripMenuItem.Text = "文件";
             // 
             // 参数配置ToolStripMenuItem
             // 
             this.参数配置ToolStripMenuItem.Name = "参数配置ToolStripMenuItem";
-            this.参数配置ToolStripMenuItem.Size = new System.Drawing.Size(164, 30);
+            this.参数配置ToolStripMenuItem.Size = new System.Drawing.Size(182, 34);
             this.参数配置ToolStripMenuItem.Text = "参数配置";
             this.参数配置ToolStripMenuItem.Click += new System.EventHandler(this.参数配置ToolStripMenuItem_Click);
             // 
@@ -300,34 +301,34 @@
             this.实用工具ToolStripMenuItem1,
             this.sample参数设置ToolStripMenuItem});
             this.关于ToolStripMenuItem.Name = "关于ToolStripMenuItem";
-            this.关于ToolStripMenuItem.Size = new System.Drawing.Size(58, 28);
+            this.关于ToolStripMenuItem.Size = new System.Drawing.Size(62, 28);
             this.关于ToolStripMenuItem.Text = "帮助";
             // 
             // 清空信息区ToolStripMenuItem
             // 
             this.清空信息区ToolStripMenuItem.Name = "清空信息区ToolStripMenuItem";
-            this.清空信息区ToolStripMenuItem.Size = new System.Drawing.Size(226, 30);
+            this.清空信息区ToolStripMenuItem.Size = new System.Drawing.Size(244, 34);
             this.清空信息区ToolStripMenuItem.Text = "清空信息区";
             this.清空信息区ToolStripMenuItem.Click += new System.EventHandler(this.清空信息区ToolStripMenuItem_Click);
             // 
             // 实用工具ToolStripMenuItem1
             // 
             this.实用工具ToolStripMenuItem1.Name = "实用工具ToolStripMenuItem1";
-            this.实用工具ToolStripMenuItem1.Size = new System.Drawing.Size(226, 30);
+            this.实用工具ToolStripMenuItem1.Size = new System.Drawing.Size(244, 34);
             this.实用工具ToolStripMenuItem1.Text = "实用工具";
             this.实用工具ToolStripMenuItem1.Click += new System.EventHandler(this.实用工具ToolStripMenuItem1_Click);
             // 
             // sample参数设置ToolStripMenuItem
             // 
             this.sample参数设置ToolStripMenuItem.Name = "sample参数设置ToolStripMenuItem";
-            this.sample参数设置ToolStripMenuItem.Size = new System.Drawing.Size(226, 30);
+            this.sample参数设置ToolStripMenuItem.Size = new System.Drawing.Size(244, 34);
             this.sample参数设置ToolStripMenuItem.Text = "sample参数设置";
             this.sample参数设置ToolStripMenuItem.Click += new System.EventHandler(this.sample参数设置ToolStripMenuItem_Click);
             // 
             // 自动测试ToolStripMenuItem1
             // 
             this.自动测试ToolStripMenuItem1.Name = "自动测试ToolStripMenuItem1";
-            this.自动测试ToolStripMenuItem1.Size = new System.Drawing.Size(94, 28);
+            this.自动测试ToolStripMenuItem1.Size = new System.Drawing.Size(98, 28);
             this.自动测试ToolStripMenuItem1.Text = "自动测试";
             this.自动测试ToolStripMenuItem1.Click += new System.EventHandler(this.自动测试ToolStripMenuItem1_Click);
             // 
@@ -342,8 +343,7 @@
             this.toolStripLabel_DisconnectSIP2Server});
             this.toolStrip1.Location = new System.Drawing.Point(0, 32);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Padding = new System.Windows.Forms.Padding(0, 0, 2, 0);
-            this.toolStrip1.Size = new System.Drawing.Size(945, 27);
+            this.toolStrip1.Size = new System.Drawing.Size(1207, 29);
             this.toolStrip1.TabIndex = 25;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -357,7 +357,7 @@
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 27);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 29);
             // 
             // toolStripLabel_sample
             // 
@@ -388,10 +388,10 @@
             this.statusStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripStatusLabel_info});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 616);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 929);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Padding = new System.Windows.Forms.Padding(2, 0, 10, 0);
-            this.statusStrip1.Size = new System.Drawing.Size(945, 29);
+            this.statusStrip1.Size = new System.Drawing.Size(1207, 31);
             this.statusStrip1.TabIndex = 26;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -404,20 +404,21 @@
             // splitContainer_main
             // 
             this.splitContainer_main.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer_main.Location = new System.Drawing.Point(0, 59);
-            this.splitContainer_main.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.splitContainer_main.Location = new System.Drawing.Point(0, 61);
+            this.splitContainer_main.Margin = new System.Windows.Forms.Padding(2);
             this.splitContainer_main.Name = "splitContainer_main";
             // 
             // splitContainer_main.Panel1
             // 
+            this.splitContainer_main.Panel1.AutoScroll = true;
             this.splitContainer_main.Panel1.Controls.Add(this.tabControl_main);
             this.splitContainer_main.Panel1.Controls.Add(this.txtMsg);
             // 
             // splitContainer_main.Panel2
             // 
             this.splitContainer_main.Panel2.Controls.Add(this.webBrowser1);
-            this.splitContainer_main.Size = new System.Drawing.Size(945, 557);
-            this.splitContainer_main.SplitterDistance = 631;
+            this.splitContainer_main.Size = new System.Drawing.Size(1207, 868);
+            this.splitContainer_main.SplitterDistance = 785;
             this.splitContainer_main.SplitterWidth = 3;
             this.splitContainer_main.TabIndex = 27;
             // 
@@ -437,10 +438,10 @@
             this.tabControl_main.Controls.Add(this.tabPage_FeePaid37);
             this.tabControl_main.Controls.Add(this.tabPage_function);
             this.tabControl_main.Location = new System.Drawing.Point(6, 34);
-            this.tabControl_main.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabControl_main.Margin = new System.Windows.Forms.Padding(2);
             this.tabControl_main.Name = "tabControl_main";
             this.tabControl_main.SelectedIndex = 0;
-            this.tabControl_main.Size = new System.Drawing.Size(622, 522);
+            this.tabControl_main.Size = new System.Drawing.Size(774, 833);
             this.tabControl_main.TabIndex = 19;
             this.tabControl_main.SelectedIndexChanged += new System.EventHandler(this.tabControl_main_SelectedIndexChanged);
             // 
@@ -457,10 +458,10 @@
             this.tabPage_Login93.Controls.Add(this.textBox_Login93_UIDAlgorithm_1);
             this.tabPage_Login93.Controls.Add(this.label_UIDAlgorithm);
             this.tabPage_Login93.Location = new System.Drawing.Point(4, 28);
-            this.tabPage_Login93.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage_Login93.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage_Login93.Name = "tabPage_Login93";
-            this.tabPage_Login93.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
-            this.tabPage_Login93.Size = new System.Drawing.Size(614, 490);
+            this.tabPage_Login93.Padding = new System.Windows.Forms.Padding(2);
+            this.tabPage_Login93.Size = new System.Drawing.Size(596, 801);
             this.tabPage_Login93.TabIndex = 0;
             this.tabPage_Login93.Text = "Login93";
             this.tabPage_Login93.UseVisualStyleBackColor = true;
@@ -468,7 +469,7 @@
             // textBox_Login93_locationCode_CP_o
             // 
             this.textBox_Login93_locationCode_CP_o.Location = new System.Drawing.Point(178, 178);
-            this.textBox_Login93_locationCode_CP_o.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Login93_locationCode_CP_o.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Login93_locationCode_CP_o.Name = "textBox_Login93_locationCode_CP_o";
             this.textBox_Login93_locationCode_CP_o.Size = new System.Drawing.Size(204, 28);
             this.textBox_Login93_locationCode_CP_o.TabIndex = 9;
@@ -486,7 +487,7 @@
             // textBox_Login93_loginPassword_CO_r
             // 
             this.textBox_Login93_loginPassword_CO_r.Location = new System.Drawing.Point(178, 136);
-            this.textBox_Login93_loginPassword_CO_r.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Login93_loginPassword_CO_r.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Login93_loginPassword_CO_r.Name = "textBox_Login93_loginPassword_CO_r";
             this.textBox_Login93_loginPassword_CO_r.Size = new System.Drawing.Size(204, 28);
             this.textBox_Login93_loginPassword_CO_r.TabIndex = 7;
@@ -504,7 +505,7 @@
             // textBox_Login93_loginUserId_CN_r
             // 
             this.textBox_Login93_loginUserId_CN_r.Location = new System.Drawing.Point(178, 94);
-            this.textBox_Login93_loginUserId_CN_r.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Login93_loginUserId_CN_r.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Login93_loginUserId_CN_r.Name = "textBox_Login93_loginUserId_CN_r";
             this.textBox_Login93_loginUserId_CN_r.Size = new System.Drawing.Size(204, 28);
             this.textBox_Login93_loginUserId_CN_r.TabIndex = 5;
@@ -522,7 +523,7 @@
             // textBox_Login93_PWDAlgorithm_1
             // 
             this.textBox_Login93_PWDAlgorithm_1.Location = new System.Drawing.Point(178, 50);
-            this.textBox_Login93_PWDAlgorithm_1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Login93_PWDAlgorithm_1.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Login93_PWDAlgorithm_1.Name = "textBox_Login93_PWDAlgorithm_1";
             this.textBox_Login93_PWDAlgorithm_1.Size = new System.Drawing.Size(64, 28);
             this.textBox_Login93_PWDAlgorithm_1.TabIndex = 3;
@@ -540,7 +541,7 @@
             // textBox_Login93_UIDAlgorithm_1
             // 
             this.textBox_Login93_UIDAlgorithm_1.Location = new System.Drawing.Point(178, 10);
-            this.textBox_Login93_UIDAlgorithm_1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Login93_UIDAlgorithm_1.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Login93_UIDAlgorithm_1.Name = "textBox_Login93_UIDAlgorithm_1";
             this.textBox_Login93_UIDAlgorithm_1.Size = new System.Drawing.Size(64, 28);
             this.textBox_Login93_UIDAlgorithm_1.TabIndex = 1;
@@ -564,10 +565,10 @@
             this.tabPage_SCStatus99.Controls.Add(this.textBox_SCStatus99_statusCode_1);
             this.tabPage_SCStatus99.Controls.Add(this.label4);
             this.tabPage_SCStatus99.Location = new System.Drawing.Point(4, 28);
-            this.tabPage_SCStatus99.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage_SCStatus99.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage_SCStatus99.Name = "tabPage_SCStatus99";
-            this.tabPage_SCStatus99.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
-            this.tabPage_SCStatus99.Size = new System.Drawing.Size(1210, 955);
+            this.tabPage_SCStatus99.Padding = new System.Windows.Forms.Padding(2);
+            this.tabPage_SCStatus99.Size = new System.Drawing.Size(616, 801);
             this.tabPage_SCStatus99.TabIndex = 1;
             this.tabPage_SCStatus99.Text = "SCStatus99";
             this.tabPage_SCStatus99.UseVisualStyleBackColor = true;
@@ -575,7 +576,7 @@
             // textBox_SCStatus99_protocolVersion_4
             // 
             this.textBox_SCStatus99_protocolVersion_4.Location = new System.Drawing.Point(188, 94);
-            this.textBox_SCStatus99_protocolVersion_4.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_SCStatus99_protocolVersion_4.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_SCStatus99_protocolVersion_4.Name = "textBox_SCStatus99_protocolVersion_4";
             this.textBox_SCStatus99_protocolVersion_4.Size = new System.Drawing.Size(64, 28);
             this.textBox_SCStatus99_protocolVersion_4.TabIndex = 9;
@@ -593,7 +594,7 @@
             // textBox_SCStatus99_maxPrintWidth_3
             // 
             this.textBox_SCStatus99_maxPrintWidth_3.Location = new System.Drawing.Point(188, 54);
-            this.textBox_SCStatus99_maxPrintWidth_3.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_SCStatus99_maxPrintWidth_3.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_SCStatus99_maxPrintWidth_3.Name = "textBox_SCStatus99_maxPrintWidth_3";
             this.textBox_SCStatus99_maxPrintWidth_3.Size = new System.Drawing.Size(64, 28);
             this.textBox_SCStatus99_maxPrintWidth_3.TabIndex = 7;
@@ -611,7 +612,7 @@
             // textBox_SCStatus99_statusCode_1
             // 
             this.textBox_SCStatus99_statusCode_1.Location = new System.Drawing.Point(188, 14);
-            this.textBox_SCStatus99_statusCode_1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_SCStatus99_statusCode_1.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_SCStatus99_statusCode_1.Name = "textBox_SCStatus99_statusCode_1";
             this.textBox_SCStatus99_statusCode_1.Size = new System.Drawing.Size(64, 28);
             this.textBox_SCStatus99_statusCode_1.TabIndex = 5;
@@ -653,9 +654,9 @@
             this.tabPage_Checkout11.Controls.Add(this.textBox_Checkout11_SCRenewalPolicy_1);
             this.tabPage_Checkout11.Controls.Add(this.label8);
             this.tabPage_Checkout11.Location = new System.Drawing.Point(4, 28);
-            this.tabPage_Checkout11.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage_Checkout11.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage_Checkout11.Name = "tabPage_Checkout11";
-            this.tabPage_Checkout11.Size = new System.Drawing.Size(1210, 955);
+            this.tabPage_Checkout11.Size = new System.Drawing.Size(616, 801);
             this.tabPage_Checkout11.TabIndex = 2;
             this.tabPage_Checkout11.Text = "Checkout11";
             this.tabPage_Checkout11.UseVisualStyleBackColor = true;
@@ -663,7 +664,7 @@
             // textBox_Checkout11_cancel_BI_1_o
             // 
             this.textBox_Checkout11_cancel_BI_1_o.Location = new System.Drawing.Point(222, 424);
-            this.textBox_Checkout11_cancel_BI_1_o.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Checkout11_cancel_BI_1_o.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Checkout11_cancel_BI_1_o.Name = "textBox_Checkout11_cancel_BI_1_o";
             this.textBox_Checkout11_cancel_BI_1_o.Size = new System.Drawing.Size(64, 28);
             this.textBox_Checkout11_cancel_BI_1_o.TabIndex = 33;
@@ -681,7 +682,7 @@
             // textBox_Checkout11_feeAcknowledged_BO_1_o
             // 
             this.textBox_Checkout11_feeAcknowledged_BO_1_o.Location = new System.Drawing.Point(222, 392);
-            this.textBox_Checkout11_feeAcknowledged_BO_1_o.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Checkout11_feeAcknowledged_BO_1_o.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Checkout11_feeAcknowledged_BO_1_o.Name = "textBox_Checkout11_feeAcknowledged_BO_1_o";
             this.textBox_Checkout11_feeAcknowledged_BO_1_o.Size = new System.Drawing.Size(64, 28);
             this.textBox_Checkout11_feeAcknowledged_BO_1_o.TabIndex = 31;
@@ -699,7 +700,7 @@
             // textBox_Checkout11_patronPassword_AD_o
             // 
             this.textBox_Checkout11_patronPassword_AD_o.Location = new System.Drawing.Point(222, 356);
-            this.textBox_Checkout11_patronPassword_AD_o.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Checkout11_patronPassword_AD_o.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Checkout11_patronPassword_AD_o.Name = "textBox_Checkout11_patronPassword_AD_o";
             this.textBox_Checkout11_patronPassword_AD_o.Size = new System.Drawing.Size(266, 28);
             this.textBox_Checkout11_patronPassword_AD_o.TabIndex = 29;
@@ -717,7 +718,7 @@
             // textBox_Checkout11_itemProperties_CH_o
             // 
             this.textBox_Checkout11_itemProperties_CH_o.Location = new System.Drawing.Point(222, 318);
-            this.textBox_Checkout11_itemProperties_CH_o.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Checkout11_itemProperties_CH_o.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Checkout11_itemProperties_CH_o.Name = "textBox_Checkout11_itemProperties_CH_o";
             this.textBox_Checkout11_itemProperties_CH_o.Size = new System.Drawing.Size(266, 28);
             this.textBox_Checkout11_itemProperties_CH_o.TabIndex = 27;
@@ -735,7 +736,7 @@
             // textBox_Checkout11_terminalPassword_AC_r
             // 
             this.textBox_Checkout11_terminalPassword_AC_r.Location = new System.Drawing.Point(222, 280);
-            this.textBox_Checkout11_terminalPassword_AC_r.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Checkout11_terminalPassword_AC_r.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Checkout11_terminalPassword_AC_r.Name = "textBox_Checkout11_terminalPassword_AC_r";
             this.textBox_Checkout11_terminalPassword_AC_r.Size = new System.Drawing.Size(266, 28);
             this.textBox_Checkout11_terminalPassword_AC_r.TabIndex = 25;
@@ -753,7 +754,7 @@
             // textBox_Checkout11_itemIdentifier_AB_r
             // 
             this.textBox_Checkout11_itemIdentifier_AB_r.Location = new System.Drawing.Point(222, 244);
-            this.textBox_Checkout11_itemIdentifier_AB_r.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Checkout11_itemIdentifier_AB_r.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Checkout11_itemIdentifier_AB_r.Name = "textBox_Checkout11_itemIdentifier_AB_r";
             this.textBox_Checkout11_itemIdentifier_AB_r.Size = new System.Drawing.Size(266, 28);
             this.textBox_Checkout11_itemIdentifier_AB_r.TabIndex = 23;
@@ -771,7 +772,7 @@
             // textBox_Checkout11_patronIdentifier_AA_r
             // 
             this.textBox_Checkout11_patronIdentifier_AA_r.Location = new System.Drawing.Point(222, 204);
-            this.textBox_Checkout11_patronIdentifier_AA_r.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Checkout11_patronIdentifier_AA_r.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Checkout11_patronIdentifier_AA_r.Name = "textBox_Checkout11_patronIdentifier_AA_r";
             this.textBox_Checkout11_patronIdentifier_AA_r.Size = new System.Drawing.Size(266, 28);
             this.textBox_Checkout11_patronIdentifier_AA_r.TabIndex = 21;
@@ -789,7 +790,7 @@
             // textBox_Checkout11_institutionId_AO_r
             // 
             this.textBox_Checkout11_institutionId_AO_r.Location = new System.Drawing.Point(222, 164);
-            this.textBox_Checkout11_institutionId_AO_r.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Checkout11_institutionId_AO_r.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Checkout11_institutionId_AO_r.Name = "textBox_Checkout11_institutionId_AO_r";
             this.textBox_Checkout11_institutionId_AO_r.Size = new System.Drawing.Size(266, 28);
             this.textBox_Checkout11_institutionId_AO_r.TabIndex = 19;
@@ -807,7 +808,7 @@
             // textBox_Checkout11_nbDueDate_18
             // 
             this.textBox_Checkout11_nbDueDate_18.Location = new System.Drawing.Point(222, 128);
-            this.textBox_Checkout11_nbDueDate_18.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Checkout11_nbDueDate_18.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Checkout11_nbDueDate_18.Name = "textBox_Checkout11_nbDueDate_18";
             this.textBox_Checkout11_nbDueDate_18.Size = new System.Drawing.Size(392, 28);
             this.textBox_Checkout11_nbDueDate_18.TabIndex = 17;
@@ -825,7 +826,7 @@
             // textBox_Checkout11_transactionDate_18
             // 
             this.textBox_Checkout11_transactionDate_18.Location = new System.Drawing.Point(222, 92);
-            this.textBox_Checkout11_transactionDate_18.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Checkout11_transactionDate_18.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Checkout11_transactionDate_18.Name = "textBox_Checkout11_transactionDate_18";
             this.textBox_Checkout11_transactionDate_18.Size = new System.Drawing.Size(392, 28);
             this.textBox_Checkout11_transactionDate_18.TabIndex = 15;
@@ -843,7 +844,7 @@
             // textBox_Checkout11_noBlock_1
             // 
             this.textBox_Checkout11_noBlock_1.Location = new System.Drawing.Point(222, 52);
-            this.textBox_Checkout11_noBlock_1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Checkout11_noBlock_1.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Checkout11_noBlock_1.Name = "textBox_Checkout11_noBlock_1";
             this.textBox_Checkout11_noBlock_1.Size = new System.Drawing.Size(64, 28);
             this.textBox_Checkout11_noBlock_1.TabIndex = 13;
@@ -861,7 +862,7 @@
             // textBox_Checkout11_SCRenewalPolicy_1
             // 
             this.textBox_Checkout11_SCRenewalPolicy_1.Location = new System.Drawing.Point(222, 14);
-            this.textBox_Checkout11_SCRenewalPolicy_1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Checkout11_SCRenewalPolicy_1.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Checkout11_SCRenewalPolicy_1.Name = "textBox_Checkout11_SCRenewalPolicy_1";
             this.textBox_Checkout11_SCRenewalPolicy_1.Size = new System.Drawing.Size(64, 28);
             this.textBox_Checkout11_SCRenewalPolicy_1.TabIndex = 11;
@@ -897,9 +898,9 @@
             this.tabPage_Checkin09.Controls.Add(this.textBox_Checkin09_noBlock_1);
             this.tabPage_Checkin09.Controls.Add(this.label28);
             this.tabPage_Checkin09.Location = new System.Drawing.Point(4, 28);
-            this.tabPage_Checkin09.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage_Checkin09.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage_Checkin09.Name = "tabPage_Checkin09";
-            this.tabPage_Checkin09.Size = new System.Drawing.Size(1210, 955);
+            this.tabPage_Checkin09.Size = new System.Drawing.Size(616, 801);
             this.tabPage_Checkin09.TabIndex = 3;
             this.tabPage_Checkin09.Text = "Checkin09";
             this.tabPage_Checkin09.UseVisualStyleBackColor = true;
@@ -917,7 +918,7 @@
             // textBox_Checkin09_currentLocation_AP_r
             // 
             this.textBox_Checkin09_currentLocation_AP_r.Location = new System.Drawing.Point(222, 134);
-            this.textBox_Checkin09_currentLocation_AP_r.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Checkin09_currentLocation_AP_r.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Checkin09_currentLocation_AP_r.Name = "textBox_Checkin09_currentLocation_AP_r";
             this.textBox_Checkin09_currentLocation_AP_r.Size = new System.Drawing.Size(266, 28);
             this.textBox_Checkin09_currentLocation_AP_r.TabIndex = 45;
@@ -925,7 +926,7 @@
             // textBox_Checkin09_cancel_BI_1_o
             // 
             this.textBox_Checkin09_cancel_BI_1_o.Location = new System.Drawing.Point(222, 322);
-            this.textBox_Checkin09_cancel_BI_1_o.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Checkin09_cancel_BI_1_o.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Checkin09_cancel_BI_1_o.Name = "textBox_Checkin09_cancel_BI_1_o";
             this.textBox_Checkin09_cancel_BI_1_o.Size = new System.Drawing.Size(64, 28);
             this.textBox_Checkin09_cancel_BI_1_o.TabIndex = 57;
@@ -943,7 +944,7 @@
             // textBox_Checkin09_itemProperties_CH_o
             // 
             this.textBox_Checkin09_itemProperties_CH_o.Location = new System.Drawing.Point(222, 282);
-            this.textBox_Checkin09_itemProperties_CH_o.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Checkin09_itemProperties_CH_o.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Checkin09_itemProperties_CH_o.Name = "textBox_Checkin09_itemProperties_CH_o";
             this.textBox_Checkin09_itemProperties_CH_o.Size = new System.Drawing.Size(266, 28);
             this.textBox_Checkin09_itemProperties_CH_o.TabIndex = 51;
@@ -961,7 +962,7 @@
             // textBox_Checkin09_terminalPassword_AC_r
             // 
             this.textBox_Checkin09_terminalPassword_AC_r.Location = new System.Drawing.Point(222, 244);
-            this.textBox_Checkin09_terminalPassword_AC_r.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Checkin09_terminalPassword_AC_r.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Checkin09_terminalPassword_AC_r.Name = "textBox_Checkin09_terminalPassword_AC_r";
             this.textBox_Checkin09_terminalPassword_AC_r.Size = new System.Drawing.Size(266, 28);
             this.textBox_Checkin09_terminalPassword_AC_r.TabIndex = 49;
@@ -979,7 +980,7 @@
             // textBox_Checkin09_itemIdentifier_AB_r
             // 
             this.textBox_Checkin09_itemIdentifier_AB_r.Location = new System.Drawing.Point(222, 208);
-            this.textBox_Checkin09_itemIdentifier_AB_r.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Checkin09_itemIdentifier_AB_r.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Checkin09_itemIdentifier_AB_r.Name = "textBox_Checkin09_itemIdentifier_AB_r";
             this.textBox_Checkin09_itemIdentifier_AB_r.Size = new System.Drawing.Size(266, 28);
             this.textBox_Checkin09_itemIdentifier_AB_r.TabIndex = 47;
@@ -997,7 +998,7 @@
             // textBox_Checkin09_institutionId_AO_r
             // 
             this.textBox_Checkin09_institutionId_AO_r.Location = new System.Drawing.Point(222, 166);
-            this.textBox_Checkin09_institutionId_AO_r.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Checkin09_institutionId_AO_r.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Checkin09_institutionId_AO_r.Name = "textBox_Checkin09_institutionId_AO_r";
             this.textBox_Checkin09_institutionId_AO_r.Size = new System.Drawing.Size(266, 28);
             this.textBox_Checkin09_institutionId_AO_r.TabIndex = 43;
@@ -1015,7 +1016,7 @@
             // textBox_Checkin09_returnDate_18
             // 
             this.textBox_Checkin09_returnDate_18.Location = new System.Drawing.Point(222, 92);
-            this.textBox_Checkin09_returnDate_18.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Checkin09_returnDate_18.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Checkin09_returnDate_18.Name = "textBox_Checkin09_returnDate_18";
             this.textBox_Checkin09_returnDate_18.Size = new System.Drawing.Size(392, 28);
             this.textBox_Checkin09_returnDate_18.TabIndex = 41;
@@ -1033,7 +1034,7 @@
             // textBox_Checkin09_transactionDate_18
             // 
             this.textBox_Checkin09_transactionDate_18.Location = new System.Drawing.Point(222, 56);
-            this.textBox_Checkin09_transactionDate_18.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Checkin09_transactionDate_18.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Checkin09_transactionDate_18.Name = "textBox_Checkin09_transactionDate_18";
             this.textBox_Checkin09_transactionDate_18.Size = new System.Drawing.Size(392, 28);
             this.textBox_Checkin09_transactionDate_18.TabIndex = 39;
@@ -1051,7 +1052,7 @@
             // textBox_Checkin09_noBlock_1
             // 
             this.textBox_Checkin09_noBlock_1.Location = new System.Drawing.Point(222, 16);
-            this.textBox_Checkin09_noBlock_1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Checkin09_noBlock_1.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Checkin09_noBlock_1.Name = "textBox_Checkin09_noBlock_1";
             this.textBox_Checkin09_noBlock_1.Size = new System.Drawing.Size(64, 28);
             this.textBox_Checkin09_noBlock_1.TabIndex = 37;
@@ -1087,9 +1088,9 @@
             this.tabPage_PatronInformation63.Controls.Add(this.textBox_PatronInformation63_language_3);
             this.tabPage_PatronInformation63.Controls.Add(this.label35);
             this.tabPage_PatronInformation63.Location = new System.Drawing.Point(4, 28);
-            this.tabPage_PatronInformation63.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage_PatronInformation63.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage_PatronInformation63.Name = "tabPage_PatronInformation63";
-            this.tabPage_PatronInformation63.Size = new System.Drawing.Size(1210, 955);
+            this.tabPage_PatronInformation63.Size = new System.Drawing.Size(616, 801);
             this.tabPage_PatronInformation63.TabIndex = 4;
             this.tabPage_PatronInformation63.Text = "PatronInformation63";
             this.tabPage_PatronInformation63.UseVisualStyleBackColor = true;
@@ -1107,7 +1108,7 @@
             // textBox_PatronInformation63_institutionId_AO_r
             // 
             this.textBox_PatronInformation63_institutionId_AO_r.Location = new System.Drawing.Point(224, 134);
-            this.textBox_PatronInformation63_institutionId_AO_r.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_PatronInformation63_institutionId_AO_r.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_PatronInformation63_institutionId_AO_r.Name = "textBox_PatronInformation63_institutionId_AO_r";
             this.textBox_PatronInformation63_institutionId_AO_r.Size = new System.Drawing.Size(266, 28);
             this.textBox_PatronInformation63_institutionId_AO_r.TabIndex = 67;
@@ -1115,7 +1116,7 @@
             // textBox_PatronInformation63_endItem_BQ_o
             // 
             this.textBox_PatronInformation63_endItem_BQ_o.Location = new System.Drawing.Point(224, 322);
-            this.textBox_PatronInformation63_endItem_BQ_o.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_PatronInformation63_endItem_BQ_o.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_PatronInformation63_endItem_BQ_o.Name = "textBox_PatronInformation63_endItem_BQ_o";
             this.textBox_PatronInformation63_endItem_BQ_o.Size = new System.Drawing.Size(120, 28);
             this.textBox_PatronInformation63_endItem_BQ_o.TabIndex = 75;
@@ -1133,7 +1134,7 @@
             // textBox_PatronInformation63_startItem_BP_o
             // 
             this.textBox_PatronInformation63_startItem_BP_o.Location = new System.Drawing.Point(224, 282);
-            this.textBox_PatronInformation63_startItem_BP_o.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_PatronInformation63_startItem_BP_o.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_PatronInformation63_startItem_BP_o.Name = "textBox_PatronInformation63_startItem_BP_o";
             this.textBox_PatronInformation63_startItem_BP_o.Size = new System.Drawing.Size(120, 28);
             this.textBox_PatronInformation63_startItem_BP_o.TabIndex = 73;
@@ -1151,7 +1152,7 @@
             // textBox_PatronInformation63_patronPassword_AD_o
             // 
             this.textBox_PatronInformation63_patronPassword_AD_o.Location = new System.Drawing.Point(224, 244);
-            this.textBox_PatronInformation63_patronPassword_AD_o.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_PatronInformation63_patronPassword_AD_o.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_PatronInformation63_patronPassword_AD_o.Name = "textBox_PatronInformation63_patronPassword_AD_o";
             this.textBox_PatronInformation63_patronPassword_AD_o.Size = new System.Drawing.Size(266, 28);
             this.textBox_PatronInformation63_patronPassword_AD_o.TabIndex = 71;
@@ -1169,7 +1170,7 @@
             // textBox_PatronInformation63_terminalPassword_AC_o
             // 
             this.textBox_PatronInformation63_terminalPassword_AC_o.Location = new System.Drawing.Point(224, 208);
-            this.textBox_PatronInformation63_terminalPassword_AC_o.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_PatronInformation63_terminalPassword_AC_o.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_PatronInformation63_terminalPassword_AC_o.Name = "textBox_PatronInformation63_terminalPassword_AC_o";
             this.textBox_PatronInformation63_terminalPassword_AC_o.Size = new System.Drawing.Size(266, 28);
             this.textBox_PatronInformation63_terminalPassword_AC_o.TabIndex = 69;
@@ -1187,7 +1188,7 @@
             // textBox_PatronInformation63_patronIdentifier_AA_r
             // 
             this.textBox_PatronInformation63_patronIdentifier_AA_r.Location = new System.Drawing.Point(224, 166);
-            this.textBox_PatronInformation63_patronIdentifier_AA_r.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_PatronInformation63_patronIdentifier_AA_r.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_PatronInformation63_patronIdentifier_AA_r.Name = "textBox_PatronInformation63_patronIdentifier_AA_r";
             this.textBox_PatronInformation63_patronIdentifier_AA_r.Size = new System.Drawing.Size(266, 28);
             this.textBox_PatronInformation63_patronIdentifier_AA_r.TabIndex = 65;
@@ -1205,7 +1206,7 @@
             // textBox_PatronInformation63_summary_10
             // 
             this.textBox_PatronInformation63_summary_10.Location = new System.Drawing.Point(224, 92);
-            this.textBox_PatronInformation63_summary_10.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_PatronInformation63_summary_10.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_PatronInformation63_summary_10.Name = "textBox_PatronInformation63_summary_10";
             this.textBox_PatronInformation63_summary_10.Size = new System.Drawing.Size(349, 28);
             this.textBox_PatronInformation63_summary_10.TabIndex = 63;
@@ -1223,7 +1224,7 @@
             // textBox_PatronInformation63_transactionDate_18
             // 
             this.textBox_PatronInformation63_transactionDate_18.Location = new System.Drawing.Point(224, 56);
-            this.textBox_PatronInformation63_transactionDate_18.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_PatronInformation63_transactionDate_18.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_PatronInformation63_transactionDate_18.Name = "textBox_PatronInformation63_transactionDate_18";
             this.textBox_PatronInformation63_transactionDate_18.Size = new System.Drawing.Size(349, 28);
             this.textBox_PatronInformation63_transactionDate_18.TabIndex = 61;
@@ -1241,7 +1242,7 @@
             // textBox_PatronInformation63_language_3
             // 
             this.textBox_PatronInformation63_language_3.Location = new System.Drawing.Point(224, 16);
-            this.textBox_PatronInformation63_language_3.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_PatronInformation63_language_3.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_PatronInformation63_language_3.Name = "textBox_PatronInformation63_language_3";
             this.textBox_PatronInformation63_language_3.Size = new System.Drawing.Size(64, 28);
             this.textBox_PatronInformation63_language_3.TabIndex = 59;
@@ -1267,9 +1268,9 @@
             this.tabPage_ItemInformation17.Controls.Add(this.textBox_ItemInformation17_transactionDate_18);
             this.tabPage_ItemInformation17.Controls.Add(this.label38);
             this.tabPage_ItemInformation17.Location = new System.Drawing.Point(4, 28);
-            this.tabPage_ItemInformation17.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage_ItemInformation17.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage_ItemInformation17.Name = "tabPage_ItemInformation17";
-            this.tabPage_ItemInformation17.Size = new System.Drawing.Size(1210, 955);
+            this.tabPage_ItemInformation17.Size = new System.Drawing.Size(616, 801);
             this.tabPage_ItemInformation17.TabIndex = 6;
             this.tabPage_ItemInformation17.Text = "ItemInformation17";
             this.tabPage_ItemInformation17.UseVisualStyleBackColor = true;
@@ -1297,7 +1298,7 @@
             // textBox_ItemInformation17_itemIdentifier_AB_r
             // 
             this.textBox_ItemInformation17_itemIdentifier_AB_r.Location = new System.Drawing.Point(222, 100);
-            this.textBox_ItemInformation17_itemIdentifier_AB_r.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_ItemInformation17_itemIdentifier_AB_r.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_ItemInformation17_itemIdentifier_AB_r.Name = "textBox_ItemInformation17_itemIdentifier_AB_r";
             this.textBox_ItemInformation17_itemIdentifier_AB_r.Size = new System.Drawing.Size(266, 28);
             this.textBox_ItemInformation17_itemIdentifier_AB_r.TabIndex = 74;
@@ -1305,7 +1306,7 @@
             // textBox_ItemInformation17_terminalPassword_AC_o
             // 
             this.textBox_ItemInformation17_terminalPassword_AC_o.Location = new System.Drawing.Point(222, 134);
-            this.textBox_ItemInformation17_terminalPassword_AC_o.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_ItemInformation17_terminalPassword_AC_o.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_ItemInformation17_terminalPassword_AC_o.Name = "textBox_ItemInformation17_terminalPassword_AC_o";
             this.textBox_ItemInformation17_terminalPassword_AC_o.Size = new System.Drawing.Size(266, 28);
             this.textBox_ItemInformation17_terminalPassword_AC_o.TabIndex = 72;
@@ -1323,7 +1324,7 @@
             // textBox_ItemInformation17_institutionId_AO_r
             // 
             this.textBox_ItemInformation17_institutionId_AO_r.Location = new System.Drawing.Point(222, 60);
-            this.textBox_ItemInformation17_institutionId_AO_r.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_ItemInformation17_institutionId_AO_r.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_ItemInformation17_institutionId_AO_r.Name = "textBox_ItemInformation17_institutionId_AO_r";
             this.textBox_ItemInformation17_institutionId_AO_r.Size = new System.Drawing.Size(349, 28);
             this.textBox_ItemInformation17_institutionId_AO_r.TabIndex = 70;
@@ -1331,7 +1332,7 @@
             // textBox_ItemInformation17_transactionDate_18
             // 
             this.textBox_ItemInformation17_transactionDate_18.Location = new System.Drawing.Point(222, 24);
-            this.textBox_ItemInformation17_transactionDate_18.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_ItemInformation17_transactionDate_18.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_ItemInformation17_transactionDate_18.Name = "textBox_ItemInformation17_transactionDate_18";
             this.textBox_ItemInformation17_transactionDate_18.Size = new System.Drawing.Size(349, 28);
             this.textBox_ItemInformation17_transactionDate_18.TabIndex = 69;
@@ -1373,9 +1374,9 @@
             this.tabPage_Renew29.Controls.Add(this.textBox_Renew29_thirdPartyAllowed_1);
             this.tabPage_Renew29.Controls.Add(this.label51);
             this.tabPage_Renew29.Location = new System.Drawing.Point(4, 28);
-            this.tabPage_Renew29.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage_Renew29.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage_Renew29.Name = "tabPage_Renew29";
-            this.tabPage_Renew29.Size = new System.Drawing.Size(1210, 955);
+            this.tabPage_Renew29.Size = new System.Drawing.Size(616, 801);
             this.tabPage_Renew29.TabIndex = 7;
             this.tabPage_Renew29.Text = "Renew29";
             this.tabPage_Renew29.UseVisualStyleBackColor = true;
@@ -1383,7 +1384,7 @@
             // textBox_Renew29_feeAcknowledged_BO_1_o
             // 
             this.textBox_Renew29_feeAcknowledged_BO_1_o.Location = new System.Drawing.Point(226, 428);
-            this.textBox_Renew29_feeAcknowledged_BO_1_o.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Renew29_feeAcknowledged_BO_1_o.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Renew29_feeAcknowledged_BO_1_o.Name = "textBox_Renew29_feeAcknowledged_BO_1_o";
             this.textBox_Renew29_feeAcknowledged_BO_1_o.Size = new System.Drawing.Size(64, 28);
             this.textBox_Renew29_feeAcknowledged_BO_1_o.TabIndex = 57;
@@ -1401,7 +1402,7 @@
             // textBox_Renew29_itemProperties_CH_o
             // 
             this.textBox_Renew29_itemProperties_CH_o.Location = new System.Drawing.Point(226, 394);
-            this.textBox_Renew29_itemProperties_CH_o.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Renew29_itemProperties_CH_o.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Renew29_itemProperties_CH_o.Name = "textBox_Renew29_itemProperties_CH_o";
             this.textBox_Renew29_itemProperties_CH_o.Size = new System.Drawing.Size(64, 28);
             this.textBox_Renew29_itemProperties_CH_o.TabIndex = 55;
@@ -1419,7 +1420,7 @@
             // textBox_Renew29_terminalPassword_AC_o
             // 
             this.textBox_Renew29_terminalPassword_AC_o.Location = new System.Drawing.Point(226, 358);
-            this.textBox_Renew29_terminalPassword_AC_o.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Renew29_terminalPassword_AC_o.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Renew29_terminalPassword_AC_o.Name = "textBox_Renew29_terminalPassword_AC_o";
             this.textBox_Renew29_terminalPassword_AC_o.Size = new System.Drawing.Size(266, 28);
             this.textBox_Renew29_terminalPassword_AC_o.TabIndex = 53;
@@ -1437,7 +1438,7 @@
             // textBox_Renew29_titleIdentifier_AJ_o
             // 
             this.textBox_Renew29_titleIdentifier_AJ_o.Location = new System.Drawing.Point(226, 320);
-            this.textBox_Renew29_titleIdentifier_AJ_o.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Renew29_titleIdentifier_AJ_o.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Renew29_titleIdentifier_AJ_o.Name = "textBox_Renew29_titleIdentifier_AJ_o";
             this.textBox_Renew29_titleIdentifier_AJ_o.Size = new System.Drawing.Size(266, 28);
             this.textBox_Renew29_titleIdentifier_AJ_o.TabIndex = 51;
@@ -1455,7 +1456,7 @@
             // textBox_Renew29_itemIdentifier_AB_o
             // 
             this.textBox_Renew29_itemIdentifier_AB_o.Location = new System.Drawing.Point(226, 280);
-            this.textBox_Renew29_itemIdentifier_AB_o.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Renew29_itemIdentifier_AB_o.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Renew29_itemIdentifier_AB_o.Name = "textBox_Renew29_itemIdentifier_AB_o";
             this.textBox_Renew29_itemIdentifier_AB_o.Size = new System.Drawing.Size(266, 28);
             this.textBox_Renew29_itemIdentifier_AB_o.TabIndex = 49;
@@ -1473,7 +1474,7 @@
             // textBox_Renew29_patronPassword_AD_o
             // 
             this.textBox_Renew29_patronPassword_AD_o.Location = new System.Drawing.Point(226, 244);
-            this.textBox_Renew29_patronPassword_AD_o.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Renew29_patronPassword_AD_o.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Renew29_patronPassword_AD_o.Name = "textBox_Renew29_patronPassword_AD_o";
             this.textBox_Renew29_patronPassword_AD_o.Size = new System.Drawing.Size(266, 28);
             this.textBox_Renew29_patronPassword_AD_o.TabIndex = 47;
@@ -1491,7 +1492,7 @@
             // textBox_Renew29_patronIdentifier_AA_r
             // 
             this.textBox_Renew29_patronIdentifier_AA_r.Location = new System.Drawing.Point(226, 206);
-            this.textBox_Renew29_patronIdentifier_AA_r.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Renew29_patronIdentifier_AA_r.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Renew29_patronIdentifier_AA_r.Name = "textBox_Renew29_patronIdentifier_AA_r";
             this.textBox_Renew29_patronIdentifier_AA_r.Size = new System.Drawing.Size(266, 28);
             this.textBox_Renew29_patronIdentifier_AA_r.TabIndex = 45;
@@ -1509,7 +1510,7 @@
             // textBox_Renew29_institutionId_AO_r
             // 
             this.textBox_Renew29_institutionId_AO_r.Location = new System.Drawing.Point(226, 166);
-            this.textBox_Renew29_institutionId_AO_r.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Renew29_institutionId_AO_r.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Renew29_institutionId_AO_r.Name = "textBox_Renew29_institutionId_AO_r";
             this.textBox_Renew29_institutionId_AO_r.Size = new System.Drawing.Size(266, 28);
             this.textBox_Renew29_institutionId_AO_r.TabIndex = 43;
@@ -1527,7 +1528,7 @@
             // textBox_Renew29_nbDueDate_18
             // 
             this.textBox_Renew29_nbDueDate_18.Location = new System.Drawing.Point(226, 130);
-            this.textBox_Renew29_nbDueDate_18.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Renew29_nbDueDate_18.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Renew29_nbDueDate_18.Name = "textBox_Renew29_nbDueDate_18";
             this.textBox_Renew29_nbDueDate_18.Size = new System.Drawing.Size(392, 28);
             this.textBox_Renew29_nbDueDate_18.TabIndex = 41;
@@ -1545,7 +1546,7 @@
             // textBox_Renew29_transactionDate_18
             // 
             this.textBox_Renew29_transactionDate_18.Location = new System.Drawing.Point(226, 94);
-            this.textBox_Renew29_transactionDate_18.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Renew29_transactionDate_18.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Renew29_transactionDate_18.Name = "textBox_Renew29_transactionDate_18";
             this.textBox_Renew29_transactionDate_18.Size = new System.Drawing.Size(392, 28);
             this.textBox_Renew29_transactionDate_18.TabIndex = 39;
@@ -1563,7 +1564,7 @@
             // textBox_Renew29_noBlock_1
             // 
             this.textBox_Renew29_noBlock_1.Location = new System.Drawing.Point(226, 54);
-            this.textBox_Renew29_noBlock_1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Renew29_noBlock_1.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Renew29_noBlock_1.Name = "textBox_Renew29_noBlock_1";
             this.textBox_Renew29_noBlock_1.Size = new System.Drawing.Size(64, 28);
             this.textBox_Renew29_noBlock_1.TabIndex = 37;
@@ -1581,7 +1582,7 @@
             // textBox_Renew29_thirdPartyAllowed_1
             // 
             this.textBox_Renew29_thirdPartyAllowed_1.Location = new System.Drawing.Point(226, 14);
-            this.textBox_Renew29_thirdPartyAllowed_1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_Renew29_thirdPartyAllowed_1.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_Renew29_thirdPartyAllowed_1.Name = "textBox_Renew29_thirdPartyAllowed_1";
             this.textBox_Renew29_thirdPartyAllowed_1.Size = new System.Drawing.Size(64, 28);
             this.textBox_Renew29_thirdPartyAllowed_1.TabIndex = 35;
@@ -1599,9 +1600,9 @@
             // tabPage_EndPatronSession35
             // 
             this.tabPage_EndPatronSession35.Location = new System.Drawing.Point(4, 28);
-            this.tabPage_EndPatronSession35.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage_EndPatronSession35.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage_EndPatronSession35.Name = "tabPage_EndPatronSession35";
-            this.tabPage_EndPatronSession35.Size = new System.Drawing.Size(1210, 955);
+            this.tabPage_EndPatronSession35.Size = new System.Drawing.Size(616, 801);
             this.tabPage_EndPatronSession35.TabIndex = 5;
             this.tabPage_EndPatronSession35.Text = "EndPatronSession35";
             this.tabPage_EndPatronSession35.UseVisualStyleBackColor = true;
@@ -1633,7 +1634,7 @@
             this.tabPage_FeePaid37.Location = new System.Drawing.Point(4, 28);
             this.tabPage_FeePaid37.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.tabPage_FeePaid37.Name = "tabPage_FeePaid37";
-            this.tabPage_FeePaid37.Size = new System.Drawing.Size(1210, 955);
+            this.tabPage_FeePaid37.Size = new System.Drawing.Size(616, 801);
             this.tabPage_FeePaid37.TabIndex = 8;
             this.tabPage_FeePaid37.Text = "FeePaid37";
             this.tabPage_FeePaid37.UseVisualStyleBackColor = true;
@@ -1641,7 +1642,7 @@
             // textBox_FeePaid37_transactionId_BK_o
             // 
             this.textBox_FeePaid37_transactionId_BK_o.Location = new System.Drawing.Point(234, 400);
-            this.textBox_FeePaid37_transactionId_BK_o.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_FeePaid37_transactionId_BK_o.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_FeePaid37_transactionId_BK_o.Name = "textBox_FeePaid37_transactionId_BK_o";
             this.textBox_FeePaid37_transactionId_BK_o.Size = new System.Drawing.Size(64, 28);
             this.textBox_FeePaid37_transactionId_BK_o.TabIndex = 83;
@@ -1659,7 +1660,7 @@
             // textBox_FeePaid37_feeIdentifier_CG_o
             // 
             this.textBox_FeePaid37_feeIdentifier_CG_o.Location = new System.Drawing.Point(234, 360);
-            this.textBox_FeePaid37_feeIdentifier_CG_o.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_FeePaid37_feeIdentifier_CG_o.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_FeePaid37_feeIdentifier_CG_o.Name = "textBox_FeePaid37_feeIdentifier_CG_o";
             this.textBox_FeePaid37_feeIdentifier_CG_o.Size = new System.Drawing.Size(64, 28);
             this.textBox_FeePaid37_feeIdentifier_CG_o.TabIndex = 81;
@@ -1677,7 +1678,7 @@
             // textBox_FeePaid37_patronPassword_AD_o
             // 
             this.textBox_FeePaid37_patronPassword_AD_o.Location = new System.Drawing.Point(234, 326);
-            this.textBox_FeePaid37_patronPassword_AD_o.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_FeePaid37_patronPassword_AD_o.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_FeePaid37_patronPassword_AD_o.Name = "textBox_FeePaid37_patronPassword_AD_o";
             this.textBox_FeePaid37_patronPassword_AD_o.Size = new System.Drawing.Size(64, 28);
             this.textBox_FeePaid37_patronPassword_AD_o.TabIndex = 79;
@@ -1695,7 +1696,7 @@
             // textBox_FeePaid37_terminalPassword_AC_o
             // 
             this.textBox_FeePaid37_terminalPassword_AC_o.Location = new System.Drawing.Point(234, 290);
-            this.textBox_FeePaid37_terminalPassword_AC_o.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_FeePaid37_terminalPassword_AC_o.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_FeePaid37_terminalPassword_AC_o.Name = "textBox_FeePaid37_terminalPassword_AC_o";
             this.textBox_FeePaid37_terminalPassword_AC_o.Size = new System.Drawing.Size(266, 28);
             this.textBox_FeePaid37_terminalPassword_AC_o.TabIndex = 77;
@@ -1713,7 +1714,7 @@
             // textBox_FeePaid37_patronIdentifier_AA_r
             // 
             this.textBox_FeePaid37_patronIdentifier_AA_r.Location = new System.Drawing.Point(234, 252);
-            this.textBox_FeePaid37_patronIdentifier_AA_r.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_FeePaid37_patronIdentifier_AA_r.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_FeePaid37_patronIdentifier_AA_r.Name = "textBox_FeePaid37_patronIdentifier_AA_r";
             this.textBox_FeePaid37_patronIdentifier_AA_r.Size = new System.Drawing.Size(266, 28);
             this.textBox_FeePaid37_patronIdentifier_AA_r.TabIndex = 75;
@@ -1731,7 +1732,7 @@
             // textBox_FeePaid37_institutionId_AO_r
             // 
             this.textBox_FeePaid37_institutionId_AO_r.Location = new System.Drawing.Point(234, 214);
-            this.textBox_FeePaid37_institutionId_AO_r.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_FeePaid37_institutionId_AO_r.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_FeePaid37_institutionId_AO_r.Name = "textBox_FeePaid37_institutionId_AO_r";
             this.textBox_FeePaid37_institutionId_AO_r.Size = new System.Drawing.Size(266, 28);
             this.textBox_FeePaid37_institutionId_AO_r.TabIndex = 73;
@@ -1749,7 +1750,7 @@
             // textBox_FeePaid37_feeAmount
             // 
             this.textBox_FeePaid37_feeAmount.Location = new System.Drawing.Point(234, 178);
-            this.textBox_FeePaid37_feeAmount.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_FeePaid37_feeAmount.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_FeePaid37_feeAmount.Name = "textBox_FeePaid37_feeAmount";
             this.textBox_FeePaid37_feeAmount.Size = new System.Drawing.Size(266, 28);
             this.textBox_FeePaid37_feeAmount.TabIndex = 71;
@@ -1767,7 +1768,7 @@
             // textBox_FeePaid37_currencyType
             // 
             this.textBox_FeePaid37_currencyType.Location = new System.Drawing.Point(234, 138);
-            this.textBox_FeePaid37_currencyType.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_FeePaid37_currencyType.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_FeePaid37_currencyType.Name = "textBox_FeePaid37_currencyType";
             this.textBox_FeePaid37_currencyType.Size = new System.Drawing.Size(266, 28);
             this.textBox_FeePaid37_currencyType.TabIndex = 69;
@@ -1785,7 +1786,7 @@
             // textBox_FeePaid37_paymentType
             // 
             this.textBox_FeePaid37_paymentType.Location = new System.Drawing.Point(234, 98);
-            this.textBox_FeePaid37_paymentType.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_FeePaid37_paymentType.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_FeePaid37_paymentType.Name = "textBox_FeePaid37_paymentType";
             this.textBox_FeePaid37_paymentType.Size = new System.Drawing.Size(266, 28);
             this.textBox_FeePaid37_paymentType.TabIndex = 67;
@@ -1803,7 +1804,7 @@
             // textBox_FeePaid37_feeType
             // 
             this.textBox_FeePaid37_feeType.Location = new System.Drawing.Point(234, 62);
-            this.textBox_FeePaid37_feeType.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_FeePaid37_feeType.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_FeePaid37_feeType.Name = "textBox_FeePaid37_feeType";
             this.textBox_FeePaid37_feeType.Size = new System.Drawing.Size(266, 28);
             this.textBox_FeePaid37_feeType.TabIndex = 65;
@@ -1821,7 +1822,7 @@
             // textBox_FeePaid37_transactionDate_18
             // 
             this.textBox_FeePaid37_transactionDate_18.Location = new System.Drawing.Point(234, 26);
-            this.textBox_FeePaid37_transactionDate_18.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_FeePaid37_transactionDate_18.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_FeePaid37_transactionDate_18.Name = "textBox_FeePaid37_transactionDate_18";
             this.textBox_FeePaid37_transactionDate_18.Size = new System.Drawing.Size(392, 28);
             this.textBox_FeePaid37_transactionDate_18.TabIndex = 63;
@@ -1838,6 +1839,7 @@
             // 
             // tabPage_function
             // 
+            this.tabPage_function.AutoScroll = true;
             this.tabPage_function.Controls.Add(this.groupBox5);
             this.tabPage_function.Controls.Add(this.groupBox4);
             this.tabPage_function.Controls.Add(this.label73);
@@ -1847,33 +1849,34 @@
             this.tabPage_function.Controls.Add(this.groupBox6);
             this.tabPage_function.Controls.Add(this.groupBox1);
             this.tabPage_function.Location = new System.Drawing.Point(4, 28);
-            this.tabPage_function.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.tabPage_function.Margin = new System.Windows.Forms.Padding(4);
             this.tabPage_function.Name = "tabPage_function";
-            this.tabPage_function.Size = new System.Drawing.Size(1210, 955);
+            this.tabPage_function.Size = new System.Drawing.Size(766, 801);
             this.tabPage_function.TabIndex = 9;
             this.tabPage_function.Text = "功能测试";
             this.tabPage_function.UseVisualStyleBackColor = true;
             // 
             // groupBox5
             // 
+            this.groupBox5.BackColor = System.Drawing.Color.Gray;
             this.groupBox5.Controls.Add(this.button_getPatronInfo);
             this.groupBox5.Controls.Add(this.textBox_readerInfo_password);
             this.groupBox5.Controls.Add(this.textBox_patronInfo_barcodes);
             this.groupBox5.Controls.Add(this.label75);
             this.groupBox5.Controls.Add(this.label76);
-            this.groupBox5.Location = new System.Drawing.Point(6, 712);
-            this.groupBox5.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBox5.Location = new System.Drawing.Point(5, 565);
+            this.groupBox5.Margin = new System.Windows.Forms.Padding(4);
             this.groupBox5.Name = "groupBox5";
-            this.groupBox5.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.groupBox5.Size = new System.Drawing.Size(1196, 231);
+            this.groupBox5.Padding = new System.Windows.Forms.Padding(4);
+            this.groupBox5.Size = new System.Drawing.Size(834, 128);
             this.groupBox5.TabIndex = 5;
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "获取读者信息";
             // 
             // button_getPatronInfo
             // 
-            this.button_getPatronInfo.Location = new System.Drawing.Point(1074, 188);
-            this.button_getPatronInfo.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button_getPatronInfo.Location = new System.Drawing.Point(634, 18);
+            this.button_getPatronInfo.Margin = new System.Windows.Forms.Padding(4);
             this.button_getPatronInfo.Name = "button_getPatronInfo";
             this.button_getPatronInfo.Size = new System.Drawing.Size(112, 34);
             this.button_getPatronInfo.TabIndex = 2;
@@ -1883,22 +1886,20 @@
             // 
             // textBox_readerInfo_password
             // 
-            this.textBox_readerInfo_password.Location = new System.Drawing.Point(951, 147);
-            this.textBox_readerInfo_password.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBox_readerInfo_password.Location = new System.Drawing.Point(557, 76);
+            this.textBox_readerInfo_password.Margin = new System.Windows.Forms.Padding(4);
             this.textBox_readerInfo_password.Name = "textBox_readerInfo_password";
             this.textBox_readerInfo_password.Size = new System.Drawing.Size(234, 28);
             this.textBox_readerInfo_password.TabIndex = 6;
             // 
             // textBox_patronInfo_barcodes
             // 
-            this.textBox_patronInfo_barcodes.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_patronInfo_barcodes.Location = new System.Drawing.Point(9, 48);
-            this.textBox_patronInfo_barcodes.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBox_patronInfo_barcodes.Margin = new System.Windows.Forms.Padding(4);
             this.textBox_patronInfo_barcodes.Multiline = true;
             this.textBox_patronInfo_barcodes.Name = "textBox_patronInfo_barcodes";
             this.textBox_patronInfo_barcodes.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textBox_patronInfo_barcodes.Size = new System.Drawing.Size(824, 172);
+            this.textBox_patronInfo_barcodes.Size = new System.Drawing.Size(524, 56);
             this.textBox_patronInfo_barcodes.TabIndex = 6;
             // 
             // label75
@@ -1914,7 +1915,7 @@
             // label76
             // 
             this.label76.AutoSize = true;
-            this.label76.Location = new System.Drawing.Point(844, 152);
+            this.label76.Location = new System.Drawing.Point(554, 51);
             this.label76.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label76.Name = "label76";
             this.label76.Size = new System.Drawing.Size(98, 18);
@@ -1928,11 +1929,11 @@
             this.groupBox4.Controls.Add(this.textBox_checkout_readerBarcode);
             this.groupBox4.Controls.Add(this.label74);
             this.groupBox4.Controls.Add(this.label63);
-            this.groupBox4.Location = new System.Drawing.Point(4, 538);
-            this.groupBox4.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBox4.Location = new System.Drawing.Point(5, 398);
+            this.groupBox4.Margin = new System.Windows.Forms.Padding(4);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.groupBox4.Size = new System.Drawing.Size(357, 165);
+            this.groupBox4.Padding = new System.Windows.Forms.Padding(4);
+            this.groupBox4.Size = new System.Drawing.Size(357, 159);
             this.groupBox4.TabIndex = 5;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "借书";
@@ -1940,7 +1941,7 @@
             // button_checkOut
             // 
             this.button_checkOut.Location = new System.Drawing.Point(116, 118);
-            this.button_checkOut.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button_checkOut.Margin = new System.Windows.Forms.Padding(4);
             this.button_checkOut.Name = "button_checkOut";
             this.button_checkOut.Size = new System.Drawing.Size(112, 34);
             this.button_checkOut.TabIndex = 2;
@@ -1951,7 +1952,7 @@
             // textBox_checkout_readerPassword
             // 
             this.textBox_checkout_readerPassword.Location = new System.Drawing.Point(116, 78);
-            this.textBox_checkout_readerPassword.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBox_checkout_readerPassword.Margin = new System.Windows.Forms.Padding(4);
             this.textBox_checkout_readerPassword.Name = "textBox_checkout_readerPassword";
             this.textBox_checkout_readerPassword.Size = new System.Drawing.Size(230, 28);
             this.textBox_checkout_readerPassword.TabIndex = 6;
@@ -1959,7 +1960,7 @@
             // textBox_checkout_readerBarcode
             // 
             this.textBox_checkout_readerBarcode.Location = new System.Drawing.Point(116, 38);
-            this.textBox_checkout_readerBarcode.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBox_checkout_readerBarcode.Margin = new System.Windows.Forms.Padding(4);
             this.textBox_checkout_readerBarcode.Name = "textBox_checkout_readerBarcode";
             this.textBox_checkout_readerBarcode.Size = new System.Drawing.Size(230, 28);
             this.textBox_checkout_readerBarcode.TabIndex = 6;
@@ -1999,11 +2000,11 @@
             this.textBox_barcodes.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_barcodes.Location = new System.Drawing.Point(6, 234);
-            this.textBox_barcodes.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBox_barcodes.Margin = new System.Windows.Forms.Padding(4);
             this.textBox_barcodes.Multiline = true;
             this.textBox_barcodes.Name = "textBox_barcodes";
             this.textBox_barcodes.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textBox_barcodes.Size = new System.Drawing.Size(1172, 199);
+            this.textBox_barcodes.Size = new System.Drawing.Size(1134, 62);
             this.textBox_barcodes.TabIndex = 3;
             // 
             // groupBox3
@@ -2019,9 +2020,9 @@
             this.groupBox3.Controls.Add(this.label70);
             this.groupBox3.Controls.Add(this.label69);
             this.groupBox3.Location = new System.Drawing.Point(381, 4);
-            this.groupBox3.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBox3.Margin = new System.Windows.Forms.Padding(4);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBox3.Padding = new System.Windows.Forms.Padding(4);
             this.groupBox3.Size = new System.Drawing.Size(620, 202);
             this.groupBox3.TabIndex = 2;
             this.groupBox3.TabStop = false;
@@ -2031,7 +2032,7 @@
             // 
             this.checkBox_UrlEncode.AutoSize = true;
             this.checkBox_UrlEncode.Location = new System.Drawing.Point(411, 24);
-            this.checkBox_UrlEncode.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.checkBox_UrlEncode.Margin = new System.Windows.Forms.Padding(4);
             this.checkBox_UrlEncode.Name = "checkBox_UrlEncode";
             this.checkBox_UrlEncode.Size = new System.Drawing.Size(178, 22);
             this.checkBox_UrlEncode.TabIndex = 16;
@@ -2042,7 +2043,7 @@
             // button_login
             // 
             this.button_login.Location = new System.Drawing.Point(249, 147);
-            this.button_login.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button_login.Margin = new System.Windows.Forms.Padding(4);
             this.button_login.Name = "button_login";
             this.button_login.Size = new System.Drawing.Size(112, 34);
             this.button_login.TabIndex = 15;
@@ -2053,7 +2054,7 @@
             // textBox_login_copies
             // 
             this.textBox_login_copies.Location = new System.Drawing.Point(160, 147);
-            this.textBox_login_copies.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBox_login_copies.Margin = new System.Windows.Forms.Padding(4);
             this.textBox_login_copies.Name = "textBox_login_copies";
             this.textBox_login_copies.Size = new System.Drawing.Size(78, 28);
             this.textBox_login_copies.TabIndex = 13;
@@ -2072,16 +2073,16 @@
             // textBox_username
             // 
             this.textBox_username.Location = new System.Drawing.Point(98, 21);
-            this.textBox_username.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBox_username.Margin = new System.Windows.Forms.Padding(4);
             this.textBox_username.Name = "textBox_username";
             this.textBox_username.Size = new System.Drawing.Size(302, 28);
             this.textBox_username.TabIndex = 12;
-            this.textBox_username.Text = "supervisor@instance1";
+            this.textBox_username.Text = "zizhu@instance1";
             // 
             // textBox_password
             // 
             this.textBox_password.Location = new System.Drawing.Point(160, 62);
-            this.textBox_password.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBox_password.Margin = new System.Windows.Forms.Padding(4);
             this.textBox_password.Name = "textBox_password";
             this.textBox_password.Size = new System.Drawing.Size(210, 28);
             this.textBox_password.TabIndex = 11;
@@ -2089,7 +2090,7 @@
             // textBox_locationCode
             // 
             this.textBox_locationCode.Location = new System.Drawing.Point(160, 106);
-            this.textBox_locationCode.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBox_locationCode.Margin = new System.Windows.Forms.Padding(4);
             this.textBox_locationCode.Name = "textBox_locationCode";
             this.textBox_locationCode.Size = new System.Drawing.Size(210, 28);
             this.textBox_locationCode.TabIndex = 10;
@@ -2137,9 +2138,9 @@
             this.groupBox2.Controls.Add(this.textBox_addr);
             this.groupBox2.Controls.Add(this.label64);
             this.groupBox2.Location = new System.Drawing.Point(6, 4);
-            this.groupBox2.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBox2.Margin = new System.Windows.Forms.Padding(4);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBox2.Padding = new System.Windows.Forms.Padding(4);
             this.groupBox2.Size = new System.Drawing.Size(366, 202);
             this.groupBox2.TabIndex = 1;
             this.groupBox2.TabStop = false;
@@ -2153,7 +2154,7 @@
             "GB2312",
             "UTF-8"});
             this.comboBox_encoding.Location = new System.Drawing.Point(114, 106);
-            this.comboBox_encoding.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.comboBox_encoding.Margin = new System.Windows.Forms.Padding(4);
             this.comboBox_encoding.Name = "comboBox_encoding";
             this.comboBox_encoding.Size = new System.Drawing.Size(180, 26);
             this.comboBox_encoding.TabIndex = 3;
@@ -2171,7 +2172,7 @@
             // button_connection
             // 
             this.button_connection.Location = new System.Drawing.Point(189, 146);
-            this.button_connection.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button_connection.Margin = new System.Windows.Forms.Padding(4);
             this.button_connection.Name = "button_connection";
             this.button_connection.Size = new System.Drawing.Size(112, 34);
             this.button_connection.TabIndex = 2;
@@ -2182,7 +2183,7 @@
             // textBox_copies
             // 
             this.textBox_copies.Location = new System.Drawing.Point(116, 146);
-            this.textBox_copies.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBox_copies.Margin = new System.Windows.Forms.Padding(4);
             this.textBox_copies.Name = "textBox_copies";
             this.textBox_copies.Size = new System.Drawing.Size(62, 28);
             this.textBox_copies.TabIndex = 2;
@@ -2201,7 +2202,7 @@
             // textBox_port
             // 
             this.textBox_port.Location = new System.Drawing.Point(116, 66);
-            this.textBox_port.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBox_port.Margin = new System.Windows.Forms.Padding(4);
             this.textBox_port.Name = "textBox_port";
             this.textBox_port.Size = new System.Drawing.Size(148, 28);
             this.textBox_port.TabIndex = 2;
@@ -2220,7 +2221,7 @@
             // textBox_addr
             // 
             this.textBox_addr.Location = new System.Drawing.Point(116, 21);
-            this.textBox_addr.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBox_addr.Margin = new System.Windows.Forms.Padding(4);
             this.textBox_addr.Name = "textBox_addr";
             this.textBox_addr.Size = new System.Drawing.Size(240, 28);
             this.textBox_addr.TabIndex = 2;
@@ -2239,10 +2240,10 @@
             // groupBox6
             // 
             this.groupBox6.Controls.Add(this.button_checkIn);
-            this.groupBox6.Location = new System.Drawing.Point(220, 444);
-            this.groupBox6.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBox6.Location = new System.Drawing.Point(218, 304);
+            this.groupBox6.Margin = new System.Windows.Forms.Padding(4);
             this.groupBox6.Name = "groupBox6";
-            this.groupBox6.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBox6.Padding = new System.Windows.Forms.Padding(4);
             this.groupBox6.Size = new System.Drawing.Size(206, 86);
             this.groupBox6.TabIndex = 0;
             this.groupBox6.TabStop = false;
@@ -2251,7 +2252,7 @@
             // button_checkIn
             // 
             this.button_checkIn.Location = new System.Drawing.Point(42, 30);
-            this.button_checkIn.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button_checkIn.Margin = new System.Windows.Forms.Padding(4);
             this.button_checkIn.Name = "button_checkIn";
             this.button_checkIn.Size = new System.Drawing.Size(112, 34);
             this.button_checkIn.TabIndex = 2;
@@ -2262,10 +2263,10 @@
             // groupBox1
             // 
             this.groupBox1.Controls.Add(this.button_getItemInfo);
-            this.groupBox1.Location = new System.Drawing.Point(6, 444);
-            this.groupBox1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBox1.Location = new System.Drawing.Point(4, 304);
+            this.groupBox1.Margin = new System.Windows.Forms.Padding(4);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBox1.Padding = new System.Windows.Forms.Padding(4);
             this.groupBox1.Size = new System.Drawing.Size(206, 86);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
@@ -2274,7 +2275,7 @@
             // button_getItemInfo
             // 
             this.button_getItemInfo.Location = new System.Drawing.Point(42, 30);
-            this.button_getItemInfo.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button_getItemInfo.Margin = new System.Windows.Forms.Padding(4);
             this.button_getItemInfo.Name = "button_getItemInfo";
             this.button_getItemInfo.Size = new System.Drawing.Size(112, 34);
             this.button_getItemInfo.TabIndex = 2;
@@ -2286,23 +2287,23 @@
             // 
             this.webBrowser1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.webBrowser1.Location = new System.Drawing.Point(0, 0);
-            this.webBrowser1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.webBrowser1.Margin = new System.Windows.Forms.Padding(4);
             this.webBrowser1.MinimumSize = new System.Drawing.Size(30, 30);
             this.webBrowser1.Name = "webBrowser1";
-            this.webBrowser1.Size = new System.Drawing.Size(311, 557);
+            this.webBrowser1.Size = new System.Drawing.Size(419, 868);
             this.webBrowser1.TabIndex = 1;
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(945, 645);
+            this.ClientSize = new System.Drawing.Size(1207, 960);
             this.Controls.Add(this.splitContainer_main);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "MainForm";
             this.Text = "SIP2 Client";
             this.Load += new System.EventHandler(this.MainForm_Load);
