@@ -51,7 +51,14 @@ namespace dp2Capo.Install
 
         private void InstallDialog_FormClosing(object sender, FormClosingEventArgs e)
         {
-
+            // Save the configuration file.
+            if (_config != null)
+            {
+                if (string.IsNullOrEmpty(this.DataDir) == false)
+                    _config.Set("default", "data_dir", this.DataDir);
+                _config.Save();
+                _config = null;
+            }
         }
 
         private void InstallDialog_FormClosed(object sender, FormClosedEventArgs e)
@@ -111,8 +118,10 @@ MessageBoxDefaultButton.Button2);
 
         private void button_Cancel_Click(object sender, EventArgs e)
         {
+#if BACKUP
             // TODO: 这里有时会出错
             RestoreDataDir();
+#endif
 
             this.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.Close();
@@ -221,7 +230,7 @@ MessageBoxDefaultButton.Button2);
     "start");
             }
             return;
-            ERROR1:
+        ERROR1:
             MessageBox.Show(this, strError);
         }
 
@@ -303,7 +312,7 @@ MessageBoxDefaultButton.Button2);
             {
                 this.Enabled = true;
             }
-            ERROR1:
+        ERROR1:
             MessageBox.Show(this, strError);
         }
 
@@ -368,20 +377,12 @@ MessageBoxDefaultButton.Button2);
         {
             // TODO: 如果以前有修改尚未保存？需要警告是否放弃和删除以前的数据目录
 
+#if BACKUP
             // 创建备份数据目录
             this.ShadowDataDir = this.DataDir + "_shadow";
 
             if (Directory.Exists(this.DataDir))
             {
-#if NO
-                string strError = "";
-                int nRet = PathUtil.CopyDirectory(this.DataDir, this.ShadowDataDir, true, out strError);
-                if (nRet == -1)
-                {
-                    MessageBox.Show(this, strError);
-                    return;
-                }
-#endif
                 if (BackupDataDir(out string strError) == -1)
                 {
                     MessageBox.Show(this, strError);
@@ -390,6 +391,7 @@ MessageBoxDefaultButton.Button2);
             }
             else
                 this.ShadowDataDir = "";
+#endif
 
             FillInstance(this.DataDir);
         }
@@ -403,20 +405,12 @@ MessageBoxDefaultButton.Button2);
 
             this.DataDir = _config.Get("default", "data_dir", "c:\\capo_data");
 
+#if BACKUP
             // 创建备份数据目录
             this.ShadowDataDir = this.DataDir + "_shadow";
 
             if (Directory.Exists(this.DataDir))
             {
-#if NO
-                string strError = "";
-                int nRet = PathUtil.CopyDirectory(this.DataDir, this.ShadowDataDir, true, out strError);
-                if (nRet == -1)
-                {
-                    MessageBox.Show(this, strError);
-                    return;
-                }
-#endif
                 if (BackupDataDir(out string strError) == -1)
                 {
                     MessageBox.Show(this, strError);
@@ -425,6 +419,7 @@ MessageBoxDefaultButton.Button2);
             }
             else
                 this.ShadowDataDir = "";
+#endif
 
             if (FillInstance(this.DataDir) == false)
             {
@@ -443,6 +438,7 @@ MessageBoxDefaultButton.Button2);
                 goto ERROR1;
             }
 
+            /*
             // Save the configuration file.
             if (_config != null)
             {
@@ -450,16 +446,21 @@ MessageBoxDefaultButton.Button2);
                 _config.Save();
                 _config = null;
             }
+            */
 
+#if BACKUP
             // 删除备份数据目录
             if (string.IsNullOrEmpty(this.ShadowDataDir) == false)
                 PathUtil.DeleteDirectory(this.ShadowDataDir);
+#endif
+
             return true;
-            ERROR1:
+        ERROR1:
             MessageBox.Show(this, strError);
             return false;
         }
 
+#if BACKUP
         int BackupDataDir(out string strError)
         {
             strError = "";
@@ -550,6 +551,7 @@ MessageBoxDefaultButton.Button2);
             ERROR1:
             MessageBox.Show(this, strError);
         }
+#endif
 
         public string DataDir
         {
@@ -563,8 +565,10 @@ MessageBoxDefaultButton.Button2);
             }
         }
 
+#if BACKUP
         // 用于备份当前对话框修改以前的数据目录
         public string ShadowDataDir { get; set; }
+#endif
 
         #endregion
 
@@ -629,7 +633,7 @@ MessageBoxDefaultButton.Button2);
                 this.listView_instance.Columns[COLUMN_ERRORINFO].Width = 0;
 
             return true;
-            ERROR1:
+        ERROR1:
             MessageBox.Show(this, strError);
             return false;
         }
@@ -753,7 +757,7 @@ MessageBoxDefaultButton.Button2);
 
                 if (string.IsNullOrEmpty(strDataDir) == false)
                 {
-                    REDO_DELETE_DATADIR:
+                REDO_DELETE_DATADIR:
                     // 删除数据目录
                     try
                     {
@@ -777,7 +781,7 @@ MessageBoxDefaultButton.Button2);
 
             if (string.IsNullOrEmpty(this.DataDir) == false)
             {
-                REDO_DELETE_DATADIR:
+            REDO_DELETE_DATADIR:
                 // 删除数据目录
                 try
                 {
@@ -901,7 +905,7 @@ MessageBoxDefaultButton.Button1);
                 this.EnableControls(true);
             }
 
-            END1:
+        END1:
             if (errors.Count > 0)
                 MessageBox.Show(this, StringUtil.MakePathList(errors, "; "));
         }
