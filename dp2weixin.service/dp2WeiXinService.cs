@@ -910,8 +910,8 @@ namespace dp2weixin.service
                 /// -1 不符合条件，不处理
                 /// 1 成功
                 /// </returns>
-                int nRet = this.InternalDoMessage(record, 
-                    lib, 
+                int nRet = this.InternalDoMessage(record,
+                    lib,
                     out strError);
                 if (nRet == -1)
                 {
@@ -940,8 +940,8 @@ namespace dp2weixin.service
         /// 0 未绑定微信id，未处理
         /// 1 成功
         /// </returns>
-        public int InternalDoMessage(MessageRecord record, 
-            LibEntity lib, 
+        public int InternalDoMessage(MessageRecord record,
+            LibEntity lib,
             out string strError)
         {
             strError = "";
@@ -1001,10 +1001,11 @@ namespace dp2weixin.service
                 ...
             </root
             */
+            string strBody = nodeBody.InnerText; //消息体
             XmlDocument bodyDom = new XmlDocument();
             try
             {
-                bodyDom.LoadXml(nodeBody.InnerText);//.InnerXml); 
+                bodyDom.LoadXml(strBody);//.InnerXml); 
             }
             catch (Exception ex)
             {
@@ -1065,13 +1066,55 @@ namespace dp2weixin.service
             string patronName = "";
             string libraryCode = "";
 
-            // todo 这里拷一段读者消息格式
+            // 消息格式
+            /*
+                        <root>
+                            <type>超期通知</type>
+                            <patronRecord>
+                                <barcode>R0000001</barcode>
+                                <readerType>本科生</readerType>
+                                <name>张三</name>
+                                <refID>be13ecc5-6a9c-4400-9453-a072c50cede1</refID>
+                                <department>数学系</department>
+                                <address>address</address>
+                                <cardNumber>C12345</cardNumber>
+                                <refid>8aa41a9a-fb42-48c0-b9b9-9d6656dbeb76</refid>
+                                <email>email:renyh@dp2003.com</email>
+                                <tel>13641016400</tel>
+                                <idCardNumber>500103197408256419</idCardNumber>
+                            </patronRecord>
+                            <items overdueCount='1' normalCount='0'>
+                                <item barcode='' 
+                            summary='船舶柴油机 / 聂云超主编. -- ISBN 7-...'   
+                            timeReturning='2016/5/18' 
+                                        overdue='已超期 31 天' 
+                                        overdueType='overdue' />
+                            </items>
+                            <text>您借阅的下列书刊：船舶柴油机 / 聂云超主编. -- ISBN 7-... 应还日期: 2016/5/18 已超期 31 天</text>
+                        </root>
+            */
             // 找到读者节点
             XmlNode patronRecordNode = root.SelectSingleNode("patronRecord");
             if (patronRecordNode == null)
             {
                 strError = "消息data尚未定义<patronRecordNode>节点。";
                 return -1;
+            }
+
+            // 如果当馆图书馆配置了第三方接口，则把消息转发给第三方
+            LibModel libCfg= this._areaMgr.GetLibCfg(lib.id, libraryCode);
+            if (libCfg !=null &&　string.IsNullOrEmpty(libCfg.noticedll) == false)
+            {
+                nRet = this.TransNotice(strBody, libCfg.noticedll, out strError);
+                if (nRet == -1)
+                {
+                    WriteErrorLog("向"+libCfg.noticedll+ "转发通知出错:" + strError);
+                }
+                else
+                {
+                    WriteDebug("向" + libCfg.noticedll + "转发通知成功。");
+                    WriteDebug(strBody);
+                }
             }
 
             // barcode
@@ -1104,7 +1147,7 @@ namespace dp2weixin.service
                 string temp = "";
                 foreach (WxUserItem u in bindPatronList)
                 {
-                    temp += "weixinid=["+u.weixinId+"],id=[" + u.id + "],readerBarcode=[" + u.readerBarcode + "],readerName=[" + u.readerName + "]\r\n";
+                    temp += "weixinid=[" + u.weixinId + "],id=[" + u.id + "],readerBarcode=[" + u.readerBarcode + "],readerName=[" + u.readerName + "]\r\n";
                 }
                 this.WriteDebug("从本地库找到[" + bindPatronList.Count + "]条绑定了该读者帐号，详情如下：\r\n" + temp);
             }
@@ -1351,9 +1394,9 @@ namespace dp2weixin.service
                 {
                     string msgType = templateName;
                     if (u.type == WxUserDatabase.C_Type_Patron)
-                        this.WriteDebug("即将给weixin=["+u.weixinId+"],图书馆为[" + u.libName + "]的读者[" + u.readerName + "(" + u.readerBarcode + ")]" + "发送[" + msgType + "]通知");
+                        this.WriteDebug("即将给weixin=[" + u.weixinId + "],图书馆为[" + u.libName + "]的读者[" + u.readerName + "(" + u.readerBarcode + ")]" + "发送[" + msgType + "]通知");
                     else
-                        this.WriteDebug("即将给weixin=["+u.weixinId+"],图书馆为[" + u.libName + "]的工作人员[" + u.userName + "]" + "发送[" + msgType + "]通知");
+                        this.WriteDebug("即将给weixin=[" + u.weixinId + "],图书馆为[" + u.libName + "]的工作人员[" + u.userName + "]" + "发送[" + msgType + "]通知");
 
                     // 写到本地库的就不写日志了，节省一点日志空间
                     if (WxUserDatabase.CheckIsFromWeb(u.weixinId) == false)
@@ -1409,14 +1452,14 @@ namespace dp2weixin.service
                         string templateId = gzh.GetTemplateId(templateName);
                         WriteDebug("开始获取accessToken");
                         var accessToken = AccessTokenContainer.GetAccessToken(appId);
-                        WriteDebug("完成获取accessToken=["+accessToken+"]");
+                        WriteDebug("完成获取accessToken=[" + accessToken + "]");
                         var ret = TemplateApi.SendTemplateMessage(accessToken,
                             pureWeixinId,  // 用单纯的weixinId
                             templateId,
                             linkUrl,
                             templateData);
 
-                        WriteDebug("SendTemplateMessage完成,errorcode=["+ret.errcode+"],errorstr=["+ret.errmsg+"]");
+                        WriteDebug("SendTemplateMessage完成,errorcode=[" + ret.errcode + "],errorstr=[" + ret.errmsg + "]");
                         if (ret.errcode != 0)
                         {
                             // 出错，写日志，继续下一条
@@ -1433,7 +1476,7 @@ namespace dp2weixin.service
                     // 遇到43004的问题，表示用户未关注公众号。那么将这些帐户删除。
                     if (ex0.Message.IndexOf("43004") != -1)
                     {
-                        strError = "走进异常,发送失败:"+u.weixinId+"已取消关注。\r\n" + ex0.Message;
+                        strError = "走进异常,发送失败:" + u.weixinId + "已取消关注。\r\n" + ex0.Message;
                         this.WriteErrorLog(strError);
 
                         // 2020/8/3先注册掉，以后再处理，优先级不高
@@ -2985,6 +3028,104 @@ namespace dp2weixin.service
 
         #endregion
 
+        #region 向第三方转发通知
+
+        /// <summary>
+        /// 向外部接口转送通知
+        /// </summary>
+        /// <param name="noticeXml"></param>
+        /// <param name="assemblyName"></param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
+        public int TransNotice(string noticeXml,
+            string assemblyName,
+            out string strError)
+        {
+            strError = "";
+            int nRet = 0;
+            //string assemblyName = "LmxxReceiveNoticeInterface";
+            if (string.IsNullOrEmpty(assemblyName) == true)
+            {
+                strError = "assemblyName参数不能为空";
+                return -1;
+            }
+
+            try
+            {
+                NoticeInterface external_interface = null;
+                nRet = GetNoticeInterface(assemblyName,
+                    out external_interface,
+                    out strError);
+                if (nRet == -1)
+                {
+                    strError = "GetNoticeInterface出错：" + strError;
+                    return -1;
+                }
+
+                // 外部接口发送通知
+                nRet = external_interface.SendNotice(noticeXml,
+                    out strError);
+                if (nRet == -1)
+                {
+                    strError = "SendNotice出错：" + strError;
+                    return -1;
+                }
+            }
+            catch (Exception ex)
+            {
+                strError = "调外部接口assemblyName异常: " + ex.Message;
+                return -1;
+            }
+
+            return 0;
+        }
+
+        // DigitalPlatform.Interfaces.NoticeInterface 类的派生类的对象
+        public int GetNoticeInterface(string assemblyName,
+            out NoticeInterface noticeInterface,
+            out string strError)
+        {
+            strError = "";
+            noticeInterface = null;// new MessageInterface();
+
+            if (string.IsNullOrEmpty(assemblyName) == true)
+            {
+                strError = "assemblyName参数为空";
+                return -1;
+            }
+
+            Assembly assembly = Assembly.Load(assemblyName);
+            if (assembly == null)
+            {
+                strError = "名字为 '" + assemblyName + "' 的Assembly加载失败...";
+                return -1;
+            }
+
+            Type hostEntryClassType = ScriptManager.GetDerivedClassType(
+                assembly,
+                "DigitalPlatform.Interfaces.NoticeInterface");
+            if (hostEntryClassType == null)
+            {
+                strError = "名字为 '" + assemblyName + "' 的Assembly中未找到 DigitalPlatform.Interfaces.NoticeInterface类的派生类，初始化扩展通知接口失败...";
+                return -1;
+            }
+
+            noticeInterface = (NoticeInterface)hostEntryClassType.InvokeMember(null,
+               BindingFlags.DeclaredOnly |
+               BindingFlags.Public | BindingFlags.NonPublic |
+               BindingFlags.Instance | BindingFlags.CreateInstance, null, null,
+               null);
+            if (noticeInterface == null)
+            {
+                strError = "创建 DigitalPlatform.Interfaces.NoticeInterface 类的派生类的对象（构造函数）失败，初始化扩展消息接口失败...";
+                return -1;
+            }
+
+            return 1;
+        }
+
+        #endregion
+
         #region 短信接口
 
         public List<MessageInterface> m_externalMessageInterfaces = null;
@@ -3083,9 +3224,11 @@ namespace dp2weixin.service
             return null;
         }
 
+  
+
         #endregion
 
-        #region 检查不在线图书馆
+            #region 检查不在线图书馆
 
         public const string C_State_Expire = "到期";
 
@@ -3947,7 +4090,7 @@ ErrorInfo成员里可能会有报错信息。
             string recPath,
             SimplePatron patron,
             bool checkNull,
-             bool   bWorker,
+             bool bWorker,
             out string patronXml,
             out string timestamp,
             out string strError)
@@ -4057,7 +4200,7 @@ ErrorInfo成员里可能会有报错信息。
                 // 本次comment的完整表达
                 string thisComment = this.GetFullComment(patron.comment, bWorker);
 
-                DomUtil.SetNodeText(commentNode, oldComment+"\r\n"+thisComment);
+                DomUtil.SetNodeText(commentNode, oldComment + "\r\n" + thisComment);
             }
 
             StringWriter textWrite = new StringWriter();
@@ -5670,7 +5813,7 @@ ErrorInfo成员里可能会有报错信息。
 
             userItem.readerBarcode = readerBarcode;
             userItem.readerName = readerName;
-            
+
             userItem.department = department;
             userItem.phone = phone;
             userItem.gender = gender;

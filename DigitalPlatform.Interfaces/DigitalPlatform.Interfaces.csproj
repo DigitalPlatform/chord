@@ -51,6 +51,7 @@
     <Compile Include="ExternalMessageHost.cs" />
     <Compile Include="IServiceControl.cs" />
     <Compile Include="MessageInterface.cs" />
+    <Compile Include="NoticeInterface.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ScriptManager.cs" />
   </ItemGroup>

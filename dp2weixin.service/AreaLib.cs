@@ -264,6 +264,9 @@ namespace dp2weixin.service
         // 2020/6/5 加证条码尾号，在馆员审核时，可以点按钮，增量
         public string patronBarcodeTail = "B000000";
 
+        // 2020/8/24 增加第三方dll
+        public string noticedll = "";
+
 
         // 对应的capo帐户
         public string capoUser = "";
