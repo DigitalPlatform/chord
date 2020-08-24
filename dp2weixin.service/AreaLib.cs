@@ -54,6 +54,8 @@ namespace dp2weixin.service
                         // 2020-6-5 增加证条码尾号
                         string patronBarcoeTail = DomUtil.GetAttr(libNode, "patronBarcodeTail");
 
+                        // 2020-8-24 增加转发到第三方接口名称
+                        string noticedll = DomUtil.GetAttr(libNode, "noticedll");
 
                         LibModel lib = new LibModel();
                         lib.libId = id;
@@ -62,6 +64,7 @@ namespace dp2weixin.service
                         lib.patronDbName = patronDbName; //2020-2-29 读者注册对应的读者库
                         lib.departments = departments;//2020-3-6
                         lib.patronBarcodeTail = patronBarcoeTail;//2020-6-5
+                        lib.noticedll = noticedll;
 
                         area.libs.Add(lib);
                     }
@@ -126,6 +129,8 @@ namespace dp2weixin.service
                         + " patronDbName='" + lib.patronDbName + "'"
                         + " departments='"+lib.departments+"'"
                         + " patronBarcodeTail='"+ lib.patronBarcodeTail+"'" //2020/6/5增加证条码号尾号
+                        + " noticedll='" + lib.noticedll + "'" //2020/8/24 转发通知到第三方的接口
+
                         + " />";
                 }
                 xml += "</area>";

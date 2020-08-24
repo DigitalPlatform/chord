@@ -1108,12 +1108,12 @@ namespace dp2weixin.service
                 nRet = this.TransNotice(strBody, libCfg.noticedll, out strError);
                 if (nRet == -1)
                 {
-                    WriteErrorLog("向"+libCfg.noticedll+ "转发通知出错:" + strError);
+                    WriteErrorLog("向"+libCfg.noticedll+ "转发'"+strType+"'通知出错:" + strError);
                 }
                 else
                 {
-                    WriteDebug("向" + libCfg.noticedll + "转发通知成功。");
-                    WriteDebug(strBody);
+                    WriteDebug("向" + libCfg.noticedll + "转发'" + strType + "'通知成功。");
+                    //WriteDebug(strBody);
                 }
             }
 
