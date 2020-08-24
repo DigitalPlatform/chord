@@ -94,6 +94,9 @@ namespace dp2Capo
                 encoding = default_encoding;
             string strRequest = encoding.GetString(e.Request);
 
+            // 2020/8/18
+            strRequest = strRequest.TrimEnd(new char[] { '\r', '\n'});
+
             string strMessageIdentifiers = strRequest.Substring(0, 2);
 
             string strChannelName = "ip:" + ip + ",channel:" + sip_channel.GetHashCode();

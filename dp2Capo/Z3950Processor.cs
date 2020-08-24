@@ -13,6 +13,7 @@ using DigitalPlatform.Net;
 using DigitalPlatform.Text;
 using DigitalPlatform.Z3950;
 using DigitalPlatform.Z3950.Server;
+using Newtonsoft.Json;
 
 namespace dp2Capo
 {
@@ -501,6 +502,8 @@ namespace dp2Capo
                 nCondition = 1017;// Init/AC: No databases available for specified userId
                 goto ERROR1;
             }
+
+            // string text = JsonConvert.SerializeObject(e.Request.m_rpnRoot, Formatting.Indented);
 
             // 根据逆波兰表构造出 dp2 系统检索式
             // return:
