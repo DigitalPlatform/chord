@@ -14,7 +14,7 @@ namespace DigitalPlatform.Interfaces
         ServiceControlResult StartInstance(string strInstanceName);
 
         // 停止一个 Instance
-        ServiceControlResult StopInstance(string strInstanceName);
+        ServiceControlResult StopInstance(string strInstanceName, bool delete);
 
         // 获得一个 Instance 的信息
         ServiceControlResult GetInstanceInfo(string strInstanceName, out InstanceInfo info);

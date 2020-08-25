@@ -287,7 +287,7 @@ MessageBoxDefaultButton.Button2);
                     // 停止即将被删除的实例
                     if (bRunning)
                     {
-                        StartOrStopOneInstance(strInstanceName, "stop");
+                        StartOrStopOneInstance(strInstanceName, "delete");    // "stop"
                         stopped_instance_names.Add(strInstanceName);
                     }
 
@@ -993,7 +993,7 @@ MessageBoxDefaultButton.Button1);
                     else
                     {
                         if (item != null)
-                            item.ImageIndex = strAction == "stop" ? IMAGEINDEX_STOPPED : IMAGEINDEX_RUNNING;
+                            item.ImageIndex = (strAction == "stop" || strAction == "delete") ? IMAGEINDEX_STOPPED : IMAGEINDEX_RUNNING;
                     }
                 }
             }
@@ -1138,7 +1138,7 @@ out string strError);
         }
 
         // parameters:
-        //      strCommand  start/stop/getState
+        //      strCommand  start/stop/delete/getState
         // return:
         //      -1  出错
         //      0/1 strCommand 为 "getState" 时分别表示实例 不在运行/在运行 状态
@@ -1158,7 +1158,9 @@ out string strError);
                     if (strCommand == "start")
                         result = ipc.Server.StartInstance(strInstanceName);
                     else if (strCommand == "stop")
-                        result = ipc.Server.StopInstance(strInstanceName);
+                        result = ipc.Server.StopInstance(strInstanceName, false);
+                    else if (strCommand == "delete")    // 2020/8/25
+                        result = ipc.Server.StopInstance(strInstanceName, true);
                     else if (strCommand == "getState")
                     {
                         InstanceInfo info = null;
@@ -1195,7 +1197,6 @@ out string strError);
                     }
                     strError = result.ErrorInfo;
                     return 0;
-
                 }
                 finally
                 {

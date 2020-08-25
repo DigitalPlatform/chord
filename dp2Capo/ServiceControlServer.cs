@@ -19,9 +19,9 @@ namespace dp2Capo
 
         // 停止一个 Instance
         //      strInstanceName 实例名。如果为 ".global" 表示全局服务
-        public ServiceControlResult StopInstance(string strInstanceName)
+        public ServiceControlResult StopInstance(string strInstanceName, bool delete)
         {
-            return ServerInfo.StopInstance(strInstanceName);
+            return ServerInfo.StopInstance(strInstanceName, delete);
         }
 
         // 获得一个实例的信息

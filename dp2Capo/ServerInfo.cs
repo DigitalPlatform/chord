@@ -442,7 +442,9 @@ namespace dp2Capo
 
         // 停止一个实例
         //      strInstanceName 实例名。如果为 ".global" 表示全局服务
-        public static ServiceControlResult StopInstance(string strInstanceName)
+        //      delete  停止实例的同时，是否从内存中删除这个实例?
+        public static ServiceControlResult StopInstance(string strInstanceName,
+            bool delete = false)
         {
             if (strInstanceName == ".global")
             {
@@ -461,6 +463,8 @@ namespace dp2Capo
             try
             {
                 instance.Close();
+                if (delete)
+                    _instances.Remove(instance);
                 return new ServiceControlResult();
             }
             catch (Exception ex)
