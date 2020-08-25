@@ -163,8 +163,8 @@ MessageBoxDefaultButton.Button2);
             {
                 ListViewItem item = new ListViewItem(new_instance_dlg.InstanceName);
 
-                RefreshItemLine(item, new_instance_dlg.DataDir);
                 this.listView_instance.Items.Add(item);
+                RefreshItemLine(item, new_instance_dlg.DataDir);    // 2020/8/25 调整顺序
 
                 if (new_instance_dlg.InstanceName.IndexOf("?") != -1)
                     RefreshInstanceName(item);
@@ -205,6 +205,7 @@ MessageBoxDefaultButton.Button2);
                 "stop");
                 bStopped = true;
             }
+
             try
             {
                 InstanceDialog dlg = new InstanceDialog();
@@ -222,6 +223,9 @@ MessageBoxDefaultButton.Button2);
                     return;
 
                 RefreshItemLine(item, dlg.DataDir);
+                // 2020/8/25
+                // 实例名可能被 RefreshItemLine 刷新了
+                strInstanceName = ListViewUtil.GetItemText(item, COLUMN_NAME);
             }
             finally
             {
@@ -969,7 +973,7 @@ MessageBoxDefaultButton.Button1);
                 item = ListViewUtil.FindItem(this.listView_instance, strInstanceName, COLUMN_NAME);
                 if (item == null)
                 {
-                    MessageBox.Show(this, "名为 '" + strInstanceName + "' 实例在列表中没有找到");
+                    MessageBox.Show(this, $"名为 '{ strInstanceName }' 的实例在列表中没有找到");
                     return;
                 }
             }
@@ -1109,6 +1113,10 @@ out string strError);
                     ServiceControlResult result = null;
                     InstanceInfo info = null;
                     // 获得一个实例的信息
+                    // return: result.Value 
+                    //      -1  出错
+                    //      0   没有找到
+                    //      1   找到
                     result = ipc.Server.GetInstanceInfo(".",
         out info);
                     if (result.Value == -1)
@@ -1155,6 +1163,10 @@ out string strError);
                     {
                         InstanceInfo info = null;
                         // 获得一个实例的信息
+                        // return: result.Value 
+                        //      -1  出错
+                        //      0   没有找到
+                        //      1   找到
                         result = ipc.Server.GetInstanceInfo(strInstanceName,
             out info);
                         if (result.Value == -1)
@@ -1163,7 +1175,12 @@ out string strError);
                             return -1;
                         }
                         else
-                            strError = info.State;
+                        {
+                            if (info != null)
+                                strError = info.State;
+                            else
+                                strError = "错误：info 为空";    // 2020/8/25
+                        }
                         return result.Value;
                     }
                     else

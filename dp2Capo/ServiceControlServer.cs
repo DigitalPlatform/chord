@@ -25,6 +25,10 @@ namespace dp2Capo
         }
 
         // 获得一个实例的信息
+        // return: result.Value 
+        //      -1  出错
+        //      0   没有找到
+        //      1   找到
         public ServiceControlResult GetInstanceInfo(string strInstanceName,
             out InstanceInfo info)
         {
