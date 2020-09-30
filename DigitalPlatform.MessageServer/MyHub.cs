@@ -2473,6 +2473,10 @@ ex.GetType().ToString());
 
                 if (param.Operation == "clear")
                 {
+                    // 2020/9/30
+                    if (param.QueryWord == "!myself")
+                        return ClearConnection(connection_info.ConnectionID);
+
                     // 检查请求者是否具备操作的权限
                     if (StringUtil.Contains(connection_info.Rights, "clearConnection") == false)
                     {
