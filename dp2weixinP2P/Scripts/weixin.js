@@ -98,7 +98,7 @@ function gotoSetItem(biblioPath, biblioName) {
     //alert("biblioPath=" + biblioPath);
 
     var url = "/Biblio/Detail?action=new"
-        + "&biblioPath = " + encodeURIComponent(biblioPath)
+        + "&biblioPath=" + encodeURIComponent(biblioPath)
         + "&biblioName=" + encodeURIComponent(biblioName);
     gotoUrl(url);
 }
@@ -140,7 +140,7 @@ function getDetail(libId, recPath, obj, from,biblioName) {
     }
 
     if (recPath == null || recPath == "") {
-        recPath("libId参数不能为空");
+        recPath("recPath参数不能为空");
         return;
     }
 
@@ -303,8 +303,6 @@ function getDetail(libId, recPath, obj, from,biblioName) {
                         + "<button  class='mui-btn' onclick='deleteItem(\"" + tempBarcode + "\")'>删除</button>"
                         +"</td > "
                         + "</tr>";
-
-                    myHtml += "<div style='padding-top:10px'><button  class='mui-btn' onclick='gotoSetItem(\"" + recPath + "\",\"" + biblioName + "\")'>新增册</button></div>";
                 }
             }
 

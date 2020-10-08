@@ -184,6 +184,12 @@ function loadJs(sid, jsurl, callback) {
 
             // alert("1");
 
+            var biblioPath = $("#biblioPath").text();
+            if (biblioPath == "") {
+                alert("异常，尚未传入biblioPath。");
+                return;
+            }
+
             // 图书馆
             var libId = $("#libId").text();
             if (libId == "" || libId == null) {
@@ -212,8 +218,8 @@ function loadJs(sid, jsurl, callback) {
 
             var accessNo = $("#accessNo").val();
             if (accessNo == "") {
-                alert("您尚未输入索取号。");
-                return;
+                //alert("您尚未输入索取号。");
+                //return;
             }
 
             var price = $("#price").val();
@@ -225,15 +231,11 @@ function loadJs(sid, jsurl, callback) {
 
             var batchNo = $("#batchNo").val();
             if (batchNo == "") {
-                alert("您尚未输入批次号。");
-                return;
+                //alert("您尚未输入批次号。");
+                //return;
             }
 
-            var biblioPath = $("#biblioPath").text();
-            if (biblioPath == "") {
-                alert("异常，尚未指定biblioPath。");
-                return;
-            }
+
 
             //显示等待图层
             //var index = loadLayer();

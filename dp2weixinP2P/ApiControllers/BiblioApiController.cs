@@ -184,7 +184,7 @@ namespace dp2weixinWeb.ApiControllers
 
         // 绑定
         [HttpPost]
-        public ApiResult SetBibiloItem(string libId,
+        public ApiResult SetItem(string libId,
             string biblioPath,
             string action,
             BiblioItem item)
@@ -193,7 +193,7 @@ namespace dp2weixinWeb.ApiControllers
             ApiResult result = new ApiResult();
 
             string strError = "";
-            int nRet = dp2WeiXinService.Instance.SetBibiloItem(libId,
+            int nRet = dp2WeiXinService.Instance.SetItem(libId,
                 biblioPath,
                 action,
                 item,

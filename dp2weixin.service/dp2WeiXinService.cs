@@ -7670,7 +7670,7 @@ ErrorInfo成员里可能会有报错信息。
 
 
 
-        public int SetBibiloItem(string libId,
+        public int SetItem(string libId,
             string biblioPath,
             string action,
             BiblioItem item,
@@ -7683,6 +7683,18 @@ ErrorInfo成员里可能会有报错信息。
 
             // 使用代理账号capo 20161024 jane
             LoginInfo loginInfo = new LoginInfo("", false);
+
+            WxUserItem user = WxUserDatabase.Current.GetActive(weixinId);
+            if (user == null)
+            {
+                strError = "取消预约时，不可能找不到当前绑定的读者账户";
+                return -1;
+            }
+            if (user.type == WxUserDatabase.C_Type_Worker)
+            {
+                strError = "异常，取消预约时，当前帐户应该是读者帐户";
+                return -1;
+            }
 
             // 根据id找到图书馆对象
             LibEntity lib = this.GetLibById(libId);
