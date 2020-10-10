@@ -187,6 +187,7 @@ namespace dp2weixinWeb.ApiControllers
         public ApiResult SetItem(string libId,
             string biblioPath,
             string action,
+            string userName,
             BiblioItem item)
         {
             // 返回对象
@@ -196,6 +197,7 @@ namespace dp2weixinWeb.ApiControllers
             int nRet = dp2WeiXinService.Instance.SetItem(libId,
                 biblioPath,
                 action,
+                userName,
                 item,
                 out strError);
             if (nRet == -1)

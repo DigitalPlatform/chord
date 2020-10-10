@@ -103,6 +103,7 @@ function gotoSetItem(biblioPath, biblioName) {
     gotoUrl(url);
 }
 
+// 2020-10-10 先把编辑的功能隐掉，抽空再做
 // 编辑册
 function gotoEditItem(biblioPath, biblioName) {
     //alert("biblioPath=" + biblioPath);
@@ -114,15 +115,53 @@ function gotoEditItem(biblioPath, biblioName) {
 }
 
 // 删除册
-function deleteItem(itemBarcode) {
+function deleteItem(worker,libId,biblioPath,itemPath,barcode) {
 
-
-    var gnl = confirm("你确定要删除册[" + itemBarcode + "]吗?");
+    var gnl = confirm("你确定要删除册[" + barcode + "]吗?");
     if (gnl == false) {
         return false;
     }
 
-    // 调接口
+    // 调接口 todo
+    if (libId == null || libId == "") {
+        alert("libId参数不能为空");
+        return;
+    }
+
+    //显示等待图层
+    showMaskLayer();
+    var url = "/api/BiblioApi?libId=" + libId
+        + "&biblioPath=" + encodeURIComponent(biblioPath)
+        + "&action=delete"
+        + "&userName=" + encodeURIComponent(worker);
+    //alert(url);
+    sendAjaxRequest(url, "POST",
+        function (result) {
+
+            // 关闭等待层
+            hideMaskLayer();
+
+            //alert("ok");
+
+            if (result.errorCode == -1) {
+                alert("删除出错:" + result.errorInfo);
+                return;
+            }
+
+            var itemName = "#_item_" + barcode;
+            $(itemName).remove();// 删除自己;
+
+            //alert("删除成功。");
+        },
+        function (xhq, textStatus, errorThrown) {
+            // 关闭等待层
+            hideMaskLayer();
+            alert(errorThrown);
+        },
+        {
+            recPath: itemPath
+        }
+    );
 }
 
 
@@ -183,6 +222,9 @@ function getDetail(libId, recPath, obj, from,biblioName) {
 
         // 工作人员帐号
         var worker = $("#_worker").text();
+
+
+        
 
         // 循环显示每一册
         for (var i = 0; i < result.itemList.length; i++) {
@@ -299,8 +341,8 @@ function getDetail(libId, recPath, obj, from,biblioName) {
 
                     itemTables += "<tr>"
                         + "<td class='label' colspan='2'>"
-                        + "<button  class='mui-btn' onclick='gotoEditItem(\"" + recPath + "\",\"" + biblioName + "\")'>编辑</button>"
-                        + "<button  class='mui-btn' onclick='deleteItem(\"" + tempBarcode + "\")'>删除</button>"
+                        //+ "<button  class='mui-btn' onclick='gotoEditItem(\"" + recPath + "\",\"" + biblioName + "\")'>编辑</button>"
+                        + "<button  class='mui-btn' onclick='deleteItem(\"" + worker + "\",\"" + libId + "\",\"" + recPath + "\",\"" + record.recPath + "\",\"" + tempBarcode + "\")'>删除</button>"
                         +"</td > "
                         + "</tr>";
                 }
@@ -315,9 +357,15 @@ function getDetail(libId, recPath, obj, from,biblioName) {
 
         var myHtml = result.info + itemTables;
 
+
         // 检查要不要出现册登记按钮
         if (worker != null && worker != "") {
-            myHtml += "<div style='padding-top:10px'><button  class='mui-btn' onclick='gotoSetItem(\"" + recPath + "\",\"" + biblioName+"\")'>新增册</button></div>";
+
+            // 是否已经是详细界面，则不出现新增册按钮
+            var _isDetail = $("#_isDetail").text();
+            if (_isDetail != "1") {
+                myHtml += "<div style='padding-top:10px'><button  class='mui-btn' onclick='gotoSetItem(\"" + recPath + "\",\"" + biblioName + "\")'>新增册</button></div>";
+            }
         }
 
         obj.html(myHtml);

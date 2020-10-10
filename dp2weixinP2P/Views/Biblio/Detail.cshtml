@@ -143,7 +143,7 @@ function loadJs(sid, jsurl, callback) {
 
                 var biblioName = $("#_biblioName").text();
                 if (biblioName != null && biblioName != "") {
-                    expand("d1", true);
+                    expand("d1", 1);
                 }
             }
         });
@@ -156,9 +156,14 @@ function loadJs(sid, jsurl, callback) {
 
             //alert(id);
             //alert(obj);
-            if (needClose == true) {
+            if (needClose == 1) {
                     $(obj).find(".mui-collapse-content").css("display", "none");
                     $(obj).removeClass("mui-active");
+            }
+            else if (needClose == 0) {
+
+                $(obj).find(".mui-collapse-content").css("display", "block");
+                $(obj).addClass("mui-active");
             }
             else {
 
@@ -180,6 +185,7 @@ function loadJs(sid, jsurl, callback) {
             }
         }
 
+        // 新增册
         function saveItem() {
 
             // alert("1");
@@ -235,18 +241,16 @@ function loadJs(sid, jsurl, callback) {
                 //return;
             }
 
-
+            // 工作人员帐号
+            var worker = $("#_worker").text();
 
             //显示等待图层
-            //var index = loadLayer();
             showMaskLayer();
-
             var url = "/api/BiblioApi?libId=" + libId
                 + "&biblioPath=" + encodeURIComponent(biblioPath)
-                + "&action=new";
-
+                + "&action=new"
+                + "&userName=" + encodeURIComponent(worker);
             //alert(url);
-
             sendAjaxRequest(url, "POST",
                 function (result) {
 
@@ -259,9 +263,35 @@ function loadJs(sid, jsurl, callback) {
                     }
 
                     alert("保存成功。");
+                    $("#barcode").val("");
+
+
+                    //检查是否已经加载过了
+                    var o = $(".biblio");
+                    if (o.length > 0) {
+                        var recPath = $("#biblioPath").text();
+                        //alert(recPath);
+                        if (recPath != null && recPath != "") {
+                            // 图书馆
+                            var libId = getLibId();
+                            var myhtml = getDetail(libId, recPath, o, "detail", "");
+                            expand("d1", 0);
+                        }
+                    }
+
+
+
+
+                    
 
                     // 重新加载页面
-                    window.location.reload();
+                    //window.location.reload();
+
+                    //alert("a1");
+                    // 保存后，要展开
+                    //expand('d1', false);
+
+                    //alert("a2");
 
                 },
                 function (xhq, textStatus, errorThrown) {
@@ -312,7 +342,7 @@ function loadJs(sid, jsurl, callback) {
 
                         //alert("得到的isbn=" + isbn);
                         var left = "";
-                        var right = "";
+                        var right = code;
                         if (code.indexOf(",") != -1) {
                             left = code.substring(0, code.indexOf(","))//EAN_13
                             right = code.substring(code.indexOf(",") + 1)
@@ -324,6 +354,7 @@ function loadJs(sid, jsurl, callback) {
                         if (right != null && right != "") {
                             //设到
                             $("#barcode").val(right);
+                            //alert("设到barcode" + code);
                         }
                     },
                     fail: function (res) {
@@ -347,8 +378,9 @@ function loadJs(sid, jsurl, callback) {
 <span id="weixinId" style="display:none;">@ViewBag.weixinId</span>
 <span id="patronBarcode" style="display:none">@ViewBag.PatronBarcode</span>
 <span id="biblioPath" style="display:none;">@ViewBag.BiblioPath</span>
-<!--当前是馆员帐户，出现册登记按钮，注意这里用_worker1-->
-<span id="_worker1" style="display:none">@ViewBag.Worker</span>
+<!--当前是馆员帐户，出现册登记按钮，注意这里用_worker-->
+<span id="_worker" style="display:none">@ViewBag.Worker</span>
+<span id="_isDetail" style="display:none">1</span>
 
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {
@@ -362,7 +394,7 @@ else
 {
 
     <li class='mui-table-view-cell mui-collapse' id='d1'>
-        <a class='mui-navigate-right' href='javascript:void(0)' onclick="expand('d1',false)" style='padding-top:5px;padding-bottom:5px'>
+        <a class='mui-navigate-right' href='javascript:void(0)' onclick="expand('d1',-1)" style='padding-top:5px;padding-bottom:5px'>
             <table width='100%' class='result-biblio'>
                 <tr>
                     <td style='padding-right:10px;'><div id="_biblioName" style='width:100%; white-space:nowrap;overflow:hidden;text-overflow:ellipsis; '>@ViewBag.BiblioName</div></td>

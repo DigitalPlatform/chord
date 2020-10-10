@@ -139,7 +139,8 @@ namespace dp2weixinWeb.Controllers
                 ViewBag.Error = strError;
                 return View();
             }
-            ViewBag.LocationHtml = this.GetLocationHtml(location, "");
+            string defaultLocation = ""; //默认馆藏地
+            ViewBag.LocationHtml = this.GetLocationHtml(location, defaultLocation);
 
             // 图书类型
             string bookType = sessionInfo.GetBookType(out strError);
@@ -197,7 +198,7 @@ namespace dp2weixinWeb.Controllers
                     }
 
                     string sel = "";
-                    if (currentLocation == temp)
+                    if (currentLocation == temp || list.Length==1) //2020/10/10 如果只有一项，则默认选中 
                         sel = " selected ";
                     html += "<option value='" + one + "' " + sel + ">" + one + "</option>";
                 }

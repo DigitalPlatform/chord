@@ -7673,6 +7673,7 @@ ErrorInfo成员里可能会有报错信息。
         public int SetItem(string libId,
             string biblioPath,
             string action,
+            string userName,
             BiblioItem item,
             out string strError)
         {
@@ -7682,8 +7683,13 @@ ErrorInfo成员里可能会有报错信息。
             //    item.price = "@price";
 
             // 使用代理账号capo 20161024 jane
-            LoginInfo loginInfo = new LoginInfo("", false);
+            //LoginInfo loginInfo = new LoginInfo("", false);
 
+            // 2020/10/10 新增册、删除册都用工作人员帐号
+            LoginInfo loginInfo = new LoginInfo(userName, false);
+
+            // todo 改为工作人员帐号
+            /*
             WxUserItem user = WxUserDatabase.Current.GetActive(weixinId);
             if (user == null)
             {
@@ -7695,6 +7701,7 @@ ErrorInfo成员里可能会有报错信息。
                 strError = "异常，取消预约时，当前帐户应该是读者帐户";
                 return -1;
             }
+            */
 
             // 根据id找到图书馆对象
             LibEntity lib = this.GetLibById(libId);
@@ -7740,7 +7747,7 @@ ErrorInfo成员里可能会有报错信息。
             }
             else if (action == C_Action_change)
             {
-                // todo,是否需要合并
+                // todo
             }
             else if (action == C_Action_delete)
             {
@@ -7785,13 +7792,14 @@ ErrorInfo成员里可能会有报错信息。
             List<Entity> entities = new List<Entity>();
             entities.Add(entity);
 
-            // 修改读者记录的情况
+            // 删除
             if (action == "change" || action == "delete")
             {
-                // todo
-                //Record oldRecord = new Record();
+                Record oldRecord = new Record();
+                oldRecord.RecPath = item.recPath;
+        
                 //oldRecord.Timestamp = timestamp;
-                //entity.OldRecord = oldRecord;
+                entity.OldRecord = oldRecord;
             }
 
             string outputXml = "";

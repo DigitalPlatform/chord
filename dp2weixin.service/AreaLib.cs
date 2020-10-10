@@ -266,6 +266,9 @@ namespace dp2weixin.service
 
         public string departments = "";
 
+
+
+
         // 2020/6/5 加证条码尾号，在馆员审核时，可以点按钮，增量
         public string patronBarcodeTail = "B000000";
 
