@@ -139,7 +139,7 @@ namespace dp2weixinWeb.Controllers
                 ViewBag.Error = strError;
                 return View();
             }
-            string defaultLocation = ""; //默认馆藏地
+            string defaultLocation = "办公室"; //默认馆藏地todo，后面要修改为馆员在设置界面可以配置
             ViewBag.LocationHtml = this.GetLocationHtml(location, defaultLocation);
 
             // 图书类型
@@ -150,8 +150,6 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
             ViewBag.BookTypeHtml = this.GetBookTypeHtml(bookType, "");
-
-
             ViewBag.BiblioName = biblioName;
             
             ViewBag.PatronBarcode = sessionInfo.ActiveUser.readerBarcode;
@@ -227,7 +225,7 @@ namespace dp2weixinWeb.Controllers
                     }
 
                     string sel = "";
-                    if (currentBookType == temp)
+                    if (currentBookType == temp || list.Length == 1) //2020/10/10 如果只有一项，则默认选中 
                         sel = " selected ";
                     html += "<option value='" + one + "' " + sel + ">" + one + "</option>";
                 }

@@ -117,7 +117,7 @@ function gotoEditItem(biblioPath, biblioName) {
 // 删除册
 function deleteItem(worker,libId,biblioPath,itemPath,barcode) {
 
-    var gnl = confirm("你确定要删除册[" + barcode + "]吗?");
+    var gnl = confirm("您确认要删除册[" + barcode + "]吗?");
     if (gnl == false) {
         return false;
     }

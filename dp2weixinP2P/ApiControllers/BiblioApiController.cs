@@ -35,7 +35,17 @@ namespace dp2weixinWeb.ApiControllers
             //dp2WeiXinService.Instance.WriteErrorLog1("search-1");
 
             if (String.IsNullOrEmpty(resultSet) == true)
+            {
+                if (from == "_ReView")
+                {
+                    searchRet.apiResult = new ApiResult();
+                    searchRet.apiResult.errorCode = -1;
+                    searchRet.apiResult.errorInfo = "当review检索结果时，结果集名称不能为空。";
+                    return searchRet;
+                }
+
                 resultSet = "weixin-" + Guid.NewGuid();
+            }
 
             // 测试加的日志
            //dp2WeiXinService.Instance.WriteErrorLog1("search-2-"+resultSet);

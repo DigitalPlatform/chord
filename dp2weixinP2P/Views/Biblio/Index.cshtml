@@ -274,8 +274,13 @@ function loadJs(sid, jsurl, callback) {
             if (word == "")
                 word = $('#txtWordSimple').val();
 
+            //resultSet 如果为空，服务器生成一个
+            var resultSet = $("#resultSet").val();
+            //alert("2resultSet=[" + resultSet + "]");
+
             //alert("word=["+word+"]");
-            if (word != null && word != "") {
+            if (word != null && word != ""
+                && resultSet != null && resultSet != "") {
                 //alert("maxNo=" + $("#maxNo").val());
                 var expandId = $('#expandId').val();
                 search("_ReView", expandId);
@@ -365,6 +370,7 @@ function loadJs(sid, jsurl, callback) {
 
             //resultSet 如果为空，服务器生成一个
             var resultSet = $("#resultSet").val();
+            //alert("resultSet=[" + resultSet + "]");
 
 
             var weixinId = $("#weixinId").text();
@@ -390,6 +396,7 @@ function loadJs(sid, jsurl, callback) {
                 + "&word=" + encodeURIComponent(word)
                 + "&match=" + encodeURIComponent(match)
                 + "&resultSet=" + encodeURIComponent(resultSet);
+
 
             //alert(url);
             sendAjaxRequest(url, "GET",
@@ -443,6 +450,9 @@ function loadJs(sid, jsurl, callback) {
 
                     var noWidth = '18px';
 
+                    // 结果集名称
+                    $("#resultSet").val(result.resultSetName);
+                    //alert("返回的结果集名称[" + result.resultSetName + "]-[" + $("#resultSet").val()+"]");
 
                     for (var i = 0; i < result.records.length; i++) {
                         var record = result.records[i];
@@ -469,7 +479,7 @@ function loadJs(sid, jsurl, callback) {
 
                         if (i == result.records.length - 1) {
                             $("#maxNo").val(record.no);
-                            $("#resultSet").val(result.resultSetName);
+
                         }
                     }
 

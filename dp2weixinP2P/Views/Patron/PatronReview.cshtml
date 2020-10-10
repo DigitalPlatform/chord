@@ -43,6 +43,11 @@
 
             //alert("test");
 
+            var gnl = confirm("您确认要重新分配读者证条码号吗?");
+            if (gnl == false) {
+                return false;
+            }
+
             // 图书馆ID
             var libId = getLibId();
             if (libId == "") {
