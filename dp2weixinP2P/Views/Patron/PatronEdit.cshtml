@@ -191,7 +191,7 @@
 
 
             // 手机号
-            var phonel = $("#txtPhone").val();
+            var phone= $("#txtPhone").val();
             //if (phone == "") {
             //    alert("手机号不能为空！");
             //    return;
@@ -220,12 +220,13 @@
                 + "&timestamp=" + encodeURIComponent(timestamp)
                 + "&weixinId=";
 
+            alert(url);
             sendAjaxRequest(url, "POST",
                 function (result) {
-
                     // 关闭等待层
                     hideMaskLayer();
 
+                    
                     if (result.errorCode == -1) {
                         alert(result.errorInfo);
                         return;
@@ -245,11 +246,11 @@
                     }
 
                     //清空编辑界面信息,todo
+                    
 
                 },
                 function (xhq, textStatus, errorThrown) {
                     // 关闭等待层
-                    //layer.close(index);
                     hideMaskLayer();
 
                     alert(errorThrown);
@@ -265,6 +266,7 @@
             );
         }
 
+        
 
     </script>
 }
