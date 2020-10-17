@@ -4724,7 +4724,7 @@ ErrorInfo成员里可能会有报错信息。
             }
 
 
-            // 馆员审核的情况，给读者发通过
+            // 馆员审核的情况，给读者发通知
             if (opeType == C_OpeType_reviewPass
                 || opeType == C_OpeType_reviewNopass
                 || opeType == C_OpeType_reviewNopassDel)
@@ -4738,9 +4738,14 @@ ErrorInfo成员里可能会有报错信息。
                 string strFirst = "尊敬的用户：您好！您提交的注册信息已审核完成。";
                 string strRemark = "您现在可以使用智能书柜或到图书馆借还书了。";
                 string result = "通过";
-                if (opeType == C_OpeType_reviewNopass || opeType == C_OpeType_reviewNopassDel)
+                if (opeType == C_OpeType_reviewNopass)
                 {
                     result = "不通过";
+                    strRemark = "审核不通过原因：" + patron.comment;
+                }
+                else if (opeType == C_OpeType_reviewNopassDel)
+                {
+                    result = "不通过,注册帐号已被管理员删除。";
                     strRemark = "审核不通过原因：" + patron.comment;
                 }
 
