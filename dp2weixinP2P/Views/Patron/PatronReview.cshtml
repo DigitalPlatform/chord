@@ -200,6 +200,12 @@
                 return;
             }
 
+            // 2020/10/19 如果有座机号，加上座机号
+            var tel = $("#txtTel").val();
+            if (tel != null && tel != "") {
+                phone = phone + "," + tel;
+            }
+
             //显示等待图层
             showMaskLayer();
 
@@ -329,13 +335,13 @@ else
 
     <div class="mui-input-row ">
         <label id="lblBarcode" style="color:#cccccc;">证条码号</label>
-        <input id='txtBarcode' type="text" readonly style="background-color:#eeeeee" class="mui-input mui-input-clear" value="@Model.barcode" >
+        <input id='txtBarcode' type="text" readonly style="background-color:#eeeeee" class="mui-input mui-input-clear" value="@Model.barcode">
     </div>
 
     <table style="width:100%">
         <tr>
             <td style="width:100%">
-                <div  style="background-color:white;border:0px">
+                <div style="background-color:white;border:0px">
                     <div class="mui-input-row">
                         <label id="lblName" style="color:#cccccc">姓名</label>
                         <input id='txtName' type="text" class="mui-input mui-input-clear" placeholder="请输入 姓名" value="@Model.name">
@@ -380,7 +386,11 @@ else
 
     <div class="mui-input-row ">
         <label id="lblPhone" style="color:#cccccc">手机号</label>
-        <input id='txtPhone' type="text" class="mui-input mui-input-clear" value="@Model.phone" placeholder="请输入 手机号">
+        <input id='txtPhone' type="text" class="mui-input mui-input-clear" value="@ViewBag.PurePhone" placeholder="请输入 手机号">
+    </div>
+    <div class="mui-input-row ">
+        <label id="lblTel" style="color:#cccccc">座机</label>
+        <input id='txtTel' type="text" class="mui-input mui-input-clear" value="@ViewBag.PureTel" placeholder="请输入 座机">
     </div>
 
     <div class="mui-input-row ">

@@ -8780,12 +8780,13 @@ ErrorInfo成员里可能会有报错信息。
             // 电话
             string strTel = DomUtil.GetElementText(dom.DocumentElement, "tel");
             patron.phone = strTel;
-            if (strTel.Length > 4 && bMaskPhone == true)
-            {
-                string left = strTel.Substring(0, strTel.Length - 4);
-                left = "".PadLeft(left.Length, '*');
-                patron.phone = left + strTel.Substring(strTel.Length - 4);
-            }
+            // 2020/10/19 公众号上支持修改电话，所以改为不用*号，要不用户不知道以前是什么号
+            //if (strTel.Length > 4 && bMaskPhone == true)
+            //{
+            //    string left = strTel.Substring(0, strTel.Length - 4);
+            //    left = "".PadLeft(left.Length, '*');
+            //    patron.phone = left + strTel.Substring(strTel.Length - 4);
+            //}
 
             // email
             string strEmail = DomUtil.GetElementText(dom.DocumentElement, "email");
@@ -8912,6 +8913,29 @@ ErrorInfo成员里可能会有报错信息。
             patron.ArrivedCount = arrivedCount;
 
             return patron;
+        }
+
+        // 2020/10/19 把电话拆分为座机和手机号
+        public static void SplitTel(string telOrigin, out string pureTel, out string purePhone)
+        {
+            pureTel = "";
+            purePhone = "";
+            string[] list = telOrigin.Split(new char[] { ',' });
+            foreach (string tel in list)
+            {
+                string one = tel.Trim();
+
+                // 取第一个11位的数字为手机号
+                if (one.Length == 11 && purePhone == "")
+                {
+                    purePhone = one;
+                    continue;
+                }
+
+                if (pureTel != "")
+                    pureTel += ",";
+                pureTel += one;
+            }
         }
 
         private string ConvertToString(int num)

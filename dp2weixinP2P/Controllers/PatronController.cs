@@ -298,6 +298,12 @@ namespace dp2weixinWeb.Controllers
             ViewBag.PatronName = sessionInfo.ActiveUser.readerName;
             ViewBag.PatronRecPath = sessionInfo.ActiveUser.recPath;
 
+            dp2WeiXinService.SplitTel(sessionInfo.ActiveUser.phone,
+                out string pureTel,
+                out string purePhone); 
+            ViewBag.PureTel = pureTel;
+            ViewBag.PurePhone = purePhone;
+
             return View();
 
         }
@@ -633,6 +639,13 @@ namespace dp2weixinWeb.Controllers
             ViewBag.deptHtml = deptHtml;
             ViewBag.displayText = displayText;
 
+            dp2WeiXinService.SplitTel(patron.phone,
+            out string pureTel,
+            out string purePhone);
+                    
+            ViewBag.PureTel = pureTel;
+            ViewBag.PurePhone = purePhone;
+
             return View(patron);
         }
 
@@ -778,7 +791,11 @@ namespace dp2weixinWeb.Controllers
                 ViewBag.womanSel = " selected ";
             }
 
-
+            dp2WeiXinService.SplitTel(sessionInfo.ActiveUser.phone,
+    out string pureTel,
+    out string purePhone);
+            ViewBag.PureTel = pureTel;
+            ViewBag.PurePhone = purePhone;
             return View(userItem);
         }
 
@@ -950,8 +967,8 @@ namespace dp2weixinWeb.Controllers
             comment = comment.Replace("\n", "<br/>");
             patron.comment = comment;
 
-            return View(patron);
 
+            return View(patron);
         }
 
         //违约交费信息

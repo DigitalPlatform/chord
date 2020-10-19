@@ -109,6 +109,13 @@
                 return;
             }
 
+            // 2020/10/19 如果有座机号，加上座机号
+            var tel = $("#txtTel").val();
+            if (tel != null && tel != "") {
+                phone = phone + "," + tel;
+            }
+
+
 
 
 
@@ -189,40 +196,43 @@ else
     }
     else
     {
-        <div class="mui-input-group">
-        
-            <div class="mui-input-row ">
-                <label id="lblName" style="color:#cccccc">姓名</label>
-                <input id='txtName' type="text" class="mui-input mui-input-clear" value="@ViewBag.PatronName" readonly>
-            </div>
+<div class="mui-input-group">
+
+    <div class="mui-input-row ">
+        <label id="lblName" style="color:#cccccc">姓名</label>
+        <input id='txtName' type="text" class="mui-input mui-input-clear" value="@ViewBag.PatronName" readonly>
+    </div>
+
+    <div class="mui-input-row ">
+        <label id="lblTel" style="color:#cccccc">座机</label>
+        <input id='txtTel' type="text" class="mui-input mui-input-clear" value="@ViewBag.PureTel" placeholder="请输入 座机">
+    </div>
+
+    <div class="mui-input-row ">
+        <label id="lblPhone" style="color:#cccccc">手机号</label>
+        <input id='txtPhone' type="text" class="mui-input mui-input-clear" value="@ViewBag.PurePhone" placeholder="请输入 手机号">
+    </div>
+
+    <table style="width:100%;border:none">
+        <tr style="border:none">
+            <td style="width:100%;border:none">
+                <div class="mui-input-row">
+                    <label id="lblVerifyCode" style="color:gray;border:none">验证码</label>
+                    <input id='txtVerifyCode' type="text" class="mui-input mui-input-clear" style="border:none">
+                </div>
+            </td>
+            <td>
+                <button onclick="sendVC()" id='btnSendVC' class="mui-btn" style="border:1px dotted #eeeeee;margin-right:2px;height:40px;">获取短信验证码</button>
+            </td>
+        </tr>
+    </table>
 
 
 
-            <div class="mui-input-row ">
-                <label id="lblPhone" style="color:#cccccc">手机号</label>
-                <input id='txtPhone' type="text" class="mui-input mui-input-clear" value="" placeholder="请输入 手机号">
-            </div>
-
-            <table style="width:100%;border:none">
-                <tr style="border:none">
-                    <td style="width:100%;border:none">
-                        <div class="mui-input-row">
-                            <label id="lblVerifyCode" style="color:gray;border:none">验证码</label>
-                            <input id='txtVerifyCode' type="text" class="mui-input mui-input-clear" style="border:none">
-                        </div>
-                    </td>
-                    <td>
-                        <button onclick="sendVC()" id='btnSendVC' class="mui-btn" style="border:1px dotted #eeeeee;margin-right:2px;height:40px;">获取短信验证码</button>
-                    </td>
-                </tr>
-            </table>
-
-
-
-            <div class="mui-content-padded">
-                <button id='btn' class="mui-btn mui-btn-block mui-btn-primary" onclick="changePhone()">提交</button>
-            </div>
-        </div>
+    <div class="mui-content-padded">
+        <button id='btn' class="mui-btn mui-btn-block mui-btn-primary" onclick="changePhone()">提交</button>
+    </div>
+</div>
     }
 }
 
