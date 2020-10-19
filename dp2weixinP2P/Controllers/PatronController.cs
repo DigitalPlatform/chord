@@ -791,9 +791,14 @@ namespace dp2weixinWeb.Controllers
                 ViewBag.womanSel = " selected ";
             }
 
-            dp2WeiXinService.SplitTel(sessionInfo.ActiveUser.phone,
-    out string pureTel,
-    out string purePhone);
+            string pureTel = "";
+            string purePhone = "";
+            if (userItem != null && string.IsNullOrEmpty(userItem.phone) == false)
+            {
+                dp2WeiXinService.SplitTel(userItem.phone,
+        out pureTel,
+        out purePhone);
+            }
             ViewBag.PureTel = pureTel;
             ViewBag.PurePhone = purePhone;
             return View(userItem);
