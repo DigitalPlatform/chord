@@ -412,10 +412,9 @@ else
         </div>
     </li>
 
+    if (string.IsNullOrEmpty(ViewBag.Worker) == false)
+    {
     <div class="mui-input-group" style="padding:10px">
-
-
-
         <table style="width:100%">
             <tr>
                 <td style="width:100%;">
@@ -454,5 +453,6 @@ else
             <button id='btn' class="mui-btn mui-btn-block mui-btn-primary" onclick="saveItem()">保存</button>
         </div>
     </div>
-}
+        }
+    }
 

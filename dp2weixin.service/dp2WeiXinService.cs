@@ -1394,9 +1394,9 @@ namespace dp2weixin.service
                 {
                     string msgType = templateName;
                     if (u.type == WxUserDatabase.C_Type_Patron)
-                        this.WriteDebug("即将给weixin=[" + u.weixinId + "],图书馆为[" + u.libName + "]的读者[" + u.readerName + "(" + u.readerBarcode + ")]" + "发送[" + msgType + "]通知");
+                        this.WriteDebug("即将给读者发通知：weixin=[" + u.weixinId + "],图书馆为[" + u.libName + "]的读者[" + u.readerName + "(" + u.readerBarcode + ")]" + "发送[" + msgType + "]通知");
                     else
-                        this.WriteDebug("即将给weixin=[" + u.weixinId + "],图书馆为[" + u.libName + "]的工作人员[" + u.userName + "]" + "发送[" + msgType + "]通知");
+                        this.WriteDebug("即将给工作人员发通知：weixin=[" + u.weixinId + "],图书馆为[" + u.libName + "]的工作人员[" + u.userName + "]" + "发送[" + msgType + "]通知");
 
                     // 写到本地库的就不写日志了，节省一点日志空间
                     if (WxUserDatabase.CheckIsFromWeb(u.weixinId) == false)
