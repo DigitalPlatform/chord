@@ -4221,10 +4221,13 @@ ErrorInfo成员里可能会有报错信息。
         {
             string thisComment = "";
             string dateTime = DateTimeUtil.DateTimeToString(DateTime.Now);
-            if (bWorker == true)
-                thisComment = dateTime + " 馆员备注:" + comment;
-            else
-                thisComment = dateTime + " 读者备注:" + comment;
+            if (string.IsNullOrEmpty(comment) == false)
+            {
+                if (bWorker == true)
+                    thisComment = dateTime + " 馆员备注:" + comment;
+                else
+                    thisComment = dateTime + " 读者备注:" + comment;
+            }
 
             return thisComment;
         }
