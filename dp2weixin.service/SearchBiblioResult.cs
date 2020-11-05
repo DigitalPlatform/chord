@@ -61,7 +61,17 @@ namespace dp2weixin.service
 
         public string state { get; set; }
         public string volume { get; set; }
+
+        // 馆藏地
         public string location { get; set; }
+
+        // 当前位置
+        public string currentLocation { get; set; }
+
+        //shelfNo 法定架号
+        public string shelfNo { get; set; }
+
+
         public string price { get; set; }
 
         // 索引号
@@ -74,26 +84,26 @@ namespace dp2weixin.service
 
         //2016-6-17 jane 加借阅信息
         public string borrower { get; set; }
-         public string borrowDate { get; set; }
-         public string borrowPeriod { get; set; }
+        public string borrowDate { get; set; }
+        public string borrowPeriod { get; set; }
 
-         public string reservationInfo { get; set; }
+        public string reservationInfo { get; set; }
 
-         public string imgHtml { get; set; }
+        public string imgHtml { get; set; }
 
-         public bool disable { get; set; }
+        public bool disable { get; set; }
 
-         public string refID { get; set; }
-         public string parentInfo { get; set; }  //从属于，一般成员册会有该信息
+        public string refID { get; set; }
+        public string parentInfo { get; set; }  //从属于，一般成员册会有该信息
 
-         public string recPath { get; set; }
+        public string recPath { get; set; }
 
 
-         public bool isGray = false;
-         public bool isNotCareLoc = false;
+        public bool isGray = false;
+        public bool isNotCareLoc = false;
 
         // 2020/4/4，注意如果调api的前端传上此参数，则一定要做成属性。
-        public string batchNo  { get; set; }
-    public string bookType  { get; set; }
+        public string batchNo { get; set; }
+        public string bookType { get; set; }
     }
 }

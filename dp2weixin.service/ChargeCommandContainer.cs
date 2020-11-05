@@ -70,6 +70,10 @@ namespace dp2weixin.service
             + "<td class='value' " + addStyle + ">" + record.location + "</td>"
             + "</tr>"
             + "<tr>"
+            + "<td class='label'>当前位置</td>"  //2020/11/5加
+            + "<td class='value' " + addStyle + ">" + record.currentLocation + "</td>"
+            + "</tr>"
+            + "<tr>"
             + "<td class='label'>索取号</td>"
             + "<td class='value' " + addStyle + ">" + record.accessNo + "</td>"
             + "</tr>"

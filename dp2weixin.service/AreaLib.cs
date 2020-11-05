@@ -110,6 +110,8 @@ namespace dp2weixin.service
                 lib.name = entity.libName;
                 area.libs.Add(lib);
 
+                // todo，这里有bug，会把原来配置的信息清掉
+
                 this.Save2Xml();
             }
         }

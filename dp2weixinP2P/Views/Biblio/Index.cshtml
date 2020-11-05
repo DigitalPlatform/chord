@@ -151,11 +151,7 @@ function loadJs(sid, jsurl, callback) {
                             alert("抱歉，您扫描的不是合法的ISBN条码。\n扫描返回字符串为[" + code + "]，");
                             return;
                         }
-
-
                         //alert("扫到的isbn=" + isbn);
-
-
                         if (isbn != null && isbn != "") {
                             if (bSimple == true) {
                                 $("#txtWordSimple").val(isbn);
@@ -517,10 +513,6 @@ function loadJs(sid, jsurl, callback) {
                     if (expandId != null && expandId != "") {
                         expand(expandId);
                     }
-
-
-
-
 
                 }, function (xhq, textStatus, errorThrown) {
 

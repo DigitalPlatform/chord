@@ -5541,8 +5541,55 @@ ErrorInfo成员里可能会有报错信息。
                     return -1;
                 }
 
-                // 把帐户信息保存到本地
+
+
+
+
+                // 返回的读者xml
                 string partonXml = result.Results[0];
+
+                // 2020//11/5 针对工行的临时方案，如果设置了状态，则不允许绑定。将来用读者库的角色来代替
+                {
+                    XmlDocument dom = new XmlDocument();
+                    dom.LoadXml(partonXml);
+                    XmlNode root = dom.DocumentElement;
+
+                    //<state>注销</state>
+                    string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
+                    if (string.IsNullOrEmpty(strState) == false)
+                    {
+                        string barcode = DomUtil.GetElementText(dom.DocumentElement, "barcode");
+                        // 调解绑
+                        id = Guid.NewGuid().ToString();
+                        request = new BindPatronRequest(id,
+                            loginInfo,
+                            "unbind",
+                            barcode,//userItem.readerBarcode,
+                            "",//password  todo
+                            fullWeixinId,
+                            "multiple,null_password",
+                            "xml");
+
+                        result = connection.BindPatronTaskAsync(
+                            lib.capoUserName,
+                           request,
+                           new TimeSpan(0, 1, 0),
+                           cancel_token).Result;
+                        if (result.Value == -1)
+                        {
+                            strError = result.ErrorInfo;
+                            //return -1;
+                        }
+
+                        strError = "用户状态值不支持绑定，请联系管理员。";
+                        return -1;
+                    }                  
+                }
+
+
+
+
+                // 把帐户信息保存到本地
                 string recPath = result.RecPath;
                 nRet = this.SaveUserToLocal1(weixinId,
                     libId,
@@ -8042,6 +8089,11 @@ ErrorInfo成员里可能会有报错信息。
                         }
                     }
                 }
+
+                // 当前位置
+                item.currentLocation = DomUtil.GetElementText(dom.DocumentElement, "currentLocation");
+                // 架号
+                item.shelfNo = DomUtil.GetElementText(dom.DocumentElement, "shelfNo");
 
                 // 索引号
                 item.accessNo = DomUtil.GetElementText(dom.DocumentElement, "accessNo");

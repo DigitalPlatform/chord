@@ -19,6 +19,7 @@ using Senparc.Weixin.MP.Entities;
 using Senparc.Weixin.MP.Entities.Menu;
 using dp2weixinWeb.Controllers;
 using dp2weixin.service;
+using Senparc.Weixin.MP.Containers;
 
 namespace Senparc.Weixin.MP.Sample.Controllers
 {
@@ -56,20 +57,19 @@ namespace Senparc.Weixin.MP.Sample.Controllers
         {
             try
             {
-                //if (!AccessTokenContainer.CheckRegistered(appId))
-                //{
-                //    AccessTokenContainer.Register(appId, appSecret);
-                //}
+                //全局只需注册一次 在公众号初始化时已经注册过了
+                //AccessTokenContainer.RegisterAsync(appId, appSecret);
+
                 var result = Senparc.Weixin.MP.CommonAPIs.CommonApi.GetToken(appId, appSecret);//AccessTokenContainer.GetTokenResult(appId);
 
                 //也可以直接一步到位：
                 //var result = AccessTokenContainer.TryGetAccessToken(appId, appSecret);
                 return Json(result, JsonRequestBehavior.AllowGet);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 //TODO:为简化代码，这里不处理异常（如Token过期）
-                return Json(new { error = "执行过程发生错误！" }, JsonRequestBehavior.AllowGet);
+                return Json(new { error = "执行过程发生错误！"+ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
 

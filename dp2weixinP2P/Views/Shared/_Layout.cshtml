@@ -41,7 +41,6 @@
                     <li><a href="~/Library/BookSubject">好书推荐</a></li>
                     <li><a href="~/Library/BB">公告</a></li>
                     <li><a href="~/Library/Home">图书馆介绍</a> </li>
-                    <li><a href="~/Patron/PatronRegister">读者注册</a></li>
                 </ul>
                 <div class="tiggle"></div>
                 <div class="innertiggle"></div>
@@ -56,8 +55,8 @@
                     <li><a href="~/Account/Index">绑定账号</a></li>
                     <li><a href="~/Account/ResetPassword">找回密码</a></li>
                     <li><a href="~/Patron/QRcode">二维码</a></li>
-                    <li><a href="~/Library/Message">我的消息</a></li>
-                    <li><a href="~/Patron/Setting">设置</a></li>
+                    <!--<li><a href="~/Library/Message">我的消息</a></li>-->
+                    <li><a href="~/Patron/PatronRegister">读者注册</a></li>
                 </ul>
                 <div class="tiggle"></div>
                 <div class="innertiggle"></div>
@@ -72,7 +71,8 @@
                     <li><a href="~/Library/Circulate">专业借还</a></li>
                     <li> <a href="~/Patron/PatronEdit">馆员登记读者</a></li>
                     <li><a href="~/Patron/PatronList">馆员审核读者</a></li>
-                    <li><a href="~/Library/dpHome">联系数字平台</a></li>
+                    <!--<li><a href="~/Library/dpHome">联系数字平台</a></li>-->
+                    <li><a href="~/Patron/Setting">设置</a></li>
                 </ul>
                 <div class="tiggle"></div>
                 <div class="innertiggle"></div>
@@ -89,195 +89,195 @@
         <!--部分页占位符 -->
 
 
-        @RenderBody()
+                    @RenderBody()
 
 
-        <script>
-            //弹出垂直菜单
-            $(".menu").click(function () {
-                if ($(this).hasClass("cura")) {
-                    $(this).children(".new-sub").hide(); //当前菜单下的二级菜单隐藏
-                    $(".menu").removeClass("cura"); //同一级的菜单项
-                } else {
-                    $(".menu").removeClass("cura"); //移除所有的样式
-                    $(this).addClass("cura"); //给当前菜单添加特定样式
-                    $(".menu").children(".new-sub").slideUp("fast"); //隐藏所有的二级菜单
-                    //class="bt-name"
-                    var menuText = $(this).children(".bt-name").html();
-                    if (menuText == "更多") {
-                        var dw = $(document).width();
-                        var myval = dw / 3 - 120;
-                        if (myval < 0) {
-                            //alert(myval);
-                            $(this).children(".new-sub").css("left", myval + "px");
+                    <script>
+                        //弹出垂直菜单
+                        $(".menu").click(function () {
+                            if ($(this).hasClass("cura")) {
+                                $(this).children(".new-sub").hide(); //当前菜单下的二级菜单隐藏
+                                $(".menu").removeClass("cura"); //同一级的菜单项
+                            } else {
+                                $(".menu").removeClass("cura"); //移除所有的样式
+                                $(this).addClass("cura"); //给当前菜单添加特定样式
+                                $(".menu").children(".new-sub").slideUp("fast"); //隐藏所有的二级菜单
+                                //class="bt-name"
+                                var menuText = $(this).children(".bt-name").html();
+                                if (menuText == "更多") {
+                                    var dw = $(document).width();
+                                    var myval = dw / 3 - 120;
+                                    if (myval < 0) {
+                                        //alert(myval);
+                                        $(this).children(".new-sub").css("left", myval + "px");
+                                    }
+                                }
+                                $(this).children(".new-sub").slideDown("fast"); //展示当前的二级菜单
+                            }
+                        });
+
+
+                        var browser = {
+                            versions: function () {
+                                var u = navigator.userAgent, app = navigator.appVersion;
+                                return {         //移动终端浏览器版本信息
+                                    trident: u.indexOf('Trident') > -1, //IE内核
+                                    presto: u.indexOf('Presto') > -1, //opera内核
+                                    webKit: u.indexOf('AppleWebKit') > -1, //苹果、谷歌内核
+                                    gecko: u.indexOf('Gecko') > -1 && u.indexOf('KHTML') == -1, //火狐内核
+                                    mobile: !!u.match(/AppleWebKit.*Mobile.*/), //是否为移动终端
+                                    ios: !!u.match("/\\(i[^;]+;( U;)? CPU.+Mac OS X/"), //ios终端
+                                    android: u.indexOf('Android') > -1 || u.indexOf('Linux') > -1, //android终端或uc浏览器
+                                    iPhone: u.indexOf('iPhone') > -1, //是否为iPhone或者QQHD浏览器
+                                    iPad: u.indexOf('iPad') > -1, //是否iPad
+                                    webApp: u.indexOf('Safari') == -1, //是否web应该程序，没有头部与底部
+                                    weixin: u.indexOf('MicroMessenger') > -1, //是否微信 （2015-01-22新增）
+                                    qq: u.match(/\\sQQ/i) == " qq" //是否QQ
+                                };
+                            }(),
+                            language: (navigator.browserLanguage || navigator.language).toLowerCase()
+                        };
+
+                        function doTopBottom() {
+                            window.setTimeout("showTopBottom()", 1);
                         }
-                    }
-                    $(this).children(".new-sub").slideDown("fast"); //展示当前的二级菜单
-                }
-            });
 
 
-            var browser = {
-                versions: function () {
-                    var u = navigator.userAgent, app = navigator.appVersion;
-                    return {         //移动终端浏览器版本信息
-                        trident: u.indexOf('Trident') > -1, //IE内核
-                        presto: u.indexOf('Presto') > -1, //opera内核
-                        webKit: u.indexOf('AppleWebKit') > -1, //苹果、谷歌内核
-                        gecko: u.indexOf('Gecko') > -1 && u.indexOf('KHTML') == -1, //火狐内核
-                        mobile: !!u.match(/AppleWebKit.*Mobile.*/), //是否为移动终端
-                        ios: !!u.match("/\\(i[^;]+;( U;)? CPU.+Mac OS X/"), //ios终端
-                        android: u.indexOf('Android') > -1 || u.indexOf('Linux') > -1, //android终端或uc浏览器
-                        iPhone: u.indexOf('iPhone') > -1, //是否为iPhone或者QQHD浏览器
-                        iPad: u.indexOf('iPad') > -1, //是否iPad
-                        webApp: u.indexOf('Safari') == -1, //是否web应该程序，没有头部与底部
-                        weixin: u.indexOf('MicroMessenger') > -1, //是否微信 （2015-01-22新增）
-                        qq: u.match(/\\sQQ/i) == " qq" //是否QQ
-                    };
-                }(),
-                language: (navigator.browserLanguage || navigator.language).toLowerCase()
-            };
+                        $(document).ready(function () {
+                            totalHeight = $(window).height();
+                            totalWidth = $(window).width();
 
-            function doTopBottom() {
-                window.setTimeout("showTopBottom()", 1);
-            }
+                            //$("#idTest").html("totalHeight=" + totalHeight + ";totalWidth=" + totalWidth);
 
+                            if (browser.versions.iPhone == true) {
+                                $("input").focus(function () {
+                                    setShowValue(false);
+                                    doTopBottom();
+                                });
+                                $("input").blur(function () {
+                                    setShowValue(true);
+                                    doTopBottom();
+                                });
 
-            $(document).ready(function () {
-                totalHeight = $(window).height();
-                totalWidth = $(window).width();
+                                $("select").focus(function () {
+                                    setShowValue(false);
+                                    doTopBottom();
+                                });
+                                $("select").blur(function () {
+                                    setShowValue(true);
+                                    doTopBottom();
+                                });
 
-                //$("#idTest").html("totalHeight=" + totalHeight + ";totalWidth=" + totalWidth);
+                                $("textarea").focus(function () {
+                                    setShowValue(false);
+                                    doTopBottom();
+                                });
+                                $("textarea").blur(function () {
+                                    setShowValue(true);
+                                    doTopBottom();
+                                });
 
-                if (browser.versions.iPhone == true) {
-                    $("input").focus(function () {
-                        setShowValue(false);
-                        doTopBottom();
-                    });
-                    $("input").blur(function () {
-                        setShowValue(true);
-                        doTopBottom();
-                    });
-
-                    $("select").focus(function () {
-                        setShowValue(false);
-                        doTopBottom();
-                    });
-                    $("select").blur(function () {
-                        setShowValue(true);
-                        doTopBottom();
-                    });
-
-                    $("textarea").focus(function () {
-                        setShowValue(false);
-                        doTopBottom();
-                    });
-                    $("textarea").blur(function () {
-                        setShowValue(true);
-                        doTopBottom();
-                    });
-
-                }
+                            }
 
 
-            });
+                        });
 
 
 
 
 
-            // 设置是否显示头尾参数的值，同时改变背景
-            function setShowValue(value) {
-                bShowTopBottom = value;
+                        // 设置是否显示头尾参数的值，同时改变背景
+                        function setShowValue(value) {
+                            bShowTopBottom = value;
 
-            };
+                        };
 
-            // 真正做事，隐藏或显示头尾菜单
-            var bShowTopBottom = true;
-            var totalHeight = 0;
-            var totalWidth = 0;
-            function showTopBottom() {
-                if (bShowTopBottom == true) {
+                        // 真正做事，隐藏或显示头尾菜单
+                        var bShowTopBottom = true;
+                        var totalHeight = 0;
+                        var totalWidth = 0;
+                        function showTopBottom() {
+                            if (bShowTopBottom == true) {
 
-                    // 把菜单位置设在最下方
-                    $("#divBottonTab").css('position', 'fixed');
-                    $("#divBottonTab").css('z-index', '3');
+                                // 把菜单位置设在最下方
+                                $("#divBottonTab").css('position', 'fixed');
+                                $("#divBottonTab").css('z-index', '3');
 
-                    var top = totalHeight - 40;//发现height会越变越小，真是奇怪？ $("#divBottonTab").height();//要用一进来的值，因为iphone会在头顶弹出防欺诈盗号类行 $(window).height()
-                    //if (top == 416)
-                    //    top = top - 40;
-                    $("#divBottonTab").css('top', top + 'px');
-                    //$("#idTest").html(totalHeight + "===" + $("#divBottonTab").height() +"==="+ top);
+                                var top = totalHeight - 40;//发现height会越变越小，真是奇怪？ $("#divBottonTab").height();//要用一进来的值，因为iphone会在头顶弹出防欺诈盗号类行 $(window).height()
+                                //if (top == 416)
+                                //    top = top - 40;
+                                $("#divBottonTab").css('top', top + 'px');
+                                //$("#idTest").html(totalHeight + "===" + $("#divBottonTab").height() +"==="+ top);
 
-                    $("#divBottonTab").css('display', 'block');
-                    $("#myheader").css('display', 'block');
-                }
-                else {
-                    $("#divBottonTab").css('display', 'none');
-                    $("#myheader").css('display', 'none');
+                                $("#divBottonTab").css('display', 'block');
+                                $("#myheader").css('display', 'block');
+                            }
+                            else {
+                                $("#divBottonTab").css('display', 'none');
+                                $("#myheader").css('display', 'none');
 
-                }
-            };
+                            }
+                        };
 
-            function gotoUrl(url) {           
-                var myUrl = getRootPath() + url;
-                window.location = myUrl;
-            };
+                        function gotoUrl(url) {
+                            var myUrl = getRootPath() + url;
+                            window.location = myUrl;
+                        };
 
-            function getLibId() {
-                return $("#_libId").text();
-            }
-
-
-            function gotoSetting() {
-                var thisUrl = window.location.pathname; //
-                //alert("[" + thisUrl + "]");
-                var url = "/Patron/SelectOwnerLib";//?returnUrl="+ encodeURIComponent("/Patron/SelectOwnerLib");//"/Patron/Setting?returnUrl=" + encodeURIComponent(thisUrl);
-                gotoUrl(url);
-            }
+                        function getLibId() {
+                            return $("#_libId").text();
+                        }
 
 
-
-
-            // 设置头尾菜单是否显示
-            function setShowTopButton() {
-                //
-                if (browser.versions.iPhone == true) {
-                    $("input").focus(function () {
-                        setShowValue(false);
-                        doTopBottom();
-                    });
-                    $("input").blur(function () {
-                        setShowValue(true);
-                        doTopBottom();
-                    });
-                    $("select").focus(function () {
-                        setShowValue(false);
-                        doTopBottom();
-                    });
-                    $("select").blur(function () {
-                        setShowValue(true);
-                        doTopBottom();
-                    });
-                    $("textarea").focus(function () {
-                        setShowValue(false);
-                        doTopBottom();
-                    });
-                    $("textarea").blur(function () {
-                        setShowValue(true);
-                        doTopBottom();
-                    });
-                }
-
-            }
+                        function gotoSetting() {
+                            var thisUrl = window.location.pathname; //
+                            //alert("[" + thisUrl + "]");
+                            var url = "/Patron/SelectOwnerLib";//?returnUrl="+ encodeURIComponent("/Patron/SelectOwnerLib");//"/Patron/Setting?returnUrl=" + encodeURIComponent(thisUrl);
+                            gotoUrl(url);
+                        }
 
 
 
-            // 微信js是否准备好了
-            var jssdkReady = 0;
+
+                        // 设置头尾菜单是否显示
+                        function setShowTopButton() {
+                            //
+                            if (browser.versions.iPhone == true) {
+                                $("input").focus(function () {
+                                    setShowValue(false);
+                                    doTopBottom();
+                                });
+                                $("input").blur(function () {
+                                    setShowValue(true);
+                                    doTopBottom();
+                                });
+                                $("select").focus(function () {
+                                    setShowValue(false);
+                                    doTopBottom();
+                                });
+                                $("select").blur(function () {
+                                    setShowValue(true);
+                                    doTopBottom();
+                                });
+                                $("textarea").focus(function () {
+                                    setShowValue(false);
+                                    doTopBottom();
+                                });
+                                $("textarea").blur(function () {
+                                    setShowValue(true);
+                                    doTopBottom();
+                                });
+                            }
+
+                        }
 
 
 
-        </script>
+                        // 微信js是否准备好了
+                        var jssdkReady = 0;
+
+
+
+                    </script>
 </body>
 </html>
