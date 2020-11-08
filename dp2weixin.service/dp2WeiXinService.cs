@@ -1105,14 +1105,17 @@ namespace dp2weixin.service
             LibModel libCfg= this._areaMgr.GetLibCfg(lib.id, libraryCode);
             if (libCfg !=null &&　string.IsNullOrEmpty(libCfg.noticedll) == false)
             {
-                nRet = this.TransNotice(strBody, libCfg.noticedll, out strError);
+                string tempInfo = "";
+
+                nRet = this.TransNotice(strBody, libCfg.noticedll, out  tempInfo,
+                    out strError);
                 if (nRet == -1)
                 {
-                    WriteErrorLog("向"+libCfg.noticedll+ "转发'"+strType+"'通知出错:" + strError);
+                    WriteErrorLog("向"+libCfg.noticedll+ "转发'"+strType+"'通知出错:" + strError+"["+tempInfo+"]");
                 }
                 else
                 {
-                    WriteDebug("向" + libCfg.noticedll + "转发'" + strType + "'通知成功。");
+                    WriteDebug("向" + libCfg.noticedll + "转发'" + strType + "'通知成功。["+tempInfo+"]");
                     //WriteDebug(strBody);
                 }
             }
@@ -3039,9 +3042,11 @@ namespace dp2weixin.service
         /// <returns></returns>
         public int TransNotice(string noticeXml,
             string assemblyName,
+            out string info,
             out string strError)
         {
             strError = "";
+            info = "";
             int nRet = 0;
             //string assemblyName = "LmxxReceiveNoticeInterface";
             if (string.IsNullOrEmpty(assemblyName) == true)
@@ -3064,6 +3069,7 @@ namespace dp2weixin.service
 
                 // 外部接口发送通知
                 nRet = external_interface.SendNotice(noticeXml,
+                    out info,
                     out strError);
                 if (nRet == -1)
                 {

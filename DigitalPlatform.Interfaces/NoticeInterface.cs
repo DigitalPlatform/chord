@@ -19,8 +19,10 @@ namespace DigitalPlatform.Interfaces
         /// -1 出错
         /// </returns>
         public virtual int SendNotice(string noticeXml,
+            out string info,
             out string strError)
         {
+            info = "";
             strError = "";
             return 0;
         }
