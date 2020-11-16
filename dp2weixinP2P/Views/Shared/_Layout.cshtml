@@ -30,6 +30,7 @@
         @RenderSection("header", required: false)
         <a class=" mui-icon mui-pull-right" href='javascript:void(0)' onclick='gotoSetting()' style="color:#cccccc"><span style="font-size:10pt" id="_libName">@ViewBag.LibName</span></a>
         <span id="_libId" style="display:none">@ViewBag.LibId</span>
+        <span  id="_patronTag" style="display: none">@ViewBag.isPatron</span>
     </header>
 
     <div class="btn3 clearfix" id="divBottonTab">
@@ -54,7 +55,7 @@
                     <li><a href="~/Patron/PersonalInfo">我的信息</a></li>
                     <li><a href="~/Account/Index">绑定账号</a></li>
                     <li><a href="~/Account/ResetPassword">找回密码</a></li>
-                    <li><a href="~/Patron/QRcode">二维码</a></li>
+                    <li ><a href="~/Patron/QRcode">二维码</a></li>
                     <!--<li><a href="~/Library/Message">我的消息</a></li>-->
                     <li><a href="~/Patron/PatronRegister">读者注册</a></li>
                 </ul>
@@ -69,8 +70,8 @@
                 <ul>
                     <li><a href="~/Library/Charge2">普通借还</a></li>
                     <li><a href="~/Library/Circulate">专业借还</a></li>
-                    <li> <a href="~/Patron/PatronEdit">馆员登记读者</a></li>
-                    <li><a href="~/Patron/PatronList">馆员审核读者</a></li>
+                    <li id="_menu33"> <a href="~/Patron/PatronEdit">馆员登记读者</a></li>
+                    <li id="_menu34"><a href="~/Patron/PatronList">馆员审核读者</a></li>
                     <!--<li><a href="~/Library/dpHome">联系数字平台</a></li>-->
                     <li><a href="~/Patron/Setting">设置</a></li>
                 </ul>
@@ -88,9 +89,7 @@
         <div id="mask-progressBar" style="display: none; ">数据处理中，请稍候...</div>
         <!--部分页占位符 -->
 
-
                     @RenderBody()
-
 
                     <script>
                         //弹出垂直菜单
@@ -144,6 +143,8 @@
 
 
                         $(document).ready(function () {
+
+
                             totalHeight = $(window).height();
                             totalWidth = $(window).width();
 
@@ -178,19 +179,41 @@
                                 });
 
                             }
+                            //_patronTag
+                            var isPatron = $("#_patronTag").text();
+                            //alert(isPatron);
+                            if (isPatron == "1") {
 
+                                // 馆员登记读者
+                                controlMenu("33", false);
+
+                                // 馆员审核读者
+                                controlMenu("34", false);
+                            }
 
                         });
-
-
-
-
 
                         // 设置是否显示头尾参数的值，同时改变背景
                         function setShowValue(value) {
                             bShowTopBottom = value;
-
+                            
                         };
+
+                        // 控制菜单是否显示
+                        function controlMenu(no, bView) {
+                            var name = "#_menu" + no;
+
+                            //alert("进入controlMenu,传入的菜单名为:" + name);
+
+
+                            if (bView == true) {
+                                $(name).css('display', 'block');
+                            }
+                            else {
+                                $(name).css('display', 'none');
+                            }
+                        }
+
 
                         // 真正做事，隐藏或显示头尾菜单
                         var bShowTopBottom = true;

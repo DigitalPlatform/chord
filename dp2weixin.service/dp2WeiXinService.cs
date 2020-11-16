@@ -3054,7 +3054,6 @@ namespace dp2weixin.service
                 strError = "assemblyName参数不能为空";
                 return -1;
             }
-
             try
             {
                 NoticeInterface external_interface = null;
@@ -3234,7 +3233,7 @@ namespace dp2weixin.service
 
         #endregion
 
-            #region 检查不在线图书馆
+        #region 检查不在线图书馆
 
         public const string C_State_Expire = "到期";
 
@@ -3722,7 +3721,7 @@ namespace dp2weixin.service
             if (bNeedWorker == true)
             {
                 name = "工作人员";
-                action = "使用";
+                action = "进行";
             }
 
             string partInfo = "不是" + name + "账户";
