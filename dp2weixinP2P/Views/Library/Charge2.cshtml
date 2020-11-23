@@ -305,7 +305,9 @@
                                 // alert(code);
                                 var left = code.substring(0, code.indexOf(","))
                                 var right = code.substring(code.indexOf(",") + 1)
-                                if (left != "EAN_13" && left != "CODE_39" && left != "CODE_128") //20181012 增加识别CODE_128码
+                                // 2020/11/23 合肥56中史老师用CODABAR编码方式打印的条码
+                                if (left != "EAN_13" && left != "CODE_39"
+                                    && left != "CODE_128" && left != "CODABAR") //20181012 增加识别CODE_128码
                                 {
                                     // 扫描的册条码不对了，提示一下，允许继续输入
                                     warn("扫描结果["+code+"]不是册条码或者ISBN号", C_next_receiveBarcode);
