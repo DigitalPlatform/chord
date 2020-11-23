@@ -323,7 +323,7 @@
                             if (code.indexOf(",") != -1) {
                                 var left = code.substring(0, code.indexOf(","))
                                 var right = code.substring(code.indexOf(",") + 1)
-                                if (left == "CODE_39" || left == "CODE_128") //20181012 增加识别CODE_128码
+                                if (left == "CODE_39" || left == "CODE_128" || left == "CODABAR") //20181012 增加识别CODE_128码
                                 {
                                     setBarcode(right);
                                 }
