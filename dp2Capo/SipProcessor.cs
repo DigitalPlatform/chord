@@ -95,7 +95,7 @@ namespace dp2Capo
             string strRequest = encoding.GetString(e.Request);
 
             // 2020/8/18
-            strRequest = strRequest.TrimEnd(new char[] { '\r', '\n'});
+            strRequest = strRequest.TrimEnd(new char[] { '\r', '\n' });
 
             string strMessageIdentifiers = strRequest.Substring(0, 2);
 
@@ -460,7 +460,7 @@ namespace dp2Capo
                 instance.MessageConnection.ReturnChannel(library_channel);
             }
 
-            ERROR1:
+        ERROR1:
             sip_channel.LocationCode = "";
             sip_channel.InstanceName = "";
             sip_channel.UserName = "";
@@ -565,7 +565,7 @@ namespace dp2Capo
             info.LibraryChannel = info.Instance.MessageConnection.GetChannel(login_info);
 
             return info;
-            ERROR1:
+        ERROR1:
             info.ErrorInfo = strError;
             return info;
         }
@@ -758,7 +758,7 @@ namespace dp2Capo
                 EndFunction(info);
             }
 
-            ERROR1:
+        ERROR1:
             sip_channel.LocationCode = "";
             sip_channel.UserName = "";
             sip_channel.Password = "";
@@ -931,7 +931,7 @@ namespace dp2Capo
                 EndFunction(info);
             }
 
-            ERROR1:
+        ERROR1:
             response.AF_ScreenMessage_o = strError;
             return response.ToText();
         }
@@ -1000,7 +1000,7 @@ namespace dp2Capo
                 response.AB_ItemIdentifier_r = strItemIdentifier;
                 string strItemXml = "";
                 string strBiblio = "";
-                REDO:
+            REDO:
                 long lRet = info.LibraryChannel.GetItemInfo(
                     strItemIdentifier,
                     "xml",
@@ -1036,6 +1036,15 @@ namespace dp2Capo
                 }
                 else if (1 == lRet)
                 {
+                    string dateFormat = info.Instance.sip_host.GetSipParam(sip_channel.UserName).DateFormat;
+
+                    if (GetItemInfoResponse(response,
+    strItemXml,
+    strBiblio,
+    dateFormat,
+    out strError) == -1)
+                        goto ERROR1;
+#if REMOVED
                     XmlDocument dom = new XmlDocument();
                     try
                     {
@@ -1114,6 +1123,8 @@ namespace dp2Capo
                         LibraryManager.Log?.Error(ExceptionUtil.GetDebugText(ex));
                         goto ERROR1;
                     }
+
+#endif
                 }
 
                 return response.ToText();
@@ -1129,10 +1140,137 @@ namespace dp2Capo
                 EndFunction(info);
             }
 
-            ERROR1:
+        ERROR1:
             LibraryManager.Log?.Info("ItemInfo() error: " + strError);
             response.AF_ScreenMessage_o = strError;
             return response.ToText();
+        }
+
+        // 构造 ItemInfo 响应
+        static int GetItemInfoResponse(ItemInformationResponse_18 response,
+            string strItemXml,
+            string strBiblio,
+            string dateFormat,
+            out string strError)
+        {
+            strError = "";
+
+            XmlDocument dom = new XmlDocument();
+            try
+            {
+                dom.LoadXml(strItemXml);
+
+                // 2020/12/8
+                // 取记录中真实的册条码号。可能和检索发起的号码不同
+                string strItemIdentifier = DomUtil.GetElementText(dom.DocumentElement, "barcode");
+                if (string.IsNullOrEmpty(strItemIdentifier))
+                {
+                    strItemIdentifier = DomUtil.GetElementText(dom.DocumentElement, "refID");
+                    if (string.IsNullOrEmpty(strItemIdentifier) == false)
+                        strItemIdentifier = "@refID:" + strItemIdentifier;
+                }
+
+                string strItemState = DomUtil.GetElementText(dom.DocumentElement, "state");
+                if (String.IsNullOrEmpty(strItemState))
+                {
+                    string strBorrower = DomUtil.GetElementText(dom.DocumentElement, "borrower");
+                    response.CirculationStatus_2 = String.IsNullOrEmpty(strBorrower) ? "03" : "04";
+
+                    XmlNodeList reservations = dom.DocumentElement.SelectNodes("reservations/request");
+                    if (reservations != null)
+                    {
+                        response.CF_HoldQueueLength_o = reservations.Count.ToString();
+
+                        if (reservations.Count > 0)
+                            response.CirculationStatus_2 = "08"; // 预约保留架 ??                               
+                    }
+                }
+                else
+                {
+                    if (StringUtil.IsInList("丢失", strItemState))
+                        response.CirculationStatus_2 = "12";
+                }
+
+                // 永久位置
+                // permanent location	AQ	可选	 图书永久馆藏地。
+                response.AQ_PermanentLocation_o = DomUtil.GetElementText(dom.DocumentElement, "location");
+
+                // current location	AP	可选	 图书当前馆藏地。
+                string currentLocation = DomUtil.GetElementText(dom.DocumentElement, "currentLocation");
+                string currentShelfNo = "";
+                if (currentLocation != null && currentLocation.Contains(":"))
+                {
+                    var parts = StringUtil.ParseTwoPart(currentLocation, ":");
+                    currentLocation = parts[0];
+                    currentShelfNo = parts[1];
+                }
+                if (string.IsNullOrEmpty(currentLocation) == false)
+                    response.AP_CurrentLocation_o = currentLocation;
+
+                // current shelf no	KP	可选	当前架位号，dp2扩展字段。
+                if (string.IsNullOrEmpty(currentShelfNo) == false)
+                    response.KP_CurrentShelfNo_o = currentShelfNo;
+
+                // permanent shelf no	KQ	可选 	永久架位号，dp2扩展字段。
+                response.KQ_PermanentShelfNo_o = DomUtil.GetElementText(dom.DocumentElement, "shelfNo");
+
+                // 2018/12/25 根据设备厂家的建议，用CH字段存放索取号
+                // response.CH_ItemProperties_o = DomUtil.GetElementText(dom.DocumentElement, "accessNo");
+                // 2020/12/8 改用 KC 返回索取号
+                response.KC_CallNo_o = DomUtil.GetElementText(dom.DocumentElement, "accessNo");
+
+                // 2020/12/8 Owner Institution
+                response.BG_Owner_o = DomUtil.GetElementText(dom.DocumentElement, "oi");
+
+                string strBorrowDate = DomUtil.GetElementText(dom.DocumentElement, "borrowDate");
+                if (!String.IsNullOrEmpty(strBorrowDate))
+                {
+                    strBorrowDate = DateTimeUtil.Rfc1123DateTimeStringToLocal(strBorrowDate, "yyyyMMdd    HHmmss");
+                    response.CM_HoldPickupDate_18 = strBorrowDate;
+                }
+
+                string strReturningDate = DomUtil.GetElementText(dom.DocumentElement, "returningDate");
+                if (!String.IsNullOrEmpty(strReturningDate))
+                {
+                    strReturningDate = DateTimeUtil.Rfc1123DateTimeStringToLocal(strReturningDate,
+                        dateFormat /*info.Instance.sip_host.GetSipParam(sip_channel.UserName).DateFormat*/);
+                    response.AH_DueDate_o = strReturningDate;
+                }
+
+                string strMarcSyntax = "";
+                MarcRecord record = MarcXml2MarcRecord(strBiblio, out strMarcSyntax, out strError);
+                if (record != null)
+                {
+                    if (strMarcSyntax == "unimarc")
+                    {
+                        // strISBN = record.select("field[@name='010']/subfield[@name='a']").FirstContent;
+                        response.AJ_TitleIdentifier_r = record.select("field[@name='200']/subfield[@name='a']").FirstContent;
+                        // strAuthor = record.select("field[@name='200']/subfield[@name='f']").FirstContent;
+                    }
+                    else if (strMarcSyntax == "usmarc")
+                    {
+                        // strISBN = record.select("field[@name='020']/subfield[@name='a']").FirstContent;
+                        response.AJ_TitleIdentifier_r = record.select("field[@name='245']/subfield[@name='a']").FirstContent;
+                        // strAuthor = record.select("field[@name='245']/subfield[@name='c']").FirstContent;
+                    }
+                }
+                else
+                {
+                    strError = "图书信息解析错误:" + strError;
+                    LibraryManager.Log?.Error(strError);
+
+                    response.AF_ScreenMessage_o = strError;
+                    response.AG_PrintLine_o = strError;
+                }
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                strError = $"册记录 XML 解析出现异常: {ex.Message}";
+                LibraryManager.Log?.Error(ExceptionUtil.GetDebugText(ex));
+                return -1;
+            }
         }
 
         /// <summary>
@@ -1300,7 +1438,7 @@ namespace dp2Capo
                 EndFunction(info);
             }
 
-            ERROR1:
+        ERROR1:
             LibraryManager.Log?.Info("Renew() error: " + strError);
             response.AF_ScreenMessage_o = strError;
             return response.ToText();
@@ -1545,7 +1683,7 @@ namespace dp2Capo
                 EndFunction(info);
             }
 
-            ERROR1:
+        ERROR1:
             LibraryManager.Log?.Info("Amerce() error: " + strError);
             response.AF_ScreenMessage_o = strError;
             response.AG_PrintLine_o = strError;
@@ -1726,7 +1864,7 @@ namespace dp2Capo
                         if (string.IsNullOrEmpty(strItemBarcode))
                             continue;
 
-                        
+
                         // 2018/12/25 ryh 如果是@refID:开头，尝试获取对应的索取号
                         if (strItemBarcode.IndexOf("@refID:") != -1)
                         {
@@ -1864,7 +2002,7 @@ namespace dp2Capo
                 EndFunction(info);
             }
 
-            ERROR1:
+        ERROR1:
             LibraryManager.Log?.Info("PatronInfo() error: " + strError);
             response.AF_ScreenMessage_o = strError;
             response.AG_PrintLine_o = strError;
@@ -2238,7 +2376,7 @@ namespace dp2Capo
                 EndFunction(info);
             }
 
-            ERROR1:
+        ERROR1:
             sb.Append("|XK").Append(strOperation).Append("|OK0").Append("|AF").Append(strMsg).Append("|AG").Append(strMsg);
             strBackMsg = sb.ToString();
             return strBackMsg;
@@ -2324,7 +2462,7 @@ namespace dp2Capo
                 EndFunction(info);
             }
 
-            ERROR1:
+        ERROR1:
             // TODO: 这里返回错误的做法需要确认一下
             sb.Append("|OK").Append(0.ToString());
             sb.Append("|AF").Append(strError).Append("|AG").Append(strError);
@@ -2438,7 +2576,7 @@ namespace dp2Capo
             }
 
             return nRet;
-            UNDO:
+        UNDO:
             lRet = DeleteReader(library_channel, strRecPath, baTimestamp, out strError);
             if (lRet == -1)
                 strError = "办证过程中交费发生错误（回滚失败）：" + strError;
@@ -2528,7 +2666,7 @@ namespace dp2Capo
                 EndFunction(info);
             }
 
-            ERROR1:
+        ERROR1:
             sb.Append("|XK").Append(strOperation).Append("|OK0");
             return sb.ToString();
         }
@@ -2651,7 +2789,7 @@ namespace dp2Capo
             {
                 EndFunction(info);
             }
-            ERROR1:
+        ERROR1:
             {
                 response.AF_ScreenMessage_o = strError;
                 return response.ToText();
