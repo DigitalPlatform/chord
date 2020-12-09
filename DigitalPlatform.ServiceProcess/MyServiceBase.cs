@@ -41,7 +41,7 @@ namespace DigitalPlatform.ServiceProcess
             EventLog Log = new EventLog();
             Debug.Assert(string.IsNullOrEmpty(ServiceShortName) == false, "");
             Log.Source = ServiceShortName;
-            Log.WriteEntry(strText, type);
+            //Log.WriteEntry(strText, type);
         }
 
         static ConfigSetting _config = null;
