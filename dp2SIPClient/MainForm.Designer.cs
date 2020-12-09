@@ -227,6 +227,18 @@
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.button_getItemInfo = new System.Windows.Forms.Button();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
+            this.groupBox7 = new System.Windows.Forms.GroupBox();
+            this.button_19_submit = new System.Windows.Forms.Button();
+            this.textBox_19_AQ = new System.Windows.Forms.TextBox();
+            this.label77 = new System.Windows.Forms.Label();
+            this.textBox_19_AP = new System.Windows.Forms.TextBox();
+            this.label78 = new System.Windows.Forms.Label();
+            this.textBox_19_KP = new System.Windows.Forms.TextBox();
+            this.label79 = new System.Windows.Forms.Label();
+            this.textBox_19_KQ = new System.Windows.Forms.TextBox();
+            this.label80 = new System.Windows.Forms.Label();
+            this.textBox_19_HS = new System.Windows.Forms.TextBox();
+            this.label81 = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -250,6 +262,7 @@
             this.groupBox2.SuspendLayout();
             this.groupBox6.SuspendLayout();
             this.groupBox1.SuspendLayout();
+            this.groupBox7.SuspendLayout();
             this.SuspendLayout();
             // 
             // txtMsg
@@ -461,7 +474,7 @@
             this.tabPage_Login93.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage_Login93.Name = "tabPage_Login93";
             this.tabPage_Login93.Padding = new System.Windows.Forms.Padding(2);
-            this.tabPage_Login93.Size = new System.Drawing.Size(596, 801);
+            this.tabPage_Login93.Size = new System.Drawing.Size(766, 801);
             this.tabPage_Login93.TabIndex = 0;
             this.tabPage_Login93.Text = "Login93";
             this.tabPage_Login93.UseVisualStyleBackColor = true;
@@ -568,7 +581,7 @@
             this.tabPage_SCStatus99.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage_SCStatus99.Name = "tabPage_SCStatus99";
             this.tabPage_SCStatus99.Padding = new System.Windows.Forms.Padding(2);
-            this.tabPage_SCStatus99.Size = new System.Drawing.Size(616, 801);
+            this.tabPage_SCStatus99.Size = new System.Drawing.Size(766, 801);
             this.tabPage_SCStatus99.TabIndex = 1;
             this.tabPage_SCStatus99.Text = "SCStatus99";
             this.tabPage_SCStatus99.UseVisualStyleBackColor = true;
@@ -656,7 +669,7 @@
             this.tabPage_Checkout11.Location = new System.Drawing.Point(4, 28);
             this.tabPage_Checkout11.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage_Checkout11.Name = "tabPage_Checkout11";
-            this.tabPage_Checkout11.Size = new System.Drawing.Size(616, 801);
+            this.tabPage_Checkout11.Size = new System.Drawing.Size(766, 801);
             this.tabPage_Checkout11.TabIndex = 2;
             this.tabPage_Checkout11.Text = "Checkout11";
             this.tabPage_Checkout11.UseVisualStyleBackColor = true;
@@ -900,7 +913,7 @@
             this.tabPage_Checkin09.Location = new System.Drawing.Point(4, 28);
             this.tabPage_Checkin09.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage_Checkin09.Name = "tabPage_Checkin09";
-            this.tabPage_Checkin09.Size = new System.Drawing.Size(616, 801);
+            this.tabPage_Checkin09.Size = new System.Drawing.Size(766, 801);
             this.tabPage_Checkin09.TabIndex = 3;
             this.tabPage_Checkin09.Text = "Checkin09";
             this.tabPage_Checkin09.UseVisualStyleBackColor = true;
@@ -1090,7 +1103,7 @@
             this.tabPage_PatronInformation63.Location = new System.Drawing.Point(4, 28);
             this.tabPage_PatronInformation63.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage_PatronInformation63.Name = "tabPage_PatronInformation63";
-            this.tabPage_PatronInformation63.Size = new System.Drawing.Size(616, 801);
+            this.tabPage_PatronInformation63.Size = new System.Drawing.Size(766, 801);
             this.tabPage_PatronInformation63.TabIndex = 4;
             this.tabPage_PatronInformation63.Text = "PatronInformation63";
             this.tabPage_PatronInformation63.UseVisualStyleBackColor = true;
@@ -1270,7 +1283,7 @@
             this.tabPage_ItemInformation17.Location = new System.Drawing.Point(4, 28);
             this.tabPage_ItemInformation17.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage_ItemInformation17.Name = "tabPage_ItemInformation17";
-            this.tabPage_ItemInformation17.Size = new System.Drawing.Size(616, 801);
+            this.tabPage_ItemInformation17.Size = new System.Drawing.Size(766, 801);
             this.tabPage_ItemInformation17.TabIndex = 6;
             this.tabPage_ItemInformation17.Text = "ItemInformation17";
             this.tabPage_ItemInformation17.UseVisualStyleBackColor = true;
@@ -1376,7 +1389,7 @@
             this.tabPage_Renew29.Location = new System.Drawing.Point(4, 28);
             this.tabPage_Renew29.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage_Renew29.Name = "tabPage_Renew29";
-            this.tabPage_Renew29.Size = new System.Drawing.Size(616, 801);
+            this.tabPage_Renew29.Size = new System.Drawing.Size(766, 801);
             this.tabPage_Renew29.TabIndex = 7;
             this.tabPage_Renew29.Text = "Renew29";
             this.tabPage_Renew29.UseVisualStyleBackColor = true;
@@ -1602,7 +1615,7 @@
             this.tabPage_EndPatronSession35.Location = new System.Drawing.Point(4, 28);
             this.tabPage_EndPatronSession35.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage_EndPatronSession35.Name = "tabPage_EndPatronSession35";
-            this.tabPage_EndPatronSession35.Size = new System.Drawing.Size(616, 801);
+            this.tabPage_EndPatronSession35.Size = new System.Drawing.Size(766, 801);
             this.tabPage_EndPatronSession35.TabIndex = 5;
             this.tabPage_EndPatronSession35.Text = "EndPatronSession35";
             this.tabPage_EndPatronSession35.UseVisualStyleBackColor = true;
@@ -1634,7 +1647,7 @@
             this.tabPage_FeePaid37.Location = new System.Drawing.Point(4, 28);
             this.tabPage_FeePaid37.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.tabPage_FeePaid37.Name = "tabPage_FeePaid37";
-            this.tabPage_FeePaid37.Size = new System.Drawing.Size(616, 801);
+            this.tabPage_FeePaid37.Size = new System.Drawing.Size(766, 801);
             this.tabPage_FeePaid37.TabIndex = 8;
             this.tabPage_FeePaid37.Text = "FeePaid37";
             this.tabPage_FeePaid37.UseVisualStyleBackColor = true;
@@ -1840,6 +1853,7 @@
             // tabPage_function
             // 
             this.tabPage_function.AutoScroll = true;
+            this.tabPage_function.Controls.Add(this.groupBox7);
             this.tabPage_function.Controls.Add(this.groupBox5);
             this.tabPage_function.Controls.Add(this.groupBox4);
             this.tabPage_function.Controls.Add(this.label73);
@@ -1999,12 +2013,12 @@
             // 
             this.textBox_barcodes.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox_barcodes.Location = new System.Drawing.Point(6, 234);
+            this.textBox_barcodes.Location = new System.Drawing.Point(9, 235);
             this.textBox_barcodes.Margin = new System.Windows.Forms.Padding(4);
             this.textBox_barcodes.Multiline = true;
             this.textBox_barcodes.Name = "textBox_barcodes";
             this.textBox_barcodes.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textBox_barcodes.Size = new System.Drawing.Size(1134, 62);
+            this.textBox_barcodes.Size = new System.Drawing.Size(733, 62);
             this.textBox_barcodes.TabIndex = 3;
             // 
             // groupBox3
@@ -2293,6 +2307,129 @@
             this.webBrowser1.Size = new System.Drawing.Size(419, 868);
             this.webBrowser1.TabIndex = 1;
             // 
+            // groupBox7
+            // 
+            this.groupBox7.Controls.Add(this.textBox_19_HS);
+            this.groupBox7.Controls.Add(this.label81);
+            this.groupBox7.Controls.Add(this.textBox_19_KP);
+            this.groupBox7.Controls.Add(this.label79);
+            this.groupBox7.Controls.Add(this.textBox_19_KQ);
+            this.groupBox7.Controls.Add(this.label80);
+            this.groupBox7.Controls.Add(this.textBox_19_AP);
+            this.groupBox7.Controls.Add(this.label78);
+            this.groupBox7.Controls.Add(this.button_19_submit);
+            this.groupBox7.Controls.Add(this.textBox_19_AQ);
+            this.groupBox7.Controls.Add(this.label77);
+            this.groupBox7.Location = new System.Drawing.Point(443, 304);
+            this.groupBox7.Margin = new System.Windows.Forms.Padding(4);
+            this.groupBox7.Name = "groupBox7";
+            this.groupBox7.Padding = new System.Windows.Forms.Padding(4);
+            this.groupBox7.Size = new System.Drawing.Size(299, 253);
+            this.groupBox7.TabIndex = 6;
+            this.groupBox7.TabStop = false;
+            this.groupBox7.Text = "更新册";
+            // 
+            // button_19_submit
+            // 
+            this.button_19_submit.Location = new System.Drawing.Point(115, 217);
+            this.button_19_submit.Margin = new System.Windows.Forms.Padding(4);
+            this.button_19_submit.Name = "button_19_submit";
+            this.button_19_submit.Size = new System.Drawing.Size(112, 34);
+            this.button_19_submit.TabIndex = 2;
+            this.button_19_submit.Text = "更新";
+            this.button_19_submit.UseVisualStyleBackColor = true;
+            this.button_19_submit.Click += new System.EventHandler(this.button_19_submit_Click);
+            // 
+            // textBox_19_AQ
+            // 
+            this.textBox_19_AQ.Location = new System.Drawing.Point(115, 31);
+            this.textBox_19_AQ.Margin = new System.Windows.Forms.Padding(4);
+            this.textBox_19_AQ.Name = "textBox_19_AQ";
+            this.textBox_19_AQ.Size = new System.Drawing.Size(173, 28);
+            this.textBox_19_AQ.TabIndex = 6;
+            // 
+            // label77
+            // 
+            this.label77.AutoSize = true;
+            this.label77.Location = new System.Drawing.Point(8, 35);
+            this.label77.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label77.Name = "label77";
+            this.label77.Size = new System.Drawing.Size(98, 18);
+            this.label77.TabIndex = 6;
+            this.label77.Text = "永久馆藏地";
+            // 
+            // textBox_19_AP
+            // 
+            this.textBox_19_AP.Location = new System.Drawing.Point(115, 70);
+            this.textBox_19_AP.Margin = new System.Windows.Forms.Padding(4);
+            this.textBox_19_AP.Name = "textBox_19_AP";
+            this.textBox_19_AP.Size = new System.Drawing.Size(173, 28);
+            this.textBox_19_AP.TabIndex = 7;
+            // 
+            // label78
+            // 
+            this.label78.AutoSize = true;
+            this.label78.Location = new System.Drawing.Point(8, 74);
+            this.label78.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label78.Name = "label78";
+            this.label78.Size = new System.Drawing.Size(98, 18);
+            this.label78.TabIndex = 8;
+            this.label78.Text = "当前馆藏地";
+            // 
+            // textBox_19_KP
+            // 
+            this.textBox_19_KP.Location = new System.Drawing.Point(116, 145);
+            this.textBox_19_KP.Margin = new System.Windows.Forms.Padding(4);
+            this.textBox_19_KP.Name = "textBox_19_KP";
+            this.textBox_19_KP.Size = new System.Drawing.Size(173, 28);
+            this.textBox_19_KP.TabIndex = 11;
+            // 
+            // label79
+            // 
+            this.label79.AutoSize = true;
+            this.label79.Location = new System.Drawing.Point(9, 149);
+            this.label79.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label79.Name = "label79";
+            this.label79.Size = new System.Drawing.Size(80, 18);
+            this.label79.TabIndex = 12;
+            this.label79.Text = "当前架位";
+            // 
+            // textBox_19_KQ
+            // 
+            this.textBox_19_KQ.Location = new System.Drawing.Point(116, 106);
+            this.textBox_19_KQ.Margin = new System.Windows.Forms.Padding(4);
+            this.textBox_19_KQ.Name = "textBox_19_KQ";
+            this.textBox_19_KQ.Size = new System.Drawing.Size(173, 28);
+            this.textBox_19_KQ.TabIndex = 9;
+            // 
+            // label80
+            // 
+            this.label80.AutoSize = true;
+            this.label80.Location = new System.Drawing.Point(9, 110);
+            this.label80.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label80.Name = "label80";
+            this.label80.Size = new System.Drawing.Size(80, 18);
+            this.label80.TabIndex = 10;
+            this.label80.Text = "永久架位";
+            // 
+            // textBox_19_HS
+            // 
+            this.textBox_19_HS.Location = new System.Drawing.Point(115, 181);
+            this.textBox_19_HS.Margin = new System.Windows.Forms.Padding(4);
+            this.textBox_19_HS.Name = "textBox_19_HS";
+            this.textBox_19_HS.Size = new System.Drawing.Size(173, 28);
+            this.textBox_19_HS.TabIndex = 13;
+            // 
+            // label81
+            // 
+            this.label81.AutoSize = true;
+            this.label81.Location = new System.Drawing.Point(9, 181);
+            this.label81.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label81.Name = "label81";
+            this.label81.Size = new System.Drawing.Size(44, 18);
+            this.label81.TabIndex = 14;
+            this.label81.Text = "状态";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
@@ -2347,6 +2484,8 @@
             this.groupBox2.PerformLayout();
             this.groupBox6.ResumeLayout(false);
             this.groupBox1.ResumeLayout(false);
+            this.groupBox7.ResumeLayout(false);
+            this.groupBox7.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -2553,6 +2692,18 @@
         private System.Windows.Forms.WebBrowser webBrowser1;
         private System.Windows.Forms.ComboBox comboBox_encoding;
         private System.Windows.Forms.CheckBox checkBox_UrlEncode;
+        private System.Windows.Forms.GroupBox groupBox7;
+        private System.Windows.Forms.TextBox textBox_19_HS;
+        private System.Windows.Forms.Label label81;
+        private System.Windows.Forms.TextBox textBox_19_KP;
+        private System.Windows.Forms.Label label79;
+        private System.Windows.Forms.TextBox textBox_19_KQ;
+        private System.Windows.Forms.Label label80;
+        private System.Windows.Forms.TextBox textBox_19_AP;
+        private System.Windows.Forms.Label label78;
+        private System.Windows.Forms.Button button_19_submit;
+        private System.Windows.Forms.TextBox textBox_19_AQ;
+        private System.Windows.Forms.Label label77;
     }
 }
 

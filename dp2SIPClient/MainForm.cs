@@ -993,5 +993,80 @@ namespace dp2SIPClient
 
             return false;
         }
+
+        // 更新册
+        private void button_19_submit_Click(object sender, EventArgs e)
+        {
+            ItemStatusUpdate_19 request = new ItemStatusUpdate_19()
+            {
+                TransactionDate_18 = this.TransactionDate,
+
+                AO_InstitutionId_r = "dp2Library",
+                AC_TerminalPassword_o = "",
+                CH_ItemProperties_r = ""
+            };
+
+            string AQ = this.textBox_19_AQ.Text.Trim();  // 永久馆藏地
+            string AP = this.textBox_19_AP.Text.Trim();  // 当前馆藏地
+            string KQ=this.textBox_19_KQ.Text.Trim();  // 永久架位
+            string KP = this.textBox_19_KP.Text.Trim();// 当前架位
+            string HS = this.textBox_19_HS.Text.Trim();// 状态
+
+
+            string responseText = "";
+            string error = "";
+            string[] barcodes = this.textBox_barcodes.Text.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            int i = 0;
+            foreach (string barcode in barcodes)
+            {
+                this.Update();
+                Application.DoEvents();
+                Thread.Sleep(100);
+
+                // 册条码
+                request.AB_ItemIdentifier_r = barcode;
+
+                // 永久馆藏地 2020/12/9
+                if (string.IsNullOrEmpty(AQ) == false)
+                    request.AQ_PermanentLocation_o = AQ;
+
+                // 当前馆藏地 2020/12/9
+                if (string.IsNullOrEmpty(AP) == false)
+                    request.AP_CurrentLocation_o = AP;
+
+                // 永久架位 2020/12/9
+                if (string.IsNullOrEmpty(KQ) == false)
+                    request.KQ_PermanentShelfNo_o = KQ;
+
+                // 当前架位 2020/12/9
+                if (string.IsNullOrEmpty(KP) == false)
+                    request.KP_CurrentShelfNo_o = KP;
+
+                // 状态 2020/12/9
+                if (string.IsNullOrEmpty(HS) == false)
+                    request.HS_HoldingState_o = HS;
+
+
+                string cmdText = request.ToText();
+
+                this.Print("send:" + cmdText);
+                BaseMessage response = null;
+                int nRet = SCHelper.Instance.SendAndRecvMessage(cmdText,
+                    out response,
+                    out responseText,
+                    out error);
+                if (nRet == -1)
+                {
+                    MessageBox.Show(error);
+                    this.Print("error:" + error);
+                    return;
+                }
+
+                this.Print("recv:" + responseText);
+
+                this.button_getItemInfo.Text = "获取(" + (i + 1).ToString() + ")";
+                i++;
+            }
+        }
     }
 }
