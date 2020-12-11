@@ -126,6 +126,12 @@ namespace dp2Capo
                         strResponse = ItemInfo(sip_channel, strRequest);
                         break;
                     }
+                case "19":
+                    {
+
+                        strResponse = ItemStatusUpdate(sip_channel, strRequest);
+                        break;
+                    }
                 case "29":
                     {
                         strResponse = Renew(sip_channel, strRequest);
@@ -1272,6 +1278,281 @@ namespace dp2Capo
                 return -1;
             }
         }
+
+        static string ItemStatusUpdate(SipChannel sip_channel, string message)
+        {
+            int nRet = 0;
+            string strError = "";
+
+            ItemStatusUpdateResponse_20 response = new ItemStatusUpdateResponse_20()
+            {
+                ItemPropertiesOk_1 = "0",
+                //AB_ItemIdentifier_r = "",
+                //AJ_TitleIdentifier_o = "",
+                TransactionDate_18 = SIPUtility.NowDateTime,
+            };
+
+            ItemStatusUpdate_19 request = new ItemStatusUpdate_19();
+            try
+            {
+                nRet = request.parse(message, out strError);
+                if (-1 == nRet)
+                {
+                    response.AF_ScreenMessage_o = strError;
+                    response.AG_PrintLine_o = strError;
+                    goto ERROR1;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.AF_ScreenMessage_o = ex.Message;
+                LibraryManager.Log?.Error(ExceptionUtil.GetDebugText(ex));
+                goto ERROR1;
+            }
+
+            FunctionInfo info = BeginFunction(sip_channel);
+            if (string.IsNullOrEmpty(info.ErrorInfo) == false)
+            {
+                strError = info.ErrorInfo;
+                goto ERROR1;
+            }
+            try
+            {
+                string strItemIdentifier = request.AB_ItemIdentifier_r;
+                response.AB_ItemIdentifier_r = strItemIdentifier;
+                string strItemXml = "";
+                string strBiblio = "";
+
+            REDO:
+                long lRet = info.LibraryChannel.GetItemInfo(
+                    "item",
+                    strItemIdentifier,
+                    "",
+                    "xml",
+                    out strItemXml,
+                    out string item_recpath,
+                    out byte[] item_timestamp,
+                    "xml",
+                    out strBiblio,
+                    out string biblio_recpath,
+                    out strError);
+                if (-1 >= lRet)
+                {
+                    if (info.LibraryChannel.ErrorCode == ErrorCode.ChannelReleased)
+                        goto REDO;
+
+                    response.ItemPropertiesOk_1 = "0";
+
+                    strError = "获得'" + strItemIdentifier + "'发生错误: " + strError;
+                    response.AF_ScreenMessage_o = strError;
+                    response.AG_PrintLine_o = strError;
+                }
+                else if (0 == lRet)
+                {
+                    response.ItemPropertiesOk_1 = "0";
+
+                    strError = strItemIdentifier + " 记录不存在";
+                    response.AF_ScreenMessage_o = strError;
+                    response.AG_PrintLine_o = strError;
+                }
+                else if (1 < lRet)
+                {
+                    response.ItemPropertiesOk_1 = "0";
+                    strError = strItemIdentifier + " 记录重复，需馆员处理";
+                    response.AF_ScreenMessage_o = strError;
+                    response.AG_PrintLine_o = strError;
+                }
+                else if (1 == lRet)
+                {
+                    string dateFormat = info.Instance.sip_host.GetSipParam(sip_channel.UserName).DateFormat;
+
+                    if (GetItemStatusUpdateResponse(
+                        info,
+                        request,
+                        response,
+                        strItemXml,
+                        strBiblio,
+                        dateFormat,
+                        out strError) == -1)
+                        goto ERROR1;
+                }
+
+                return response.ToText();
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                LibraryManager.Log?.Error(ExceptionUtil.GetDebugText(ex));
+                goto ERROR1;
+            }
+            finally
+            {
+                EndFunction(info);
+            }
+
+        ERROR1:
+            LibraryManager.Log?.Info("ItemStatusUpdate() error: " + strError);
+            response.ItemPropertiesOk_1 = "0";
+            response.AF_ScreenMessage_o = strError;
+            return response.ToText();
+        }
+
+        static string _libraryServerVersion = "";
+
+        // 构造 ItemStatusUpdate 响应
+        static int GetItemStatusUpdateResponse(
+            FunctionInfo info,
+            ItemStatusUpdate_19 request,
+            ItemStatusUpdateResponse_20 response,
+            string strItemXml,
+            string strBiblio,
+            string dateFormat,
+            out string strError)
+        {
+            strError = "";
+            // response.ItemPropertiesOk_1 = "1";
+
+            XmlDocument dom = new XmlDocument();
+            try
+            {
+                dom.LoadXml(strItemXml);
+
+                // 2020/12/8
+                // 取记录中真实的册条码号。可能和检索发起的号码不同
+                string strItemIdentifier = DomUtil.GetElementText(dom.DocumentElement, "barcode");
+                if (string.IsNullOrEmpty(strItemIdentifier))
+                {
+                    strItemIdentifier = DomUtil.GetElementText(dom.DocumentElement, "refID");
+                    if (string.IsNullOrEmpty(strItemIdentifier) == false)
+                        strItemIdentifier = "@refID:" + strItemIdentifier;
+                }
+                response.AB_ItemIdentifier_r = strItemIdentifier;
+
+                string formats = "";    // "item,biblio";
+
+                // currentLocation 元素内容。格式为 馆藏地:架号
+                // 注意馆藏地和架号字符串里面不应包含逗号和冒号
+                List<string> commands = new List<string>();
+
+                // currentLocationLong 由 currentLocation 和 currentShelfNo 合成
+                string currentLocationLong = null;
+                if (request.AP_CurrentLocation_o != null
+                    || request.KP_CurrentShelfNo_o != null)
+                {
+                    if (request.AP_CurrentLocation_o != null)
+                        currentLocationLong = request.AP_CurrentLocation_o;
+                    else
+                        currentLocationLong = "*";
+                    if (request.KP_CurrentShelfNo_o != null)
+                        currentLocationLong += ":" + request.KP_CurrentShelfNo_o;
+                    else
+                        currentLocationLong += ":*";
+                }
+
+                if (currentLocationLong != null)
+                {
+                    // 如果 currentLocationLong 包含星号，要检查 dp2library 版本是否为 3.40 以上
+                    if (currentLocationLong.Contains("*"))
+                    {
+                        if (string.IsNullOrEmpty(_libraryServerVersion))
+                        {
+                            long lRet = info.LibraryChannel.GetVersion(
+    out string version,
+    out string uid,
+    out strError);
+                            if (lRet == -1)
+                            {
+                                strError = $"检查 dp2library 服务器版本号时出错: {strError}";
+                                return -1;
+                            }
+                            _libraryServerVersion = version;
+                        }
+
+                        string base_version = "3.40";
+                        if (StringUtil.CompareVersion(_libraryServerVersion, base_version) < 0)
+                        {
+                            strError = $"dp2Capo 和 dp2Library { base_version} 或以上版本配套使用 (而当前 dp2Library 版本号为 { _libraryServerVersion }。请尽快升级 dp2Library 到最新版本";
+                            return 0;
+                        }
+                    }
+
+                    commands.Add($"currentLocation:{StringUtil.EscapeString(currentLocationLong, ":,")}");
+                }
+
+                if (request.AQ_PermanentLocation_o != null)
+                    commands.Add($"location:{StringUtil.EscapeString(request.AQ_PermanentLocation_o, ":,")}");
+                if (request.KQ_PermanentShelfNo_o != null)
+                    commands.Add($"shelfNo:{StringUtil.EscapeString(request.KQ_PermanentShelfNo_o, ":,")}");
+                /*
+                if (string.IsNullOrEmpty(info.BatchNo) == false)
+                {
+                    commands.Add($"batchNo:{StringUtil.EscapeString(info.BatchNo, ":,")}");
+                    // 2020/10/14
+                    // 即便册记录没有发生修改，也要产生 transfer 操作日志记录。这样便于进行典藏移交清单统计打印
+                    commands.Add("forceLog");
+                }
+                */
+                string style = $"{formats},{StringUtil.MakePathList(commands, ",")}"; // style,
+
+                {
+                    // 修改册记录，然后保存回去
+                    long lRet = info.LibraryChannel.Return(
+                        "transfer",
+                        "",
+                        strItemIdentifier,
+                        "", // strConfirmItemRecPath,
+                        false,
+                        style,
+                        "",
+                        out string[] item_records,
+                        "",
+                        out string[] patron_records,
+                        "",
+                        out string[] biblio_records,
+                        out string[] dup_path,
+                        out string output_readerBarcode,
+                        out DigitalPlatform.LibraryClient.localhost.ReturnInfo return_info,
+                        out strError);
+                    if (lRet == -1)
+                        return -1;
+                }
+
+                string strMarcSyntax = "";
+                MarcRecord record = MarcXml2MarcRecord(strBiblio, out strMarcSyntax, out strError);
+                if (record != null)
+                {
+                    if (strMarcSyntax == "unimarc")
+                    {
+                        // strISBN = record.select("field[@name='010']/subfield[@name='a']").FirstContent;
+                        response.AJ_TitleIdentifier_o = record.select("field[@name='200']/subfield[@name='a']").FirstContent;
+                        // strAuthor = record.select("field[@name='200']/subfield[@name='f']").FirstContent;
+                    }
+                    else if (strMarcSyntax == "usmarc")
+                    {
+                        // strISBN = record.select("field[@name='020']/subfield[@name='a']").FirstContent;
+                        response.AJ_TitleIdentifier_o = record.select("field[@name='245']/subfield[@name='a']").FirstContent;
+                        // strAuthor = record.select("field[@name='245']/subfield[@name='c']").FirstContent;
+                    }
+                }
+                else
+                {
+                    strError = "图书信息解析错误:" + strError;
+                    LibraryManager.Log?.Error(strError);
+
+                    response.AF_ScreenMessage_o = strError;
+                    response.AG_PrintLine_o = strError;
+                }
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                strError = $"册记录 XML 解析出现异常: {ex.Message}";
+                LibraryManager.Log?.Error(ExceptionUtil.GetDebugText(ex));
+                return -1;
+            }
+        }
+
 
         /// <summary>
         /// 续借
