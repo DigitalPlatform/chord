@@ -1513,7 +1513,8 @@ namespace dp2Capo
                         out string output_readerBarcode,
                         out DigitalPlatform.LibraryClient.localhost.ReturnInfo return_info,
                         out strError);
-                    if (lRet == -1)
+                    if (lRet == -1 
+                        && info.LibraryChannel.ErrorCode != ErrorCode.NotChanged)
                         return -1;
                 }
 
