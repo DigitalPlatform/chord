@@ -4096,7 +4096,8 @@ ErrorInfo成员里可能会有报错信息。
             SimplePatron patron,
             bool checkNull,
              bool bWorker,
-            out string patronXml,
+             bool bReviewPass,   // 2020/12/23 增加是否是审核通过，如果是的话，设置办证日期
+            out string patronXml,   
             out string timestamp,
             out string strError)
         {
@@ -4206,6 +4207,13 @@ ErrorInfo成员里可能会有报错信息。
                 string thisComment = this.GetFullComment(patron.comment, bWorker);
 
                 DomUtil.SetNodeText(commentNode, oldComment + "\r\n" + thisComment);
+            }
+
+            // 2020/12/23 增加通过
+            if (bReviewPass == true)
+            {
+                string strCreateDate = DateTimeUtil.Rfc1123DateTimeString(DateTime.Now);// GetRfc1123DisplayString(
+                DomUtil.SetElementText(root, "createDate", strCreateDate);
             }
 
             StringWriter textWrite = new StringWriter();
@@ -4320,6 +4328,8 @@ ErrorInfo成员里可能会有报错信息。
             userItem2 = null;
             int nRet = 0;
 
+            bool bReviewPass = false;
+
             //===
             //将前端传的操作类型转换为dp2可以识别的action
             string action = "";
@@ -4333,6 +4343,7 @@ ErrorInfo成员里可能会有报错信息。
                     break;
                 case C_OpeType_reviewPass:
                     action = C_Action_change;
+                    bReviewPass = true;
                     break;
                 case C_OpeType_reviewNopass:
                     action = C_Action_changestate;
@@ -4420,6 +4431,7 @@ ErrorInfo成员里可能会有报错信息。
                     patron,
                     bCheckNull,
                     bWorker,
+                    bReviewPass,
                     out patronXml,
                     out timestamp,
                     out strError);
