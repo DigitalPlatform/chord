@@ -1394,6 +1394,7 @@ namespace dp2Capo
             LibraryManager.Log?.Info("ItemStatusUpdate() error: " + strError);
             response.ItemPropertiesOk_1 = "0";
             response.AF_ScreenMessage_o = strError;
+            response.AG_PrintLine_o = strError;
             return response.ToText();
         }
 
@@ -1412,17 +1413,47 @@ namespace dp2Capo
             strError = "";
             // response.ItemPropertiesOk_1 = "1";
 
-            XmlDocument dom = new XmlDocument();
             try
             {
-                dom.LoadXml(strItemXml);
+                // 获得图书标题
+                string strMarcSyntax = "";
+                MarcRecord record = MarcXml2MarcRecord(strBiblio,
+                    out strMarcSyntax,
+                    out strError);
+                if (record != null)
+                {
+                    if (strMarcSyntax == "unimarc")
+                    {
+                        // strISBN = record.select("field[@name='010']/subfield[@name='a']").FirstContent;
+                        response.AJ_TitleIdentifier_o = record.select("field[@name='200']/subfield[@name='a']").FirstContent;
+                        // strAuthor = record.select("field[@name='200']/subfield[@name='f']").FirstContent;
+                    }
+                    else if (strMarcSyntax == "usmarc")
+                    {
+                        // strISBN = record.select("field[@name='020']/subfield[@name='a']").FirstContent;
+                        response.AJ_TitleIdentifier_o = record.select("field[@name='245']/subfield[@name='a']").FirstContent;
+                        // strAuthor = record.select("field[@name='245']/subfield[@name='c']").FirstContent;
+                    }
+                }
+                else
+                {
+                    strError = "图书信息解析错误:" + strError;
+                    LibraryManager.Log?.Error(strError);
+
+                    response.AF_ScreenMessage_o = strError;
+                    response.AG_PrintLine_o = strError;
+                    return -1;
+                }
+
+                XmlDocument item_dom = new XmlDocument();
+                item_dom.LoadXml(strItemXml);
 
                 // 2020/12/8
                 // 取记录中真实的册条码号。可能和检索发起的号码不同
-                string strItemIdentifier = DomUtil.GetElementText(dom.DocumentElement, "barcode");
+                string strItemIdentifier = DomUtil.GetElementText(item_dom.DocumentElement, "barcode");
                 if (string.IsNullOrEmpty(strItemIdentifier))
                 {
-                    strItemIdentifier = DomUtil.GetElementText(dom.DocumentElement, "refID");
+                    strItemIdentifier = DomUtil.GetElementText(item_dom.DocumentElement, "refID");
                     if (string.IsNullOrEmpty(strItemIdentifier) == false)
                         strItemIdentifier = "@refID:" + strItemIdentifier;
                 }
@@ -1518,32 +1549,7 @@ namespace dp2Capo
                         return -1;
                 }
 
-                string strMarcSyntax = "";
-                MarcRecord record = MarcXml2MarcRecord(strBiblio, out strMarcSyntax, out strError);
-                if (record != null)
-                {
-                    if (strMarcSyntax == "unimarc")
-                    {
-                        // strISBN = record.select("field[@name='010']/subfield[@name='a']").FirstContent;
-                        response.AJ_TitleIdentifier_o = record.select("field[@name='200']/subfield[@name='a']").FirstContent;
-                        // strAuthor = record.select("field[@name='200']/subfield[@name='f']").FirstContent;
-                    }
-                    else if (strMarcSyntax == "usmarc")
-                    {
-                        // strISBN = record.select("field[@name='020']/subfield[@name='a']").FirstContent;
-                        response.AJ_TitleIdentifier_o = record.select("field[@name='245']/subfield[@name='a']").FirstContent;
-                        // strAuthor = record.select("field[@name='245']/subfield[@name='c']").FirstContent;
-                    }
-                }
-                else
-                {
-                    strError = "图书信息解析错误:" + strError;
-                    LibraryManager.Log?.Error(strError);
-
-                    response.AF_ScreenMessage_o = strError;
-                    response.AG_PrintLine_o = strError;
-                }
-
+                response.ItemPropertiesOk_1 = "1";
                 return 0;
             }
             catch (Exception ex)
