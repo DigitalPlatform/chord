@@ -1023,6 +1023,9 @@ namespace dp2Capo
                     if (info.LibraryChannel.ErrorCode == ErrorCode.ChannelReleased)
                         goto REDO;
 
+                    // 2021/1/27
+                    response.AB_ItemIdentifier_r = "";
+
                     response.CirculationStatus_2 = "01";
 
                     if (lRet == -1)
