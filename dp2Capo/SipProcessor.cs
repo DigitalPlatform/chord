@@ -1007,12 +1007,16 @@ namespace dp2Capo
             try
             {
                 string strItemIdentifier = request.AB_ItemIdentifier_r;
+
+                // 2021/1/31
+                string strInstitution = request.AO_InstitutionId_r;
+
                 response.AB_ItemIdentifier_r = strItemIdentifier;
                 string strItemXml = "";
                 string strBiblio = "";
             REDO:
                 long lRet = info.LibraryChannel.GetItemInfo(
-                    strItemIdentifier,
+                    string.IsNullOrEmpty(strInstitution) ? strItemIdentifier : strInstitution + "." + strItemIdentifier,
                     "xml",
                     out strItemXml,
                     "xml",
@@ -1343,6 +1347,10 @@ namespace dp2Capo
             try
             {
                 string strItemIdentifier = request.AB_ItemIdentifier_r;
+
+                // 2021/1/31
+                string strInstitution = request.AO_InstitutionId_r;
+
                 response.AB_ItemIdentifier_r = strItemIdentifier;
                 string strItemXml = "";
                 string strBiblio = "";
@@ -1350,7 +1358,7 @@ namespace dp2Capo
             REDO:
                 long lRet = info.LibraryChannel.GetItemInfo(
                     "item",
-                    strItemIdentifier,
+                    string.IsNullOrEmpty(strInstitution) ? strItemIdentifier : strInstitution + "." + strItemIdentifier,
                     "",
                     "xml",
                     out strItemXml,
