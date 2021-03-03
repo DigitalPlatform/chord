@@ -1152,11 +1152,11 @@ namespace dp2weixin.service
                 {
                     temp += "weixinid=[" + u.weixinId + "],id=[" + u.id + "],readerBarcode=[" + u.readerBarcode + "],readerName=[" + u.readerName + "]\r\n";
                 }
-                this.WriteDebug("从本地库找到[" + bindPatronList.Count + "]条绑定了该读者帐号，详情如下：\r\n" + temp);
+                this.WriteDebug("根据patronBarcode=["+ patronBarcode + "]从本地库找到[" + bindPatronList.Count + "]条绑定了该读者帐号，详情如下：\r\n" + temp);
             }
             else
             {
-                this.WriteDebug("从本地库找到[0]条绑定了该读者帐号。");
+                this.WriteDebug("根据patronBarcode=[" + patronBarcode + "]从本地库找到[0]条绑定了该读者帐号。");
             }
 
 
@@ -1255,6 +1255,16 @@ namespace dp2weixin.service
             else if (strType == "以停代金到期")
             {
                 nRet = this.SendYtdjMsg(bodyDom,
+                    libName,
+                    bindPatronList,
+                    fullPatronName,
+                    markFullPatronName,
+                    workerList,
+                    out strError);
+            }
+            else if (strType == "预约备书结果")
+            {
+                nRet = this.SendBeiShuMsg(bodyDom,
                     libName,
                     bindPatronList,
                     fullPatronName,
@@ -1797,7 +1807,74 @@ namespace dp2weixin.service
 
         #endregion
 
+        //SendBeiShuMsg
+        /// <returns>
+        /// 发送备书结果通知
+        /// </returns>
+        private int SendBeiShuMsg(XmlDocument bodyDom,
+            string libName,
+            List<WxUserItem> bindPatronList,
+            string fullPatronName,
+            string maskFullPatronName,
+            List<WxUserItem> workers,
+            out string strError)
+        {
+            strError = "";
 
+            //WriteDebug("1.走到SendBeiShuMsg()");
+
+            XmlNode root = bodyDom.DocumentElement;
+            string strContent = DomUtil.GetElementText(root, "content");
+
+            //WriteDebug("2."+ strContent);
+
+
+            string operTime = DateTime.Now.ToString("yyyy/MM/dd");
+
+
+            // 备注
+            string remark =  this._msgRemark;
+
+            string first_text = "☀☀☀☀☀☀☀☀☀☀";
+            string first_color = "#9400D3";
+            string title = "预约备书结果";
+            //{{first.DATA}}
+            //标题：{{keyword1.DATA}}
+            //时间：{{keyword2.DATA}}
+            //内容：{{keyword3.DATA}}
+            //{{remark.DATA}}
+            MessageTemplateData msgData = new MessageTemplateData(first_text,
+                first_color,
+                title,
+                operTime,
+                strContent,
+                remark);
+
+            // mask
+            //strText = strText.Replace(fullPatronName, maskFullPatronName);
+            MessageTemplateData maskMsgData = new MessageTemplateData(first_text,
+                first_color,
+                title,
+                operTime,
+                strContent,
+                remark);
+
+            int nRet = this.SendTemplateMsg(GzhCfg.C_Template_Message,
+                bindPatronList,//bindWeixinIds,
+                workers,
+                msgData,
+                maskMsgData,
+                "",//linkurl
+                "",//theOperator,
+                out strError);
+            if (nRet == -1)
+                return -1;
+
+            //WriteDebug("3.发送备书消息完成");
+
+
+            return 0;
+        }
 
         /// <returns>
         /// 处理以停代金消息
@@ -2812,6 +2889,7 @@ namespace dp2weixin.service
            <?xml version="1.0" encoding="utf-8"?>
  <root>
     <type>预约到书通知</type>
+            <source>dp2mini</source>
     <itemBarcode>0000001</itemBarcode>
     <refID> </refID>
     <onShelf>false</onShelf>
@@ -2852,14 +2930,19 @@ namespace dp2weixin.service
             if (onShelf == "true")
                 bOnShelf = true;
 
-            // 如果图书馆配了在架预约不发通知，则不给读者发通知 2020/2/14 编译局使用的馆员备书功能
-            //if (bOnShelf == true
-            //    && string.IsNullOrEmpty(lib.comment) == false
-            //    && lib.comment.IndexOf("OnshelfArrivedNoNotice") != -1)
-            if (lib.IsSendArrivedNotice == "N") //2020/3/22 改为直接使用变量
+            string source = DomUtil.GetElementText(root, "source");
+
+            if (source != "dp2mini") // 2021/3/2加：如果是dp2mini发过来的预约到书，一定要发给读者
             {
-                //return 0;  //2020-3-9改为不给读者立即发，还是给监控的工作人员发送
-                bindPatronList.Clear(); //bindWeixinIds.Clear();
+                // 如果图书馆配了在架预约不发通知，则不给读者发通知 2020/2/14 编译局使用的馆员备书功能
+                //if (bOnShelf == true
+                //    && string.IsNullOrEmpty(lib.comment) == false
+                //    && lib.comment.IndexOf("OnshelfArrivedNoNotice") != -1)
+                if (lib.IsSendArrivedNotice == "N") //2020/3/22 改为直接使用变量
+                {
+                    //return 0;  //2020-3-9改为不给读者立即发，还是给监控的工作人员发送
+                    bindPatronList.Clear(); //bindWeixinIds.Clear();
+                }
             }
 
             // 摘要

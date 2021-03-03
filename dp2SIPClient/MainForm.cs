@@ -779,7 +779,7 @@ namespace dp2SIPClient
                 {
                     MessageBox.Show(error);
                     this.Print("error:" + error);
-                    return;
+                    //return;
                 }
 
                 this.Print("recv:" + responseText);
