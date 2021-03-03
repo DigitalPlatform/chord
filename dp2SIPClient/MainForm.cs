@@ -745,13 +745,22 @@ namespace dp2SIPClient
             }
         }
 
+        // 2021/3/3 AO依据从界面输入的值
+        public string AO
+        {
+            get
+            {
+                return this.textBox_AO.Text.Trim();
+            }
+        }
+
         private void button_getItemInfo_Click(object sender, EventArgs e)
         {
             ItemInformation_17 request = new ItemInformation_17()
             {
                 TransactionDate_18 = this.TransactionDate,
 
-                AO_InstitutionId_r = "dp2Library",
+                AO_InstitutionId_r = this.AO, //"",// dp2Library",
                 AC_TerminalPassword_o = "",
             };
 
@@ -798,7 +807,7 @@ namespace dp2SIPClient
                 SCRenewalPolicy_1 = "Y",
                 NoBlock_1 = "N",
                 TransactionDate_18 = this.TransactionDate,
-                AO_InstitutionId_r = "dp2Library",
+                AO_InstitutionId_r = this.AO,// "",// dp2Library",
                 AA_PatronIdentifier_r = this.textBox_checkout_readerBarcode.Text,
                 AD_PatronPassword_o = this.textBox_checkout_readerPassword.Text,
                 BO_FeeAcknowledged_1_o = "N",
@@ -849,7 +858,9 @@ namespace dp2SIPClient
                 Language_3 = "019",
                 TransactionDate_18 = this.TransactionDate,
                 Summary_10 = "  Y       ",
-                AO_InstitutionId_r = "dp2Library",
+                AO_InstitutionId_r = this.AO,//"",// dp2Library",
+                BP_StartItem_o=this.textBox_BP.Text.Trim(),//"1",
+                BQ_EndItem_o=this.textBox_BQ.Text.Trim(),//"5",
             };
             Button button = sender as Button;
             string responseText = "";
@@ -894,7 +905,7 @@ namespace dp2SIPClient
                 ReturnDate_18 = this.TransactionDate,
                 AP_CurrentLocation_r = "",
                 AC_TerminalPassword_r = "",
-                AO_InstitutionId_r = "dp2Library",
+                AO_InstitutionId_r = this.AO,//"",// dp2Library",
                 BI_Cancel_1_o = "N"
             };
 
@@ -1001,7 +1012,7 @@ namespace dp2SIPClient
             {
                 TransactionDate_18 = this.TransactionDate,
 
-                AO_InstitutionId_r = "dp2Library",
+                AO_InstitutionId_r = this.AO,//"",// dp2Library",
                 AC_TerminalPassword_o = "",
                 CH_ItemProperties_r = ""
             };
@@ -1067,6 +1078,24 @@ namespace dp2SIPClient
                 this.button_getItemInfo.Text = "获取(" + (i + 1).ToString() + ")";
                 i++;
             }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            string cmdText = this.textBox_barcodes.Text.Trim();
+            this.Print("send:" + cmdText);
+            BaseMessage response = null;
+            int nRet = SCHelper.Instance.SendAndRecvMessage(cmdText,
+                out response,
+                out string responseText,
+                out string error);
+            if (nRet == -1)
+            {
+                MessageBox.Show(error);
+                this.Print("error:" + error);
+            }
+
+            this.Print("recv:" + responseText);
         }
     }
 }
