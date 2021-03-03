@@ -814,6 +814,9 @@ namespace dp2Capo
             }
 
             string strItemIdentifier = request.AB_ItemIdentifier_r;
+            // 2021/3/3
+            string strInstitution = request.AO_InstitutionId_r;
+
             string strPatronIdentifier = request.AA_PatronIdentifier_r;
             if (String.IsNullOrEmpty(strItemIdentifier)
                 || String.IsNullOrEmpty(strPatronIdentifier))
@@ -865,7 +868,8 @@ namespace dp2Capo
                     lRet = info.LibraryChannel.Borrow(
                         false,  // 续借为 true
                         strPatronIdentifier,    //读者证条码号
-                        strItemIdentifier,     // 册条码号
+                        string.IsNullOrEmpty(strInstitution) ? strItemIdentifier : strInstitution + "." + strItemIdentifier,
+                        // strItemIdentifier,     // 册条码号
                         null, //strConfirmItemRecPath,
                         false,
                         null,   // this.OneReaderItemBarcodes,
@@ -1491,6 +1495,9 @@ namespace dp2Capo
                 }
                 response.AB_ItemIdentifier_r = strItemIdentifier;
 
+                // 2021/3/3
+                string strInstitution = request.AO_InstitutionId_r;
+
                 string formats = "";    // "item,biblio";
 
                 // currentLocation 元素内容。格式为 馆藏地:架号
@@ -1562,7 +1569,7 @@ namespace dp2Capo
                     long lRet = info.LibraryChannel.Return(
                         "transfer",
                         "",
-                        strItemIdentifier,
+                        string.IsNullOrEmpty(strInstitution) ? strItemIdentifier : strInstitution + "." + strItemIdentifier,
                         "", // strConfirmItemRecPath,
                         false,
                         style,
@@ -1645,6 +1652,10 @@ namespace dp2Capo
             try
             {
                 string strItemIdentifier = request.AB_ItemIdentifier_o;
+
+                // 2021/3/3
+                string strInstitution = request.AO_InstitutionId_r;
+
                 string strPatronIdentifier = request.AA_PatronIdentifier_r;
                 if (String.IsNullOrEmpty(strItemIdentifier)
                     || String.IsNullOrEmpty(strPatronIdentifier))
@@ -1678,7 +1689,6 @@ namespace dp2Capo
                     return response.ToText();
                 }
 
-
                 string[] aDupPath = null;
                 string[] item_records = null;
                 string[] reader_records = null;
@@ -1687,7 +1697,8 @@ namespace dp2Capo
                 lRet = info.LibraryChannel.Borrow(
                     true,  // 续借为 true
                     strPatronIdentifier,    //读者证条码号
-                    strItemIdentifier,     // 册条码号
+                    string.IsNullOrEmpty(strInstitution) ? strItemIdentifier : strInstitution + "." + strItemIdentifier,
+                    // strItemIdentifier,     // 册条码号
                     null, //strConfirmItemRecPath,
                     false,
                     null,   // this.OneReaderItemBarcodes,
