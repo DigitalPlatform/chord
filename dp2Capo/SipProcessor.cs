@@ -504,7 +504,7 @@ namespace dp2Capo
                 else
                 {
                     if (sip_channel.Encoding == null)
-                        strError = "not login。(SIP channel instance name ('InstanceName') has not initialized)";
+                        strError = "not login. (SIP channel instance name ('InstanceName') has not initialized)";
                     else
                         strError = "尚未登录。(SIP 通道中 实例名 ('InstanceName') 尚未在属性集合初始化)";
                     goto ERROR1;
@@ -974,6 +974,10 @@ namespace dp2Capo
                 FeeType_2 = "01",
                 TransactionDate_18 = SIPUtility.NowDateTime,
                 CK_MediaType_o = SIPConst.MEDIA_TYPE_BOOK,
+
+                // 2021/1/19
+                AB_ItemIdentifier_r = "",
+                AJ_TitleIdentifier_r = "",
             };
 
             ItemInformation_17 request = new ItemInformation_17();
@@ -1003,28 +1007,40 @@ namespace dp2Capo
             try
             {
                 string strItemIdentifier = request.AB_ItemIdentifier_r;
+
+                // 2021/1/31
+                string strInstitution = request.AO_InstitutionId_r;
+
                 response.AB_ItemIdentifier_r = strItemIdentifier;
                 string strItemXml = "";
                 string strBiblio = "";
             REDO:
                 long lRet = info.LibraryChannel.GetItemInfo(
-                    strItemIdentifier,
+                    string.IsNullOrEmpty(strInstitution) ? strItemIdentifier : strInstitution + "." + strItemIdentifier,
                     "xml",
                     out strItemXml,
                     "xml",
                     out strBiblio,
                     out strError);
-                if (-1 >= lRet)
+                if (lRet == -1 || lRet == 0)
                 {
                     if (info.LibraryChannel.ErrorCode == ErrorCode.ChannelReleased)
                         goto REDO;
 
+                    // 2021/1/27
+                    response.AB_ItemIdentifier_r = "";
+
                     response.CirculationStatus_2 = "01";
 
-                    strError = "获得'" + strItemIdentifier + "'发生错误: " + strError;
+                    if (lRet == -1)
+                        strError = "获得'" + strItemIdentifier + "'发生错误: " + strError;
+                    else
+                        strError = strItemIdentifier + " 册记录不存在";
+
                     response.AF_ScreenMessage_o = strError;
                     response.AG_PrintLine_o = strError;
                 }
+#if NO
                 else if (0 == lRet)
                 {
                     response.CirculationStatus_2 = "13";
@@ -1033,6 +1049,7 @@ namespace dp2Capo
                     response.AF_ScreenMessage_o = strError;
                     response.AG_PrintLine_o = strError;
                 }
+#endif
                 else if (1 < lRet)
                 {
                     response.CirculationStatus_2 = "01";
@@ -1188,13 +1205,24 @@ namespace dp2Capo
                         response.CF_HoldQueueLength_o = reservations.Count.ToString();
 
                         if (reservations.Count > 0)
-                            response.CirculationStatus_2 = "08"; // 预约保留架 ??                               
+                            response.CirculationStatus_2 = "08"; // 等待放到预约保留架                               
                     }
+
                 }
                 else
                 {
                     if (StringUtil.IsInList("丢失", strItemState))
                         response.CirculationStatus_2 = "12";
+                    else if (StringUtil.IsInList("注销", strItemState))
+                    {
+                        response.CirculationStatus_2 = "01";
+                        strError = $"本册状态为 '{strItemState}'";
+                        // 在 message 里面补充说明
+                        response.AF_ScreenMessage_o = strError;
+                        response.AG_PrintLine_o = strError;
+                    }
+                    else if (StringUtil.IsInList("加工中", strItemState))
+                        response.CirculationStatus_2 = "06";
                 }
 
                 // 永久位置
@@ -1319,6 +1347,10 @@ namespace dp2Capo
             try
             {
                 string strItemIdentifier = request.AB_ItemIdentifier_r;
+
+                // 2021/1/31
+                string strInstitution = request.AO_InstitutionId_r;
+
                 response.AB_ItemIdentifier_r = strItemIdentifier;
                 string strItemXml = "";
                 string strBiblio = "";
@@ -1326,7 +1358,7 @@ namespace dp2Capo
             REDO:
                 long lRet = info.LibraryChannel.GetItemInfo(
                     "item",
-                    strItemIdentifier,
+                    string.IsNullOrEmpty(strInstitution) ? strItemIdentifier : strInstitution + "." + strItemIdentifier,
                     "",
                     "xml",
                     out strItemXml,
@@ -1394,6 +1426,7 @@ namespace dp2Capo
             LibraryManager.Log?.Info("ItemStatusUpdate() error: " + strError);
             response.ItemPropertiesOk_1 = "0";
             response.AF_ScreenMessage_o = strError;
+            response.AG_PrintLine_o = strError;
             return response.ToText();
         }
 
@@ -1412,17 +1445,47 @@ namespace dp2Capo
             strError = "";
             // response.ItemPropertiesOk_1 = "1";
 
-            XmlDocument dom = new XmlDocument();
             try
             {
-                dom.LoadXml(strItemXml);
+                // 获得图书标题
+                string strMarcSyntax = "";
+                MarcRecord record = MarcXml2MarcRecord(strBiblio,
+                    out strMarcSyntax,
+                    out strError);
+                if (record != null)
+                {
+                    if (strMarcSyntax == "unimarc")
+                    {
+                        // strISBN = record.select("field[@name='010']/subfield[@name='a']").FirstContent;
+                        response.AJ_TitleIdentifier_o = record.select("field[@name='200']/subfield[@name='a']").FirstContent;
+                        // strAuthor = record.select("field[@name='200']/subfield[@name='f']").FirstContent;
+                    }
+                    else if (strMarcSyntax == "usmarc")
+                    {
+                        // strISBN = record.select("field[@name='020']/subfield[@name='a']").FirstContent;
+                        response.AJ_TitleIdentifier_o = record.select("field[@name='245']/subfield[@name='a']").FirstContent;
+                        // strAuthor = record.select("field[@name='245']/subfield[@name='c']").FirstContent;
+                    }
+                }
+                else
+                {
+                    strError = "图书信息解析错误:" + strError;
+                    LibraryManager.Log?.Error(strError);
+
+                    response.AF_ScreenMessage_o = strError;
+                    response.AG_PrintLine_o = strError;
+                    return -1;
+                }
+
+                XmlDocument item_dom = new XmlDocument();
+                item_dom.LoadXml(strItemXml);
 
                 // 2020/12/8
                 // 取记录中真实的册条码号。可能和检索发起的号码不同
-                string strItemIdentifier = DomUtil.GetElementText(dom.DocumentElement, "barcode");
+                string strItemIdentifier = DomUtil.GetElementText(item_dom.DocumentElement, "barcode");
                 if (string.IsNullOrEmpty(strItemIdentifier))
                 {
-                    strItemIdentifier = DomUtil.GetElementText(dom.DocumentElement, "refID");
+                    strItemIdentifier = DomUtil.GetElementText(item_dom.DocumentElement, "refID");
                     if (string.IsNullOrEmpty(strItemIdentifier) == false)
                         strItemIdentifier = "@refID:" + strItemIdentifier;
                 }
@@ -1513,37 +1576,12 @@ namespace dp2Capo
                         out string output_readerBarcode,
                         out DigitalPlatform.LibraryClient.localhost.ReturnInfo return_info,
                         out strError);
-                    if (lRet == -1 
+                    if (lRet == -1
                         && info.LibraryChannel.ErrorCode != ErrorCode.NotChanged)
                         return -1;
                 }
 
-                string strMarcSyntax = "";
-                MarcRecord record = MarcXml2MarcRecord(strBiblio, out strMarcSyntax, out strError);
-                if (record != null)
-                {
-                    if (strMarcSyntax == "unimarc")
-                    {
-                        // strISBN = record.select("field[@name='010']/subfield[@name='a']").FirstContent;
-                        response.AJ_TitleIdentifier_o = record.select("field[@name='200']/subfield[@name='a']").FirstContent;
-                        // strAuthor = record.select("field[@name='200']/subfield[@name='f']").FirstContent;
-                    }
-                    else if (strMarcSyntax == "usmarc")
-                    {
-                        // strISBN = record.select("field[@name='020']/subfield[@name='a']").FirstContent;
-                        response.AJ_TitleIdentifier_o = record.select("field[@name='245']/subfield[@name='a']").FirstContent;
-                        // strAuthor = record.select("field[@name='245']/subfield[@name='c']").FirstContent;
-                    }
-                }
-                else
-                {
-                    strError = "图书信息解析错误:" + strError;
-                    LibraryManager.Log?.Error(strError);
-
-                    response.AF_ScreenMessage_o = strError;
-                    response.AG_PrintLine_o = strError;
-                }
-
+                response.ItemPropertiesOk_1 = "1";
                 return 0;
             }
             catch (Exception ex)
