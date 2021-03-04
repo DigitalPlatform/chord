@@ -323,6 +323,9 @@ namespace dp2Capo
             return checksum;
         }
 
+        // 所连接的 dp2library 的最低版本要求
+        static string _dp2library_base_version = "3.46";
+
         static string Login(SipChannel sip_channel,
             string strClientIP,
             string message)
@@ -370,7 +373,7 @@ namespace dp2Capo
             if (ret.Item1 == null)
             {
                 if (sip_channel.Encoding == null)
-                    strError = "user name '" + strRequestUserID + "' locate instance ，" + ret.Item2;
+                    strError = "user name '" + strRequestUserID + "' locate instance, " + ret.Item2;
                 else
                     strError = "以用户名 '" + strRequestUserID + "' 定位实例，" + ret.Item2;
                 goto ERROR1;
@@ -439,6 +442,20 @@ namespace dp2Capo
 
             try
             {
+                // 确保获得 dp2library 版本号
+                // 报错要用英文
+                if (EnsureGetVersion(library_channel, out strError) == -1)
+                    goto ERROR1;
+
+                if (StringUtil.CompareVersion(_libraryServerVersion, _dp2library_base_version) < 0)
+                {
+                    if (sip_channel.Encoding == null)
+                        strError = $"dp2Capo requir dp2Library { _dp2library_base_version} or higher version (but currently dp2Library version is { _libraryServerVersion }. please upgrade dp2Library to newest version";
+                    else
+                        strError = $"dp2Capo 要求和 dp2Library { _dp2library_base_version} 或以上版本配套使用 (而当前 dp2Library 版本号为 { _libraryServerVersion }。请尽快升级 dp2Library 到最新版本";
+                    goto ERROR1;
+                }
+
                 long lRet = library_channel.Login(strUserName,
                     strPassword,
                     "type=worker,client=dp2SIPServer|0.01,location=#SIP@" + strClientIP + ",clientip=" + strClientIP,
@@ -449,8 +466,22 @@ namespace dp2Capo
                 }
                 else
                 {
-                    response.Ok_1 = "1";
+                    // 2021/3/4
+                    // 将登录者的馆代码转换为机构代码
+                    string libraryCodeList = library_channel.LibraryCodeList;
+                    var codes = StringUtil.SplitList(libraryCodeList);
+                    if (codes.Count == 0)
+                        codes.Add("");
+                    // 注意报错要用英文
+                    // TODO: 是否可以为多个馆代码分别得到机构代码，然后用逗号连接返回？
+                    nRet = GetOwnerInstitution(library_channel,
+    codes[0] + "/",
+    out string strInstitution,
+    out strError);
+                    if (nRet == -1)
+                        goto ERROR1;
 
+                    sip_channel.Institution = strInstitution;
                     sip_channel.LocationCode = strLocationCode;
                     sip_channel.InstanceName = strInstanceName; // "";  BUG 2018/8/24 排除
                     sip_channel.UserName = strUserName;
@@ -459,6 +490,7 @@ namespace dp2Capo
                     LibraryManager.Log?.Info("终端 " + strLocationCode + " : " + strUserName + " 接入");
                 }
 
+                response.Ok_1 = "1";
                 return response.ToText();
             }
             finally
@@ -471,8 +503,39 @@ namespace dp2Capo
             sip_channel.InstanceName = "";
             sip_channel.UserName = "";
             sip_channel.Password = "";
+
+            response.Ok_1 = "0";
+            response.AF_ScreenMessage_o = strError;
             LibraryManager.Log?.Info("Login() error: " + strError);
             return response.ToText();
+        }
+
+        // 请求 dp2library 获得一个馆藏位置对应的机构代码
+        static int GetOwnerInstitution(LibraryChannel library_channel,
+            string location,
+            out string strInstitution,
+            out string strError)
+        {
+            strError = "";
+            strInstitution = "";
+
+            long lRet = library_channel.GetSystemParameter("rfid/getOwnerInstitution",
+    location,
+    out string strValue,
+    out strError);
+            if (lRet == -1)
+            {
+                strError = $"get institution code of '{location}' error: {strError}";
+                return -1;
+            }
+
+            // 注意返回的是 OI|AOI 形态，需要再分离一下
+            var parts = StringUtil.ParseTwoPart(strValue, "|");
+            if (string.IsNullOrEmpty(parts[0]) == false)
+                strInstitution = parts[0];
+            else
+                strInstitution = parts[1];
+            return 0;
         }
 
         class FunctionInfo
@@ -601,7 +664,7 @@ namespace dp2Capo
                 MagneticMedia_1 = "N",
                 Alert_1 = "N",
                 TransactionDate_18 = SIPUtility.NowDateTime,
-                AO_InstitutionId_r = "dp2Library",
+                AO_InstitutionId_r = "",    // "dp2Library",
                 AJ_TitleIdentifier_o = string.Empty,
                 AQ_PermanentLocation_r = string.Empty,
                 CL_SortBin_o = "sort bin",
@@ -656,22 +719,26 @@ namespace dp2Capo
                     return response.ToText();
                 }
 
-                string strItemBarcode = request.AB_ItemIdentifier_r;
-                if (!string.IsNullOrEmpty(strItemBarcode))
+                string strItemIdentifier = request.AB_ItemIdentifier_r;
+
+                // 2021/3/3
+                string strInstitution = request.AO_InstitutionId_r;
+
+                if (!string.IsNullOrEmpty(strItemIdentifier))
                 {
-                    response.AB_ItemIdentifier_r = strItemBarcode;
+                    response.AB_ItemIdentifier_r = strItemIdentifier;
 
                     long lRet = info.LibraryChannel.Return(
                         "return",
                         "",    //strReaderBarcode,
-                        strItemBarcode,
+                        string.IsNullOrEmpty(strInstitution) ? strItemIdentifier : strInstitution + "." + strItemIdentifier,
                         "", // strConfirmItemRecPath
                         false,
-                        "item,biblio",
+                        "item,biblio,reader",
                         "xml",
                         out string[] itemRecords,
-                        "xml",
-                        out string[] readerRecords,
+                        "oi",
+                        out string[] reader_records,
                         "xml",
                         out string[] biblioRecords,
                         out string[] aDupPath,
@@ -682,6 +749,8 @@ namespace dp2Capo
                     {
                         if (info.LibraryChannel.ErrorCode == ErrorCode.NotBorrowed)
                             response.Ok_1 = "1";
+                        else
+                            response.Ok_1 = "0";
 
                         response.AF_ScreenMessage_o = strError;
                     }
@@ -691,6 +760,31 @@ namespace dp2Capo
                         response.AA_PatronIdentifier_o = strOutputReaderBarcode;
                         response.AF_ScreenMessage_o = "成功";
                         response.AG_PrintLine_o = "成功";
+
+                        // 2021/3/4
+                        // 返回读者记录是为了得到确切的机构代码
+                        if (reader_records != null && reader_records.Length > 0)
+                        {
+                            response.AO_InstitutionId_r = BuildAO(reader_records[0]);
+
+                            /*
+                            string patron_xml = reader_records[0];
+                            XmlDocument dom = new XmlDocument();
+                            try
+                            {
+                                dom.LoadXml(patron_xml);
+                            }
+                            catch (Exception ex)
+                            {
+                                LibraryManager.Log?.Error("读者 XML 解析错误：" + ExceptionUtil.GetDebugText(ex));
+                                response.AF_ScreenMessage_o = "读者 XML 解析错误";
+                                response.AG_PrintLine_o = "读者 XML 解析错误";
+                                return response.ToText();
+                            }
+
+                            response.AO_InstitutionId_r = DomUtil.GetElementText(dom.DocumentElement, "oi");
+                            */
+                        }
 
                         if (itemRecords != null && itemRecords.Length > 0)
                         {
@@ -739,7 +833,7 @@ namespace dp2Capo
                     else
                     {
                         lRet = info.LibraryChannel.GetBiblioSummary(
-                            strItemBarcode,
+                            strItemIdentifier,
                             "",
                             "",
                             out string strBiblioRecPath,
@@ -770,7 +864,16 @@ namespace dp2Capo
             sip_channel.Password = "";
 
             LibraryManager.Log?.Info("Checkin() error: " + strError);
+            response.Ok_1 = "0";
             return response.ToText();
+        }
+
+        // 确保不返回 "" 代替 null
+        static string BuildAO(string text)
+        {
+            if (text == null)
+                return "";
+            return text;
         }
 
         /// <summary>
@@ -794,7 +897,7 @@ namespace dp2Capo
                 MagneticMedia_1 = "N",
                 Desensitize_1 = "Y",
                 TransactionDate_18 = SIPUtility.NowDateTime,
-                AO_InstitutionId_r = "dp2Library",
+                AO_InstitutionId_r = "",    // "dp2Library",
                 AJ_TitleIdentifier_r = string.Empty,
                 AH_DueDate_r = string.Empty,
             };
@@ -873,10 +976,10 @@ namespace dp2Capo
                         null, //strConfirmItemRecPath,
                         false,
                         null,   // this.OneReaderItemBarcodes,
-                        "auto_renew,biblio,item", // strStyle, // auto_renew,biblio,item  //  "reader,item,biblio", // strStyle,
+                        "auto_renew,biblio,item,reader", // strStyle, // auto_renew,biblio,item  //  "reader,item,biblio", // strStyle,
                         "xml:noborrowhistory",  // strItemReturnFormats,
                         out item_records,
-                        "summary",    // strReaderFormatList
+                        "oi", // "summary",    // strReaderFormatList
                         out reader_records,
                         "xml",         //strBiblioReturnFormats,
                         out biblio_records,
@@ -886,11 +989,37 @@ namespace dp2Capo
                         out strError);
                     if (-1 == lRet)
                     {
+                        response.Ok_1 = "0";
                         response.AF_ScreenMessage_o = "失败：" + strError;
                     }
                     else
                     {
                         response.Ok_1 = "1";
+
+                        // 2021/3/4
+                        // 返回读者记录是为了得到确切的机构代码
+                        if (reader_records != null && reader_records.Length > 0)
+                        {
+                            response.AO_InstitutionId_r = BuildAO(reader_records[0]);
+
+                            /*
+                            string patron_xml = reader_records[0];
+                            XmlDocument dom = new XmlDocument();
+                            try
+                            {
+                                dom.LoadXml(patron_xml);
+                            }
+                            catch (Exception ex)
+                            {
+                                LibraryManager.Log?.Error("读者 XML 解析错误：" + ExceptionUtil.GetDebugText(ex));
+                                response.AF_ScreenMessage_o = "读者 XML 解析错误";
+                                response.AG_PrintLine_o = "读者 XML 解析错误";
+                                return response.ToText();
+                            }
+
+                            response.AO_InstitutionId_r = DomUtil.GetElementText(dom.DocumentElement, "oi");
+                            */
+                        }
 
                         string strBiblioSummary = String.Empty;
                         string strMarcSyntax = "";
@@ -942,6 +1071,7 @@ namespace dp2Capo
             }
 
         ERROR1:
+            response.Ok_1 = "0";
             response.AF_ScreenMessage_o = strError;
             return response.ToText();
         }
@@ -1524,6 +1654,10 @@ namespace dp2Capo
                     // 如果 currentLocationLong 包含星号，要检查 dp2library 版本是否为 3.40 以上
                     if (currentLocationLong.Contains("*"))
                     {
+                        // 确保获得 dp2library 版本号
+                        if (EnsureGetVersion(info.LibraryChannel, out strError) == -1)
+                            return -1;
+                        /*
                         if (string.IsNullOrEmpty(_libraryServerVersion))
                         {
                             long lRet = info.LibraryChannel.GetVersion(
@@ -1537,11 +1671,12 @@ namespace dp2Capo
                             }
                             _libraryServerVersion = version;
                         }
+                        */
 
                         string base_version = "3.40";
                         if (StringUtil.CompareVersion(_libraryServerVersion, base_version) < 0)
                         {
-                            strError = $"dp2Capo 和 dp2Library { base_version} 或以上版本配套使用 (而当前 dp2Library 版本号为 { _libraryServerVersion }。请尽快升级 dp2Library 到最新版本";
+                            strError = $"dp2Capo 要求和 dp2Library { base_version} 或以上版本配套使用 (而当前 dp2Library 版本号为 { _libraryServerVersion }。请尽快升级 dp2Library 到最新版本";
                             return 0;
                         }
                     }
@@ -1620,7 +1755,7 @@ namespace dp2Capo
                 MagneticMedia_1 = "N",
                 Desensitize_1 = "N",
                 TransactionDate_18 = SIPUtility.NowDateTime,
-                AO_InstitutionId_r = "dp2Library",
+                AO_InstitutionId_r = "",    // "dp2Library",
                 AJ_TitleIdentifier_r = string.Empty,
                 AH_DueDate_r = string.Empty,
             };
@@ -1702,10 +1837,10 @@ namespace dp2Capo
                     null, //strConfirmItemRecPath,
                     false,
                     null,   // this.OneReaderItemBarcodes,
-                    "auto_renew,biblio,item", // strStyle, // auto_renew,biblio,item                   //  "reader,item,biblio", // strStyle,
+                    "auto_renew,biblio,item,reader", // strStyle, // auto_renew,biblio,item                   //  "reader,item,biblio", // strStyle,
                     "xml:noborrowhistory",  // strItemReturnFormats,
                     out item_records,
-                    "summary",    // strReaderFormatList
+                    "oi", // "summary",    // strReaderFormatList
                     out reader_records,
                     "xml",         //strBiblioReturnFormats,
                     out biblio_records,
@@ -1715,12 +1850,38 @@ namespace dp2Capo
                     out strError);
                 if (-1 == lRet)
                 {
+                    response.Ok_1 = "0";
                     response.AF_ScreenMessage_o = "失败：" + strError;
                 }
                 else
                 {
                     response.Ok_1 = "1";
                     response.RenewalOk_1 = "Y";
+
+                    // 2021/3/4
+                    // 返回读者记录是为了得到确切的机构代码
+                    if (reader_records != null && reader_records.Length > 0)
+                    {
+                        response.AO_InstitutionId_r = BuildAO(reader_records[0]);
+
+                        /*
+                        string patron_xml = reader_records[0];
+                        XmlDocument dom = new XmlDocument();
+                        try
+                        {
+                            dom.LoadXml(patron_xml);
+                        }
+                        catch (Exception ex)
+                        {
+                            LibraryManager.Log?.Error("读者 XML 解析错误：" + ExceptionUtil.GetDebugText(ex));
+                            response.AF_ScreenMessage_o = "读者 XML 解析错误";
+                            response.AG_PrintLine_o = "读者 XML 解析错误";
+                            return response.ToText();
+                        }
+
+                        response.AO_InstitutionId_r = DomUtil.GetElementText(dom.DocumentElement, "oi");
+                        */
+                    }
 
                     string strBiblioSummary = String.Empty;
                     string strMarcSyntax = "";
@@ -1771,6 +1932,7 @@ namespace dp2Capo
 
         ERROR1:
             LibraryManager.Log?.Info("Renew() error: " + strError);
+            response.Ok_1 = "0";
             response.AF_ScreenMessage_o = strError;
             return response.ToText();
         }
@@ -1789,7 +1951,7 @@ namespace dp2Capo
             {
                 EndSession_1 = "N",
                 TransactionDate_18 = SIPUtility.NowDateTime,
-                AO_InstitutionId_r = "dp2Library",
+                AO_InstitutionId_r = "",    // "dp2Library",
             };
 
             EndPatronSession_35 request = new EndPatronSession_35();
@@ -1831,7 +1993,7 @@ namespace dp2Capo
                 PaymentAccepted_1 = "N",
                 TransactionDate_18 = SIPUtility.NowDateTime,
 
-                AO_InstitutionId_r = "dp2Library",
+                AO_InstitutionId_r = "",    // "dp2Library",
                 AA_PatronIdentifier_r = string.Empty,
                 BK_TransactionId_o = string.Empty,
                 AF_ScreenMessage_o = string.Empty,
@@ -1868,10 +2030,14 @@ namespace dp2Capo
 
                 string strPatronIdentifier = request.AA_PatronIdentifier_r;
 
+                // 2021/3/3
+                string strInstitution = request.AO_InstitutionId_r;
+
                 // 先查到读者记录
                 string[] results = null;
                 lRet = info.LibraryChannel.GetReaderInfo(
-                    strPatronIdentifier, //读者卡号,
+                    string.IsNullOrEmpty(strInstitution) ? strPatronIdentifier : strInstitution + "." + strPatronIdentifier,
+                    // strPatronIdentifier, //读者卡号,
                     "advancexml",   // this.RenderFormat, // "html",
                     out results,
                     out strError);
@@ -1904,6 +2070,9 @@ namespace dp2Capo
                     response.AG_PrintLine_o = "读者信息解析错误";
                     return response.ToText();
                 }
+
+                // 2021/3/4
+                response.AO_InstitutionId_r = DomUtil.GetElementText(dom.DocumentElement, "oi");
 
                 decimal feeAmount = 0;
                 try
@@ -1976,7 +2145,8 @@ namespace dp2Capo
                 string patronXml = "";
                 lRet = info.LibraryChannel.Amerce(
                    "amerce",
-                   strPatronIdentifier,
+                   string.IsNullOrEmpty(strInstitution) ? strPatronIdentifier : strInstitution + "." + strPatronIdentifier,
+                   // strPatronIdentifier,
                    amerce_items,
                    out failed_items,
                    out patronXml,
@@ -2051,7 +2221,7 @@ namespace dp2Capo
                 FineItemsCount_4 = "0000",
                 RecallItemsCount_4 = "0000",
                 UnavailableHoldsCount_4 = "0000",
-                AO_InstitutionId_r = "dp2Library",
+                AO_InstitutionId_r = "",    // "dp2Library",
                 AA_PatronIdentifier_r = string.Empty,
                 AE_PersonalName_r = string.Empty,
 
@@ -2089,6 +2259,10 @@ namespace dp2Capo
                 string strPassword = request.AD_PatronPassword_o;
                 // 用于检索的证条码号或者证号等等。和读者记录中的 barcode 元素不一定相同
                 string strQueryBarcode = request.AA_PatronIdentifier_r;
+
+                // 2021/3/3
+                string strInstitution = request.AO_InstitutionId_r;
+
                 if (!string.IsNullOrEmpty(strPassword))
                 {
                     lRet = info.LibraryChannel.VerifyReaderPassword(
@@ -2114,7 +2288,8 @@ namespace dp2Capo
 
                 string[] results = null;
                 lRet = info.LibraryChannel.GetReaderInfo(
-                    strQueryBarcode, //读者卡号,
+                    string.IsNullOrEmpty(strInstitution) ? strQueryBarcode : strInstitution + "." + strQueryBarcode,
+                    // strQueryBarcode, //读者卡号,
                     "advancexml",   // this.RenderFormat, // "html",
                     out results,
                     out strError);
@@ -2147,6 +2322,9 @@ namespace dp2Capo
                     response.AG_PrintLine_o = "读者信息解析错误";
                     return response.ToText();
                 }
+
+                // 2021/3/4
+                response.AO_InstitutionId_r = DomUtil.GetElementText(dom.DocumentElement, "oi");
 
                 // hold items count 4 - char, fixed-length required field -- 预约
                 XmlNodeList holdItemNodes = dom.DocumentElement.SelectNodes("reservations/request");
@@ -2407,6 +2585,9 @@ namespace dp2Capo
             string strReaderBarcode = "";
             string strIDCardNumber = ""; // 身份证号
 
+            // TODO: 要从请求中得到 AO
+            string strInstitution = "";
+
             bool bForegift = false; // 是否创建押金
             string strForegiftValue = ""; // 押金金额
 
@@ -2450,6 +2631,10 @@ namespace dp2Capo
                                 DomUtil.SetElementText(dom.DocumentElement, "barcode", strValue);
                                 break;
                             }
+                        case "AO":
+                            // 2021/3/4
+                            strInstitution = strValue;
+                            break;
                         case "XO":
                             {
                                 if (String.IsNullOrEmpty(strValue))
@@ -2572,6 +2757,7 @@ namespace dp2Capo
                 #region 根据身份证号获得读者记录
                 byte[] baTimestamp = null;
                 string strRecPath = "";
+                // TODO: OI
                 lRet = info.LibraryChannel.GetReaderInfo(
                     strIDCardNumber,
                     "xml",
@@ -2660,9 +2846,11 @@ namespace dp2Capo
                         goto ERROR1;
                     }
 
+
                     int nRet = DoAmerce(
                         info.LibraryChannel,
                         strReaderBarcode,
+                        strInstitution,
                         strForegiftValue,
                         out strMsg,
                         out strError);
@@ -2829,9 +3017,10 @@ namespace dp2Capo
         static int DoAmerce(
             LibraryChannel library_channel,
             string strReaderBarcode,
-    string strForegiftValue,
-    out string strMsg,
-    out string strError)
+            string strInstitution,
+            string strForegiftValue,
+            out string strMsg,
+            out string strError)
         {
             strMsg = "";
             strError = "";
@@ -2842,7 +3031,8 @@ namespace dp2Capo
             string strRecPath = "";
             string[] results = null;
             long lRet = library_channel.GetReaderInfo(
-                strReaderBarcode,
+                string.IsNullOrEmpty(strInstitution) ? strReaderBarcode : strInstitution + "." + strReaderBarcode,
+                // strReaderBarcode,
                 "xml",
                 out results,
                 out strRecPath,
@@ -2888,7 +3078,8 @@ namespace dp2Capo
                 string strReaderXml = "";
                 lRet = library_channel.Amerce(
                     "amerce",
-                    strReaderBarcode,
+                    string.IsNullOrEmpty(strInstitution) ? strReaderBarcode : strInstitution + "." + strReaderBarcode,
+                    // strReaderBarcode,
                     amerce_items,
                     out failed_items,
                     out strReaderXml,
@@ -3037,7 +3228,7 @@ namespace dp2Capo
                 RetriesAllowed_3 = "003",
                 DatetimeSync_18 = SIPUtility.NowDateTime,
                 ProtocolVersion_4 = "2.00",
-                AO_InstitutionId_r = "dp2Library",
+                AO_InstitutionId_r = "",    // "dp2Library",
                 AM_LibraryName_o = "dp2Library",
                 BX_SupportedMessages_r = "YYYYYYYYYYYYYYYY",
                 AF_ScreenMessage_o = "",
@@ -3055,6 +3246,18 @@ namespace dp2Capo
             {
                 // TODO: 要检查相关 dp2Capo 实例是否在线
 
+                long lRet = -1;
+
+                // 确保获得 dp2library 版本号
+                if (EnsureGetVersion(info.LibraryChannel, out strError) == -1)
+                    goto ERROR1;
+
+                if (StringUtil.CompareVersion(_libraryServerVersion, _dp2library_base_version) < 0)
+                {
+                    strError = $"dp2Capo 要求和 dp2Library { _dp2library_base_version} 或以上版本配套使用 (而当前 dp2Library 版本号为 { _libraryServerVersion }。请尽快升级 dp2Library 到最新版本";
+                    goto ERROR1;
+                }
+
                 // TODO: 如果某个通道的 ScStatus 请求来得很频繁，要考虑缓冲 GetSystemParameter() API 的结果，直接把这个结果返回给前端
                 string strExistingValue = null;
 
@@ -3065,7 +3268,6 @@ namespace dp2Capo
                         strExistingValue = _hangupStatusTable[info.LibraryChannel.Url];
                 }
 
-                long lRet = -1;
                 string strValue = "";
                 if (strExistingValue == null)
                 {
@@ -3108,7 +3310,8 @@ namespace dp2Capo
                     RetriesAllowed_3 = "003",
                     DatetimeSync_18 = SIPUtility.NowDateTime,
                     ProtocolVersion_4 = "2.00",
-                    AO_InstitutionId_r = "dp2Library",
+                    // TODO: 如果当前已经登录，这里尽量返回登录者所属分馆的机构代码
+                    AO_InstitutionId_r = sip_channel.Institution,    // "dp2Library",
                     AM_LibraryName_o = "dp2Library",
                     BX_SupportedMessages_r = "YYYYYYYYYYYYYYYY",
                     AF_ScreenMessage_o = (lRet == -1 ? strValue : ""),
@@ -3125,6 +3328,28 @@ namespace dp2Capo
                 response.AF_ScreenMessage_o = strError;
                 return response.ToText();
             }
+        }
+
+        // 确保获得所连接的 dp2library 服务器的版本号
+        static int EnsureGetVersion(LibraryChannel channel,
+            out string strError)
+        {
+            strError = "";
+
+            if (string.IsNullOrEmpty(_libraryServerVersion) == false)
+                return 0;
+
+            long lRet = channel.GetVersion(
+out string version,
+out string uid,
+out strError);
+            if (lRet == -1)
+            {
+                strError = $"get dp2library version error: {strError}";
+                return -1;
+            }
+            _libraryServerVersion = version;
+            return 1;
         }
 
         public static MarcRecord MarcXml2MarcRecord(string strMarcXml,

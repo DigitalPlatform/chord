@@ -15,6 +15,10 @@ namespace DigitalPlatform.SIP.Server
         // 3M设备工作台号
         public string LocationCode { get; set; }
 
+        // 2021/3/4
+        // 登录者的机构代码
+        public string Institution { get; set; }
+
         // 消息所用编码方式
         Encoding _encoding = null;  // null 表示根本没有初始化这个参数 // Encoding.UTF8;
         public Encoding Encoding
