@@ -946,20 +946,22 @@ namespace dp2Capo
                     string strPatronPassword = request.AD_PatronPassword_o;
                     if (!string.IsNullOrEmpty(strPatronPassword))
                     {
+                        // Result.Value -1出错 0密码不正确 1密码正确
                         lRet = info.LibraryChannel.VerifyReaderPassword(
-                            strPatronIdentifier,
+                            string.IsNullOrEmpty(strInstitution) ? strPatronIdentifier : strInstitution + "." + strPatronIdentifier,    //读者证条码号
+                                                                                                                                        // strPatronIdentifier,
                             strPatronPassword,
                             out strError);
                         if (-1 == lRet)
                         {
                             response.AF_ScreenMessage_o = "校验密码发生错误：" + strError;
+                            return response.ToText();
                         }
                         else if (0 == lRet)
                         {
                             response.AF_ScreenMessage_o = "失败：密码错误";
+                            return response.ToText();
                         }
-
-                        return response.ToText();
                     }
 
                     string[] aDupPath = null;
@@ -970,7 +972,7 @@ namespace dp2Capo
                     DigitalPlatform.LibraryClient.localhost.BorrowInfo borrow_info = null;
                     lRet = info.LibraryChannel.Borrow(
                         false,  // 续借为 true
-                        strPatronIdentifier,    //读者证条码号
+                        string.IsNullOrEmpty(strInstitution) ? strPatronIdentifier : strInstitution + "." + strPatronIdentifier,    //读者证条码号
                         string.IsNullOrEmpty(strInstitution) ? strItemIdentifier : strInstitution + "." + strItemIdentifier,
                         // strItemIdentifier,     // 册条码号
                         null, //strConfirmItemRecPath,
@@ -1809,7 +1811,8 @@ namespace dp2Capo
                 if (!string.IsNullOrEmpty(strPatronPassword))
                 {
                     lRet = info.LibraryChannel.VerifyReaderPassword(
-                        strPatronIdentifier,
+                        string.IsNullOrEmpty(strInstitution) ? strPatronIdentifier : strInstitution + "." + strPatronIdentifier,    //读者证条码号
+                        // strPatronIdentifier,
                         strPatronPassword,
                         out strError);
                     if (-1 == lRet)
@@ -1831,7 +1834,7 @@ namespace dp2Capo
                 string strOutputReaderBarcode = "";
                 lRet = info.LibraryChannel.Borrow(
                     true,  // 续借为 true
-                    strPatronIdentifier,    //读者证条码号
+                    string.IsNullOrEmpty(strInstitution) ? strPatronIdentifier : strInstitution + "." + strPatronIdentifier,    //读者证条码号
                     string.IsNullOrEmpty(strInstitution) ? strItemIdentifier : strInstitution + "." + strItemIdentifier,
                     // strItemIdentifier,     // 册条码号
                     null, //strConfirmItemRecPath,
@@ -2266,14 +2269,14 @@ namespace dp2Capo
                 if (!string.IsNullOrEmpty(strPassword))
                 {
                     lRet = info.LibraryChannel.VerifyReaderPassword(
-                        strQueryBarcode,
+                        string.IsNullOrEmpty(strInstitution) ? strQueryBarcode : strInstitution + "." + strQueryBarcode,    //读者证条码号
+                        // strQueryBarcode,
                         strPassword,
                         out strError);
                     if (lRet == -1)
                     {
                         response.AF_ScreenMessage_o = "校验密码发生错误：" + strError;
                         response.AG_PrintLine_o = "校验密码发生错误：" + strError;
-
                         return response.ToText();
                     }
                     else if (lRet == 0)
