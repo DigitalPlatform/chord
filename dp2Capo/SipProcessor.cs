@@ -324,7 +324,7 @@ namespace dp2Capo
         }
 
         // 所连接的 dp2library 的最低版本要求
-        static string _dp2library_base_version = "3.46";
+        static string _dp2library_base_version = "3.47";
 
         static string Login(SipChannel sip_channel,
             string strClientIP,
@@ -731,13 +731,13 @@ namespace dp2Capo
                     long lRet = info.LibraryChannel.Return(
                         "return",
                         "",    //strReaderBarcode,
-                        string.IsNullOrEmpty(strInstitution) ? strItemIdentifier : strInstitution + "." + strItemIdentifier,
+                        AddOI(strItemIdentifier, strInstitution),
                         "", // strConfirmItemRecPath
                         false,
                         "item,biblio,reader",
                         "xml",
-                        out string[] itemRecords,
-                        "oi",
+                        out string[] item_records,
+                        "",
                         out string[] reader_records,
                         "xml",
                         out string[] biblioRecords,
@@ -761,6 +761,7 @@ namespace dp2Capo
                         response.AF_ScreenMessage_o = "成功";
                         response.AG_PrintLine_o = "成功";
 
+#if REMOVED
                         // 2021/3/4
                         // 返回读者记录是为了得到确切的机构代码
                         if (reader_records != null && reader_records.Length > 0)
@@ -785,13 +786,20 @@ namespace dp2Capo
                             response.AO_InstitutionId_r = DomUtil.GetElementText(dom.DocumentElement, "oi");
                             */
                         }
+#endif                        
+                        // 2021/3/9
+                        // 返回册记录是为了得到确切的机构代码
+                        if (item_records != null && item_records.Length > 0)
+                        {
+                            response.AO_InstitutionId_r = GetInstitution(item_records[0]);
+                        }
 
-                        if (itemRecords != null && itemRecords.Length > 0)
+                        if (item_records != null && item_records.Length > 0)
                         {
                             XmlDocument dom = new XmlDocument();
                             try
                             {
-                                dom.LoadXml(itemRecords[0]);
+                                dom.LoadXml(item_records[0]);
 
                                 response.AQ_PermanentLocation_r = DomUtil.GetElementText(dom.DocumentElement, "location");
 
@@ -948,8 +956,8 @@ namespace dp2Capo
                     {
                         // Result.Value -1出错 0密码不正确 1密码正确
                         lRet = info.LibraryChannel.VerifyReaderPassword(
-                            string.IsNullOrEmpty(strInstitution) ? strPatronIdentifier : strInstitution + "." + strPatronIdentifier,    //读者证条码号
-                                                                                                                                        // strPatronIdentifier,
+                            AddOI(strPatronIdentifier, strInstitution),    //读者证条码号
+                                                                           // strPatronIdentifier,
                             strPatronPassword,
                             out strError);
                         if (-1 == lRet)
@@ -972,8 +980,8 @@ namespace dp2Capo
                     DigitalPlatform.LibraryClient.localhost.BorrowInfo borrow_info = null;
                     lRet = info.LibraryChannel.Borrow(
                         false,  // 续借为 true
-                        string.IsNullOrEmpty(strInstitution) ? strPatronIdentifier : strInstitution + "." + strPatronIdentifier,    //读者证条码号
-                        string.IsNullOrEmpty(strInstitution) ? strItemIdentifier : strInstitution + "." + strItemIdentifier,
+                        AddOI(strPatronIdentifier, strInstitution),    //读者证条码号
+                        AddOI(strItemIdentifier, strInstitution),
                         // strItemIdentifier,     // 册条码号
                         null, //strConfirmItemRecPath,
                         false,
@@ -981,7 +989,7 @@ namespace dp2Capo
                         "auto_renew,biblio,item,reader", // strStyle, // auto_renew,biblio,item  //  "reader,item,biblio", // strStyle,
                         "xml:noborrowhistory",  // strItemReturnFormats,
                         out item_records,
-                        "oi", // "summary",    // strReaderFormatList
+                        "", // "summary",    // strReaderFormatList
                         out reader_records,
                         "xml",         //strBiblioReturnFormats,
                         out biblio_records,
@@ -998,6 +1006,7 @@ namespace dp2Capo
                     {
                         response.Ok_1 = "1";
 
+#if REMOVED
                         // 2021/3/4
                         // 返回读者记录是为了得到确切的机构代码
                         if (reader_records != null && reader_records.Length > 0)
@@ -1021,6 +1030,13 @@ namespace dp2Capo
 
                             response.AO_InstitutionId_r = DomUtil.GetElementText(dom.DocumentElement, "oi");
                             */
+                        }
+#endif
+                        // 2021/3/9
+                        // 返回册记录是为了得到确切的机构代码
+                        if (item_records != null && item_records.Length > 0)
+                        {
+                            response.AO_InstitutionId_r = GetInstitution(item_records[0]);
                         }
 
                         string strBiblioSummary = String.Empty;
@@ -1076,6 +1092,29 @@ namespace dp2Capo
             response.Ok_1 = "0";
             response.AF_ScreenMessage_o = strError;
             return response.ToText();
+        }
+
+        static string GetInstitution(string xml)
+        {
+            XmlDocument dom = new XmlDocument();
+            try
+            {
+                dom.LoadXml(xml);
+            }
+            catch (Exception ex)
+            {
+                return $"!XML 解析错误：{ex.Message}";
+            }
+
+            string oi = DomUtil.GetElementText(dom.DocumentElement, "oi", out XmlNode node);
+            if (node != null && ((XmlElement)node).HasAttribute("error"))
+            {
+                string error = DomUtil.GetAttr(node, "error");
+                if (error != null && error.StartsWith("(notfound)"))
+                    return "";
+                return "!" + error;
+            }
+            return oi;
         }
 
         /// <summary>
@@ -1152,7 +1191,7 @@ namespace dp2Capo
                 string strBiblio = "";
             REDO:
                 long lRet = info.LibraryChannel.GetItemInfo(
-                    string.IsNullOrEmpty(strInstitution) ? strItemIdentifier : strInstitution + "." + strItemIdentifier,
+                    AddOI(strItemIdentifier, strInstitution),
                     "xml",
                     out strItemXml,
                     "xml",
@@ -1494,7 +1533,7 @@ namespace dp2Capo
             REDO:
                 long lRet = info.LibraryChannel.GetItemInfo(
                     "item",
-                    string.IsNullOrEmpty(strInstitution) ? strItemIdentifier : strInstitution + "." + strItemIdentifier,
+                    AddOI(strItemIdentifier, strInstitution),
                     "",
                     "xml",
                     out strItemXml,
@@ -1706,7 +1745,7 @@ namespace dp2Capo
                     long lRet = info.LibraryChannel.Return(
                         "transfer",
                         "",
-                        string.IsNullOrEmpty(strInstitution) ? strItemIdentifier : strInstitution + "." + strItemIdentifier,
+                        AddOI(strItemIdentifier, strInstitution),
                         "", // strConfirmItemRecPath,
                         false,
                         style,
@@ -1811,8 +1850,8 @@ namespace dp2Capo
                 if (!string.IsNullOrEmpty(strPatronPassword))
                 {
                     lRet = info.LibraryChannel.VerifyReaderPassword(
-                        string.IsNullOrEmpty(strInstitution) ? strPatronIdentifier : strInstitution + "." + strPatronIdentifier,    //读者证条码号
-                        // strPatronIdentifier,
+                        AddOI(strPatronIdentifier, strInstitution),    //读者证条码号
+                                                                       // strPatronIdentifier,
                         strPatronPassword,
                         out strError);
                     if (-1 == lRet)
@@ -1834,8 +1873,8 @@ namespace dp2Capo
                 string strOutputReaderBarcode = "";
                 lRet = info.LibraryChannel.Borrow(
                     true,  // 续借为 true
-                    string.IsNullOrEmpty(strInstitution) ? strPatronIdentifier : strInstitution + "." + strPatronIdentifier,    //读者证条码号
-                    string.IsNullOrEmpty(strInstitution) ? strItemIdentifier : strInstitution + "." + strItemIdentifier,
+                    AddOI(strPatronIdentifier, strInstitution),    //读者证条码号
+                    AddOI(strItemIdentifier, strInstitution),
                     // strItemIdentifier,     // 册条码号
                     null, //strConfirmItemRecPath,
                     false,
@@ -1843,7 +1882,7 @@ namespace dp2Capo
                     "auto_renew,biblio,item,reader", // strStyle, // auto_renew,biblio,item                   //  "reader,item,biblio", // strStyle,
                     "xml:noborrowhistory",  // strItemReturnFormats,
                     out item_records,
-                    "oi", // "summary",    // strReaderFormatList
+                    "", // "summary",    // strReaderFormatList
                     out reader_records,
                     "xml",         //strBiblioReturnFormats,
                     out biblio_records,
@@ -1861,6 +1900,7 @@ namespace dp2Capo
                     response.Ok_1 = "1";
                     response.RenewalOk_1 = "Y";
 
+#if REMOVED
                     // 2021/3/4
                     // 返回读者记录是为了得到确切的机构代码
                     if (reader_records != null && reader_records.Length > 0)
@@ -1884,6 +1924,13 @@ namespace dp2Capo
 
                         response.AO_InstitutionId_r = DomUtil.GetElementText(dom.DocumentElement, "oi");
                         */
+                    }
+#endif
+                    // 2021/3/9
+                    // 返回册记录是为了得到确切的机构代码
+                    if (item_records != null && item_records.Length > 0)
+                    {
+                        response.AO_InstitutionId_r = GetInstitution(item_records[0]);
                     }
 
                     string strBiblioSummary = String.Empty;
@@ -2039,7 +2086,7 @@ namespace dp2Capo
                 // 先查到读者记录
                 string[] results = null;
                 lRet = info.LibraryChannel.GetReaderInfo(
-                    string.IsNullOrEmpty(strInstitution) ? strPatronIdentifier : strInstitution + "." + strPatronIdentifier,
+                    AddOI(strPatronIdentifier, strInstitution),
                     // strPatronIdentifier, //读者卡号,
                     "advancexml",   // this.RenderFormat, // "html",
                     out results,
@@ -2148,7 +2195,7 @@ namespace dp2Capo
                 string patronXml = "";
                 lRet = info.LibraryChannel.Amerce(
                    "amerce",
-                   string.IsNullOrEmpty(strInstitution) ? strPatronIdentifier : strInstitution + "." + strPatronIdentifier,
+                   AddOI(strPatronIdentifier, strInstitution),
                    // strPatronIdentifier,
                    amerce_items,
                    out failed_items,
@@ -2269,8 +2316,8 @@ namespace dp2Capo
                 if (!string.IsNullOrEmpty(strPassword))
                 {
                     lRet = info.LibraryChannel.VerifyReaderPassword(
-                        string.IsNullOrEmpty(strInstitution) ? strQueryBarcode : strInstitution + "." + strQueryBarcode,    //读者证条码号
-                        // strQueryBarcode,
+                        AddOI(strQueryBarcode, strInstitution),    //读者证条码号
+                                                                   // strQueryBarcode,
                         strPassword,
                         out strError);
                     if (lRet == -1)
@@ -2291,7 +2338,7 @@ namespace dp2Capo
 
                 string[] results = null;
                 lRet = info.LibraryChannel.GetReaderInfo(
-                    string.IsNullOrEmpty(strInstitution) ? strQueryBarcode : strInstitution + "." + strQueryBarcode,
+                    AddOI(strQueryBarcode, strInstitution),
                     // strQueryBarcode, //读者卡号,
                     "advancexml",   // this.RenderFormat, // "html",
                     out results,
@@ -2327,7 +2374,12 @@ namespace dp2Capo
                 }
 
                 // 2021/3/4
-                response.AO_InstitutionId_r = DomUtil.GetElementText(dom.DocumentElement, "oi");
+                string strResponseInstitution = DomUtil.GetElementText(dom.DocumentElement, "oi");
+                response.AO_InstitutionId_r = strResponseInstitution;
+
+                // 2021/3/9
+                // 注：对于条码号列表，目前可以认为凡是没有带点的，都可以自动加上一个读者的机构代码前缀，因为目前 dp2library 只允许一个读者借阅他所属分馆的图书。
+                // 而如果将来允许读者借阅外馆的图书，到时候查到的条码号必然是已经带上前缀的了，也不需要额外处理了
 
                 // hold items count 4 - char, fixed-length required field -- 预约
                 XmlNodeList holdItemNodes = dom.DocumentElement.SelectNodes("reservations/request");
@@ -2347,12 +2399,12 @@ namespace dp2Capo
                             string[] barcodes = strItemBarcode.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
                             foreach (string barcode in barcodes)
                             {
-                                holdItems.Add(new VariableLengthField(SIPConst.F_AS_HoldItems, false, barcode));
+                                holdItems.Add(new VariableLengthField(SIPConst.F_AS_HoldItems, false, AddOI(barcode, strResponseInstitution)));
                             }
                         }
                         else
                         {
-                            holdItems.Add(new VariableLengthField(SIPConst.F_AS_HoldItems, false, strItemBarcode));
+                            holdItems.Add(new VariableLengthField(SIPConst.F_AS_HoldItems, false, AddOI(strItemBarcode, strResponseInstitution)));
                         }
                     }
 
@@ -2376,7 +2428,6 @@ namespace dp2Capo
                         if (string.IsNullOrEmpty(strItemBarcode))
                             continue;
 
-
                         // 2018/12/25 ryh 如果是@refID:开头，尝试获取对应的索取号
                         if (strItemBarcode.IndexOf("@refID:") != -1)
                         {
@@ -2399,8 +2450,7 @@ namespace dp2Capo
                             }
                         }
 
-
-                        chargedItems.Add(new VariableLengthField(SIPConst.F_AU_ChargedItems, false, strItemBarcode));
+                        chargedItems.Add(new VariableLengthField(SIPConst.F_AU_ChargedItems, false, AddOI(strItemBarcode, strResponseInstitution)));
 
                         string strReturningDate = DomUtil.GetAttr(node, "returningDate");
                         if (string.IsNullOrEmpty(strReturningDate))
@@ -2409,7 +2459,7 @@ namespace dp2Capo
                         if (returningDate < DateTime.Now)
                         {
                             nOverdueItemsCount++;
-                            overdueItems.Add(new VariableLengthField(SIPConst.F_AT_OverdueItems, false, strItemBarcode));
+                            overdueItems.Add(new VariableLengthField(SIPConst.F_AT_OverdueItems, false, AddOI(strItemBarcode, strResponseInstitution)));
                         }
                     }
 
@@ -2519,6 +2569,17 @@ namespace dp2Capo
             response.AF_ScreenMessage_o = strError;
             response.AG_PrintLine_o = strError;
             return response.ToText();
+        }
+
+        // 2021/3/9
+        // 给条码号加上机构代码前缀
+        static string AddOI(string barcode, string oi)
+        {
+            if (barcode != null && barcode.Contains("."))
+                return barcode;
+            if (string.IsNullOrEmpty(oi))
+                return barcode;
+            return oi + "." + barcode;
         }
 
         static string SetReaderInfo(
@@ -3034,7 +3095,7 @@ namespace dp2Capo
             string strRecPath = "";
             string[] results = null;
             long lRet = library_channel.GetReaderInfo(
-                string.IsNullOrEmpty(strInstitution) ? strReaderBarcode : strInstitution + "." + strReaderBarcode,
+                AddOI(strReaderBarcode, strInstitution),
                 // strReaderBarcode,
                 "xml",
                 out results,
@@ -3081,7 +3142,7 @@ namespace dp2Capo
                 string strReaderXml = "";
                 lRet = library_channel.Amerce(
                     "amerce",
-                    string.IsNullOrEmpty(strInstitution) ? strReaderBarcode : strInstitution + "." + strReaderBarcode,
+                    AddOI(strReaderBarcode, strInstitution),
                     // strReaderBarcode,
                     amerce_items,
                     out failed_items,
