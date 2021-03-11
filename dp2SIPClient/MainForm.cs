@@ -808,8 +808,8 @@ namespace dp2SIPClient
                 NoBlock_1 = "N",
                 TransactionDate_18 = this.TransactionDate,
                 AO_InstitutionId_r = this.AO,// "",// dp2Library",
-                AA_PatronIdentifier_r = this.textBox_checkout_readerBarcode.Text,
-                AD_PatronPassword_o = this.textBox_checkout_readerPassword.Text,
+                AA_PatronIdentifier_r = this.textBox_readerBarcode.Text,
+                AD_PatronPassword_o = this.textBox_readerPassword.Text,
                 BO_FeeAcknowledged_1_o = "N",
                 BI_Cancel_1_o = "N",
                 NbDueDate_18 = "                  ",
@@ -865,7 +865,7 @@ namespace dp2SIPClient
             Button button = sender as Button;
             string responseText = "";
             string error = "";
-            string[] barcodes = this.textBox_patronInfo_barcodes.Text.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] barcodes = this.textBox_readerBarcode.Text.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             int i = 0;
             foreach(string barcode in barcodes)
             {
@@ -1082,13 +1082,110 @@ namespace dp2SIPClient
 
         private void button1_Click(object sender, EventArgs e)
         {
-            string cmdText = this.textBox_barcodes.Text.Trim();
+            this.SendMessage();
+        }
+
+        public void SendMessage()
+        {
+            string cmdText = this.textBox_message.Text.Trim();//this.textBox_barcodes.Text.Trim();
             this.Print("send:" + cmdText);
             BaseMessage response = null;
             int nRet = SCHelper.Instance.SendAndRecvMessage(cmdText,
                 out response,
                 out string responseText,
                 out string error);
+            if (nRet == -1)
+            {
+                MessageBox.Show(error);
+                this.Print("error:" + error);
+            }
+
+            this.Print("recv:" + responseText);
+        }
+
+
+
+
+        private void button_renew_Click(object sender, EventArgs e)
+        {
+            Renew_29 request = new Renew_29()
+            {
+                ThirdPartyAllowed_1 = "N",
+                NoBlock_1 = "N",
+                TransactionDate_18 = this.TransactionDate,
+                NbDueDate_18 = "                  ",
+                AO_InstitutionId_r = this.AO,// "",// dp2Library",
+                BO_FeeAcknowledged_1_o = "N",
+            };
+
+            Button button = sender as Button;
+
+            string responseText = "";
+            string error = "";
+
+            request.AA_PatronIdentifier_r = this.textBox_readerBarcode.Text.Trim();//认作一个册条码号
+            request.AB_ItemIdentifier_o = this.textBox_barcodes.Text.Trim();//认作一个册条码号
+            request.AD_PatronPassword_o = this.textBox_readerPassword.Text.Trim();
+
+
+            string cmdText = request.ToText();
+
+            this.Print("send:" + cmdText);
+            BaseMessage response = null;
+            int nRet = SCHelper.Instance.SendAndRecvMessage(cmdText,
+                out response,
+                out responseText,
+                out error);
+            if (nRet == -1)
+            {
+                MessageBox.Show(error);
+                this.Print("error:" + error);
+            }
+
+            this.Print("recv:" + responseText);
+
+        }
+
+        private void button_send98_Click(object sender, EventArgs e)
+        {
+            this.textBox_message.Text = "9900302.00";
+            this.SendMessage();
+        }
+
+        /// <summary>
+        /// 交费
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void button_fee_Click(object sender, EventArgs e)
+        {
+            FeePaid_37 request = new FeePaid_37()
+            {
+                TransactionDate_18 = this.TransactionDate,
+                FeeType_2 = "01",
+                PaymentType_2= "00",
+            };
+
+            Button button = sender as Button;
+
+            string responseText = "";
+            string error = "";
+
+            request.AA_PatronIdentifier_r = this.textBox_readerBarcode.Text.Trim();//认作一个册条码号
+            request.AO_InstitutionId_r = this.AO;
+            request.AD_PatronPassword_o = this.textBox_readerPassword.Text.Trim();
+            request.CurrencyType_3 = this.textBox_currencyType.Text.Trim();
+            request.BV_FeeAmount_r = this.textBox_feeAmount.Text.Trim();
+
+
+            string cmdText = request.ToText();
+
+            this.Print("send:" + cmdText);
+            BaseMessage response = null;
+            int nRet = SCHelper.Instance.SendAndRecvMessage(cmdText,
+                out response,
+                out responseText,
+                out error);
             if (nRet == -1)
             {
                 MessageBox.Show(error);
