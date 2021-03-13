@@ -2894,14 +2894,15 @@ CancellationToken token)
             Task<MessageResult> task = HubProxy.Invoke<MessageResult>("SetUsers",
                 action,
                 users);
-
+            
             List<Task> tasks = new List<Task>() { };
-            if (task == await Task.WhenAny(task, Task.Delay(timeout), token.AsTask()).ConfigureAwait(false))
+            // if (task == await Task.WhenAny(task, Task.Delay(timeout), token.AsTask()).ConfigureAwait(false))
+            // https://stackoverflow.com/questions/18670111/task-from-cancellation-token
+            if (task == await Task.WhenAny(task, Task.Delay(timeout), Task.Delay(Timeout.Infinite, token)).ConfigureAwait(false))
                 return task.Result;
 
             throw new TimeoutException("已超时 " + timeout.ToString());
         }
-
 
         #endregion
 
@@ -3539,7 +3540,7 @@ errorInfo).ConfigureAwait(false);
             Debug.Assert(rest.Count == 0, "");
             Debug.Assert(current.Count == 0, "");
             return true;
-            ERROR1:
+        ERROR1:
             // 报错
             TryResponseSearch(
                 new SearchResponse(
@@ -3662,7 +3663,7 @@ strError,
             Debug.Assert(rest.Count == 0, "");
             Debug.Assert(current.Count == 0, "");
             return true;
-            ERROR1:
+        ERROR1:
             // 报错
             {
                 MessageResult result = HubProxy.Invoke<MessageResult>("ResponseGetRes",
@@ -3707,7 +3708,7 @@ SearchResponse responseParam)
         {
             // TODO: 等待执行完成。如果有异常要当时处理。比如减小尺寸重发。
             int nRedoCount = 0;
-            REDO:
+        REDO:
             try
             {
                 MessageResult result = await HubProxy.Invoke<MessageResult>("ResponseSearch",
