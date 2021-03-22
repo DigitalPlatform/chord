@@ -1,20 +1,10 @@
-﻿using DigitalPlatform.IO;
-//using DigitalPlatform.LibraryRestClient;
-using DigitalPlatform.Text;
-using dp2Command.Service;
-using dp2weixin;
+﻿using dp2weixin;
 using dp2weixin.service;
 using dp2weixinWeb.Models;
-using Senparc.Weixin.MP.Helpers;
 using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
 using System.Web;
-using System.Web.Configuration;
 using System.Web.Mvc;
 
 namespace dp2weixinWeb.Controllers
@@ -35,6 +25,9 @@ namespace dp2weixinWeb.Controllers
         // 超级管理员登录
         public ActionResult Login(string returnUrl)
         {
+            if (returnUrl == null)
+                returnUrl = "";
+
             ViewBag.ReturnUrl = returnUrl;
 
             //throw new MyException("test exception");

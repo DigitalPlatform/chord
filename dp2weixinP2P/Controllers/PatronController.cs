@@ -35,85 +35,94 @@ namespace dp2weixinWeb.Controllers
             string strError = "";
             int nRet = 0;
 
-            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
-            // -1 出错
-            // 0 成功
-            nRet = this.GetSessionInfo(code, state,
-                false, //是否校验图书馆状态
-                false,  //是否重新获取activeuser
-                out SessionInfo sessionInfo,
-                out strError);
-            if (nRet == -1)
+            try
             {
-                ViewBag.Error = strError;
-                return View();
-            }
 
-            // 获取该微信帐户绑定了哪些图书馆帐户
-            List<WxUserItem> list = WxUserDatabase.Current.Get(sessionInfo.WeixinId, null, -1);
-
-            // 如果未选择图书馆，则直接跳转到全部图书馆界面
-            if (list.Count == 0)
-            {
-                return Redirect("~/Patron/selectlib?returnUrl=" + HttpUtility.UrlEncode(returnUrl));
-            }
-
-            // 选择完返回的页面
-            ViewBag.returnUrl = returnUrl;
-
-            // 获取可访问的图书馆
-            List<Library> avaiblelibList = dp2WeiXinService.Instance.LibManager.GetLibraryByIds(sessionInfo.libIds);
-
-
-
-            // 可显示的区域
-            List<Area> areaList = new List<Area>();
-            // 从所有区域中查找
-            foreach (Area area in dp2WeiXinService.Instance._areaMgr._areas)
-            {
-                List<LibModel> libList = new List<LibModel>();
-                foreach (LibModel lib in area.libs)
+                // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
+                // -1 出错
+                // 0 成功
+                nRet = this.GetSessionInfo(code, state,
+                    false, //是否校验图书馆状态
+                    false,  //是否重新获取activeuser
+                    out SessionInfo sessionInfo,
+                    out strError);
+                if (nRet == -1)
                 {
-                    lib.Checked = "";
-                    lib.bindFlag = "";
+                    ViewBag.Error = strError;
+                    return View();
+                }
 
-                    // 检查微信用户是否绑定了这个图书馆
-                    WxUserItem tempUser = null;
-                    if (this.CheckIsBind(list, lib, out tempUser) == true)  //libs.Contains(lib.libId)
+                // 获取该微信帐户绑定了哪些图书馆帐户
+                List<WxUserItem> list = WxUserDatabase.Current.Get(sessionInfo.WeixinId, null, -1);
+
+                // 如果未选择图书馆，则直接跳转到全部图书馆界面
+                if (list.Count == 0)
+                {
+                    return Redirect("~/Patron/selectlib?returnUrl=" + HttpUtility.UrlEncode(returnUrl));
+                }
+
+                // 选择完返回的页面
+                ViewBag.returnUrl = returnUrl;
+
+                // 获取可访问的图书馆
+                List<Library> avaiblelibList = dp2WeiXinService.Instance.LibManager.GetLibraryByIds(sessionInfo.libIds);
+
+
+
+                // 可显示的区域
+                List<Area> areaList = new List<Area>();
+                // 从所有区域中查找
+                foreach (Area area in dp2WeiXinService.Instance._areaMgr._areas)
+                {
+                    List<LibModel> libList = new List<LibModel>();
+                    foreach (LibModel lib in area.libs)
                     {
-                        // 加到显示列表
-                        libList.Add(lib);
+                        lib.Checked = "";
+                        lib.bindFlag = "";
 
-                        if (tempUser.userName != WxUserDatabase.C_Public)
+                        // 检查微信用户是否绑定了这个图书馆
+                        WxUserItem tempUser = null;
+                        if (this.CheckIsBind(list, lib, out tempUser) == true)  //libs.Contains(lib.libId)
                         {
-                            lib.bindFlag = " * ";
-                        }
+                            // 加到显示列表
+                            libList.Add(lib);
 
-
-                        // 当前绑定帐户的图书馆显示为勾中状态
-                        if (sessionInfo.ActiveUser != null)
-                        {
-                            if (lib.libId == sessionInfo.ActiveUser.libId
-                                && lib.libraryCode == sessionInfo.ActiveUser.bindLibraryCode)
+                            if (tempUser.userName != WxUserDatabase.C_Public)
                             {
-                                lib.Checked = " checked ";
+                                lib.bindFlag = " * ";
+                            }
+
+
+                            // 当前绑定帐户的图书馆显示为勾中状态
+                            if (sessionInfo.ActiveUser != null)
+                            {
+                                if (lib.libId == sessionInfo.ActiveUser.libId
+                                    && lib.libraryCode == sessionInfo.ActiveUser.bindLibraryCode)
+                                {
+                                    lib.Checked = " checked ";
+                                }
                             }
                         }
                     }
+
+                    // 只有当有下级图书馆时，才显示地区
+                    if (libList.Count > 0)
+                    {
+                        Area newArea = new Area();
+                        newArea.name = area.name;
+                        newArea.libs = libList;
+                        areaList.Add(newArea);
+                    }
                 }
 
-                // 只有当有下级图书馆时，才显示地区
-                if (libList.Count > 0)
-                {
-                    Area newArea = new Area();
-                    newArea.name = area.name;
-                    newArea.libs = libList;
-                    areaList.Add(newArea);
-                }
+                // 放到界面上
+                ViewBag.areaList = areaList;
             }
-
-            // 放到界面上
-            ViewBag.areaList = areaList;
+            catch(Exception ex)
+            {
+                ViewBag.Error = "选择图书馆出错1:"+ex.Message;
+                return View();
+            }
 
             return View();
         }
@@ -131,97 +140,106 @@ namespace dp2weixinWeb.Controllers
             string strError = "";
             int nRet = 0;
 
-            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
-            // -1 出错
-            // 0 成功
-            nRet = this.GetSessionInfo(code, state,
-                false, //是否校验图书馆状态
-                false,  //是否重新获取activeuser
-                out SessionInfo sessionInfo,
-                out strError);
-            if (nRet == -1)
+            try
             {
-                ViewBag.Error = strError;
-                return View();
-            }
-
-            // 选择完返回的页面
-            ViewBag.returnUrl = returnUrl;
-
-            // 获取可访问的图书馆
-            List<Library> avaiblelibList = dp2WeiXinService.Instance.LibManager.GetLibraryByIds(sessionInfo.libIds);
-
-
-            // 获取该微信帐户绑定了哪些图书馆帐户
-            List<WxUserItem> list = WxUserDatabase.Current.Get(sessionInfo.WeixinId, null, -1);
-
-            // 可显示的区域
-            List<Area> areaList = new List<Area>();
-            // 从所有区域中查找
-            foreach (Area area in dp2WeiXinService.Instance._areaMgr._areas)
-            {
-                List<LibModel> libList = new List<LibModel>();
-                foreach (LibModel lib in area.libs)
+                // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
+                // -1 出错
+                // 0 成功
+                nRet = this.GetSessionInfo(code, state,
+                    false, //是否校验图书馆状态
+                    false,  //是否重新获取activeuser
+                    out SessionInfo sessionInfo,
+                    out strError);
+                if (nRet == -1)
                 {
-                    lib.Checked = "";
-                    lib.bindFlag = "";
+                    ViewBag.Error = strError;
+                    return View();
+                }
 
-                    // 如果是到期的图书馆，不显示出来
-                    Library thisLib = dp2WeiXinService.Instance.LibManager.GetLibrary(lib.libId);//.GetLibById(lib.libId);
-                    if (thisLib != null && thisLib.Entity.state == "到期")
+                // 选择完返回的页面
+                ViewBag.returnUrl = returnUrl;
+
+                // 获取可访问的图书馆
+                List<Library> avaiblelibList = dp2WeiXinService.Instance.LibManager.GetLibraryByIds(sessionInfo.libIds);
+
+
+                // 获取该微信帐户绑定了哪些图书馆帐户
+                List<WxUserItem> list = WxUserDatabase.Current.Get(sessionInfo.WeixinId, null, -1);
+
+                // 可显示的区域
+                List<Area> areaList = new List<Area>();
+                // 从所有区域中查找
+                foreach (Area area in dp2WeiXinService.Instance._areaMgr._areas)
+                {
+                    List<LibModel> libList = new List<LibModel>();
+                    foreach (LibModel lib in area.libs)
                     {
-                        continue;
-                    }
+                        lib.Checked = "";
+                        lib.bindFlag = "";
 
-                    //如果不在可访问范围，不显示
-                    if (thisLib != null && avaiblelibList.IndexOf(thisLib) == -1)
-                    {
-                        continue;
-                    }
-
-                    // 如果从mongodb库没有找到图书馆，不显示
-                    // 有可能是mongodb库删除，但配置文件还没有删除
-                    if (thisLib == null)
-                    {
-                        dp2WeiXinService.Instance.WriteDebug("选择图书馆时，根据[" + lib.libId + "]未找到对应的图书馆");
-                        continue;
-                    }
-
-                    // 加到显示列表
-                    libList.Add(lib);
-
-                    // 检查微信用户是否绑定了这个图书馆
-                    WxUserItem tempUser = null;
-                    if (this.CheckIsBind(list, lib, out tempUser) == true)  //libs.Contains(lib.libId)
-                    {
-                        if (tempUser.userName != WxUserDatabase.C_Public)
-                            lib.bindFlag = " * ";
-                    }
-
-                    // 当前绑定帐户的图书馆显示为勾中状态
-                    if (sessionInfo.ActiveUser != null)
-                    {
-                        if (lib.libId == sessionInfo.ActiveUser.libId
-                            && lib.libraryCode == sessionInfo.ActiveUser.bindLibraryCode)
+                        // 如果是到期的图书馆，不显示出来
+                        Library thisLib = dp2WeiXinService.Instance.LibManager.GetLibrary(lib.libId);//.GetLibById(lib.libId);
+                        if (thisLib != null && thisLib.Entity.state == "到期")
                         {
-                            lib.Checked = " checked ";
+                            continue;
+                        }
+
+                        //如果不在可访问范围，不显示
+                        if (thisLib != null && avaiblelibList.IndexOf(thisLib) == -1)
+                        {
+                            continue;
+                        }
+
+                        // 如果从mongodb库没有找到图书馆，不显示
+                        // 有可能是mongodb库删除，但配置文件还没有删除
+                        if (thisLib == null)
+                        {
+                            dp2WeiXinService.Instance.WriteDebug("选择图书馆时，根据[" + lib.libId + "]未找到对应的图书馆");
+                            continue;
+                        }
+
+                        // 加到显示列表
+                        libList.Add(lib);
+
+                        // 检查微信用户是否绑定了这个图书馆
+                        WxUserItem tempUser = null;
+                        if (this.CheckIsBind(list, lib, out tempUser) == true)  //libs.Contains(lib.libId)
+                        {
+                            if (tempUser.userName != WxUserDatabase.C_Public)
+                                lib.bindFlag = " * ";
+                        }
+
+                        // 当前绑定帐户的图书馆显示为勾中状态
+                        if (sessionInfo.ActiveUser != null)
+                        {
+                            if (lib.libId == sessionInfo.ActiveUser.libId
+                                && lib.libraryCode == sessionInfo.ActiveUser.bindLibraryCode)
+                            {
+                                lib.Checked = " checked ";
+                            }
                         }
                     }
+
+                    // 只有当有下级图书馆时，才显示地区
+                    if (libList.Count > 0)
+                    {
+                        Area newArea = new Area();
+                        newArea.name = area.name;
+                        newArea.libs = libList;
+                        areaList.Add(newArea);
+                    }
+
                 }
 
-                // 只有当有下级图书馆时，才显示地区
-                if (libList.Count > 0)
-                {
-                    Area newArea = new Area();
-                    newArea.name = area.name;
-                    newArea.libs = libList;
-                    areaList.Add(newArea);
-                }
+                // 放到界面上
+                ViewBag.areaList = areaList;
 
             }
-
-            // 放到界面上
-            ViewBag.areaList = areaList;
+            catch (Exception ex)
+            {
+                ViewBag.Error = "选择图书馆出错2:" + ex.Message;
+                return View();
+            }
 
             return View();
         }

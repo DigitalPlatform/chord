@@ -10048,7 +10048,10 @@ ErrorInfo成员里可能会有报错信息。
                     // 图书馆设置为支持在线预约，预约成功后，同时提示简化。2020/2/14 编译局使用的馆员备书功能
                     //if (string.IsNullOrEmpty(lib.comment) == false
                     //    && lib.comment.IndexOf("ReserveOnshelf") != -1)
-                    if (lib.ReserveScope == LibDatabase.C_ReserveScope_OnlyOnshelf)  // 2020/3/22 改为使用参数
+
+                    // 2021/3/22改为如果设置了不给读者发送通知，则简化提示，以前是根据是否只有在架预约的
+                    //if (lib.ReserveScope == LibDatabase.C_ReserveScope_OnlyOnshelf)  // 2020/3/22 改为使用参数
+                    if (lib.IsSendArrivedNotice == "N") //2020/3/22 改为直接使用变量
                     {
                         strError = ""; //将在架预约的提示清掉。
                     }
