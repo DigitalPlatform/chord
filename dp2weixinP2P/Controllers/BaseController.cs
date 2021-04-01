@@ -521,12 +521,20 @@ namespace dp2weixinWeb.Controllers
 
             // 到期的图书馆应该不会显示出来，所以这一段后面可以删除 2020-2-29
             {
-                LibEntity libEntity = sessionInfo.CurrentLib.Entity;//dp2WeiXinService.Instance.GetLibById(libId);
-                if (libEntity != null && libEntity.state == "到期"
-                    && Request.Path.Contains("/Patron/SelectOwnerLib") == false) //选择图书馆界面除外
+                if (sessionInfo.CurrentLib == null)
                 {
-                    strError = "服务已到期，请联系图书馆工作人员。";
-                    return -1;
+                    strError = "图书馆公众号服务停止，请联系图书馆工作人员。";
+                    return 0;
+                }
+                else
+                {
+                    LibEntity libEntity = sessionInfo.CurrentLib.Entity;//dp2WeiXinService.Instance.GetLibById(libId);
+                    if (libEntity != null && libEntity.state == "到期"
+                        && Request.Path.Contains("/Patron/SelectOwnerLib") == false) //选择图书馆界面除外
+                    {
+                        strError = "服务已到期，请联系图书馆工作人员。";
+                        return -1;
+                    }
                 }
             }
 
