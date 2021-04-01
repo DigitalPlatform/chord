@@ -15,6 +15,9 @@ namespace DigitalPlatform.SIP.Server
         // 3M设备工作台号
         public string LocationCode { get; set; }
 
+        // 登录是否成功
+        // public bool LoginSucceed { get; set; }
+
         // 2021/3/4
         // 登录者的机构代码
         public string Institution { get; set; }

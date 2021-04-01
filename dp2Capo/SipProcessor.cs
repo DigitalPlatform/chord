@@ -324,7 +324,7 @@ namespace dp2Capo
         }
 
         // 所连接的 dp2library 的最低版本要求
-        static string _dp2library_base_version = "3.47";
+        static string _dp2library_base_version = "3.49";
 
         static string Login(SipChannel sip_channel,
             string strClientIP,
@@ -500,7 +500,7 @@ namespace dp2Capo
 
         ERROR1:
             sip_channel.LocationCode = "";
-            sip_channel.InstanceName = "";
+            sip_channel.InstanceName = null;
             sip_channel.UserName = "";
             sip_channel.Password = "";
 
@@ -2336,26 +2336,28 @@ namespace dp2Capo
                     response.CQ_ValidPatronPassword_o = "Y";
                 }
 
+                string query = AddOI(strQueryBarcode, strInstitution);
+
                 string[] results = null;
                 lRet = info.LibraryChannel.GetReaderInfo(
-                    AddOI(strQueryBarcode, strInstitution),
+                    query,
                     // strQueryBarcode, //读者卡号,
                     "advancexml",   // this.RenderFormat, // "html",
                     out results,
                     out strError);
                 if (lRet <= -1)
                 {
-                    strError = "查询读者('" + strQueryBarcode + "')信息出错：" + strError;
+                    strError = "查询读者('" + query + "')信息出错：" + strError;
                     goto ERROR1;
                 }
                 else if (lRet == 0)
                 {
-                    strError = "查无此证 '" + strQueryBarcode + "'";
+                    strError = "查无此证 '" + query + "'";
                     goto ERROR1;
                 }
                 else if (lRet > 1)
                 {
-                    strError = "证号重复 '" + strQueryBarcode + "'";
+                    strError = "证号重复 '" + query + "'";
                     goto ERROR1;
                 }
 
@@ -2374,8 +2376,8 @@ namespace dp2Capo
                 }
 
                 // 2021/3/4
-                string strResponseInstitution = DomUtil.GetElementText(dom.DocumentElement, "oi");
-                response.AO_InstitutionId_r = strResponseInstitution;
+                string strResponsePatronInstitution = DomUtil.GetElementText(dom.DocumentElement, "oi");
+                response.AO_InstitutionId_r = strResponsePatronInstitution;
 
                 // 2021/3/9
                 // 注：对于条码号列表，目前可以认为凡是没有带点的，都可以自动加上一个读者的机构代码前缀，因为目前 dp2library 只允许一个读者借阅他所属分馆的图书。
@@ -2399,12 +2401,14 @@ namespace dp2Capo
                             string[] barcodes = strItemBarcode.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
                             foreach (string barcode in barcodes)
                             {
-                                holdItems.Add(new VariableLengthField(SIPConst.F_AS_HoldItems, false, AddOI(barcode, strResponseInstitution)));
+                                GetItemUII(info.LibraryChannel, barcode, out string uii, out strError);
+                                holdItems.Add(new VariableLengthField(SIPConst.F_AS_HoldItems, false, uii));
                             }
                         }
                         else
                         {
-                            holdItems.Add(new VariableLengthField(SIPConst.F_AS_HoldItems, false, AddOI(strItemBarcode, strResponseInstitution)));
+                            GetItemUII(info.LibraryChannel, strItemBarcode, out string uii, out strError);
+                            holdItems.Add(new VariableLengthField(SIPConst.F_AS_HoldItems, false, uii));
                         }
                     }
 
@@ -2450,7 +2454,10 @@ namespace dp2Capo
                             }
                         }
 
-                        chargedItems.Add(new VariableLengthField(SIPConst.F_AU_ChargedItems, false, AddOI(strItemBarcode, strResponseInstitution)));
+                        {
+                            GetItemUII(info.LibraryChannel, strItemBarcode, out string uii, out strError);
+                            chargedItems.Add(new VariableLengthField(SIPConst.F_AU_ChargedItems, false, uii));
+                        }
 
                         string strReturningDate = DomUtil.GetAttr(node, "returningDate");
                         if (string.IsNullOrEmpty(strReturningDate))
@@ -2459,7 +2466,8 @@ namespace dp2Capo
                         if (returningDate < DateTime.Now)
                         {
                             nOverdueItemsCount++;
-                            overdueItems.Add(new VariableLengthField(SIPConst.F_AT_OverdueItems, false, AddOI(strItemBarcode, strResponseInstitution)));
+                            GetItemUII(info.LibraryChannel, strItemBarcode, out string uii, out strError);
+                            overdueItems.Add(new VariableLengthField(SIPConst.F_AT_OverdueItems, false, uii));
                         }
                     }
 
@@ -2569,6 +2577,48 @@ namespace dp2Capo
             response.AF_ScreenMessage_o = strError;
             response.AG_PrintLine_o = strError;
             return response.ToText();
+        }
+
+        // 根据纯净的册条码号获得一个册的 UII。UII 就是 OI.PII
+        static int GetItemUII(LibraryChannel channel,
+            string barcode,
+            out string uii,
+            out string strError)
+        {
+            strError = "";
+            uii = barcode;
+
+            if (uii.Contains("."))
+                return 0;
+
+            int nRedoCount = 0;
+        REDO:
+            long lRet = channel.GetItemInfo(
+                barcode,
+                "uii",
+                out string strItemXml,
+                "",
+                out string strBiblio,
+                out strError);
+            if (lRet == -1)
+            {
+                if (channel.ErrorCode == ErrorCode.ChannelReleased
+                    && nRedoCount < 10)
+                {
+                    nRedoCount++;
+                    goto REDO;
+                }
+                return -1;
+            }
+
+            if (lRet == 0)
+                return 0;
+
+            if (string.IsNullOrEmpty(strItemXml))
+                uii = barcode;
+            else
+                uii = strItemXml;
+            return 1;
         }
 
         // 2021/3/9
