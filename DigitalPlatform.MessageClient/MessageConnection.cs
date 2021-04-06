@@ -2898,7 +2898,9 @@ CancellationToken token)
             List<Task> tasks = new List<Task>() { };
             // if (task == await Task.WhenAny(task, Task.Delay(timeout), token.AsTask()).ConfigureAwait(false))
             // https://stackoverflow.com/questions/18670111/task-from-cancellation-token
-            if (task == await Task.WhenAny(task, Task.Delay(timeout), Task.Delay(Timeout.Infinite, token)).ConfigureAwait(false))
+            if (task == await Task.WhenAny(task,
+                Task.Delay(timeout),
+                Task.Delay(Timeout.Infinite, token)).ConfigureAwait(false))
                 return task.Result;
 
             throw new TimeoutException("已超时 " + timeout.ToString());
