@@ -68,9 +68,20 @@ namespace dp2weixin.service
             itemTables += "<tr>"
             + "<td class='label'>馆藏地</td>"
             + "<td class='value' " + addStyle + ">" + record.location + "</td>"
-            + "</tr>"
-            + "<tr>"
-            + "<td class='label'>当前位置</td>"  //2020/11/5加
+            + "</tr>";
+
+
+            // 2021/4/6 如果架号字段不为空，则显示永久架号
+            if (string.IsNullOrEmpty(record.shelfNo) == false)
+            {
+                itemTables += "<tr>"
+                    + "<td class='label'>架号</td>"
+                    + "<td class='value' " + addStyle + ">" + record.shelfNo + "</td>"
+                    + "</tr>";
+            }
+
+            itemTables += "<tr>"
+            +"<td class='label'>当前位置</td>"  //2020/11/5加
             + "<td class='value' " + addStyle + ">" + record.currentLocation + "</td>"
             + "</tr>"
             + "<tr>"
