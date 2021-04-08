@@ -101,7 +101,14 @@ namespace dp2Capo
 
             string strChannelName = "ip:" + ip + ",channel:" + sip_channel.GetHashCode();
 
-            if (strMessageIdentifiers != "99")
+            // 将请求消息记入日志
+            if (strMessageIdentifiers == "99")
+            {
+                // 99 ScStatus 因为可能太频繁，不予记载
+            }
+            else if (strMessageIdentifiers == "93")
+                LibraryManager.Log?.Info(strChannelName + ",\r\nrequest=" + RemovePassword(strRequest));
+            else
                 LibraryManager.Log?.Info(strChannelName + ",\r\nrequest=" + strRequest);
 
 
@@ -241,6 +248,25 @@ namespace dp2Capo
 
             //ERROR1:
             //throw new Exception(strError);
+        }
+
+        // TODO: 可以考虑在原始字符串上 replace() 替换密码部分
+        static string RemovePassword(string message)
+        {
+            Login_93 request = new Login_93();
+            try
+            {
+                int nRet = request.parse(message, out string strError);
+                if (-1 == nRet)
+                    return message;
+                int count = request.CO_LoginPassword_r == null ? 0 : request.CO_LoginPassword_r.Length;
+                request.CO_LoginPassword_r = new string('*', count);
+                return request.ToText();
+            }
+            catch
+            {
+                return message;
+            }
         }
 
         // 用实例中的自动清理时间参数设置 SipChannel 的 Timeout 值
@@ -431,6 +457,7 @@ namespace dp2Capo
             sip_channel.UserName = strUserName;
             sip_channel.Password = strPassword;
             // 从此以后，报错信息才可以使用中文了
+            // 此处可能会抛出异常
             sip_channel.Encoding = instance.sip_host.GetSipParam(sip_channel.UserName).Encoding;
             // 注：登录以后 Timeout 才按照实例参数来设定。此前是 sip_channel.Timeout 的默认值
             // sip_channel.Timeout = instance.sip_host.AutoClearSeconds == 0 ? TimeSpan.MinValue : TimeSpan.FromSeconds(instance.sip_host.AutoClearSeconds);
@@ -547,7 +574,9 @@ namespace dp2Capo
             public string ErrorInfo { get; set; }
         }
 
-        static FunctionInfo BeginFunction(SipChannel sip_channel)
+        static FunctionInfo BeginFunction(
+            SipChannel sip_channel,
+            bool check_login = true)
         {
             bool useSingleInstance = true;  // 是否允许单实例情况，不登录而直接使用唯一实例的匿名账户
 
@@ -627,6 +656,19 @@ namespace dp2Capo
                         strError = "not login, can't locate instance";
                     else
                         strError = "尚未登录，无法定位实例";
+                    goto ERROR1;
+                }
+            }
+            else
+            {
+                // 2021/4/8
+                if (check_login
+                    && string.IsNullOrEmpty(login_info.UserName))
+                {
+                    if (sip_channel.Encoding == null)
+                        strError = "not login";
+                    else
+                        strError = "尚未登录";
                     goto ERROR1;
                 }
             }
@@ -1341,6 +1383,9 @@ namespace dp2Capo
         ERROR1:
             LibraryManager.Log?.Info("ItemInfo() error: " + strError);
             response.AF_ScreenMessage_o = strError;
+            // 2021/4/7
+            // 迫使前端感觉到错误
+            response.AB_ItemIdentifier_r = "";
             return response.ToText();
         }
 
@@ -3342,7 +3387,7 @@ namespace dp2Capo
                 RetriesAllowed_3 = "003",
                 DatetimeSync_18 = SIPUtility.NowDateTime,
                 ProtocolVersion_4 = "2.00",
-                AO_InstitutionId_r = "",    // "dp2Library",
+                AO_InstitutionId_r = "?",    // "dp2Library",
                 AM_LibraryName_o = "dp2Library",
                 BX_SupportedMessages_r = "YYYYYYYYYYYYYYYY",
                 AF_ScreenMessage_o = "",
@@ -3350,7 +3395,7 @@ namespace dp2Capo
 
             string strError = "";
 
-            FunctionInfo info = BeginFunction(sip_channel);
+            FunctionInfo info = BeginFunction(sip_channel, false);
             if (string.IsNullOrEmpty(info.ErrorInfo) == false)
             {
                 strError = info.ErrorInfo;
@@ -3373,43 +3418,78 @@ namespace dp2Capo
                 }
 
                 // TODO: 如果某个通道的 ScStatus 请求来得很频繁，要考虑缓冲 GetSystemParameter() API 的结果，直接把这个结果返回给前端
-                string strExistingValue = null;
+                string strExistingHangupValue = null;
 
-                lock (_syncRoot_hangupStatusTable)
                 {
-                    if (_hangupStatusTable != null
-                        && _hangupStatusTable.ContainsKey(info.LibraryChannel.Url))
-                        strExistingValue = _hangupStatusTable[info.LibraryChannel.Url];
-                }
-
-                string strValue = "";
-                if (strExistingValue == null)
-                {
-                    //2018/06/19 
-                    lRet = info.LibraryChannel.GetSystemParameter("system",
-                        "hangup",
-                        out strValue,
-                        out strError);
-                    if (lRet == -1)
+                    lock (_syncRoot_hangupStatusTable)
                     {
-                        strError = "GetSystemParameter('system', 'hangup') error: " + strError;
-                        goto ERROR1;
+                        if (_hangupStatusTable != null
+                            && _hangupStatusTable.ContainsKey(info.LibraryChannel.Url))
+                            strExistingHangupValue = _hangupStatusTable[info.LibraryChannel.Url];
                     }
 
-                    // 缓存起来
-                    if (lRet == 1)
+
+                    if (strExistingHangupValue == null)
                     {
-                        lock (_syncRoot_hangupStatusTable)
+                        //2018/06/19 
+                        lRet = info.LibraryChannel.GetSystemParameter(
+                            "system",
+                            "hangup",
+                            out strExistingHangupValue,
+                            out strError);
+                        if (lRet == -1)
                         {
-                            if (_hangupStatusTable != null && _hangupStatusTable.Count < 100)
-                                _hangupStatusTable[info.LibraryChannel.Url] = strValue;
+                            strError = "GetSystemParameter('system', 'hangup') error: " + strError;
+                            goto ERROR1;
+                        }
+
+                        // 缓存起来
+                        if (lRet == 1)
+                        {
+                            lock (_syncRoot_hangupStatusTable)
+                            {
+                                if (_hangupStatusTable != null && _hangupStatusTable.Count < 1000)
+                                    _hangupStatusTable[info.LibraryChannel.Url] = strExistingHangupValue;
+                            }
                         }
                     }
                 }
-                else
+
+                string strExistingLibraryName = null;
                 {
-                    strValue = strExistingValue;
-                    lRet = 1;
+                    lock (_syncRoot_hangupStatusTable)
+                    {
+                        string key = info.LibraryChannel.Url + "_libraryName";
+                        if (_hangupStatusTable != null
+                            && _hangupStatusTable.ContainsKey(key))
+                            strExistingLibraryName = _hangupStatusTable[key];
+                    }
+
+                    if (strExistingLibraryName == null)
+                    {
+                        // 获得图书馆名字
+                        lRet = info.LibraryChannel.GetSystemParameter(
+                            "library",
+                            "name",
+                            out strExistingLibraryName,
+                            out strError);
+                        if (lRet == -1)
+                        {
+                            strError = "GetSystemParameter('library', 'name') error: " + strError;
+                            goto ERROR1;
+                        }
+
+                        // 缓存起来
+                        if (lRet == 1)
+                        {
+                            lock (_syncRoot_hangupStatusTable)
+                            {
+                                string key = info.LibraryChannel.Url + "_libraryName";
+                                if (_hangupStatusTable != null && _hangupStatusTable.Count < 1000)
+                                    _hangupStatusTable[key] = strExistingLibraryName;
+                            }
+                        }
+                    }
                 }
 
                 response = new ACSStatus_98()
@@ -3425,10 +3505,10 @@ namespace dp2Capo
                     DatetimeSync_18 = SIPUtility.NowDateTime,
                     ProtocolVersion_4 = "2.00",
                     // TODO: 如果当前已经登录，这里尽量返回登录者所属分馆的机构代码
-                    AO_InstitutionId_r = sip_channel.Institution,    // "dp2Library",
-                    AM_LibraryName_o = "dp2Library",
+                    AO_InstitutionId_r = sip_channel.Institution == null ? "" : sip_channel.Institution,    // "dp2Library",
+                    AM_LibraryName_o = strExistingLibraryName,  // "dp2Library",
                     BX_SupportedMessages_r = "YYYYYYYYYYYYYYYY",
-                    AF_ScreenMessage_o = (lRet == -1 ? strValue : ""),
+                    AF_ScreenMessage_o = (lRet == -1 ? strExistingHangupValue : ""),
                 };
 
                 return response.ToText();
