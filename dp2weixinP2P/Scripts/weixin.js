@@ -288,10 +288,19 @@ function getDetail(libId, recPath, obj, from,biblioName) {
             }
 
             itemTables += "<tr>"
-            + "<td class='label'>馆藏地</td>"
-            + "<td class='value' " + addStyle + ">" + record.location + "</td>"
-            + "</tr>"
-            + "<tr>"
+                + "<td class='label'>馆藏地</td>"
+                + "<td class='value' " + addStyle + ">" + record.location + "</td>"
+                + "</tr>";
+
+            // 2021/4/6 增加架号
+            if (record.shelfNo != null && record.shelfNo != "") {
+                itemTables += "<tr>"
+                    + "<td class='label'>架号</td>"
+                    + "<td class='value' " + addStyle + ">" + record.shelfNo + "</td>"
+                    + "</tr>";
+            }
+
+            itemTables +=  "<tr>"
             + "<td class='label'>当前位置</td>"
             + "<td class='value' " + addStyle + ">" + record.currentLocation + "</td>"
             + "</tr>"
