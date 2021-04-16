@@ -1231,9 +1231,10 @@ namespace dp2Capo
                 response.AB_ItemIdentifier_r = strItemIdentifier;
                 string strItemXml = "";
                 string strBiblio = "";
+                string uii = AddOI(strItemIdentifier, strInstitution);
             REDO:
                 long lRet = info.LibraryChannel.GetItemInfo(
-                    AddOI(strItemIdentifier, strInstitution),
+                    uii,
                     "xml",
                     out strItemXml,
                     "xml",
@@ -1250,9 +1251,13 @@ namespace dp2Capo
                     response.CirculationStatus_2 = "01";
 
                     if (lRet == -1)
-                        strError = "获得'" + strItemIdentifier + "'发生错误: " + strError;
+                        strError = $"获得册记录 {uii} 时发生错误: {strError}";
                     else
-                        strError = strItemIdentifier + " 册记录不存在";
+                    {
+                        // 尽量保留 API 原来的报错信息
+                        if (string.IsNullOrEmpty(strError))
+                            strError = $"册记录 {uii} 不存在";
+                    }
 
                     response.AF_ScreenMessage_o = strError;
                     response.AG_PrintLine_o = strError;
@@ -1270,7 +1275,7 @@ namespace dp2Capo
                 else if (1 < lRet)
                 {
                     response.CirculationStatus_2 = "01";
-                    strError = strItemIdentifier + " 记录重复，需馆员处理";
+                    strError = $"册记录 {uii} 发生重复，需馆员处理";
                     response.AF_ScreenMessage_o = strError;
                     response.AG_PrintLine_o = strError;
                 }
@@ -2903,7 +2908,7 @@ namespace dp2Capo
                     out strError);
                 if (lRet == -1)
                 {
-                    strMsg = "办证失败！按证号查找读者记录发生错误。";
+                    strMsg = $"办证失败！按证号查找读者记录发生错误: {strError}";
                     goto ERROR1;
                 }
                 else if (lRet >= 1)
@@ -2927,10 +2932,10 @@ namespace dp2Capo
                 switch (lRet)
                 {
                     case -1:
-                        strMsg = "办证失败！按身份证号查找读者记录发生错误。";
+                        strMsg = $"办证失败！按身份证号查找读者记录发生错误: {strError}";
                         goto ERROR1;
                     case 0:
-                        strRecPath = "读者/?";
+                        strRecPath = "";    // strRecPath = "读者/?";
                         break;
                     case 1:
                         {
@@ -2974,7 +2979,7 @@ namespace dp2Capo
                     out strError);
                 if (lRet == -1)
                 {
-                    strMsg = strAction == "new" ? "办证失败！创建读者记录发生错误。" : "修改读者信息发生错误。";
+                    strMsg = strAction == "new" ? $"办证失败！创建读者记录发生错误: {strError}" : $"修改读者信息发生错误: {strError}";
                     goto ERROR1;
                 }
 
@@ -2999,9 +3004,9 @@ namespace dp2Capo
                         if (lRet == -1)
                             strError = "办证过程中交费发生错误（回滚失败）：" + strError;
                         else
-                            strError = "办证过程中交费发生错误（回滚成功）";
+                            strError = $"办证过程中交费发生错误（回滚成功）: {strError}";
 
-                        strMsg = "办证交费过程中创建交费请求失败，办证失败，请重新操作。";
+                        strMsg = $"办证交费过程中创建交费请求失败({strError})，办证失败，请重新操作。";
                         goto ERROR1;
                     }
 
@@ -3119,7 +3124,7 @@ namespace dp2Capo
                 if (lRet == -1)
                 {
                     nRet = 0;
-                    strMsg = "修改密码过程中发生错误，请稍后再试。";
+                    strMsg = $"修改密码过程中发生错误({strError})，请稍后再试。";
                 }
                 else if (lRet == 0)
                 {
@@ -3199,7 +3204,7 @@ namespace dp2Capo
                 out strError);
             if (lRet == -1)
             {
-                strMsg = "办证交押金时获得读者记录发生错误，办证失败，请重新操作。";
+                strMsg = $"办证交押金时获得读者记录发生错误({strError})，办证失败，请重新操作。";
             }
             else if (lRet == 0)
             {
@@ -3245,7 +3250,7 @@ namespace dp2Capo
                     out strError);
                 if (lRet == -1 && lRet == 1)
                 {
-                    strMsg = "办证时收押金失败，办证失败，请到柜台办理。";
+                    strMsg = $"办证时收押金失败({strError})，办证失败，请到柜台办理。";
                     goto UNDO;
                 }
 
@@ -3262,7 +3267,7 @@ namespace dp2Capo
             if (lRet == -1)
                 strError = "办证过程中交费发生错误（回滚失败）：" + strError;
             else
-                strError = "办证过程中交费发生错误（回滚成功）";
+                strError = $"办证过程中交费发生错误（回滚成功）: {strError}";
             return nRet;
         }
 
