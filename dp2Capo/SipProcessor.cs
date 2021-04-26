@@ -289,7 +289,7 @@ namespace dp2Capo
             // sip_channel.Timeout = instance.sip_host.AutoClearSeconds == 0 ? TimeSpan.MinValue : TimeSpan.FromSeconds(instance.sip_host.AutoClearSeconds);
 
             Debug.Assert(string.IsNullOrEmpty(userName) == false, "");
-            int autoclear_seconds = instance.sip_host.GetSipParam(userName).AutoClearSeconds;
+            int autoclear_seconds = instance.sip_host.GetSipParam(userName, sip_channel.Encoding == null).AutoClearSeconds;
             sip_channel.Timeout = autoclear_seconds == 0 ? TimeSpan.MinValue : TimeSpan.FromSeconds(autoclear_seconds);
         }
 
@@ -429,7 +429,7 @@ namespace dp2Capo
 
             try
             {
-                SipParam sip_config = instance.sip_host.GetSipParam(strUserName);
+                SipParam sip_config = instance.sip_host.GetSipParam(strUserName, sip_channel.Encoding == null);
 
                 // 检查 IP 白名单
                 string ipList = sip_config.IpList;
@@ -458,7 +458,7 @@ namespace dp2Capo
             sip_channel.Password = strPassword;
             // 从此以后，报错信息才可以使用中文了
             // 此处可能会抛出异常
-            sip_channel.Encoding = instance.sip_host.GetSipParam(sip_channel.UserName).Encoding;
+            sip_channel.Encoding = instance.sip_host.GetSipParam(sip_channel.UserName, sip_channel.Encoding == null).Encoding;
             // 注：登录以后 Timeout 才按照实例参数来设定。此前是 sip_channel.Timeout 的默认值
             // sip_channel.Timeout = instance.sip_host.AutoClearSeconds == 0 ? TimeSpan.MinValue : TimeSpan.FromSeconds(instance.sip_host.AutoClearSeconds);
             SetChannelTimeout(sip_channel, sip_channel.UserName, instance);
@@ -1110,7 +1110,7 @@ namespace dp2Capo
                         response.AJ_TitleIdentifier_r = strBiblioSummary;
 
                         string strLatestReturnTime = DateTimeUtil.Rfc1123DateTimeStringToLocal(borrow_info.LatestReturnTime,
-                            info.Instance.sip_host.GetSipParam(sip_channel.UserName).DateFormat);
+                            info.Instance.sip_host.GetSipParam(sip_channel.UserName, true).DateFormat);
                         response.AH_DueDate_r = strLatestReturnTime;
 
                         response.AF_ScreenMessage_o = "成功";
@@ -1281,7 +1281,7 @@ namespace dp2Capo
                 }
                 else if (1 == lRet)
                 {
-                    string dateFormat = info.Instance.sip_host.GetSipParam(sip_channel.UserName).DateFormat;
+                    string dateFormat = info.Instance.sip_host.GetSipParam(sip_channel.UserName, true).DateFormat;
 
                     if (GetItemInfoResponse(response,
     strItemXml,
@@ -1621,7 +1621,7 @@ namespace dp2Capo
                 }
                 else if (1 == lRet)
                 {
-                    string dateFormat = info.Instance.sip_host.GetSipParam(sip_channel.UserName).DateFormat;
+                    string dateFormat = info.Instance.sip_host.GetSipParam(sip_channel.UserName, true).DateFormat;
 
                     if (GetItemStatusUpdateResponse(
                         info,
@@ -2011,7 +2011,7 @@ namespace dp2Capo
                     response.AJ_TitleIdentifier_r = strBiblioSummary;
 
                     string strLatestReturnTime = DateTimeUtil.Rfc1123DateTimeStringToLocal(borrow_info.LatestReturnTime,
-                        info.Instance.sip_host.GetSipParam(sip_channel.UserName).DateFormat);
+                        info.Instance.sip_host.GetSipParam(sip_channel.UserName, true).DateFormat);
                     response.AH_DueDate_r = strLatestReturnTime;
 
                     response.AF_ScreenMessage_o = "成功";
@@ -2994,17 +2994,19 @@ namespace dp2Capo
                     lRet = info.LibraryChannel.Foregift(
                        "foregift",
                        strReaderBarcode,
-                        out strReaderXml,
-                        out strOverdueID,
+                       out strReaderXml,
+                       out strOverdueID,
                        out strError);
                     if (lRet == -1)
                     {
                         lRet = DeleteReader(info.LibraryChannel,
-                            strSavedRecPath, baNewTimestamp, out strError);
+                            strSavedRecPath,
+                            baNewTimestamp,
+                            out string strError1);
                         if (lRet == -1)
-                            strError = "办证过程中交费发生错误（回滚失败）：" + strError;
+                            strError = $"办证过程中交费发生错误({strError})。然后回滚失败: " + strError1;
                         else
-                            strError = $"办证过程中交费发生错误（回滚成功）: {strError}";
+                            strError = $"办证过程中交费发生错误({strError})。然后回滚成功";
 
                         strMsg = $"办证交费过程中创建交费请求失败({strError})，办证失败，请重新操作。";
                         goto ERROR1;
@@ -3263,11 +3265,14 @@ namespace dp2Capo
 
             return nRet;
         UNDO:
-            lRet = DeleteReader(library_channel, strRecPath, baTimestamp, out strError);
+            lRet = DeleteReader(library_channel, 
+                strRecPath,
+                baTimestamp, 
+                out string strError1);
             if (lRet == -1)
-                strError = "办证过程中交费发生错误（回滚失败）：" + strError;
+                strError = $"办证过程中交费发生错误({strMsg})。然后回滚失败: " + strError1;
             else
-                strError = $"办证过程中交费发生错误（回滚成功）: {strError}";
+                strError = $"办证过程中交费发生错误({strMsg})。然后回滚成功";
             return nRet;
         }
 

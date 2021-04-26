@@ -32,8 +32,8 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“生成号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”: 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.35.*")]
-[assembly: AssemblyFileVersion("1.35.0.0")]
+[assembly: AssemblyVersion("1.36.*")]
+[assembly: AssemblyFileVersion("1.36.0.0")]
 
 // 1.1 (2016/6/26) 首次使用了版本号
 // 1.2 (2016/9/14) 管理线程中会不断重试连接 dp2mserver，并将此情况写入日志
@@ -70,3 +70,4 @@ using System.Runtime.InteropServices;
 // 1.33 (2018/10/30) SIP Service 对于 ScStatus 缓存 dp2library get hangup 结果。大约每分钟才真正去 dp2library 获取一次。ScStatus 动作也不再进入 Info 日志
 // 1.34 (2018/11/13) Z39.50 Service 中消除了 BuildPartTree() 中出现死循环的 bug。遇到有问题的 BER 包，会记入错误日志
 // 1.35 (2021/3/3) SIP Service 对 ItemInfomation ItemStatusUpdate Checkout Checkin Renew 请求都要求正确使用 AO 字段 
+// 1.36 (2021/4/17)

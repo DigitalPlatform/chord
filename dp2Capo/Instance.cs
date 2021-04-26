@@ -1893,9 +1893,12 @@ namespace dp2Capo
         }
 
         // 获得一个用户相关的 SIP 服务参数
-        public SipParam GetSipParam(string userName)
+        public SipParam GetSipParam(string userName,
+            bool neutralLanguage)
         {
-            return SipParam.GetSipParam(this._root, userName);
+            return SipParam.GetSipParam(this._root, 
+                userName,
+                neutralLanguage);
         }
     }
 
@@ -1913,8 +1916,11 @@ namespace dp2Capo
         // 前端 IP 地址白名单。空表示所有 IP 地址都许可，和 * 作用一致
         public string IpList { get; set; }
 
+        // parameters:
+        //      neutralLanguage 是否采用中立语言抛出异常?
         public static SipParam GetSipParam(XmlElement element1,
-            string userName)
+            string userName,
+            bool neutralLanguage)
         {
             if (element1 == null)
                 return null;
@@ -1923,7 +1929,12 @@ namespace dp2Capo
             {
                 user = element1.SelectSingleNode("user[@userName='*']") as XmlElement;
                 if (user == null)
-                    throw new Exception("用户名 '" + userName + "' 在 capo.xml 中没有找到 SIP 配置信息");
+                {
+                    string error = $"用户名 '{ userName }' 在 capo.xml 中没有找到 SIP 配置信息";
+                    if (neutralLanguage)
+                        error = $"User name '{ userName }' not found SIP config info in capo.xml";
+                    throw new Exception(error);
+                }
             }
 
             // SIP 服务参数
@@ -1947,7 +1958,10 @@ namespace dp2Capo
             if (string.IsNullOrEmpty(strAutoClearSeconds) == false
                 && Int32.TryParse(strAutoClearSeconds, out seconds) == false)
             {
-                throw new Exception("sipServer@autoClearSeconds 属性值 '" + strAutoClearSeconds + "' 不合法。应为纯数字");
+                string error = $"sipServer@autoClearSeconds 属性值 '{ strAutoClearSeconds }' 不合法。应为纯数字";
+                if (neutralLanguage)
+                    error = $"sipServer@autoClearSeconds attribute value '{ strAutoClearSeconds }' is invalide. it should be digit.";
+                throw new Exception(error);
             }
             param.AutoClearSeconds = seconds;
 
