@@ -29,3 +29,8 @@ dp2mserver 会自动要求以管理员身份运行。为了避免每次都点 UA
 API 要设计成可以获取全部群组，也可以获取某个用户能操作的群组。GetGroup()
 还要一个 SetGroup() 可以创建和修改群组
 管理界面如何设计? 可以用一个特殊的群组来表示对话?
+
+---
+绑定 SSL 证书
+netsh http add sslcert ipport=0.0.0.0:8083 certhash=872801bbd93e75f327b34ae76366fa05b229433b appid={ca84fb79-db4f-4e06-b833-1603913c091e}
+

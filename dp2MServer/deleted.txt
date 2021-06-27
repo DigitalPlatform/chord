@@ -702,3 +702,10 @@ namespace dp2MServer
         }
     }
 }
+
+
+~~~~~~~~
+      <dependentAssembly>
+        <assemblyIdentity name="System.Runtime.InteropServices.RuntimeInformation" publicKeyToken="b03f5f7f11d50a3a" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-4.3.0.0" newVersion="4.3.0.0" />
+      </dependentAssembly>
