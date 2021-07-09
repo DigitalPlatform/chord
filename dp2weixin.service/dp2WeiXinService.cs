@@ -5400,7 +5400,7 @@ ErrorInfo成员里可能会有报错信息。
         }
 
 
-        public string Get4DigitalCode()
+        public string Get6DigitalCode()
         {
             string vc = "";
             Random rNum = new Random();//随机生成类
@@ -5408,8 +5408,10 @@ ErrorInfo成员里可能会有报错信息。
             int num2 = rNum.Next(0, 9);
             int num3 = rNum.Next(0, 9);
             int num4 = rNum.Next(0, 9);
+            int num5 = rNum.Next(0, 9);
+            int num6 = rNum.Next(0, 9);
 
-            int[] nums = new int[4] { num1, num2, num3, num4 };
+            int[] nums = new int[6] { num1, num2, num3, num4,num5,num6 };
             for (int i = 0; i < nums.Length; i++)//循环添加四个随机生成数
             {
                 vc += nums[i].ToString();
@@ -5435,9 +5437,9 @@ ErrorInfo成员里可能会有报错信息。
             error = "";
             verifyCode = "";
 
-            verifyCode = this.Get4DigitalCode();
+            verifyCode = this.Get6DigitalCode();
 
-            string strMessageText = "您好！注册验证码为" + verifyCode + "。";// 一小时内有效。";
+            string strMessageText = "您的注册验证码:" + verifyCode + "，请勿向任何人出示，以免帐号被盗，1分钟内有效。";
 
 
             // todo 正常版本打开

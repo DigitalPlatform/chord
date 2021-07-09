@@ -51,7 +51,55 @@ namespace dp2weixinWeb.ApiControllers
         // PUT api/<controller>/5
         public long Put(string id, LibEntity item)
         {
-            long ret = LibDatabase.Current.Update(id, item);
+            Library lib=dp2WeiXinService.Instance.LibManager.GetLibrary(id);
+            LibEntity entity = lib.Entity;
+            /*
+                    id: id,
+
+                    libName: libName,
+                    capoUserName: capoUserName,
+                    capoContactPhone: capoContactPhone,
+                    area: area,
+                    wxUserName: wxUserName,
+
+                    wxPassword: wxPassword,
+                    wxContactPhone: wxContactPhone,
+                    comment: comment,
+                    noShareBiblio: getNoShareBiblio(),
+                    //verifyBarcode:getVerifyBarcode(),
+
+                    searchDbs: searchDbs,
+                    match: match,
+                    state: state,
+                    biblioFilter: biblioFilter,
+                    ReserveScope:ReserveScope,  //预约范围 2020/3/22
+
+                    NoReserveLocation: NoReserveLocation,  // 不支持预约馆藏地 2020/3/22
+                    IsSendArrivedNotice: IsSendArrivedNotice,   //是否给读者发预约到书通知 2020/3/22
+                    NoViewLocation:NoViewLocation  //不支持显示册记录的馆藏地 2020/3/25             
+             */
+            entity.libName = item.libName;
+            entity.capoUserName = item.capoUserName;
+            entity.capoContactPhone = item.capoContactPhone;
+            entity.area = item.area;
+            entity.wxUserName = item.wxUserName;
+
+            entity.wxPassword = item.wxPassword;
+            entity.wxContactPhone = item.wxContactPhone;
+            entity.comment = item.comment;
+            entity.noShareBiblio = item.noShareBiblio;
+
+            entity.searchDbs = item.searchDbs;
+            entity.match = item.match;
+            entity.state = item.state;
+            entity.biblioFilter = item.biblioFilter;
+            entity.ReserveScope = item.ReserveScope;
+
+            entity.NoReserveLocation = item.NoReserveLocation;
+            entity.IsSendArrivedNotice = item.IsSendArrivedNotice;
+            entity.NoViewLocation = item.NoViewLocation;
+
+            long ret = LibDatabase.Current.Update(id, entity);
 
             if (ret > 0)
             {
@@ -59,7 +107,7 @@ namespace dp2weixinWeb.ApiControllers
                 dp2WeiXinService.Instance.LibManager.UpdateLib(id);
             }
 
-            dp2WeiXinService.Instance._areaMgr.SaveLib(item);
+            dp2WeiXinService.Instance._areaMgr.SaveLib(entity);
 
             return ret;
         }

@@ -25,18 +25,18 @@
             var libId = getLibId();
             if (libId == "") {
                 alert("异常情况：libId为空。");
-                return;
+                return false;
             }
 
             // 手机号
             var phone = $("#txtPhone").val();
             if (phone == "") {
                 alert("手机号不能为空！");
-                return;
+                return false;
             }
             if (phone.length != 11) {
                 alert("手机号必须是11位数字！");
-                return;
+                return false;
             }
 
             //显示等待图层
@@ -54,7 +54,7 @@
                     hideLoading();
                     if (result.errorCode == -1) {
                         alert("发送短信验证码出错：" + result.errorInfo);
-                        return;
+                        return false;
                     }
 
                     //alert(result.verifyCode);
@@ -64,11 +64,52 @@
 
                     alert("短信验证码已发送到您手机号，请查收。");// + result.verifyCode);  //todo正式版本删除码提示
 
+                    return true;
                 }, function (xhq, textStatus, errorThrown) {
                     // 关闭等待层
                     hideLoading();
                     alert(errorThrown);
+                    return false;
                 });
+        }
+
+
+        //倒计时  
+        var countdown = 60;
+        function settime() {
+            if (countdown == 0) {
+
+                // 按钮可用
+                $('#btnSendVC').text("获取验证码");
+                $("#btnSendVC").attr("disabled", false);
+
+                // 让验证码失效
+                $("#_verifyCode").text("expire");
+
+                countdown = 60;
+                return false;
+            } else {
+
+                // 用户点击了获取验证码
+                if (countdown == 60) {
+                    // 发送验证码
+                    var result = sendVC();
+                    if (result == false)
+                        return false;
+                }
+
+                // 按钮发灰，显示秒数
+                $("#btnSendVC").attr("disabled", true);
+                $('#btnSendVC').text("重新发送(" + countdown + ")");
+ 
+                // 不能这样写
+                //val.setAttribute("disabled", true);
+                //val.value = "重新发送(" + countdown + ")";
+                countdown--;
+            }
+            setTimeout(function () {
+                settime();
+            }, 1000);
         }
 
         // 保存读者信息
@@ -156,10 +197,16 @@
             var comment=$("#txtComment").val();
 
             var realVC = $("#_verifyCode").text();
+            if (realVC == "expire") {
+                alert("验证码已失效。");
+                return;
+            }
             if (txtVC != realVC) {
                 alert("验证码不正确。");
                 return;
             }
+
+
 
             // 微信id
             var weixinId = $("#_weixinId").text();
@@ -333,7 +380,7 @@ else
                 </div>
             </td>
             <td>
-                <button onclick="sendVC()" id='btnSendVC' class="mui-btn" style="border:1px dotted #eeeeee;margin-right:2px;height:40px;">获取短信验证码</button>
+                <button id='btnSendVC' onclick="settime();" class="mui-btn" style="border:1px dotted #eeeeee;margin-right:2px;height:40px;">获取验证码</button>
             </td>
         </tr>
     </table>

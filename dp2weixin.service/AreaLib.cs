@@ -89,6 +89,9 @@ namespace dp2weixin.service
 
         public void SaveLib(LibEntity entity)
         {
+            // 2021/7/9 先找到这个老实例 ，以免丢信息
+           LibModel oldLib= this.GetLibCfgByName(entity.id, entity.libName);
+
             // 先将已经对应的删除
             DelLib(entity.id, entity.libName);
 
@@ -111,6 +114,21 @@ namespace dp2weixin.service
                 area.libs.Add(lib);
 
                 // todo，这里有bug，会把原来配置的信息清掉
+                if (oldLib != null)
+                {
+                    lib.libraryCode = oldLib.libraryCode;
+
+                    lib.departments = oldLib.departments;
+                    lib.patronDbName = oldLib.patronDbName;
+                    lib.patronBarcodeTail = oldLib.patronBarcodeTail;
+                    lib.noticedll = oldLib.noticedll;
+
+                    lib.capoUser = oldLib.capoUser;
+                    lib.visible = oldLib.visible;
+                    lib.Checked = oldLib.Checked;
+                    lib.bindFlag = oldLib.bindFlag;
+                }
+
 
                 this.Save2Xml();
             }
@@ -209,6 +227,29 @@ namespace dp2weixin.service
             return null;
         }
 
+
+        public LibModel GetLibCfgByName(string id, string libName)
+        {
+            // 把null转为空字符串，这样才能查找
+            if (libName == null)
+                libName = "";
+
+            List<Area> delAreas = new List<Area>();
+
+            foreach (Area area in this._areas)
+            {
+                List<LibModel> delLibs = new List<LibModel>();
+                foreach (LibModel lib in area.libs)
+                {
+                    if (lib.libId == id && lib.name == libName)
+                    {
+                        return lib;
+                    }
+                }
+            }
+            return null;
+        }
+
         /// <summary>
         /// 获取配置的部门 2020-3-6
         /// </summary>
@@ -265,12 +306,7 @@ namespace dp2weixin.service
         // 读者自助注册读者帐户时，对应的读者库
         // 这个配置还只能放在libcfg配置文件中，因为每个分馆的读者库不同，不能定义在图书馆实例的mongodb表中
         public string patronDbName = "";
-
         public string departments = "";
-
-
-
-
         // 2020/6/5 加证条码尾号，在馆员审核时，可以点按钮，增量
         public string patronBarcodeTail = "B000000";
 

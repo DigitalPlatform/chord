@@ -167,6 +167,7 @@ namespace dp2weixinWeb.ApiControllers
 
             result.verifyCode = verifyCode;
 
+
             return result;
         }
 
