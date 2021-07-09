@@ -3434,7 +3434,15 @@ errorInfo).ConfigureAwait(false);
             if (delta < length)
             {
                 // Console.WriteLine("Sleep " + (length - delta).ToString());
-                Thread.Sleep(length - delta);
+                try // 2021/7/9
+                {
+                    var distance = length - delta;
+                    Thread.Sleep(distance);
+                }
+                catch
+                {
+
+                }
             }
             _lastTime = DateTime.Now;
         }
