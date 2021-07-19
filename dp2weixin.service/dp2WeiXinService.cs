@@ -5167,7 +5167,7 @@ ErrorInfo成员里可能会有报错信息。
 
 
 
-                    if (patron.libraryCode == libraryCode && patron.state != WxUserDatabase.C_PatronState_TodoReview)
+                    if ( patron.libraryCode == libraryCode && patron.state != WxUserDatabase.C_PatronState_TodoReview)
                     {
                         string strWarningText = "";
                         string maxBorrowCountString = "";

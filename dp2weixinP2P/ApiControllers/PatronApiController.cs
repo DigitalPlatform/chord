@@ -97,14 +97,55 @@ namespace dp2weixinWeb.ApiControllers
             string weixinId,
             SimplePatron patron)
         {
+            dp2WeiXinService.Instance.WriteErrorLog("***0***");
+
             SetReaderInfoResult result = new SetReaderInfoResult();
             string strError="";
+            int nRet = 0;
+
+            // 当审核通过时，检查一下是否存在相同的姓名
+            if (opeType == "reviewPass")
+            {
+                dp2WeiXinService.Instance.WriteErrorLog("***1***");
+                List<PatronInfo> patronList = new List<PatronInfo>();
+                nRet = dp2WeiXinService.Instance.GetPatronsByName(libId,
+                    patron.libraryCode,
+                    patron.name,
+                   out patronList,
+                   out strError);
+                if (nRet == -1)
+                {
+                    result.errorCode = -1;
+                    result.errorInfo = strError;
+                    return result;
+                }
+                if (patronList.Count > 0)
+                {
+                    dp2WeiXinService.Instance.WriteErrorLog("***3***"+patronList.Count);
+                    string names = "";
+                    foreach (PatronInfo temp in patronList)
+                    {
+                        if (names != "")
+                            names += ",";
+                        names += temp.patron.barcode;
+                    }
+                    result.errorCode = -2;
+                    result.info = patronList.Count.ToString();
+                    result.errorInfo = names;
+                    return result;
+                }
+
+            }
+            else
+            {
+                dp2WeiXinService.Instance.WriteErrorLog("***2***");
+            }
 
             string outputRecPath = "";
             string outputTimestamp = "";
 
             WxUserItem userItem = null;
-            int nRet = dp2WeiXinService.Instance.SetReaderInfo(libId,
+            nRet = dp2WeiXinService.Instance.SetReaderInfo(libId,
                 userName,
                 opeType,
                 recPath,

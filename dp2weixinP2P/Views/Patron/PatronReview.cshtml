@@ -37,6 +37,8 @@
 
 @section Scripts {
     <script>
+const { Alert } = require("bootstrap");
+
 
         // 获取证条码号
         function getPatronBarcode() {
@@ -120,6 +122,13 @@
                 alert("异常情况：libId为空。");
                 return;
             }
+
+            var libraryCode = $("#libraryCode").text();
+            if (libraryCode == null)
+                libraryCode = "";
+
+           
+
             // 当前绑定的工作人员帐号
             var userName = $("#_userName").text();
             if (userName == "") {
@@ -228,6 +237,17 @@
                         return;
                     }
 
+                    // 当通过的情况下，如果存在同名读者，询问是否继续
+                    if (pass == true) {
+                        if (result.errorCode == -2) {
+                            var gnl = confirm("系统中已存在" + result.info + "位相同姓名的读者记录[证条码号为:" + result.errorInfo + "]，确认审核通过吗?");
+                            if (gnl == false) {
+                                hideMaskLayer();
+                                return false;
+                            }
+                        }
+                    }
+
                     $("#_recPath").text(result.recPath);
                     $("#_timestamp").text(result.timestamp);
 
@@ -254,7 +274,8 @@
                     department: department,
                     phone: phone,
                     comment: reason,
-                    state: state
+                    state: state,
+                    libraryCode: libraryCode
                 }
             );
         }
