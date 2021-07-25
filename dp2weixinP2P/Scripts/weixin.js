@@ -130,10 +130,12 @@ function deleteItem(worker,libId,biblioPath,itemPath,barcode) {
 
     //显示等待图层
     showMaskLayer();
-    var url = "/api/BiblioApi?libId=" + libId
+
+    // 调 SetItem api
+    var url = "/api/BiblioApi?loginUserName=" + encodeURIComponent(worker)
+        + "&libId=" + libId
         + "&biblioPath=" + encodeURIComponent(biblioPath)
         + "&action=delete"
-        + "&userName=" + encodeURIComponent(worker);
     //alert(url);
     sendAjaxRequest(url, "POST",
         function (result) {
@@ -191,8 +193,16 @@ function getDetail(libId, recPath, obj, from,biblioName) {
 
     //alert("getDetail 2");
 
+    // 登录帐户和类型
+    var loginUserName = getLoginUserName();
+    var loginUserType = getLoginUserType();
+    //alert(loginUserName+"-"+loginUserType);
+
+    // 2021/8/2 改为从前端传登录帐号
     // 调GetBiblioDetail  api
-    var url = "/api/biblioApi?weixinId=" + encodeURIComponent(weixinId)
+    var url = "/api/biblioApi?loginUserName=" + encodeURIComponent(loginUserName)
+        + "&loginUserType=" + encodeURIComponent(loginUserType)
+        + "&weixinId=" + encodeURIComponent(weixinId)
         + "&libId=" + encodeURIComponent(libId)
         + "&biblioPath=" + encodeURIComponent(recPath)
         + "&format=table"
@@ -669,12 +679,20 @@ function fillPending() {
         return;
     }
 
+    // 登录帐户和类型
+    var loginUserName = getLoginUserName();
+    //alert(loginUserName);
+    var loginUserType = getLoginUserType();
+    //alert(loginUserType);
+
     if (mytype == "bs-") {
         //alert("bs-"+keyword);
         var libId = o.children("span").text();
 
         // 调GetBiblioSummary api
-        var url = "/api/biblioApi?id=" + encodeURIComponent(myvalue)
+        var url = "/api/biblioApi?loginUserName=" + encodeURIComponent(loginUserName)
+            + "&loginUserType=" + encodeURIComponent(loginUserType)
+            + "&id=" + encodeURIComponent(myvalue)
             + "&format=summary"
             + "&libId=" + encodeURIComponent(libId);
 
@@ -705,7 +723,9 @@ function fillPending() {
         var libId = o.children("span").text();
 
         // 调GetBiblioSummary api
-        var url = "/api/biblioApi?id=" + encodeURIComponent(myvalue)
+        var url = "/api/biblioApi?loginUserName=" + encodeURIComponent(loginUserName)
+            + "&loginUserType=" + encodeURIComponent(loginUserType)
+            + "&id=" + encodeURIComponent(myvalue)
             + "&format=more-summary"
             + "&libId=" + encodeURIComponent(libId);
         //alert(url);

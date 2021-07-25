@@ -13,6 +13,9 @@
         //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
         $(document).ready(function () {
 
+            // 2021/8/2调试态显示当前操作帐号
+            setOpeAccount("");
+
             var totalHeight1 = $(window).height();
             var totalWidth1 = $(window).width() - 20;
             var main = $("#main");

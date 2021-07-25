@@ -168,6 +168,9 @@
         // 程序启动
         $(document).ready(function () {
 
+            // 2021/8/2调试态显示当前操作帐号
+            setOpeAccount("");
+
             ////是否为ipad
             var u = navigator.userAgent, app = navigator.appVersion;
             if (u.indexOf('iPad') > -1) {

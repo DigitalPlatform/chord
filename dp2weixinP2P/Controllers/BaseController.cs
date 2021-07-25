@@ -1,4 +1,5 @@
-﻿using DigitalPlatform.Xml;
+﻿using DigitalPlatform.Message;
+using DigitalPlatform.Xml;
 using dp2weixin.service;
 using Senparc.Weixin.MP.Containers;
 using Senparc.Weixin.MP.Helpers;
@@ -501,6 +502,8 @@ namespace dp2weixinWeb.Controllers
             ViewBag.userNameInfo = userNameInfo;
             ViewBag.userId = sessionInfo.ActiveUser.id;
 
+            
+
             // 2020-2-29 在配置文件中增加读者库配置
             string patronDbName = "";
             string libName = sessionInfo.ActiveUser.libName;//sessionInfo.CurrentLib.Entity.libName;
@@ -549,6 +552,35 @@ namespace dp2weixinWeb.Controllers
                     return -1;
                 }
             }
+
+            //2021/7/30 设置debug态 因为了用于currentlib，所以放在最下面。
+            ViewBag.isDebug = "0"; //默认不是调试态
+            // 找到当前活动帐户图书馆，绑定的工作人员，如果其中某个工作人员有wx_debug权限，则可以以调试态看界面
+            List<WxUserItem> workers = WxUserDatabase.Current.GetWorkers(sessionInfo.ActiveUser.weixinId,
+                sessionInfo.ActiveUser.libId, null);
+            if (workers.Count > 0 && sessionInfo.CurrentLib != null)
+            {
+                foreach (WxUserItem worker in workers)
+                {
+                    int nHasRights = dp2WeiXinService.Instance.CheckRights(worker, sessionInfo.CurrentLib.Entity,
+                        dp2WeiXinService.C_Right_Debug, out strError);
+                    if (nHasRights == -1)
+                    {
+                        strError = "检查工作人员(" + worker.userName + ")是否有[" + dp2WeiXinService.C_Right_Debug + "]权限时出错：" + strError;
+                        return -1;
+                    }
+                    if (nHasRights == 1)
+                    {
+                        ViewBag.isDebug = "1";
+                        break;
+                    }
+                }
+            }
+
+            // 获取当前登录身份
+            LoginInfo loginInfo = dp2WeiXinService.Instance.Getdp2AccoutActive(sessionInfo.ActiveUser);
+            ViewBag.loginUserName = loginInfo.UserName;
+            ViewBag.loginUserType = loginInfo.UserType;
 
             return 0;
         }

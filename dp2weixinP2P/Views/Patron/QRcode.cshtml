@@ -3,7 +3,16 @@
 @section header {
     <h1 class="mui-title">二维码</h1>
 }
+@section Scripts {
+    <script>
 
+        $(document).ready(function () {
+
+            // 2021/8/2调试态显示当前操作帐号
+            setOpeAccount("",true);
+        });
+    </script>
+    }
 
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {

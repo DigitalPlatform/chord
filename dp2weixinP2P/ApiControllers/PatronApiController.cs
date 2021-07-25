@@ -97,18 +97,28 @@ namespace dp2weixinWeb.ApiControllers
             string weixinId,
             SimplePatron patron)
         {
-            dp2WeiXinService.Instance.WriteErrorLog("***0***");
+            //dp2WeiXinService.Instance.WriteErrorLog("***0***");
 
             SetReaderInfoResult result = new SetReaderInfoResult();
             string strError="";
             int nRet = 0;
+
+            // 读者自助注册时使用代理账号capo 2020/1/21
+            bool bWorker = false;
+            LoginInfo loginInfo = new LoginInfo("", false);
+            if (string.IsNullOrEmpty(userName) == false)
+            {
+                loginInfo = new LoginInfo(userName, false);
+                bWorker = true;
+            }
 
             // 当审核通过时，检查一下是否存在相同的姓名
             if (opeType == "reviewPass")
             {
                 dp2WeiXinService.Instance.WriteErrorLog("***1***");
                 List<PatronInfo> patronList = new List<PatronInfo>();
-                nRet = dp2WeiXinService.Instance.GetPatronsByName(libId,
+                nRet = dp2WeiXinService.Instance.GetPatronsByName(loginInfo,
+                    libId,
                     patron.libraryCode,
                     patron.name,
                    out patronList,
@@ -138,14 +148,15 @@ namespace dp2weixinWeb.ApiControllers
             }
             else
             {
-                dp2WeiXinService.Instance.WriteErrorLog("***2***");
+                //dp2WeiXinService.Instance.WriteErrorLog("***2***");
             }
 
             string outputRecPath = "";
             string outputTimestamp = "";
 
             WxUserItem userItem = null;
-            nRet = dp2WeiXinService.Instance.SetReaderInfo(libId,
+            nRet = dp2WeiXinService.Instance.SetReaderInfo(loginInfo,
+                libId,
                 userName,
                 opeType,
                 recPath,

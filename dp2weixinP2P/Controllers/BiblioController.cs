@@ -1,4 +1,5 @@
-﻿using dp2weixin.service;
+﻿using DigitalPlatform.Message;
+using dp2weixin.service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +23,8 @@ namespace dp2weixinWeb.Controllers
 
             string strError = "";
             string filename = "";
-            int totalPage = dp2WeiXinService.Instance.GetPDFCount(libId, uri, out filename, out strError);
+            int totalPage = dp2WeiXinService.Instance.GetPDFCount(libId, uri, 
+                out filename, out strError);
             ViewBag.pageCount = totalPage;
 
             string strImgUri = uri + "/page:1,format:jpeg,dpi:75";
@@ -84,6 +86,9 @@ namespace dp2weixinWeb.Controllers
             {
                 ViewBag.Worker = sessionInfo.ActiveUser.userName;
             }
+
+
+
 
             return View();
         }

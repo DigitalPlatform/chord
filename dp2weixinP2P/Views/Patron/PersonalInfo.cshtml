@@ -10,6 +10,17 @@
 @section Scripts {
     <script>
 
+        $(document).ready(function () {
+
+            var loginUserName = $('#_loginUserName').text();
+            var loginUserType = $('#_loginUserType').text();
+            if (loginUserType != "patron")
+                loginUserName = "[读者帐户]";
+            
+            // 2021/8/2调试态显示当前操作帐号
+            setOpeAccount("查看读者信息使用" + loginUserName+"，修改和删除读者使用capo帐号");
+        });
+
         // 跳转到修改手机号界面
         function gotoChangePhone() {
 
@@ -65,7 +76,7 @@
             }
             //alert(recPath);
 
-            var gnl = confirm("您确认要删除个人信息吗，删除后无法再查看以前的借还历史?");
+            var gnl = confirm("您确认要删除个人信息吗，删除后无法查看以前的借还历史?");
             if (gnl == false) {
                 return false;
             }

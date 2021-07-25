@@ -39,6 +39,9 @@
 
         $(document).ready(function () {
 
+            // 2021/8/2调试态显示当前操作帐号
+            setOpeAccount("");
+
             // 在证条码号处打回车，加载读者
             $('#txtBarcode').bind('keypress', function (event) {
                 if (event.keyCode == "13") {

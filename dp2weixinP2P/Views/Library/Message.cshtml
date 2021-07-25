@@ -58,6 +58,15 @@
 
 
         }
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            // 2021/8/2调试态显示当前操作帐号
+            setOpeAccount("");
+
+        })
     </script>
 }
 

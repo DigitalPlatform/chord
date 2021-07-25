@@ -1,4 +1,5 @@
-﻿using dp2Command.Service;
+﻿using DigitalPlatform.Message;
+using dp2Command.Service;
 using dp2weixin.service;
 using System;
 using System.Collections.Generic;
@@ -22,7 +23,9 @@ namespace dp2weixinWeb.ApiControllers
         /// <param name="resultSet"></param>
         /// <returns></returns>
         [HttpGet]
-        public SearchBiblioResult Search(string weixinId,
+        public SearchBiblioResult Search(string loginUserName,
+            string loginUserType,
+            string weixinId,
             string libId, 
             string from,
             string word, 
@@ -33,6 +36,10 @@ namespace dp2weixinWeb.ApiControllers
 
             // 测试加的日志
             //dp2WeiXinService.Instance.WriteErrorLog1("search-1");
+
+            // 2021/8/2 根据前端传的帐户创建LoginInfo
+            LoginInfo loginInfo = dp2WeiXinService.GetLoginInfo(loginUserName, loginUserType);
+
 
             if (String.IsNullOrEmpty(resultSet) == true)
             {
@@ -79,7 +86,8 @@ namespace dp2weixinWeb.ApiControllers
                 if (from == "_N")
                 {
                     //word值表示起始位置
-                    searchRet = dp2WeiXinService.Instance.getFromResultSet(weixinId,
+                    searchRet = dp2WeiXinService.Instance.getFromResultSet(loginInfo,
+                        weixinId,
                         libId, 
                         resultSet,
                         num, 
@@ -92,7 +100,8 @@ namespace dp2weixinWeb.ApiControllers
                         resultSet = resultSet.Substring(1);
 
                     // 重新显示，此时word代表数量
-                    searchRet = dp2WeiXinService.Instance.getFromResultSet(weixinId,
+                    searchRet = dp2WeiXinService.Instance.getFromResultSet(loginInfo,
+                        weixinId,
                         libId,
                         resultSet, 
                         0, 
@@ -113,7 +122,8 @@ namespace dp2weixinWeb.ApiControllers
                 //dp2WeiXinService.Instance.WriteErrorLog1("search-4");
 
 
-                searchRet = dp2WeiXinService.Instance.SearchBiblio(weixinId,
+                searchRet = dp2WeiXinService.Instance.SearchBiblio(loginInfo,
+                    weixinId,
                     libId,
                      from,
                      word,
@@ -135,7 +145,11 @@ namespace dp2weixinWeb.ApiControllers
         /// <param name="libId"></param>
         /// <returns></returns>
         [HttpGet]
-        public string GetBiblioSummary(string id, [FromUri] string format, string libId)
+        public string GetBiblioSummary(string loginUserName,
+            string loginUserType,
+            string id,
+            [FromUri] string format,
+            string libId)
         {
             string strSummary = "未实现";
 
@@ -145,16 +159,23 @@ namespace dp2weixinWeb.ApiControllers
                 return "未找到id为[" + libId + "]的图书馆定义。";
             }
 
+            // 2021/8/2 根据前端传的帐户创建LoginInfo
+            LoginInfo loginInfo = dp2WeiXinService.GetLoginInfo(loginUserName, loginUserType);
+
             if (format == "more-summary")
             {
-                strSummary = dp2WeiXinService.Instance.GetBarcodesSummary(lib, id);
+                strSummary = dp2WeiXinService.Instance.GetBarcodesSummary(loginInfo,
+                    lib,
+                    id);
                 return strSummary;
             }
             else if (format == "summary")
             {
                 string strRecPath = "";
                 string strError = "";
-                int nRet = dp2WeiXinService.Instance.GetBiblioSummary(lib, id,
+                int nRet = dp2WeiXinService.Instance.GetBiblioSummary(loginInfo,
+                    lib, 
+                    id,
                     "",
                     out strSummary,
                     out strRecPath,
@@ -176,14 +197,20 @@ namespace dp2weixinWeb.ApiControllers
         /// <param name="biblioPath"></param>
         /// <returns></returns>
         [HttpGet]
-        public BiblioDetailResult GetBiblioDetail(string weixinId,
+        public BiblioDetailResult GetBiblioDetail(string loginUserName,
+            string loginUserType,
+            string weixinId,
             string libId, 
             string biblioPath,
             string format,
             string from)
         {
-          
-            BiblioDetailResult result = dp2WeiXinService.Instance.GetBiblioDetail(weixinId,
+
+            // 2021/8/2 根据前端传的帐户创建LoginInfo
+            LoginInfo loginInfo = dp2WeiXinService.GetLoginInfo(loginUserName, loginUserType);
+
+            BiblioDetailResult result = dp2WeiXinService.Instance.GetBiblioDetail(loginInfo,
+                weixinId,
                 libId,
                 biblioPath,
                 format,
@@ -192,22 +219,22 @@ namespace dp2weixinWeb.ApiControllers
         }
 
 
-        // 绑定
+        // 册登记
         [HttpPost]
-        public ApiResult SetItem(string libId,
+        public ApiResult SetItem(string loginUserName, 
+            string libId,
             string biblioPath,
             string action,
-            string userName,
             BiblioItem item)
         {
             // 返回对象
             ApiResult result = new ApiResult();
 
             string strError = "";
-            int nRet = dp2WeiXinService.Instance.SetItem(libId,
+            int nRet = dp2WeiXinService.Instance.SetItem(loginUserName,
+                libId,
                 biblioPath,
                 action,
-                userName,
                 item,
                 out strError);
             if (nRet == -1)

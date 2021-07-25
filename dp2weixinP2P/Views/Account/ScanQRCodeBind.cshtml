@@ -125,6 +125,9 @@
                 var myUrl = getRootPath() + "/Scripts/jweixin-1.0.0.js";
                 loadJs("yy", myUrl, callbackFunction);
             }
+
+            // 2021/8/2调试态显示当前操作帐号
+            setOpeAccount("capo");  // 因为这是绑定调bind api，公众号还没有身份，所以用代理帐号
         });
 
         // 绑定账号

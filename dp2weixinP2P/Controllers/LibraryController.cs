@@ -251,6 +251,10 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
 
+            //// 2021/8/2 这里是dp2mserver的帐号
+            //ViewBag.loginUserName = sessionInfo.CurrentLib.Entity.wxUserName;
+            //ViewBag.loginUserType = "";
+
             return View(list);
         }
 
@@ -351,6 +355,10 @@ namespace dp2weixinWeb.Controllers
                     continue;
                 list.Add(item);
             }
+
+            //// 2021/8/2 这里是dp2mserver的帐号
+            //ViewBag.loginUserName = sessionInfo.CurrentLib.Entity.wxUserName;
+            //ViewBag.loginUserType = "";
 
             return View(list);
 

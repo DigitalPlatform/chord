@@ -374,9 +374,11 @@ namespace dp2weixinWeb.Controllers
             }
 
 
+            LoginInfo loginInfo = dp2WeiXinService.Instance.GetLoginInfo(sessionInfo.ActiveUser);
 
             List<PatronInfo> patronList = new List<PatronInfo>();
-            nRet = dp2WeiXinService.Instance.GetPatronsByName(sessionInfo.ActiveUser.libId,
+            nRet = dp2WeiXinService.Instance.GetPatronsByName(loginInfo,
+                sessionInfo.ActiveUser.libId,
                 sessionInfo.ActiveUser.bindLibraryCode,
                 patronName,
                out patronList,
@@ -432,9 +434,11 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
 
+            LoginInfo loginInfo = new LoginInfo(sessionInfo.ActiveUser.userName, false);
 
             List<Patron> patronList = new List<Patron>();
-            nRet = dp2WeiXinService.Instance.GetTempPatrons(sessionInfo.ActiveUser.libId,
+            nRet = dp2WeiXinService.Instance.GetTempPatrons(loginInfo,
+                sessionInfo.ActiveUser.libId,
                 sessionInfo.ActiveUser.bindLibraryCode,
                out patronList,
                out strError);
@@ -544,7 +548,10 @@ namespace dp2weixinWeb.Controllers
             // 装载读者帐号信息
             string patronXml = "";
             string recPath = "";
-            LoginInfo loginInfo = new LoginInfo("", false);  // todo，这里是用工作人员帐户还是用代理帐户
+
+            //LoginInfo loginInfo = new LoginInfo("", false);  // todo，这里是用工作人员帐户还是用代理帐户
+            // 2021/7/26 改变工作人员，因为最新dp2library版本，加了setreaderinfo:级别
+            LoginInfo loginInfo = new LoginInfo(sessionInfo.ActiveUser.userName, false);
 
             // 获取读者记录
             string timestamp = "";
@@ -1223,13 +1230,13 @@ namespace dp2weixinWeb.Controllers
             string libId = activeUser.libId;
             string patronBarcode = activeUser.readerBarcode;
 
-            //// 登录人是读者自己
-            //string loginUserName = activeUser.readerBarcode;
-            //bool isPatron = true;
-            //LoginInfo loginInfo = new LoginInfo(loginUserName, isPatron);
+            // 20210730 因为涉及到读者信息脱敏，所以还是改为读者自己的帐户登录
+            // 登录人是读者自己
+            LoginInfo loginInfo = new LoginInfo(patronBarcode, true);
 
-            // 2020-3-17 读者修改手机号完成后，也是进入我的信息界面，但此时通道已失效，所以改为代理帐号
-            LoginInfo loginInfo = new LoginInfo("", false);
+            // 20210730 因为涉及到读者信息脱敏，所以还是改为读者自己的帐户登录
+            //// 2020-3-17 读者修改手机号完成后，也是进入我的信息界面，但此时通道已失效，所以改为代理帐号
+            //LoginInfo loginInfo = new LoginInfo("", false);
 
 
             string searchWord = patronBarcode;  //检索不支持@refid，只支持@path:格式
@@ -1507,7 +1514,12 @@ namespace dp2weixinWeb.Controllers
         }
 
         // 图片
-        public ActionResult GetPhoto(string code, string state, string libId, string type, string barcode, string objectPath)
+        public ActionResult GetPhoto(string code, 
+            string state, 
+            string libId, 
+            string type,
+            string barcode, 
+            string objectPath)
         {
             MemoryStream ms = new MemoryStream(); ;
             string strError = "";
@@ -1524,6 +1536,8 @@ namespace dp2weixinWeb.Controllers
                 goto ERROR1;
             }
 
+            // 2021/8/2 获取当前登录帐号
+            LoginInfo loginInfo = dp2WeiXinService.Instance.GetLoginInfo(sessionInfo.ActiveUser);
 
             // 读者二维码
             if (type == "pqri")
@@ -1573,7 +1587,8 @@ namespace dp2weixinWeb.Controllers
 
             // 取头像 或 封面
             string weixinId = ViewBag.weixinId;
-            nRet = dp2WeiXinService.GetObject0(this, libId, weixinId, objectPath, out strError);
+            nRet = dp2WeiXinService.GetObject0(loginInfo,
+                this, libId, weixinId, objectPath, out strError);
             if (nRet == -1)
                 goto ERROR1;
 
@@ -1603,6 +1618,9 @@ namespace dp2weixinWeb.Controllers
                 goto ERROR1;
             }
 
+            // 2021/8/2 获取当前登录帐号
+            LoginInfo loginInfo = dp2WeiXinService.Instance.GetLoginInfo(sessionInfo.ActiveUser);
+
             //处理 dp2 系统外部的 URL
             Uri tempUri = dp2WeiXinService.GetUri(uri);
             if (tempUri != null
@@ -1612,7 +1630,7 @@ namespace dp2weixinWeb.Controllers
             }
 
             string weixinId = ViewBag.weixinId;
-            nRet = dp2WeiXinService.GetObject0(this, libId, weixinId, uri, out strError);
+            nRet = dp2WeiXinService.GetObject0(loginInfo,this, libId, weixinId, uri, out strError);
             if (nRet == -1)
                 goto ERROR1;
 

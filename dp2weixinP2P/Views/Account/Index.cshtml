@@ -181,6 +181,9 @@
             getBindList(weixinId);
 
             ko.applyBindings(model);
+
+            // 2021/7/30调试态显示当前操作帐号
+            setOpeAccount("绑定时使用[读者帐户]获取信息，然后存到本地库。");
         });
 
 
@@ -279,8 +282,8 @@ else
                                     <span> 读者</span>
                                 </td>
                                 <td class="value">
-                                    <span data-bind="text:readerName" style="font-size:22px"></span>
-                                    <span data-bind="text:readerBarcode" style="color:darkgreen;font-weight:bold;font-size:24px"></span>
+                                    <span data-bind="text:displayReaderName" style="font-size:22px"></span>
+                                    <span data-bind="text:displayReaderBarcode" style="color:darkgreen;font-weight:bold;font-size:24px"></span>
                                 </td>
                             </tr>
                             <tr>

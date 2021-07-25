@@ -13,7 +13,7 @@
 
     <script src='@Url.Content("~/Scripts/jquery-ui-1.12.1.js?a=2")'></script>
     <script src="@Url.Content("~/Scripts/knockout-2.2.0.js?a=2")"></script>
-    <script src="@Url.Content("~/Scripts/weixin.js?test=2")"></script>
+    <script src="@Url.Content("~/Scripts/weixin.js?test=3")"></script>
 
     <script src="@Url.Content("~/Scripts/layer.js?a=2")"></script>
     <link href="@Url.Content("~/Content/layer.css?a=2")" rel="stylesheet">
@@ -31,7 +31,10 @@
         @RenderSection("header", required: false)
         <a class=" mui-icon mui-pull-right" href='javascript:void(0)' onclick='gotoSetting()' style="color:#cccccc"><span style="font-size:10pt" id="_libName">@ViewBag.LibName</span></a>
         <span id="_libId" style="display:none">@ViewBag.LibId</span>
-        <span  id="_patronTag" style="display: none">@ViewBag.isPatron</span>
+        <span id="_patronTag" style="display: none">@ViewBag.isPatron</span>
+        <span id="_isDebug" style="display: none">@ViewBag.isDebug</span>
+        <span id="_loginUserName" style="display: none">@ViewBag.loginUserName</span>
+        <span id="_loginUserType" style="display: none">@ViewBag.loginUserType</span>
     </header>
 
     <div class="btn3 clearfix" id="divBottonTab">
@@ -88,220 +91,269 @@
         <div id="loading"></div>
         <div id="mask-background" style="display: none; "></div>
         <div id="mask-progressBar" style="display: none; ">数据处理中，请稍候...</div>
+
         <!--部分页占位符 -->
 
-                    @RenderBody()
+        @RenderBody()
+        <div id="_opeAccount" style="display:none;color:blue">&nbsp;&nbsp;操作帐号</div>
 
-                    <script>
-                        //弹出垂直菜单
-                        $(".menu").click(function () {
-                            if ($(this).hasClass("cura")) {
-                                $(this).children(".new-sub").hide(); //当前菜单下的二级菜单隐藏
-                                $(".menu").removeClass("cura"); //同一级的菜单项
-                            } else {
-                                $(".menu").removeClass("cura"); //移除所有的样式
-                                $(this).addClass("cura"); //给当前菜单添加特定样式
-                                $(".menu").children(".new-sub").slideUp("fast"); //隐藏所有的二级菜单
-                                //class="bt-name"
-                                var menuText = $(this).children(".bt-name").html();
-                                if (menuText == "更多") {
-                                    var dw = $(document).width();
-                                    var myval = dw / 3 - 120;
-                                    if (myval < 0) {
-                                        //alert(myval);
-                                        $(this).children(".new-sub").css("left", myval + "px");
-                                    }
-                                }
-                                $(this).children(".new-sub").slideDown("fast"); //展示当前的二级菜单
-                            }
-                        });
-
-
-                        var browser = {
-                            versions: function () {
-                                var u = navigator.userAgent, app = navigator.appVersion;
-                                return {         //移动终端浏览器版本信息
-                                    trident: u.indexOf('Trident') > -1, //IE内核
-                                    presto: u.indexOf('Presto') > -1, //opera内核
-                                    webKit: u.indexOf('AppleWebKit') > -1, //苹果、谷歌内核
-                                    gecko: u.indexOf('Gecko') > -1 && u.indexOf('KHTML') == -1, //火狐内核
-                                    mobile: !!u.match(/AppleWebKit.*Mobile.*/), //是否为移动终端
-                                    ios: !!u.match("/\\(i[^;]+;( U;)? CPU.+Mac OS X/"), //ios终端
-                                    android: u.indexOf('Android') > -1 || u.indexOf('Linux') > -1, //android终端或uc浏览器
-                                    iPhone: u.indexOf('iPhone') > -1, //是否为iPhone或者QQHD浏览器
-                                    iPad: u.indexOf('iPad') > -1, //是否iPad
-                                    webApp: u.indexOf('Safari') == -1, //是否web应该程序，没有头部与底部
-                                    weixin: u.indexOf('MicroMessenger') > -1, //是否微信 （2015-01-22新增）
-                                    qq: u.match(/\\sQQ/i) == " qq" //是否QQ
-                                };
-                            }(),
-                            language: (navigator.browserLanguage || navigator.language).toLowerCase()
-                        };
-
-                        function doTopBottom() {
-                            window.setTimeout("showTopBottom()", 1);
+        <script>
+            //弹出垂直菜单
+            $(".menu").click(function () {
+                if ($(this).hasClass("cura")) {
+                    $(this).children(".new-sub").hide(); //当前菜单下的二级菜单隐藏
+                    $(".menu").removeClass("cura"); //同一级的菜单项
+                } else {
+                    $(".menu").removeClass("cura"); //移除所有的样式
+                    $(this).addClass("cura"); //给当前菜单添加特定样式
+                    $(".menu").children(".new-sub").slideUp("fast"); //隐藏所有的二级菜单
+                    //class="bt-name"
+                    var menuText = $(this).children(".bt-name").html();
+                    if (menuText == "更多") {
+                        var dw = $(document).width();
+                        var myval = dw / 3 - 120;
+                        if (myval < 0) {
+                            //alert(myval);
+                            $(this).children(".new-sub").css("left", myval + "px");
                         }
+                    }
+                    $(this).children(".new-sub").slideDown("fast"); //展示当前的二级菜单
+                }
+            });
 
 
-                        $(document).ready(function () {
+            var browser = {
+                versions: function () {
+                    var u = navigator.userAgent, app = navigator.appVersion;
+                    return {         //移动终端浏览器版本信息
+                        trident: u.indexOf('Trident') > -1, //IE内核
+                        presto: u.indexOf('Presto') > -1, //opera内核
+                        webKit: u.indexOf('AppleWebKit') > -1, //苹果、谷歌内核
+                        gecko: u.indexOf('Gecko') > -1 && u.indexOf('KHTML') == -1, //火狐内核
+                        mobile: !!u.match(/AppleWebKit.*Mobile.*/), //是否为移动终端
+                        ios: !!u.match("/\\(i[^;]+;( U;)? CPU.+Mac OS X/"), //ios终端
+                        android: u.indexOf('Android') > -1 || u.indexOf('Linux') > -1, //android终端或uc浏览器
+                        iPhone: u.indexOf('iPhone') > -1, //是否为iPhone或者QQHD浏览器
+                        iPad: u.indexOf('iPad') > -1, //是否iPad
+                        webApp: u.indexOf('Safari') == -1, //是否web应该程序，没有头部与底部
+                        weixin: u.indexOf('MicroMessenger') > -1, //是否微信 （2015-01-22新增）
+                        qq: u.match(/\\sQQ/i) == " qq" //是否QQ
+                    };
+                }(),
+                language: (navigator.browserLanguage || navigator.language).toLowerCase()
+            };
+
+            function doTopBottom() {
+                window.setTimeout("showTopBottom()", 1);
+            }
 
 
-                            totalHeight = $(window).height();
-                            totalWidth = $(window).width();
-
-                            //$("#idTest").html("totalHeight=" + totalHeight + ";totalWidth=" + totalWidth);
-
-                            if (browser.versions.iPhone == true) {
-                                $("input").focus(function () {
-                                    setShowValue(false);
-                                    doTopBottom();
-                                });
-                                $("input").blur(function () {
-                                    setShowValue(true);
-                                    doTopBottom();
-                                });
-
-                                $("select").focus(function () {
-                                    setShowValue(false);
-                                    doTopBottom();
-                                });
-                                $("select").blur(function () {
-                                    setShowValue(true);
-                                    doTopBottom();
-                                });
-
-                                $("textarea").focus(function () {
-                                    setShowValue(false);
-                                    doTopBottom();
-                                });
-                                $("textarea").blur(function () {
-                                    setShowValue(true);
-                                    doTopBottom();
-                                });
-
-                            }
-                            //_patronTag
-                            var isPatron = $("#_patronTag").text();
-                            //alert(isPatron);
-                            if (isPatron == "1") {
-
-                                // 馆员登记读者
-                                controlMenu("33", false);
-
-                                // 馆员审核读者
-                                controlMenu("34", false);
-                            }
-
-                        });
-
-                        // 设置是否显示头尾参数的值，同时改变背景
-                        function setShowValue(value) {
-                            bShowTopBottom = value;
-                            
-                        };
-
-                        // 控制菜单是否显示
-                        function controlMenu(no, bView) {
-                            var name = "#_menu" + no;
-
-                            //alert("进入controlMenu,传入的菜单名为:" + name);
+            $(document).ready(function () {
 
 
-                            if (bView == true) {
-                                $(name).css('display', 'block');
-                            }
-                            else {
-                                $(name).css('display', 'none');
-                            }
+                totalHeight = $(window).height();
+                totalWidth = $(window).width();
+
+                //$("#idTest").html("totalHeight=" + totalHeight + ";totalWidth=" + totalWidth);
+
+                if (browser.versions.iPhone == true) {
+                    $("input").focus(function () {
+                        setShowValue(false);
+                        doTopBottom();
+                    });
+                    $("input").blur(function () {
+                        setShowValue(true);
+                        doTopBottom();
+                    });
+
+                    $("select").focus(function () {
+                        setShowValue(false);
+                        doTopBottom();
+                    });
+                    $("select").blur(function () {
+                        setShowValue(true);
+                        doTopBottom();
+                    });
+
+                    $("textarea").focus(function () {
+                        setShowValue(false);
+                        doTopBottom();
+                    });
+                    $("textarea").blur(function () {
+                        setShowValue(true);
+                        doTopBottom();
+                    });
+
+                }
+                //_patronTag
+                var isPatron = $("#_patronTag").text();
+                //alert(isPatron);
+                if (isPatron == "1") {
+
+                    // 馆员登记读者
+                    controlMenu("33", false);
+
+                    // 馆员审核读者
+                    controlMenu("34", false);
+                }
+
+                //如果绑定的工作人员有wx_debug权限，则以debug态显示信息
+                var isDebug = $("#_isDebug").text();
+                if (isDebug == "1") {
+                    $("#_opeAccount").css('display', 'block');
+                }
+                else {
+                    $("#_opeAccount").css('display', 'none');
+                }
+
+            });
+
+            // 设置是否显示头尾参数的值，同时改变背景
+            function setShowValue(value) {
+                bShowTopBottom = value;
+
+            };
+
+            // 设置调试态的操作帐号
+            function setOpeAccount(account,needPatron) {
+                //alert("2");
+
+                if (account == null || account == "") {
+                    var loginUserName = $('#_loginUserName').text();
+                    var loginUserType = $('#_loginUserType').text();
+
+                    account = loginUserName;
+
+                    if (loginUserType != null && loginUserType != "") {
+                        account += "(" + loginUserType + ")";
+                    }
+
+                    //alert("1");
+                    if (needPatron == true) {
+                       // alert("2");
+                        if (loginUserType != "patron") {
+                            //alert("3");
+                            account = "[读者帐户]";
                         }
+                    }
+                };
+
+                $('#_opeAccount').text("  操作帐号:" + account + "");
+                //alert("3");
+            };
+
+            // 获得当前登录帐户
+            function getLoginUserName() {
+                return $('#_loginUserName').text();
+            }
+
+            // 获得当前登录帐户
+            function getLoginUserType() {
+                return $('#_loginUserType').text();
+            }
+
+            // 控制菜单是否显示
+            function controlMenu(no, bView) {
+                var name = "#_menu" + no;
+
+                //alert("进入controlMenu,传入的菜单名为:" + name);
 
 
-                        // 真正做事，隐藏或显示头尾菜单
-                        var bShowTopBottom = true;
-                        var totalHeight = 0;
-                        var totalWidth = 0;
-                        function showTopBottom() {
-                            if (bShowTopBottom == true) {
-
-                                // 把菜单位置设在最下方
-                                $("#divBottonTab").css('position', 'fixed');
-                                $("#divBottonTab").css('z-index', '3');
-
-                                var top = totalHeight - 40;//发现height会越变越小，真是奇怪？ $("#divBottonTab").height();//要用一进来的值，因为iphone会在头顶弹出防欺诈盗号类行 $(window).height()
-                                //if (top == 416)
-                                //    top = top - 40;
-                                $("#divBottonTab").css('top', top + 'px');
-                                //$("#idTest").html(totalHeight + "===" + $("#divBottonTab").height() +"==="+ top);
-
-                                $("#divBottonTab").css('display', 'block');
-                                $("#myheader").css('display', 'block');
-                            }
-                            else {
-                                $("#divBottonTab").css('display', 'none');
-                                $("#myheader").css('display', 'none');
-
-                            }
-                        };
-
-                        function gotoUrl(url) {
-                            var myUrl = getRootPath() + url;
-                            window.location = myUrl;
-                        };
-
-                        function getLibId() {
-                            return $("#_libId").text();
-                        }
+                if (bView == true) {
+                    $(name).css('display', 'block');
+                }
+                else {
+                    $(name).css('display', 'none');
+                }
+            }
 
 
-                        function gotoSetting() {
-                            var thisUrl = window.location.pathname; //
-                            //alert("[" + thisUrl + "]");
-                            var url = "/Patron/SelectOwnerLib";//?returnUrl="+ encodeURIComponent("/Patron/SelectOwnerLib");//"/Patron/Setting?returnUrl=" + encodeURIComponent(thisUrl);
-                            gotoUrl(url);
-                        }
+            // 真正做事，隐藏或显示头尾菜单
+            var bShowTopBottom = true;
+            var totalHeight = 0;
+            var totalWidth = 0;
+            function showTopBottom() {
+                if (bShowTopBottom == true) {
+
+                    // 把菜单位置设在最下方
+                    $("#divBottonTab").css('position', 'fixed');
+                    $("#divBottonTab").css('z-index', '3');
+
+                    var top = totalHeight - 40;//发现height会越变越小，真是奇怪？ $("#divBottonTab").height();//要用一进来的值，因为iphone会在头顶弹出防欺诈盗号类行 $(window).height()
+                    //if (top == 416)
+                    //    top = top - 40;
+                    $("#divBottonTab").css('top', top + 'px');
+                    //$("#idTest").html(totalHeight + "===" + $("#divBottonTab").height() +"==="+ top);
+
+                    $("#divBottonTab").css('display', 'block');
+                    $("#myheader").css('display', 'block');
+                }
+                else {
+                    $("#divBottonTab").css('display', 'none');
+                    $("#myheader").css('display', 'none');
+
+                }
+            };
+
+            function gotoUrl(url) {
+                var myUrl = getRootPath() + url;
+                window.location = myUrl;
+            };
+
+            function getLibId() {
+                return $("#_libId").text();
+            }
 
 
-
-
-                        // 设置头尾菜单是否显示
-                        function setShowTopButton() {
-                            //
-                            if (browser.versions.iPhone == true) {
-                                $("input").focus(function () {
-                                    setShowValue(false);
-                                    doTopBottom();
-                                });
-                                $("input").blur(function () {
-                                    setShowValue(true);
-                                    doTopBottom();
-                                });
-                                $("select").focus(function () {
-                                    setShowValue(false);
-                                    doTopBottom();
-                                });
-                                $("select").blur(function () {
-                                    setShowValue(true);
-                                    doTopBottom();
-                                });
-                                $("textarea").focus(function () {
-                                    setShowValue(false);
-                                    doTopBottom();
-                                });
-                                $("textarea").blur(function () {
-                                    setShowValue(true);
-                                    doTopBottom();
-                                });
-                            }
-
-                        }
+            function gotoSetting() {
+                var thisUrl = window.location.pathname; //
+                //alert("[" + thisUrl + "]");
+                var url = "/Patron/SelectOwnerLib";//?returnUrl="+ encodeURIComponent("/Patron/SelectOwnerLib");//"/Patron/Setting?returnUrl=" + encodeURIComponent(thisUrl);
+                gotoUrl(url);
+            }
 
 
 
-                        // 微信js是否准备好了
-                        var jssdkReady = 0;
+
+            // 设置头尾菜单是否显示
+            function setShowTopButton() {
+                //
+                if (browser.versions.iPhone == true) {
+                    $("input").focus(function () {
+                        setShowValue(false);
+                        doTopBottom();
+                    });
+                    $("input").blur(function () {
+                        setShowValue(true);
+                        doTopBottom();
+                    });
+                    $("select").focus(function () {
+                        setShowValue(false);
+                        doTopBottom();
+                    });
+                    $("select").blur(function () {
+                        setShowValue(true);
+                        doTopBottom();
+                    });
+                    $("textarea").focus(function () {
+                        setShowValue(false);
+                        doTopBottom();
+                    });
+                    $("textarea").blur(function () {
+                        setShowValue(true);
+                        doTopBottom();
+                    });
+                }
+
+            }
 
 
 
-                    </script>
+            // 微信js是否准备好了
+            var jssdkReady = 0;
+
+
+
+        </script>
 </body>
 </html>

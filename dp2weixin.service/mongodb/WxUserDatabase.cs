@@ -700,6 +700,9 @@ namespace dp2weixin.service
 
                 .Set("readerBarcode", item.readerBarcode)
                 .Set("readerName", item.readerName)
+                .Set("readerBarcodeByReaderGet", item.readerBarcodeByReaderGet)  //2021/7/29为脱敏显示增加
+                 .Set("readerNameByReaderGet", item.readerNameByReaderGet)  //2021/7/29为脱敏显示增加
+
                 .Set("department", item.department)
                 .Set("phone", item.phone)
                 .Set("gender", item.gender) // 2020/6/2 性别
@@ -792,6 +795,35 @@ namespace dp2weixin.service
 
         // 读者姓名
         public string readerName { get; set; }
+
+        // 20210729由于要求显示已绑定清单脱敏，所以增加了两个用读者身份获取的字段
+        public string readerBarcodeByReaderGet { get; set; }
+        public string readerNameByReaderGet { get; set; }
+
+        // 20210729用于已绑定列表脱敏显示
+        public string displayReaderBarcode 
+        {
+            get
+            {
+                if (readerBarcodeByReaderGet != null)
+                    return readerBarcodeByReaderGet;
+                else
+                    return readerBarcode;
+            }
+        }
+
+        // 20210729用于已绑定列表脱敏显示
+        public string displayReaderName
+        {
+            get
+            {
+                if (readerNameByReaderGet != null)
+                    return readerNameByReaderGet;
+                else
+                    return readerName;
+            }
+        }
+
 
         //单位
         public string department { get; set; }  //部门，二维码下方显示 // 2016-6-16 新增

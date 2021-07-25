@@ -11,6 +11,13 @@
 @section Scripts {
     <script>
 
+        $(document).ready(function () {
+
+            // 2021/8/2调试态显示当前操作帐号
+            setOpeAccount("capo");
+
+        });
+
         // 选择图书馆
         function gotoSelectLib() {
             //alert("1");
@@ -74,7 +81,7 @@
         }
 
 
-        //倒计时  
+        //验证码倒计时  
         var countdown = 60;
         function settime() {
             if (countdown == 0) {

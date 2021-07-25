@@ -499,6 +499,11 @@ namespace dp2weixinWeb.ApiControllers
             // 前端有时传上来是这个值
             if (item.prefix == "null")
                 item.prefix = "";
+
+
+
+
+
             WxUserItem userItem = null;
 
             int nRet = dp2WeiXinService.Instance.Bind(item.libId,

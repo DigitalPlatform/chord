@@ -248,7 +248,8 @@ namespace dp2weixin.service
                 string summary = "";
                 string recPath = "";
                 LibEntity lib = dp2WeiXinService.Instance.GetLibById(libId);
-                int nRet = dp2WeiXinService.Instance.GetBiblioSummary(lib,
+                int nRet = dp2WeiXinService.Instance.GetBiblioSummary(loginInfo,
+                    lib,
                     cmd.itemBarcode,
                    "",
                    out summary,
@@ -474,7 +475,8 @@ namespace dp2weixin.service
                  string summary = "";
                  string recPath = "";
                  LibEntity lib = dp2WeiXinService.Instance.GetLibById(libId);
-                 int nRet = dp2WeiXinService.Instance.GetBiblioSummary(lib, 
+                 int nRet = dp2WeiXinService.Instance.GetBiblioSummary(loginInfo,
+                     lib, 
                      cmd.itemBarcode,
                     "",
                     out summary,
