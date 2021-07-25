@@ -57,6 +57,9 @@ namespace dp2weixin.service
                         // 2020-8-24 增加转发到第三方接口名称
                         string noticedll = DomUtil.GetAttr(libNode, "noticedll");
 
+                        // 2021-7-21 增加单一绑定开关
+                        string bindStyle = DomUtil.GetAttr(libNode, "bindStyle");
+
                         LibModel lib = new LibModel();
                         lib.libId = id;
                         lib.name = name;
@@ -65,6 +68,7 @@ namespace dp2weixin.service
                         lib.departments = departments;//2020-3-6
                         lib.patronBarcodeTail = patronBarcoeTail;//2020-6-5
                         lib.noticedll = noticedll;
+                        lib.bindStyle = bindStyle;
 
                         area.libs.Add(lib);
                     }
@@ -122,6 +126,7 @@ namespace dp2weixin.service
                     lib.patronDbName = oldLib.patronDbName;
                     lib.patronBarcodeTail = oldLib.patronBarcodeTail;
                     lib.noticedll = oldLib.noticedll;
+                    lib.bindStyle = oldLib.bindStyle;
 
                     lib.capoUser = oldLib.capoUser;
                     lib.visible = oldLib.visible;
@@ -150,6 +155,7 @@ namespace dp2weixin.service
                         + " departments='"+lib.departments+"'"
                         + " patronBarcodeTail='"+ lib.patronBarcodeTail+"'" //2020/6/5增加证条码号尾号
                         + " noticedll='" + lib.noticedll + "'" //2020/8/24 转发通知到第三方的接口
+                        + " bindStyle='" + lib.bindStyle+"'" // 2021/7/21 增加单一绑定开关
 
                         + " />";
                 }
@@ -312,6 +318,9 @@ namespace dp2weixin.service
 
         // 2020/8/24 增加第三方dll
         public string noticedll = "";
+
+        // 2021/7/21 指定是否绑定单一的手机
+        public string bindStyle = "";
 
 
         // 对应的capo帐户

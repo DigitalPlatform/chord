@@ -544,7 +544,10 @@ namespace dp2weixinWeb.Controllers
             // 装载读者帐号信息
             string patronXml = "";
             string recPath = "";
-            LoginInfo loginInfo = new LoginInfo("", false);  // todo，这里是用工作人员帐户还是用代理帐户
+
+            //LoginInfo loginInfo = new LoginInfo("", false);  // todo，这里是用工作人员帐户还是用代理帐户
+            // 2021/7/26 改变工作人员，因为最新dp2library版本，加了setreaderinfo:级别
+            LoginInfo loginInfo = new LoginInfo(sessionInfo.ActiveUser.userName, false);
 
             // 获取读者记录
             string timestamp = "";

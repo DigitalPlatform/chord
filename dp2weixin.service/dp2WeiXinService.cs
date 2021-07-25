@@ -5592,6 +5592,26 @@ ErrorInfo成员里可能会有报错信息。
             if (strPrefix == "UN")
                 type = C_TYPE_WORKER;// 工作人员账户
 
+            // single multiple singlestrict 
+            string strStyle = "multiple"; // 默认1个帐号可以绑定多个手机
+
+            // 2021/7/21 增加检查可信设备绑定
+            // 检查一下微信数据库是否已经有一个这个帐户对应的绑定记录，
+            // 如果有的话，则不允许再次绑定
+            LibModel libCfg = this._areaMgr.GetLibCfg(libId, bindLibraryCode);
+            if (libCfg != null && string.IsNullOrEmpty(libCfg.bindStyle) == false)
+            {
+                if (libCfg.bindStyle != "multiple"
+                    && libCfg.bindStyle != "single"
+                    && libCfg.bindStyle != "singlestrict")
+                {
+                    strError = lib.libName+ "配置的bindStyle参数值["+libCfg.bindStyle+"]不合法。";
+                    return -1;
+                }
+
+                strStyle = libCfg.bindStyle;
+            }
+
 
 
 
@@ -5623,7 +5643,7 @@ ErrorInfo成员里可能会有报错信息。
                 strFullWord,
                 strPassword,
                 fullWeixinId,
-                "multiple", //20180312改回多重绑定 // 2018/3/8改为单纯绑定  // 2016-8-24 改为多重绑定，这是复杂的情况，要不没法与mongodb保持一致，比较一个微信用户绑了一位读者，另一个微信用户又绑了这名相同的读者，如果不用多重绑定，就把第一名读者冲掉了，但微信mongodb并不知道。 //single,multiple
+                  strStyle,//2021/7/21默认为multipe，如果libcfg.xml配置了bindstyle，则依据配置的值来。 //"multiple", //20180312改回多重绑定 // 2018/3/8改为单纯绑定  // 2016-8-24 改为多重绑定，这是复杂的情况，要不没法与mongodb保持一致，比较一个微信用户绑了一位读者，另一个微信用户又绑了这名相同的读者，如果不用多重绑定，就把第一名读者冲掉了，但微信mongodb并不知道。 //single,multiple
                 "xml");
             try
             {
@@ -5642,9 +5662,6 @@ ErrorInfo成员里可能会有报错信息。
                         strError = "帐户或密码不正确";
                     return -1;
                 }
-
-
-
 
 
                 // 返回的读者xml

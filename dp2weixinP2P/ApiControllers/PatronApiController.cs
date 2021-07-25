@@ -97,7 +97,7 @@ namespace dp2weixinWeb.ApiControllers
             string weixinId,
             SimplePatron patron)
         {
-            dp2WeiXinService.Instance.WriteErrorLog("***0***");
+            //dp2WeiXinService.Instance.WriteErrorLog("***0***");
 
             SetReaderInfoResult result = new SetReaderInfoResult();
             string strError="";
@@ -138,7 +138,7 @@ namespace dp2weixinWeb.ApiControllers
             }
             else
             {
-                dp2WeiXinService.Instance.WriteErrorLog("***2***");
+                //dp2WeiXinService.Instance.WriteErrorLog("***2***");
             }
 
             string outputRecPath = "";
