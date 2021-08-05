@@ -194,7 +194,7 @@
 
 
             // 手机号
-            var phone= $("#txtPhone").val();
+            var phone = $("#txtPhone").val();
             //if (phone == "") {
             //    alert("手机号不能为空！");
             //    return;
@@ -204,7 +204,7 @@
             if (opeType == "newByWorker") {
 
                 // 使用配置的数据库
-                var recPath = $("#_recPath").text();//"读者/?";
+                var recPath = $("#_newRecPath").text();//"读者/?";
                 if (recPath == "") {
                     alert("尚未配置读者数据库名称，请联系管理员。");
                     return;
@@ -223,13 +223,13 @@
                 + "&timestamp=" + encodeURIComponent(timestamp)
                 + "&weixinId=";
 
-            alert(url);
+            //alert(url);
             sendAjaxRequest(url, "POST",
                 function (result) {
                     // 关闭等待层
                     hideMaskLayer();
 
-                    
+
                     if (result.errorCode == -1) {
                         alert(result.errorInfo);
                         return;
@@ -249,7 +249,7 @@
                     }
 
                     //清空编辑界面信息,todo
-                    
+
 
                 },
                 function (xhq, textStatus, errorThrown) {
@@ -269,12 +269,13 @@
             );
         }
 
-        
+
 
     </script>
 }
 <span id="_userName" style="display:none">@ViewBag.userName</span>
 <span id="_recPath" style="display:none">@ViewBag.PatronRecPath</span>
+<span id="_newRecPath" style="display:none">@ViewBag.PatronRecPath</span>
 <span id="_timestamp" style="display:none"></span>
 <span id="_bLoad" style="display:none">0</span>
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)

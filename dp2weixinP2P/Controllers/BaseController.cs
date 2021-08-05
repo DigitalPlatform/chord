@@ -562,17 +562,21 @@ namespace dp2weixinWeb.Controllers
             {
                 foreach (WxUserItem worker in workers)
                 {
-                    int nHasRights = dp2WeiXinService.Instance.CheckRights(worker, sessionInfo.CurrentLib.Entity,
-                        dp2WeiXinService.C_Right_Debug, out strError);
-                    if (nHasRights == -1)
+                    if (worker.userName != "public")
                     {
-                        strError = "检查工作人员(" + worker.userName + ")是否有[" + dp2WeiXinService.C_Right_Debug + "]权限时出错：" + strError;
-                        return -1;
-                    }
-                    if (nHasRights == 1)
-                    {
-                        ViewBag.isDebug = "1";
-                        break;
+                        int nHasRights = dp2WeiXinService.Instance.CheckRights(worker, sessionInfo.CurrentLib.Entity,
+                            dp2WeiXinService.C_Right_Debug, out strError);
+                        if (nHasRights == -1)
+                        {
+                            // 2021/8/4 出错的时候，不返回错误，防止没法再选择图书馆
+                            //strError = "检查工作人员(" + worker.userName + ")是否有[" + dp2WeiXinService.C_Right_Debug + "]权限时出错：" + strError;
+                            //return -1;
+                        }
+                        if (nHasRights == 1)
+                        {
+                            ViewBag.isDebug = "1";
+                            break;
+                        }
                     }
                 }
             }

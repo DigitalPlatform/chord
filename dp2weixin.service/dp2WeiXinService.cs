@@ -4245,7 +4245,8 @@ ErrorInfo成员里可能会有报错信息。
         /// <param name="timestamp">读者时间戳</param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public int MergePatronXml(string libId,
+        public int MergePatronXml(LoginInfo loginInfo,
+            string libId,
             string recPath,
             SimplePatron patron,
             bool checkNull,
@@ -4258,8 +4259,11 @@ ErrorInfo成员里可能会有报错信息。
             strError = "";
             patronXml = "";
 
+            // 2021/8/5 注释掉，改为调用者传入的loginInfo
             // 统一用代理帐户检索,从服务器检索读者原来信息
-            LoginInfo loginInfo = new LoginInfo("", false);
+            //LoginInfo loginInfo = new LoginInfo("", false);
+
+
             string strOldXml = "";
             string word = "@path:" + recPath;
             string tempPath = "";
@@ -4309,7 +4313,7 @@ ErrorInfo成员里可能会有报错信息。
             }
 
             // 性别
-            // 2020-3-17 加检查是否是空值，如果只修改手机号，那其实字段传的是空值
+            // 2020-3-17 加检查是否是空值，
             if ((checkNull == false)
                 || ((checkNull == true) && string.IsNullOrEmpty(patron.gender) == false))
             {
@@ -4582,7 +4586,8 @@ ErrorInfo成员里可能会有报错信息。
                 }
 
                 // 将dp2服务器的读者信息与界面提交的信息合并
-                nRet = this.MergePatronXml(libId,
+                nRet = this.MergePatronXml(loginInfo,
+                    libId,
                     recPath,
                     patron,
                     bCheckNull,
@@ -10602,7 +10607,9 @@ REDO1:
 
 
             // 2020-2-28,因为读者可以自己注册，但读者注册完还没证条码，所以不能登录  //new LoginInfo("", false); //
-            LoginInfo loginInfo = new LoginInfo("", false); //new LoginInfo(patronBarcode, true);// 使用读者账号 20161024 jane
+            //LoginInfo loginInfo = new LoginInfo("", false); //new LoginInfo(patronBarcode, true);// 使用读者账号 20161024 jane
+            // 2021/8/4 改为使用读者自己的身份
+            LoginInfo loginInfo = new LoginInfo(patronBarcode, true);
 
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();

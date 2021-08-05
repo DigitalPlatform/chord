@@ -104,12 +104,10 @@ namespace dp2weixinWeb.ApiControllers
             int nRet = 0;
 
             // 读者自助注册时使用代理账号capo 2020/1/21
-            bool bWorker = false;
             LoginInfo loginInfo = new LoginInfo("", false);
             if (string.IsNullOrEmpty(userName) == false)
             {
                 loginInfo = new LoginInfo(userName, false);
-                bWorker = true;
             }
 
             // 当审核通过时，检查一下是否存在相同的姓名
@@ -149,6 +147,22 @@ namespace dp2weixinWeb.ApiControllers
             else
             {
                 //dp2WeiXinService.Instance.WriteErrorLog("***2***");
+            }
+
+
+            // 2021/8/5 将读者注册，修改注册信息，删除这一类改为使用一个独立帐户wx_registerByPatron。
+            // 2021/8/5 将读者修改手机号，改为使用一个独立帐户wx_changeTelByPatron
+            if (opeType == dp2WeiXinService.C_OpeType_register
+                || opeType == dp2WeiXinService.C_OpeType_reRegister
+                || opeType == dp2WeiXinService.C_OpeType_deleteByPatron)
+            {
+                // 使用约定的wx_registerByPatron
+                loginInfo = new LoginInfo("wx_registerByPatron", false);
+            }
+            else if (opeType == dp2WeiXinService.C_OpeType_changeByPatron)
+            {
+                // 使用约定的wx_changeTelByPatron
+                loginInfo = new LoginInfo("wx_changeTelByPatron", false);
             }
 
             string outputRecPath = "";
