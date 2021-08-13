@@ -1491,13 +1491,14 @@ namespace dp2weixin.service
                         continue;
                     }
 
-                    // 2020/4/1 发微信通知前，都写到本地库中
-                    UserMessageItem myMsg = new UserMessageItem();
-                    myMsg.userId = u.id;// 2020/4/2 这里应该用userId,这样可以关联到绑定帐户,而不是用单纯的weixinId
-                    myMsg.msgType = templateName;
-                    myMsg.xml = messageXml;
-                    myMsg.createTime = GetNowTime();
-                    UserMessageDb.Current.Add(myMsg);
+                    // 2021/8/13 消息库太大了，暂时不要写了
+                    //// 2020/4/1 发微信通知前，都写到本地库中
+                    //UserMessageItem myMsg = new UserMessageItem();
+                    //myMsg.userId = u.id;// 2020/4/2 这里应该用userId,这样可以关联到绑定帐户,而不是用单纯的weixinId
+                    //myMsg.msgType = templateName;
+                    //myMsg.xml = messageXml;
+                    //myMsg.createTime = GetNowTime();
+                    //UserMessageDb.Current.Add(myMsg);
 
                     // 发微信通知
                     if (WxUserDatabase.CheckIsFromWeb(u.weixinId) == false) //weixinId.Length > 2 && weixinId.Substring(0, 2) == "~~")
@@ -5322,10 +5323,14 @@ ErrorInfo成员里可能会有报错信息。
             }
 
             string resultXml = "";
-            string patronParam = "style=returnMessage,"
+            string patronParam = "style=,"  //returnMessage
                 + "queryword=NB:" + name + "|,"
                 + "tel=" + tel + ","
                 + "name=" + name;
+
+            // 消息模块
+            string strMessageTemplate1 = "%name% 您好！\n您的读者帐户(证条码号为 %barcode%)已设临时密码 %temppassword%，%period% 内有效";
+
 
             // 使用代理账号capo 20161024 jane
             // 使用capo帐户，是因为在未绑定的时候，读者也可以找回密码
@@ -5337,7 +5342,7 @@ ErrorInfo成员里可能会有报错信息。
                 loginInfo,
                 "resetPassword",
                 patronParam,
-                "",//this.textBox_circulation_item.Text,
+                strMessageTemplate1,//this.textBox_circulation_item.Text,
                 "",//this.textBox_circulation_style.Text,
                 "",//this.textBox_circulation_patronFormatList.Text,
                 "",//this.textBox_circulation_itemFormatList.Text,
@@ -5392,51 +5397,61 @@ ErrorInfo成员里可能会有报错信息。
                 goto ERROR1;
             }
 
+            if (string.IsNullOrEmpty(resultXml) == false)
+            {
 
-            // 准备发送短信
-            /*
-            <root>
-              <patron>
-                <tel>13862157150</tel>
-                <barcode>R00001</barcode>
-                <name>任延华</name>
-                <tempPassword>586284</tempPassword>
-                <expireTime>13:24:57</expireTime>
-                <period>一小时</period>
-                <refID>63aeb890-8936-4471-bfc5-8e72d5c7fe94</refID>
-              </patron>
-            </root>             
-             */
-            XmlDocument dom = new XmlDocument();
-            dom.LoadXml(resultXml);
-            XmlNode nodePatron = dom.DocumentElement.SelectSingleNode("patron");
-            string strRefID = DomUtil.GetNodeText(nodePatron.SelectSingleNode("refID"));
-            string strTel = DomUtil.GetNodeText(nodePatron.SelectSingleNode("tel"));
+                // 准备发送短信
+                /*
+                <root>
+                  <patron>
+                    <tel>13862157150</tel>
+                    <barcode>R00001</barcode>
+                    <name>任延华</name>
+                    <tempPassword>586284</tempPassword>
+                    <expireTime>13:24:57</expireTime>
+                    <period>一小时</period>
+                    <refID>63aeb890-8936-4471-bfc5-8e72d5c7fe94</refID>
+                  </patron>
+                </root>             
+                 */
+                XmlDocument dom = new XmlDocument();
+                try
+                {
+                    dom.LoadXml(resultXml);
+                }
+                catch (Exception ex)
+                {
+                    strError = "找回密码时加载返回xml出错:" + ex.Message;
+                    return -1;
+                }
+                XmlNode nodePatron = dom.DocumentElement.SelectSingleNode("patron");
+                string strRefID = DomUtil.GetNodeText(nodePatron.SelectSingleNode("refID"));
+                string strTel = DomUtil.GetNodeText(nodePatron.SelectSingleNode("tel"));
 
-            string strBarcode = DomUtil.GetNodeText(nodePatron.SelectSingleNode("barcode"));
-            patronBarcode = strBarcode;//2016-8-13 jane加，返回给前端，用于指定修改密码的账户
-            string strName = DomUtil.GetNodeText(nodePatron.SelectSingleNode("name"));
-            string strReaderTempPassword = DomUtil.GetNodeText(nodePatron.SelectSingleNode("tempPassword"));
-            string expireTime = DomUtil.GetNodeText(nodePatron.SelectSingleNode("expireTime"));
-            string period = DomUtil.GetNodeText(nodePatron.SelectSingleNode("period"));
+                string strBarcode = DomUtil.GetNodeText(nodePatron.SelectSingleNode("barcode"));
+                patronBarcode = strBarcode;//2016-8-13 jane加，返回给前端，用于指定修改密码的账户
+                string strName = DomUtil.GetNodeText(nodePatron.SelectSingleNode("name"));
+                string strReaderTempPassword = DomUtil.GetNodeText(nodePatron.SelectSingleNode("tempPassword"));
+                string expireTime = DomUtil.GetNodeText(nodePatron.SelectSingleNode("expireTime"));
+                string period = DomUtil.GetNodeText(nodePatron.SelectSingleNode("period"));
 
-            string strMessageTemplate = "%name% 您好！密码为 %temppassword%。一小时内有效。";
-            string strMessageText = strMessageTemplate.Replace("%barcode%", strBarcode)
-                .Replace("%name%", strName)
-                .Replace("%temppassword%", strReaderTempPassword)
-                .Replace("%expiretime%", expireTime)
-                .Replace("%period%", period);
+                string strMessageTemplate = "%name% 您好！密码为 %temppassword%。一小时内有效。";
+                string strMessageText = strMessageTemplate.Replace("%barcode%", strBarcode)
+                    .Replace("%name%", strName)
+                    .Replace("%temppassword%", strReaderTempPassword)
+                    .Replace("%expiretime%", expireTime)
+                    .Replace("%period%", period);
 
-            // 发送短信
-            int nRet = this.SendSMS(patronBarcode,
-                strTel,
-                strMessageText,
-                lib.libName,
-                out strError);
-            if (nRet == -1)
-                return -1;
+                // 发送短信
+                int nRet = this.SendSMS(patronBarcode,
+                    strTel,
+                    strMessageText,
+                    lib.libName,
+                    out strError);
+                if (nRet == -1)
+                    return -1;
 
-
+            }
             return 1;
 
         ERROR1:
@@ -13172,14 +13187,14 @@ REDO1:
             if (list != null && list.Count > 0)
             {
 
-                // 先删除绑定的用户，因为用户是与图书馆id关联的，删除了图书馆，那绑定的用户也没有意义了。
-                foreach (WxUserItem u in list)
-                {
-                    WxUserDatabase.Current.SimpleDelete(u.id);
-                }
+                //// 先删除绑定的用户，因为用户是与图书馆id关联的，删除了图书馆，那绑定的用户也没有意义了。
+                //foreach (WxUserItem u in list)
+                //{
+                //    WxUserDatabase.Current.SimpleDelete(u.id);
+                //}
 
-                //strError = "不能删除图书馆:目前存在" + list.Count + "个微信用户绑定，第一个名称为"+list[0].readerName+list[0].userName;
-                //goto ERROR1;
+                strError = "不能删除图书馆:目前存在" + list.Count + "个微信用户绑定，第一个名称为" + list[0].readerName + list[0].userName;
+                goto ERROR1;
             }
 
             //// 检查是否有微信用户设置了该图书馆

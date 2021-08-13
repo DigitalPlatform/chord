@@ -149,6 +149,9 @@ namespace dp2weixinWeb.ApiControllers
                 //dp2WeiXinService.Instance.WriteErrorLog("***2***");
             }
 
+            // 读者确实有姓名重复，再次提交
+            if (opeType == "reviewPass-noCheckName")
+                opeType = "reviewPass";
 
             // 2021/8/5 将读者注册，修改注册信息，删除这一类改为使用一个独立帐户wx_registerByPatron。
             // 2021/8/5 将读者修改手机号，改为使用一个独立帐户wx_changeTelByPatron

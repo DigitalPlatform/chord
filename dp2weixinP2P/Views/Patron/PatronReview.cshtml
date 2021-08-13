@@ -37,7 +37,7 @@
 
 @section Scripts {
     <script>
-const { Alert } = require("bootstrap");
+//const { Alert } = require("bootstrap");
 
 
         // 获取证条码号
@@ -98,7 +98,7 @@ const { Alert } = require("bootstrap");
 
             // 是否通过
             var pass = false;
-            if (opeType == "reviewPass")
+            if (opeType == "reviewPass" || opeType == "reviewPass-noCheckName")  //reviewPass-noCheckName 找审核通过时不检查姓名
                 pass = true;
 
             // 通过的时候，把状态置为空。
@@ -108,7 +108,7 @@ const { Alert } = require("bootstrap");
 
             // 不通过时需要填写原因
             var reason = $("#txtReason").val();
-            if (opeType != "reviewPass") {
+            if (pass ==false ) {
                 // 证条码号
                 if (reason == "") {
                     alert("请输入审核不通过原因！");
@@ -245,6 +245,11 @@ const { Alert } = require("bootstrap");
                                 hideMaskLayer();
                                 return false;
                             }
+                            else {
+                                //alert("1");
+                                return save("reviewPass-noCheckName");   //
+                               // alert("2");
+                            }
                         }
                     }
 
@@ -314,6 +319,7 @@ const { Alert } = require("bootstrap");
 
         $(document).ready(function () {
 
+            //alert("test");
             // 2021/8/2调试态显示当前操作帐号
             setOpeAccount("");
 
