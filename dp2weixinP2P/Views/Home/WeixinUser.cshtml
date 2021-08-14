@@ -62,7 +62,7 @@
             model.wxUsers.removeAll();
 
             // 调web api
-            var url = "/api/wxuser";
+            var url = "/api/wxuserapi";
             sendAjaxRequest(url, "GET", function (result) {
 
                 // 关闭等待层
@@ -175,7 +175,7 @@
             }
 
 
-            var url = "/api/wxuser/" + item.id;
+            var url = "/api/wxuserapi/" + item.id;
             sendAjaxRequest(url, "DELETE", function (result) {
                 //getAllLib();
 

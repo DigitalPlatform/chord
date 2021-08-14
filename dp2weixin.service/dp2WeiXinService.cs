@@ -13193,8 +13193,28 @@ REDO1:
                 //    WxUserDatabase.Current.SimpleDelete(u.id);
                 //}
 
-                strError = "不能删除图书馆:目前存在" + list.Count + "个微信用户绑定，第一个名称为" + list[0].readerName + list[0].userName;
-                goto ERROR1;
+                bool hasBind = false;
+                foreach (WxUserItem item in list)
+                {
+                    if (item.userName != "public")
+                    {
+                        hasBind = true;
+                        break;
+                    }
+                }
+
+                if (hasBind == true)
+                {
+                    strError = "不能删除图书馆:目前存在" + list.Count + "个微信用户绑定，第一个名称为" + list[0].readerName + list[0].userName;
+                    goto ERROR1;
+                }
+
+                // 2021/8/14
+                // 先删除检索时自动产生的public用户，因为用户是与图书馆id关联的，删除了图书馆，那绑定的用户也没有意义了。
+                foreach (WxUserItem u in list)
+                {
+                    WxUserDatabase.Current.SimpleDelete(u.id);
+                }
             }
 
             //// 检查是否有微信用户设置了该图书馆
