@@ -805,10 +805,20 @@ namespace dp2weixin.service
         {
             get
             {
-                if (readerBarcodeByReaderGet != null)
-                    return readerBarcodeByReaderGet;
+                // 2021/8/20 注释掉，改掉原来绑定后，用读者身份再获取一次信息的做法
+                //if (readerBarcodeByReaderGet != null)
+                //    return readerBarcodeByReaderGet;
+                //else
+                //    return readerBarcode;
+
+                // 2021/8/20 采用公众号这边的脱敏配置
+                bool send2PatronIsMask = false;
+                string maskDef = dp2WeiXinService.Instance.GetMaskDef(libId, bindLibraryCode, out send2PatronIsMask);
+                if (send2PatronIsMask == true && string.IsNullOrEmpty(readerBarcode)==false)
+                    return dp2WeiXinService.Mask(maskDef, readerBarcode, "barcode");
                 else
                     return readerBarcode;
+
             }
         }
 
@@ -817,10 +827,19 @@ namespace dp2weixin.service
         {
             get
             {
-                if (readerNameByReaderGet != null)
-                    return readerNameByReaderGet;
+                // 2021/8/20 注释掉，改掉原来绑定后，用读者身份再获取一次信息的做法
+                //if (readerNameByReaderGet != null)
+                //    return readerNameByReaderGet;
+                //else
+                //    return readerName;
+
+                // 2021/8/20 采用公众号这边的脱敏配置
+                bool send2PatronIsMask = false;
+                string maskDef = dp2WeiXinService.Instance.GetMaskDef(libId, bindLibraryCode, out send2PatronIsMask);
+                if (send2PatronIsMask == true && string.IsNullOrEmpty(readerName) == false)
+                    return dp2WeiXinService.Mask(maskDef, readerName, "name");
                 else
-                    return readerName;
+                    return readerBarcode;
             }
         }
 

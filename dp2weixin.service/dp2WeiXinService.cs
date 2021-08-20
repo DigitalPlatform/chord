@@ -5831,6 +5831,10 @@ ErrorInfo成员里可能会有报错信息。
                 if (nRet == -1)
                     return -1;
 
+                /*
+                // 2021/8/20废掉这个方案，因为绑定是一次性，
+                // 再用读者身份登录获取一下信息意义不是太大，后面读者权限变了，用户脱敏信息也不会跟着修改。
+                // 这个方案也不能处理以前绑定的信息，
                 // 2021/7/29 为了实现在已绑定列表，针对读者信息脱敏，需要用读者帐号再获取一次读者信息。
                 // 这个就可以按需在读者帐号中配置getreaderinfo相关级别的权限
                 if (type == C_TYPE_READER)
@@ -5862,7 +5866,7 @@ ErrorInfo成员里可能会有报错信息。
                     userItem.readerNameByReaderGet = strName;
                     WxUserDatabase.Current.Update(userItem);
                 }
-
+                */
 
 
 

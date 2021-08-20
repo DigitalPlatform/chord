@@ -495,7 +495,7 @@ namespace dp2weixinWeb.Controllers
             else
             {
                 userName = sessionInfo.ActiveUser.readerBarcode;
-                userNameInfo = sessionInfo.ActiveUser.readerName;// +"["+sessionInfo.Active.readerBarcode+"]";
+                userNameInfo = sessionInfo.ActiveUser.displayReaderName;//2021/8/20 改为脱敏显示 readerName;// +"["+sessionInfo.Active.readerBarcode+"]";
                 ViewBag.isPatron = 1;
             }
             ViewBag.userName = userName;
