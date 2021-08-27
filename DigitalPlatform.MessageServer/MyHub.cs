@@ -2828,7 +2828,7 @@ ex.GetType().ToString());
                 if (connectionIds == null || connectionIds.Count == 0)
                 {
                     result.Value = 0;
-                    result.ErrorInfo = "当前没有发现可操作的目标 (详情 '" + strError + "')";
+                    result.ErrorInfo = "RequestWebCall() 当前没有发现可操作的目标 (详情 '" + strError + "')";
                     result.String = "TargetNotFound";
                     return result;
                 }
@@ -3100,7 +3100,7 @@ ex.GetType().ToString());
                 {
                     result.Value = 0;
                     // result.ErrorInfo = "当前没有任何可检索的目标 (目标用户名 '"+userNameList+"'; 操作 '"+searchParam.Operation+"')";
-                    result.ErrorInfo = "当前没有发现可检索的目标 (详情 '" + strError + "')";
+                    result.ErrorInfo = "RequestSearch() 当前没有发现可检索的目标 (详情 '" + strError + "')";
                     result.String = "TargetNotFound";
                     return result;
                 }
@@ -3389,7 +3389,8 @@ ex.GetType().ToString());
                 if (connectionIds == null || connectionIds.Count == 0)
                 {
                     result.Value = 0;
-                    result.ErrorInfo = "当前没有任何可操作的目标";
+                    // result.ErrorInfo = "当前没有任何可操作的目标";
+                    result.ErrorInfo = "RequestSetInfo() 当前没有发现可操作的目标 (详情 '" + strError + "')";  // 2021/8/27
                     result.String = "TargetNotFound";
                     return result;
                 }
@@ -3549,7 +3550,8 @@ ex.GetType().ToString());
                 if (connectionIds == null || connectionIds.Count == 0)
                 {
                     result.Value = 0;
-                    result.ErrorInfo = "当前没有任何可操作的目标: " + strError;
+                    // result.ErrorInfo = "当前没有任何可操作的目标: " + strError;
+                    result.ErrorInfo = "RequestBindPatron() 当前没有发现可操作的目标 (详情 '" + strError + "')";  // 2021/8/27
                     result.String = "TargetNotFound";
                     return result;
                 }
@@ -3676,7 +3678,8 @@ ex.GetType().ToString());
                 if (connectionIds == null || connectionIds.Count == 0)
                 {
                     result.Value = 0;
-                    result.ErrorInfo = "当前没有任何可操作的目标: " + strError;
+                    // result.ErrorInfo = "当前没有任何可操作的目标: " + strError;
+                    result.ErrorInfo = "RequestCirculation() 当前没有发现可操作的目标 (详情 '" + strError + "')";  // 2021/8/27
                     result.String = "TargetNotFound";
                     return result;
                 }
@@ -3814,7 +3817,7 @@ ex.GetType().ToString());
                 {
                     result.Value = 0;
                     // result.ErrorInfo = "当前没有任何可检索的目标 (目标用户名 '"+userNameList+"'; 操作 '"+searchParam.Operation+"')";
-                    result.ErrorInfo = "当前没有发现可操作的目标 (详情 '" + strError + "')";
+                    result.ErrorInfo = "RequestGetRes() 当前没有发现可操作的目标 (详情 '" + strError + "')";
                     result.String = "TargetNotFound";
                     return result;
                 }
@@ -4003,7 +4006,7 @@ ex.GetType().ToString());
                 {
                     result.Value = 0;
                     // result.ErrorInfo = "当前没有任何可检索的目标 (目标用户名 '"+userNameList+"'; 操作 '"+searchParam.Operation+"')";
-                    result.ErrorInfo = "当前没有发现可操作的目标 (详情 '" + strError + "')";
+                    result.ErrorInfo = "RequestListRes() 当前没有发现可操作的目标 (详情 '" + strError + "')";
                     result.String = "TargetNotFound";
                     return result;
                 }

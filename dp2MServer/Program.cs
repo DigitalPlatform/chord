@@ -15,12 +15,18 @@ using DigitalPlatform.MessageServer;
 using DigitalPlatform.ServiceProcess;
 using DigitalPlatform.IO;
 using DigitalPlatform;
+using System.Web.Http;
+using System.Net.Http;
 
 namespace dp2MServer
 {
     class Program : MyServiceBase
     {
         static IDisposable SignalR { get; set; }
+
+        // 2021/8/16
+        static IDisposable WebServer { get; set; }
+
         // const string ServerURI = "http://localhost:8083";
 
         public Program()
@@ -396,6 +402,12 @@ namespace dp2MServer
                 SignalR.Dispose();
                 SignalR = null;
             }
+
+            if (WebServer != null)
+            {
+                WebServer.Dispose();
+                WebServer = null;
+            }
         }
 
         protected override void Dispose(bool disposing)
@@ -482,7 +494,7 @@ namespace dp2MServer
         {
             try
             {
-                SignalR = WebApp.Start(ServerURI);
+                SignalR = WebApp.Start<Startup>(ServerURI);
             }
             catch (TargetInvocationException)
             {
@@ -490,6 +502,19 @@ namespace dp2MServer
                 return;
             }
             WriteToConsole("Server started at " + ServerURI + ServerPath);
+
+            // 验证
+            // https://docs.microsoft.com/en-us/aspnet/web-api/overview/hosting-aspnet-web-api/use-owin-to-self-host-web-api
+            {
+                // Create HttpClient and make a request to api/values 
+                HttpClient client = new HttpClient();
+
+                var response = client.GetAsync("https://localhost:8083/" + "api/values").Result;
+
+                Console.WriteLine(response);
+                Console.WriteLine(response.Content.ReadAsStringAsync().Result);
+            }
+
         }
 
         /// <summary>
@@ -531,6 +556,17 @@ InvalidOperationException : "Connection started reconnecting before invocation r
             // GlobalHost.Configuration.MaxIncomingWebSocketMessageSize = 128 * 1024;  // 默认为 64K
             // GlobalHost.Configuration.DefaultMessageBufferSize = 1000;
             // GlobalHost.Configuration.KeepAlive = TimeSpan.FromMinutes(1);   // 10 secs
+
+            // Configure Web API for self-host. 
+            // https://docs.microsoft.com/en-us/aspnet/web-api/overview/hosting-aspnet-web-api/use-owin-to-self-host-web-api
+            HttpConfiguration config = new HttpConfiguration();
+            config.Routes.MapHttpRoute(
+                name: "DefaultApi",
+                routeTemplate: "api/{controller}/{id}",
+                defaults: new { id = RouteParameter.Optional }
+            );
+
+            app.UseWebApi(config);
         }
     }
 

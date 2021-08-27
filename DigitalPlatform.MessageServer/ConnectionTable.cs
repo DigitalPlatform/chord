@@ -257,7 +257,7 @@ namespace DigitalPlatform.MessageServer
             return 0;
         }
 
-        // 获得书目检索的目标 connection 的 id 集合
+        // 获得点对点 API 操作的目标 connection 的 id 集合
         // parameters:
         //      strTargetUserNameList    被操作一方的用户名列表。本函数要搜索这些用户的连接
         //      strRequestUserName  发起操作一方的用户名。本函数要判断被操作方是否同意发起方进行操作
@@ -335,7 +335,7 @@ namespace DigitalPlatform.MessageServer
                 if (matched_usernames.Count == 0)
                     strError = "没有匹配上任何目标用户名 '" + strTargetUserNameList + "'";
                 else
-                    strError = "匹配的用户名 '" + StringUtil.MakePathList(matched_usernames) + "' 中没有找到满足操作 '" + strOperation + "' 的用户";
+                    strError = "匹配的用户名 '" + StringUtil.MakePathList(matched_usernames) + "' 中没有找到满足操作 '" + strOperation + "' (Duty)的用户";
                 return 0;
             }
 

@@ -32,8 +32,8 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“生成号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”: 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.9.*")]
-[assembly: AssemblyFileVersion("1.9.0.0")]
+[assembly: AssemblyVersion("1.9.1")]
+[assembly: AssemblyFileVersion("1.9.1.0")]
 
 // 1.1 (2016/10/12) 增强 ReConnected 事件处理时，获取 ClientIP 时的异常捕获能力
 // 1.2 (2016/10/13) 增加 echo() API
@@ -44,4 +44,5 @@ using System.Runtime.InteropServices;
 // 1.7 (2016/11/4) 为权限认证失败的情况加了日志。便于观察 IP 不在白名单内的情况
 // 1.8 (2016/11/18) 这个版本暂时拒绝用户名为空的连接请求, 以观察 dp2003.com 服务器的繁忙是否因为这些前端使用引起的
 // 1.9 (2016/11/30) SetMessage() API 能接收分批发送的 MessageRecord 然后拼装。多处改造为 await
+//      1.9.1 (2021/8/27) 所有对 ConnectionTable::GetOperTargetsByUserName() 调用的位置，都把 strError 作为详细报错信息返回，方便诊断错误
 
