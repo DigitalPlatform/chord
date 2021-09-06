@@ -526,6 +526,16 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                             item.groups = new List<string>(connection_info.UserItem.groups);
                         }
 
+                        // 2021/9/6
+                        if (item.groups != null
+                            && item.groups.Count == 1 && item.groups[0] == null)
+                        {
+                            result.String = "MapGroupNamesFail";
+                            result.Value = -1;
+                            result.ErrorInfo = "发出的消息记录的 groups 不允许使用 .Length = 0 && [0] = null 用法。请改为直接让 .groups = null";
+                            return result;
+                        }
+
                         // 正规化组名
                         CanonicalizeMessageItemGroups(item, connection_info);
 

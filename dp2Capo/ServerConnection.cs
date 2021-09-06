@@ -1624,7 +1624,7 @@ strErrorCode));
                             writeDebug("searchBiblio() lRet=" + lRet
                                 + ", strQueryXml=" + strQueryXml
                                 + ", strError=" + strError
-                                + ",errorcode=" + channel.ErrorCode.ToString());
+                                + ", errorcode=" + channel.ErrorCode.ToString());
                         }
                         else if (searchParam.Operation == "searchPatron")
                         {
@@ -2540,6 +2540,17 @@ strErrorCode));
                             searchParam.FormatList,
                             out strValue,
                             out strError);
+                    }
+                    // 2021/9/5
+                    // 对于 ErrorCode.RequestError 格外关注
+                    if (lRet == -1 && channel.ErrorCode == ErrorCode.RequestError)
+                    {
+                        writeDebug("getSystemParameter() lRet=" + lRet
+    + ", QueryWord=" + searchParam.QueryWord
+    + ", DbNameList=" + searchParam.DbNameList
+    + ", FormatList=" + searchParam.FormatList
+    + ", strError=" + strError
+    + ",errorcode=" + channel.ErrorCode.ToString());
                     }
                     strErrorCode = channel.ErrorCode.ToString();
                     if (lRet == -1 || lRet == 0)

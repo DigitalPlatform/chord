@@ -442,7 +442,7 @@ namespace DigitalPlatform.MessageServer
         public static GroupName Build(string strText, string strDefaultType = "gn")
         {
             if (strText == null)
-                throw new ArgumentException("strText 参数值不应为空", "strText");
+                throw new ArgumentException("strText 参数值不应为 null", "strText");
 
             strText = strText.Trim();
             if (strText == "")
