@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using System.ServiceProcess;
 using System.Diagnostics;
 using System.IO;
+using System.Web.Http;
+using System.Net.Http;
 
 using Owin;
 using Microsoft.Owin.Cors;
@@ -15,8 +17,6 @@ using DigitalPlatform.MessageServer;
 using DigitalPlatform.ServiceProcess;
 using DigitalPlatform.IO;
 using DigitalPlatform;
-using System.Web.Http;
-using System.Net.Http;
 
 namespace dp2MServer
 {
@@ -503,6 +503,7 @@ namespace dp2MServer
             }
             WriteToConsole("Server started at " + ServerURI + ServerPath);
 
+            /*
             // 验证
             // https://docs.microsoft.com/en-us/aspnet/web-api/overview/hosting-aspnet-web-api/use-owin-to-self-host-web-api
             {
@@ -514,7 +515,7 @@ namespace dp2MServer
                 Console.WriteLine(response);
                 Console.WriteLine(response.Content.ReadAsStringAsync().Result);
             }
-
+            */
         }
 
         /// <summary>
@@ -555,7 +556,22 @@ InvalidOperationException : "Connection started reconnecting before invocation r
              * */
             // GlobalHost.Configuration.MaxIncomingWebSocketMessageSize = 128 * 1024;  // 默认为 64K
             // GlobalHost.Configuration.DefaultMessageBufferSize = 1000;
-            // GlobalHost.Configuration.KeepAlive = TimeSpan.FromMinutes(1);   // 10 secs
+
+            // https://docs.microsoft.com/en-us/aspnet/signalr/overview/guide-to-the-api/handling-connection-lifetime-events#timeout-and-keepalive-settings
+
+            // Make long polling connections wait a maximum of 110 seconds for a
+            // response. When that time expires, trigger a timeout command and
+            // make the client reconnect.
+            // GlobalHost.Configuration.ConnectionTimeout = TimeSpan.FromSeconds(110);
+
+            // Wait a maximum of 30 seconds after a transport connection is lost
+            // before raising the Disconnected event to terminate the SignalR connection.
+            GlobalHost.Configuration.DisconnectTimeout = TimeSpan.FromMinutes(6);   // TimeSpan.FromSeconds(30);
+
+            // For transports other than long polling, send a keepalive packet every
+            // 10 seconds. 
+            // This value must be no more than 1/3 of the DisconnectTimeout value.
+            GlobalHost.Configuration.KeepAlive = TimeSpan.FromMinutes(2);   // 10 secs
 
             // Configure Web API for self-host. 
             // https://docs.microsoft.com/en-us/aspnet/web-api/overview/hosting-aspnet-web-api/use-owin-to-self-host-web-api
