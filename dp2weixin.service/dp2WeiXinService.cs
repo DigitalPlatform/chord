@@ -2825,7 +2825,7 @@ namespace dp2weixin.service
                 }
                 else if (overdueType == "warning")
                 {
-                    remark = "\n" + fullPatronName + "，您借出的图书即将到期，请注意不要超期，留意归还。";
+                    remark = "\n" + fullPatronName + "，您借出的图书即将到期，请注意不要超期，留意归还。您可在公众号'我的图书馆/我的信息/在借'界面办理续借。";
                 }
                 else
                 {
@@ -2883,8 +2883,7 @@ namespace dp2weixin.service
                 }
                 else if (overdueType == "warning")
                 {
-                    remark = "\n" + fullPatronName + "，您借出的图书即将到期，请注意不要超期，留意归还。";
-
+                    remark = "\n" + fullPatronName + "，您借出的图书即将到期，请注意不要超期，留意归还。您可在公众号'我的图书馆/我的信息/在借'界面办理续借。";
                     string first = "📙📙📙📙📙📙📙📙📙📙";
                     string first_color = "#FFFF00";
                     KuaiCaoQiTemplateData msgData = new KuaiCaoQiTemplateData(first,
