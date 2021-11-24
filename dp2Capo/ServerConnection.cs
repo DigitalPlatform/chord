@@ -461,7 +461,6 @@ namespace dp2Capo
 
                     return 0;
                 }
-
                 finally
                 {
                     this.ReturnChannel(channel);

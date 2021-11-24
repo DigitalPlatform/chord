@@ -674,7 +674,6 @@ namespace dp2Capo
             }
 
             info.LibraryChannel = info.Instance.MessageConnection.GetChannel(login_info);
-
             return info;
         ERROR1:
             info.ErrorInfo = strError;

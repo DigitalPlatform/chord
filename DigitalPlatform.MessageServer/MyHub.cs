@@ -513,7 +513,7 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                     foreach (MessageItem item in items)
                     {
                         // 2020/4/29
-                        // 当 .groups 为 null 时表示发送给当前用户所参与的所有群
+                        // 当 .groups 为 null 时表示发送给当前用户所参与的第一个群 // 注: 2021/11/23 之前是所参与的所有群
                         if (item.groups == null || item.groups.Count == 0)
                         {
                             if (connection_info.UserItem == null || connection_info.UserItem.groups == null)
@@ -523,7 +523,14 @@ false); // 没有以用户名登录的 connection 也可以在默认群发出消
                                 result.ErrorInfo = "发出的消息记录的 groups 为空时，尝试获得当前用户的所有群名，但条件不满足: connection_info.UserItem.groups != null";
                                 return result;
                             }
-                            item.groups = new List<string>(connection_info.UserItem.groups);
+                            // item.groups = new List<string>(connection_info.UserItem.groups);
+
+                            {
+                                // 去掉右端可能的 |-n (definition)部分
+                                List<string> strings = StringUtil.ParseTwoPart(connection_info.UserItem.groups[0], "|");
+
+                                item.groups = new List<string> { strings[0] };   // 注: UserItem 中的 groups 集合的每个元素，可能是一个逗号分隔的字符串，表示二人或者三人组
+                            }
                         }
 
                         // 2021/9/6
@@ -977,6 +984,7 @@ ex.GetType().ToString());
             catch (Exception ex)
             {
                 ServerInfo.WriteErrorLog("PushMessageToClient() 出现异常: " + ExceptionUtil.GetExceptionText(ex));
+                throw ex;   // 2021/11/22
             }
         }
 
