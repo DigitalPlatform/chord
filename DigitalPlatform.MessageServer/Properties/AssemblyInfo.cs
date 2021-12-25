@@ -32,8 +32,8 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“生成号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”: 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.9.2")]
-[assembly: AssemblyFileVersion("1.9.2.0")]
+[assembly: AssemblyVersion("1.9.3")]
+[assembly: AssemblyFileVersion("1.9.3.0")]
 
 // 1.1 (2016/10/12) 增强 ReConnected 事件处理时，获取 ClientIP 时的异常捕获能力
 // 1.2 (2016/10/13) 增加 echo() API
@@ -46,4 +46,6 @@ using System.Runtime.InteropServices;
 // 1.9 (2016/11/30) SetMessage() API 能接收分批发送的 MessageRecord 然后拼装。多处改造为 await
 //      1.9.1 (2021/8/27) 所有对 ConnectionTable::GetOperTargetsByUserName() 调用的位置，都把 strError 作为详细报错信息返回，方便诊断错误
 //      1.9.2 (2021/10/19)
+//      1.9.3 (2021/11/27) SetMessage() API 中当消息 groups 为 null 时，理解为发送给当前用户从属的第一个群组(此前版本为当前用户从属的全部群组)
+//                  GetMessage() API 中时间范围除了原来 start~end 用法外，增加了 <start~end> 和 [start_end] 用法。缺省为 [start~end> 效果
 
