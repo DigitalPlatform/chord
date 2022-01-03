@@ -13,7 +13,6 @@ using DigitalPlatform.Net;
 using DigitalPlatform.Text;
 using DigitalPlatform.Z3950;
 using DigitalPlatform.Z3950.Server;
-using Newtonsoft.Json;
 
 namespace dp2Capo
 {

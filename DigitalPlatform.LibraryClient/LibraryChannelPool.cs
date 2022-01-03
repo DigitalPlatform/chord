@@ -144,6 +144,14 @@ namespace DigitalPlatform.LibraryClient
 #endif
         }
 
+        // 获得空闲通道数量
+        // exception:
+        //      可能会抛出异常
+        public int GetFreeCount()
+        {
+            return this._freeList.Count;
+        }
+
         // 查找指定 URL 的 闲置状态的 LibraryChannel 对象
         LibraryChannelWrapper _findFreeChannel(string strUrl,
             string strUserName,

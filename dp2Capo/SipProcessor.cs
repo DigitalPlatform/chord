@@ -3437,7 +3437,6 @@ namespace dp2Capo
                             strExistingHangupValue = _hangupStatusTable[info.LibraryChannel.Url];
                     }
 
-
                     if (strExistingHangupValue == null)
                     {
                         //2018/06/19 
