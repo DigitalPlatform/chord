@@ -674,7 +674,6 @@ namespace dp2Capo
             }
 
             info.LibraryChannel = info.Instance.MessageConnection.GetChannel(login_info);
-
             return info;
         ERROR1:
             info.ErrorInfo = strError;
@@ -3437,7 +3436,6 @@ namespace dp2Capo
                             && _hangupStatusTable.ContainsKey(info.LibraryChannel.Url))
                             strExistingHangupValue = _hangupStatusTable[info.LibraryChannel.Url];
                     }
-
 
                     if (strExistingHangupValue == null)
                     {

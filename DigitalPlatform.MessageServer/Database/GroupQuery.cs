@@ -204,8 +204,16 @@ namespace DigitalPlatform.MessageServer
             // 多个组合的情况，要求每个部分必须都是 ui type (这是多人讨论组的形态)。这样就杜绝了多个群名组合的情况。
             foreach (GroupName name in this.Names)
             {
+                /*
+                // 2021/11/22
+                // 特殊的群名例外，可以不用 ui 类型
+                if (name.Text.StartsWith("<") || name.Text.StartsWith("_"))
+                    continue;
+                */
+
+                // 注: GroupName Union 中，每个元素必须是 ui 类型。这些元素加起来表示二人组或者三人组
                 if (name.Type != "ui")
-                    throw new ArgumentException("群名不合法。出现了不是 ui 类型的部分: " + this.ToString());
+                    throw new ArgumentException("群名组合不合法。出现了不是 ui 类型的部分: " + this.ToString());
             }
         }
 

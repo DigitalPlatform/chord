@@ -59,8 +59,14 @@ new CreateIndexOptions() { Unique = false }).ConfigureAwait(false);
             StringUtil.ParseTwoPart(timeRange, "~", out strStart, out strEnd);
             DateTime startTime;
             DateTime endTime;
+            bool include_start = true;
+            bool include_end = true;
             try
             {
+                // 2021/11/27
+                include_start = isInclude(ref strStart, true);  // 默认包含
+                include_end = isInclude(ref strEnd, false); // 默认不包含
+
                 startTime = string.IsNullOrEmpty(strStart) ? new DateTime(0) : DateTime.Parse(strStart);
                 endTime = string.IsNullOrEmpty(strEnd) ? new DateTime(0) : DateTime.Parse(strEnd);
             }
@@ -88,18 +94,27 @@ new CreateIndexOptions() { Unique = false }).ConfigureAwait(false);
                     user_filter = Builders<MessageItem>.Filter.Or(items);
             }
 
+            // TODO: 实现 [] [> <] <> 等效果
             FilterDefinition<MessageItem> time_filter = null;
             if (startTime == new DateTime(0) && endTime == new DateTime(0))
                 time_filter = null;  // Builders<MessageItem>.Filter.Gte("publishTime", startTime);
             else if (startTime == new DateTime(0))
-                time_filter = Builders<MessageItem>.Filter.Lt("publishTime", endTime);
+                time_filter = include_end ? 
+                    Builders<MessageItem>.Filter.Lte("publishTime", endTime)
+                    : Builders<MessageItem>.Filter.Lt("publishTime", endTime);
             else if (endTime == new DateTime(0))
-                time_filter = Builders<MessageItem>.Filter.Gte("publishTime", startTime);
+                time_filter = include_start ?
+                    Builders<MessageItem>.Filter.Gte("publishTime", startTime)
+                    : Builders<MessageItem>.Filter.Gt("publishTime", startTime);
             else
             {
                 time_filter = Builders<MessageItem>.Filter.And(
-Builders<MessageItem>.Filter.Gte("publishTime", startTime),
-Builders<MessageItem>.Filter.Lt("publishTime", endTime));
+include_start ? 
+Builders<MessageItem>.Filter.Gte("publishTime", startTime)
+: Builders<MessageItem>.Filter.Gt("publishTime", startTime),
+include_end ? 
+Builders<MessageItem>.Filter.Lte("publishTime", endTime)
+: Builders<MessageItem>.Filter.Lt("publishTime", endTime));
             }
 
             FilterDefinition<MessageItem> expire_filter = Builders<MessageItem>.Filter.Or(
@@ -154,6 +169,35 @@ Builders<MessageItem>.Filter.Gt("expireTime", DateTime.Now));
                 group_filter);
 #endif
 
+        }
+
+        // 2021/11/27
+        // 探测是否包含首尾时刻
+        static bool isInclude(ref string text, bool default_value)
+        {
+            if (text == null)
+                return default_value;
+            if (text.StartsWith("["))
+            {
+                text = text.Substring(1);
+                return true;
+            }
+            if (text.StartsWith("<"))
+            {
+                text = text.Substring(1);
+                return false;
+            }
+            if (text.EndsWith("]"))
+            {
+                text = text.Substring(0, text.Length - 1);
+                return true;
+            }
+            if (text.EndsWith(">"))
+            {
+                text = text.Substring(0, text.Length - 1);
+                return false;
+            }
+            return default_value;
         }
 
         // parameters:

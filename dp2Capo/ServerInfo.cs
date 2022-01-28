@@ -835,9 +835,14 @@ Exception Info: System.Net.NetworkInformation.PingException
                         {
                             try
                             {
-                                WriteLog("info", $"实例 {instance.Name} 开始释放空闲通道");
-                                int count = instance.MessageConnection.CleanLibraryChannel();
-                                WriteLog("info", $"实例 {instance.Name} 释放空闲通道 {count} 个。正在占用的通道为 {instance.MessageConnection._libraryChannelPool.GetUsingCount()} 个");
+                                // 2022/1/1
+                                // 当空闲通道超过 10 个才会去释放
+                                if (instance.MessageConnection._libraryChannelPool.GetFreeCount() > 10)
+                                {
+                                    WriteLog("info", $"实例 {instance.Name} 开始释放空闲通道");
+                                    int count = instance.MessageConnection.CleanLibraryChannel();
+                                    WriteLog("info", $"实例 {instance.Name} 释放空闲通道 {count} 个。正在占用的通道为 {instance.MessageConnection._libraryChannelPool.GetUsingCount()} 个");
+                                }
                             }
                             catch (Exception ex)
                             {
