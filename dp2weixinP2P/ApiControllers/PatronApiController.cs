@@ -214,8 +214,8 @@ namespace dp2weixinWeb.ApiControllers
         /// <summary>
         /// 发送验证码
         /// </summary>
-        /// <param name="libId"></param>
-        /// <param name="tel"></param>
+        /// <param name="libId">图书馆id</param>
+        /// <param name="tel">手机号</param>
         /// <returns></returns>
         public GetVerifyCodeResult GetVerifyCode(string libId, 
             string phone)
@@ -252,8 +252,6 @@ namespace dp2weixinWeb.ApiControllers
             string libraryCode)
         {
             ApiResult result = new ApiResult();
-
-
             LibModel libCfg = dp2WeiXinService.Instance._areaMgr.GetLibCfg(
                 libId,
                 libraryCode);
@@ -283,7 +281,6 @@ namespace dp2weixinWeb.ApiControllers
                 result.errorCode = -1;
                 result.errorInfo = "未找到lib=["+libId+"] libraryCode=["+libraryCode+"]对应的配置。";
             }
-
 
             return result;
         }

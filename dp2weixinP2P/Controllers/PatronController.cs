@@ -276,6 +276,7 @@ namespace dp2weixinWeb.Controllers
 
         #endregion
 
+        #region 修改手机号
 
         /// <summary>
         /// 修改手机号界面
@@ -326,6 +327,12 @@ namespace dp2weixinWeb.Controllers
 
         }
 
+        #endregion
+
+
+
+
+        #region 馆员审核读者
 
         /// <summary>
         /// 检查读者界面
@@ -708,6 +715,11 @@ namespace dp2weixinWeb.Controllers
         }
 
 
+        #endregion
+
+        #region 读者注册
+
+
         /// <summary>
         /// 读者自助注册功能
         /// </summary>
@@ -829,6 +841,10 @@ namespace dp2weixinWeb.Controllers
             return View(userItem);
         }
 
+        #endregion
+
+        #region 馆员登记读者
+
         /// <summary>
         /// 工作人员登记读者 或者 编辑读者信息
         /// </summary>
@@ -921,6 +937,9 @@ namespace dp2weixinWeb.Controllers
             return View();
         }
 
+        #endregion
+
+        #region 我的信息
 
         /// <summary>
         /// 我的信息主界面
@@ -1187,12 +1206,14 @@ namespace dp2weixinWeb.Controllers
 
         }
 
+ #endregion
+
         #region 内部函数
 
 
 
         /// <summary>
-        /// 
+        /// 获取读者信息
         /// </summary>
         /// <param name="code"></param>
         /// <param name="state"></param>
@@ -1230,8 +1251,7 @@ namespace dp2weixinWeb.Controllers
             string libId = activeUser.libId;
             string patronBarcode = activeUser.readerBarcode;
 
-            // 20210730 因为涉及到读者信息脱敏，所以还是改为读者自己的帐户登录
-            // 登录人是读者自己
+            // 2021/07/30 因为涉及到读者信息脱敏，所以还是采用读者自己的帐户登录
             LoginInfo loginInfo = new LoginInfo(patronBarcode, true);
 
             // 20210730 因为涉及到读者信息脱敏，所以还是改为读者自己的帐户登录

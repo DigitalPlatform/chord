@@ -676,6 +676,8 @@ namespace dp2weixin.service
         #region 本方账号登录
 
 
+        // 公众号登录dp2mserver的帐号
+        // 如果连接串是<myself>开头，后面跟着libid，则表示用lib对应的weixin_xxx帐户，其它情况用全局weixin帐户
         void _channels_Login(object sender, LoginEventArgs e)
         {
             MessageConnection connection = sender as MessageConnection;
@@ -690,7 +692,6 @@ namespace dp2weixin.service
                 // 全局的联系我们
                 if (libId == C_ConnName_dp)
                 {
-
                     e.UserName = GetUserName();
                     if (string.IsNullOrEmpty(e.UserName) == true)
                         throw new Exception("尚未指定用户名，无法进行登录");
@@ -699,7 +700,6 @@ namespace dp2weixin.service
                 }
                 else
                 {
-
                     LibEntity lib = this.GetLibById(libId);
                     if (lib == null)
                     {
@@ -711,7 +711,6 @@ namespace dp2weixin.service
                         throw new Exception("尚未指定微信本方用户名，无法进行登录");
                     e.Password = lib.wxPassword;
                 }
-
             }
             else
             {
@@ -719,13 +718,10 @@ namespace dp2weixin.service
                 if (string.IsNullOrEmpty(e.UserName) == true)
                     throw new Exception("尚未指定用户名，无法进行登录");
 
-
                 e.Password = GetPassword();
-
             }
 
             e.Parameters = "notes=" + HttpUtility.UrlEncode(connection.Name); //"propertyList=biblio_search,libraryUID=xxx";
-
         }
 
 
@@ -1042,7 +1038,7 @@ namespace dp2weixin.service
                 nRet = this.UpdatePatron(lib, bodyDom, out strError);
                 return 0;// nRet;
             }
-            if (strType == "登录验证码")
+            if (strType == "登录验证码")//opac找回密码，也是转到这儿来的
             {
                 /*
                  <root>
@@ -5124,7 +5120,7 @@ ErrorInfo成员里可能会有报错信息。
             // 使用代理账号
             //LoginInfo loginInfo = new LoginInfo("", false);
 
-            // 从远程dp2library中查
+            // 从dp2library中查
             string strWord = WxUserDatabase.C_PatronState_TodoReview;  // 待审核
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
@@ -5322,7 +5318,7 @@ ErrorInfo成员里可能会有报错信息。
             }
 
             string resultXml = "";
-            string patronParam = "style=,"  //returnMessage
+            string patronParam = "style=,"  //2022/8 将style里的returnMessage这个参数去掉了，依靠dp2library的发送短信功能，dp2libraray也有两种方式：一是通过MSMQ和dp2capo到公众号转发（常用），二是依据自身配置的短信接口。如果是没有安装dp2capo则没法发短信，不过如果使用公众号模块，都会安装dp2capo，所以这里就不用返回消息了。
                 + "queryword=NB:" + name + "|,"
                 + "tel=" + tel + ","
                 + "name=" + name;
@@ -5606,10 +5602,10 @@ ErrorInfo成员里可能会有报错信息。
                 "changePassword",
                 patron,
                 item,
-                "",//this.textBox_circulation_style.Text,
-                "",//this.textBox_circulation_patronFormatList.Text,
-                "",//this.textBox_circulation_itemFormatList.Text,
-                "");//this.textBox_circulation_biblioFormatList.Text);
+                "",//style
+                "",//patronFormatList
+                "",//itemFormatList
+                "");//biblioFormatList
             try
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
@@ -6261,27 +6257,23 @@ ErrorInfo成员里可能会有报错信息。
 
             // 使用代理账号capo 20161024 jane
             LoginInfo loginInfo = new LoginInfo("", false);
-
             string weixinIdTemp = userItem.weixinId;
             int nTemp = weixinIdTemp.IndexOf("@");
             if (nTemp > 0)
             {
                 weixinIdTemp = weixinIdTemp.Substring(0, nTemp);
             }
-
-            weixinIdTemp += "*";
-
-
+            weixinIdTemp += "*";// 支持通配符
 
             // 调点对点解绑接口
-            string fullWeixinId = WeiXinConst.C_WeiXinIdPrefix + weixinIdTemp;//userItem.weixinId + "*";// +userItem.appId;
+            string fullWeixinId = WeiXinConst.C_WeiXinIdPrefix + weixinIdTemp;
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             BindPatronRequest request = new BindPatronRequest(id,
                 loginInfo,
                 "unbind",
                 queryWord,//userItem.readerBarcode,
-                "",//password  todo
+                "",//password  绑定不需要输入密码
                 fullWeixinId,
                "multiple,null_password",
                 "xml");
@@ -6684,6 +6676,7 @@ ErrorInfo成员里可能会有报错信息。
                     start,  //每次获取范围
                     count);
 
+
                 // 测试加的日志
                 //this.WriteErrorLog1("走进SearchBiblioInternal-7");
 
@@ -6901,12 +6894,10 @@ ErrorInfo成员里可能会有报错信息。
         //        }
 
         public static string GetImageHtmlFragment(string libId,
-    string strBiblioRecPath,
-    string strImageUrl,
+            string strBiblioRecPath,
+            string strImageUrl,
             bool addOnloadEvent)
         {
-            //
-
             if (string.IsNullOrEmpty(strImageUrl) == true)
                 return "";
 
@@ -6915,7 +6906,6 @@ ErrorInfo成员里可能会有报错信息。
                 string strUri = MakeObjectUrl(strBiblioRecPath,
                       strImageUrl);
 
-
                 strImageUrl = "../patron/getphoto?libId=" + HttpUtility.UrlEncode(libId)
                 + "&objectPath=" + HttpUtility.UrlEncode(strUri);
             }
@@ -6923,8 +6913,6 @@ ErrorInfo成员里可能会有报错信息。
             string onloadStr = "";
             if (addOnloadEvent == true)
                 onloadStr = " onload='setImgSize(this)' ";
-
-
 
             string html = "<img src='" + strImageUrl + "'  style='max-width:200px' " + onloadStr + "></img>"; // 2016/8/19 不要人为把宽高固定了  width='100px' height='100px'
             return html;
@@ -7285,6 +7273,7 @@ ErrorInfo成员里可能会有报错信息。
 
         #endregion
 
+        // from来源，是从index过来的，还是detail过来的，主要用于好书推荐的返回，发现后来注释掉了。
         // 20170116 修改使用绑定的账户，如未绑定用public
         public BiblioDetailResult GetBiblioDetail(LoginInfo loginInfo,
             string weixinId,
@@ -7390,8 +7379,8 @@ ErrorInfo成员里可能会有报错信息。
                 if (activeUser.type == WxUserDatabase.C_Type_Worker
                     && activeUser.userName != WxUserDatabase.C_Public)
                 {
-                    // 检索是否有权限 _wx_setHomePage
-                    string needRight = dp2WeiXinService.C_Right_SetHomePage;
+                    // 检索是否有好书推荐权限 
+                    string needRight = dp2WeiXinService.C_Right_SetBook;// C_Right_SetHomePage;
                     int nHasRights = dp2WeiXinService.Instance.CheckRights(activeUser,
                         lib,
                         needRight,
@@ -7420,7 +7409,6 @@ ErrorInfo成员里可能会有报错信息。
                         // + "&returnUrl=" + HttpUtility.UrlEncode(returnUrl);
                         recommendBtn = "<div class='btnRow'><button class='mui-btn  mui-btn-default' "
                             + " onclick=\"gotoUrl('" + recommPath + "')\">好书推荐</button></div>";
-
                     }
                 }
 
@@ -7571,7 +7559,6 @@ ErrorInfo成员里可能会有报错信息。
                     string tableXml = node.InnerXml;
                     if (string.IsNullOrEmpty(tableXml) == false)
                     {
-
                         string resHtml = "<table>";
 
                         XmlDocument objectDom = new XmlDocument();
@@ -7615,7 +7602,6 @@ ErrorInfo成员里可能会有报错信息。
                                 string imgSrc = "../patron/getphoto?libId=" + HttpUtility.UrlEncode(lib.id)
                                                      + "&objectPath=" + HttpUtility.UrlEncode(strPdfUri);
 
-
                                 string onClickStr = " onclick='gotoUrl(\"/Biblio/ViewPDF?libid=" + lib.id + "&uri=" + objectUri + "\")' ";
                                 string pdfImgHtml = "<img src='" + imgSrc + "'  style='max-width:200px;padding:5px;background-color:#eeeeee' " + onClickStr + " onload='setImgSize(this)' ></img>";
 
@@ -7645,7 +7631,6 @@ ErrorInfo成员里可能会有报错信息。
                 //否则将来数据中一旦出现逗号的时候就会出现故障。
                 //  <line name="题名与责任说明拼音" value="dang wo xiang shui de shi hou" type="titlepinyin" />
                 //  <line name="题名与责任说明" value="当我想睡的时候 [专著]  林芳萍翻译" type="title" />
-
                 // 检查是不是拼音
                 if (this.CheckContainWord(type, "titlepinyin") == true) // name == "题名与责任说明拼音")
                 {
@@ -8373,6 +8358,8 @@ ErrorInfo成员里可能会有报错信息。
 
                 //卷册
                 item.volume = DomUtil.GetElementText(dom.DocumentElement, "volume");
+
+
                 // 馆藏地
                 item.location = DomUtil.GetElementText(dom.DocumentElement, "location");
                 // 检查该馆藏地的册记录是否可以显示出现
@@ -8390,7 +8377,6 @@ ErrorInfo成员里可能会有报错信息。
                         {
                             // 馆员身份，灰色显示
                             item.isGray = true;
-
                         }
                     }
                 }
@@ -8610,7 +8596,6 @@ ErrorInfo成员里可能会有报错信息。
                     {
                         foreach (IssueString issueStr in issueList)
                         {
-
                             // 获取期记录
                             string style = "query:父记录+期号|" + biblioId + "|" + issueStr.Query;
                             string issueXml = "";
@@ -9208,22 +9193,19 @@ ErrorInfo成员里可能会有报错信息。
             //string temp = patron.barcode;
             //if (string.IsNullOrEmpty(temp) == true)
             //    temp = "@path:" + recPath;
-
+            // 二维码
             string qrcodeUrl = "../patron/getphoto?libId=" + HttpUtility.UrlEncode(libId)
                 + "&type=pqri"
                 + "&barcode=" + HttpUtility.UrlEncode(patron.barcode);
             patron.qrcodeUrl = qrcodeUrl;
 
             //头像
-            //recPath
             string imageUrl = "";
             if (showPhoto == 1)
             {
-                //dprms:file
-                // 看看是不是已经有图像对象
+                // 检查是不是已经有头像图片对象 usage='cardphoto'
                 XmlNamespaceManager nsmgr = new XmlNamespaceManager(new NameTable());
-                nsmgr.AddNamespace("dprms", DpNs.dprms);
-                // 全部<dprms:file>元素
+                nsmgr.AddNamespace("dprms", DpNs.dprms);  //注意xml有命令空间dprms:file
                 XmlNodeList fileNodes = dom.DocumentElement.SelectNodes("//dprms:file[@usage='cardphoto']", nsmgr);
                 if (fileNodes.Count > 0)
                 {
@@ -9233,7 +9215,7 @@ ErrorInfo成员里可能会有报错信息。
                     + "&objectPath=" + HttpUtility.UrlEncode(strPhotoPath);
                 }
             }
-            patron.imageUrl = imageUrl;
+            patron.imageUrl = imageUrl; //给patron对象设置头像url
 
 
             // 违约
@@ -10620,7 +10602,6 @@ REDO1:
             //Item:
             //ResultValue返回1表示成功，-1或0表示不成功。
             //成功的情况下，ErrorInfo成员里面返回了二维码字符串，形如” PQR:R0000001@00JDURE5FT1JEOOWGJV0R1JXMYI”
-
             string patron = "!getpatrontempid:" + patronBarcode;
 
 
@@ -10636,10 +10617,10 @@ REDO1:
                 "verifyPassword",
                 patron,
                 "",
-                "",//this.textBox_circulation_style.Text,
-                "",//this.textBox_circulation_patronFormatList.Text,
-                "",//this.textBox_circulation_itemFormatList.Text,
-                "");//this.textBox_circulation_biblioFormatList.Text);
+                "", // style,
+                "", // patronFormatList,
+                "", // itemFormatList,
+                ""); //biblioFormatList);
             try
             {
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
@@ -10677,12 +10658,13 @@ REDO1:
             return -1;
         }
 
+        // 把特征码转成二维码图片
         public void GetQrImage(
-    string strCode,
-    int nWidth,
-    int nHeight,
+            string strCode,
+            int nWidth,
+            int nHeight,
             Stream outputStream,
-    out string strError)
+            out string strError)
         {
             strError = "";
             try
@@ -10771,7 +10753,6 @@ REDO1:
             //    loginInfo = new LoginInfo("", false);
             //}
 
-
             CancellationToken cancel_token = new CancellationToken();
 
             string id = Guid.NewGuid().ToString();
@@ -10795,8 +10776,8 @@ REDO1:
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
 
-                //             GetResResponse result = connection.GetResAsyncLite(
-                //lib.capoUserName,
+                // GetResResponse result = connection.GetResAsyncLite(
+                // lib.capoUserName,
                 // request,
                 // outputStream,
                 // null,
@@ -11338,17 +11319,16 @@ REDO1:
             string libName = "";
 
             // string connName
-            string connName = C_ConnPrefix_Myself + libId;
+            string connName = C_ConnPrefix_Myself + libId;   //"<myself>:";
             if (group == C_Group_dp_home)
             {
-                connName = C_ConnPrefix_Myself + C_ConnName_dp;
+                connName = C_ConnPrefix_Myself + C_ConnName_dp;   //"_dp_";
 
                 wxUserName = this.GetUserName();
                 libName = "";
             }
             else
             {
-
                 if (string.IsNullOrEmpty(libId) == true)
                 {
                     strError = "libId参数不能为空";
@@ -11365,10 +11345,6 @@ REDO1:
                 wxUserName = lib.wxUserName;
                 libName = lib.libName;
             }
-
-
-
-
 
             // 这里要转换一下，接口传进来的是转义后的
             //subjectCondition = HttpUtility.HtmlDecode(subjectCondition);
@@ -11520,8 +11496,6 @@ REDO1:
                 + "</body>";
             }
 
-
-
             List<MessageRecord> records = new List<MessageRecord>();
             MessageRecord record = new MessageRecord();
             record.id = item.id;
@@ -11552,7 +11526,6 @@ REDO1:
                     "",
                     records);
                 CancellationToken cancel_token = new CancellationToken();
-
                 SetMessageResult result = connection.SetMessageTaskAsync(param,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
@@ -11818,7 +11791,7 @@ REDO1:
 
             // 获取栏目
             List<MessageRecord> records = null;
-            int nRet = this.GetMessageInternal(C_Active_EnumSubject,
+            int nRet = this.GetMessageInternal(C_Active_EnumSubject,  //enumSubject
                 group,
                 libId,
                 "",
@@ -11837,7 +11810,7 @@ REDO1:
                 if (subjects == null || subjects.Length == 0)
                     continue;
 
-                string subject = subjects[0];//2016-8-20 jane 这里的栏目是从服务器上得到了，不用管首尾空白的问题，如果管了反而暴露不出来问题
+                string subject = subjects[0];//2016-8-20 jane 这里的栏目是从服务器上得到的，不用管首尾空白的问题，如果管了反而暴露不出来问题
                 subject = StringUtil.UnescapeString(subject);
 
                 int no = 0;

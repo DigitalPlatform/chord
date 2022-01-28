@@ -318,8 +318,6 @@ function loadJs(sid, jsurl, callback) {
                 $("#more").addClass("nextdisabled");
                 $("#more").css("display", "block");
             }
-
-
             else if (bNext == '_ReView') {
                 from = "_ReView";
                 word = $("#maxNo").val();
@@ -539,7 +537,8 @@ function loadJs(sid, jsurl, callback) {
         }
 
 
-        // 2016-6-17 jane 为了返回时记住展开项，expand函数由原来传一个对象，改为传一个id
+        // expId 需要展开的节点的id
+        // 2016-6-17 为了返回时记住展开项，expand函数由原来传一个对象，改为传一个id
         function expand(expId) {
             //根据id找到<li>元素
             var id = "#" + expId;
@@ -574,7 +573,8 @@ function loadJs(sid, jsurl, callback) {
                 if (o.length == 0) {
                     return;
                 }
-                else {
+                else  // 未装载详细信息的情况，调接口获取详细信息
+                {
                     //alert("走进1");
 
                     var recPath = o.children("label").text();

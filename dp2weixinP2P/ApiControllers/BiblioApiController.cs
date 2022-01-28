@@ -94,7 +94,7 @@ namespace dp2weixinWeb.ApiControllers
                         WeiXinConst.C_OnePage_Count);
                     goto END1;
                 }
-                else if (from == "_ReView")
+                else if (from == "_ReView")  //刷新的情况，显示从0至当前最大数字
                 {
                     if (resultSet.Substring(0, 1) == "#")
                         resultSet = resultSet.Substring(1);

@@ -66,7 +66,7 @@
             //显示等待图层
             showLoading();
 
-            // 调patron发送验证码接口
+            // 自动生成一个增量的证条码号 IncrementPatronBarcode
             var url = "/api/patronapi?libId=" + encodeURIComponent(libId)
                 + "&libraryCode=" + encodeURIComponent(libraryCode)
 

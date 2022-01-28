@@ -796,6 +796,7 @@ namespace dp2weixin.service
         // 读者姓名
         public string readerName { get; set; }
 
+        // todo这里应该后来没有再用到
         // 20210729由于要求显示已绑定清单脱敏，所以增加了两个用读者身份获取的字段
         public string readerBarcodeByReaderGet { get; set; }
         public string readerNameByReaderGet { get; set; }

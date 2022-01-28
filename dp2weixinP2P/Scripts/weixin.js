@@ -170,6 +170,7 @@ function deleteItem(worker,libId,biblioPath,itemPath,barcode) {
 //======书目详细信息==========
 
 // 获取详细书目记录
+// from表示是从哪个界面过来的？
 function getDetail(libId, recPath, obj, from,biblioName) {
 
     //alert(biblioName);
