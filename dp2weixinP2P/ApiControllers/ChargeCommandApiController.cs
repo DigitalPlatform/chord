@@ -30,7 +30,6 @@ namespace dp2weixinWeb.ApiControllers
             int needTransfrom,
             ChargeCommand cmd)
         {
-
             SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
             ChargeCommandContainer cmdContainer = sessionInfo.cmdContainer;
             if (sessionInfo.ActiveUser == null)

@@ -5718,8 +5718,6 @@ ErrorInfo成员里可能会有报错信息。
             }
 
 
-
-
             //string thislibName = lib.libName;
             //// 如果传了分馆，绑定帐户表中的馆名称为分馆名称，用于显示和发通知提醒
             //if (string.IsNullOrEmpty(bindLibraryCode) == false)
@@ -5738,7 +5736,6 @@ ErrorInfo成员里可能会有报错信息。
 
             // 绑定功能使用代理账号capo -20161024 jane
             LoginInfo loginInfo = new LoginInfo("", false);
-
             CancellationToken cancel_token = new CancellationToken();
             string fullWeixinId = WeiXinConst.C_WeiXinIdPrefix + weixinId;//前端传来的weixinId带了@appId //+"@"+appId;
             string id = Guid.NewGuid().ToString();
@@ -5748,7 +5745,7 @@ ErrorInfo成员里可能会有报错信息。
                 strFullWord,
                 strPassword,
                 fullWeixinId,
-                  strStyle,//2021/7/21默认为multipe，如果libcfg.xml配置了bindstyle，则依据配置的值来。 //"multiple", //20180312改回多重绑定 // 2018/3/8改为单纯绑定  // 2016-8-24 改为多重绑定，这是复杂的情况，要不没法与mongodb保持一致，比较一个微信用户绑了一位读者，另一个微信用户又绑了这名相同的读者，如果不用多重绑定，就把第一名读者冲掉了，但微信mongodb并不知道。 //single,multiple
+                 strStyle,//2021/7/21默认为multipe，如果libcfg.xml配置了bindstyle，则依据配置的值来。 //"multiple", //20180312改回多重绑定 // 2018/3/8改为单纯绑定  // 2016-8-24 改为多重绑定，这是复杂的情况，要不没法与mongodb保持一致，比较一个微信用户绑了一位读者，另一个微信用户又绑了这名相同的读者，如果不用多重绑定，就把第一名读者冲掉了，但微信mongodb并不知道。 //single,multiple
                 "xml");
             try
             {
@@ -6463,7 +6460,7 @@ ErrorInfo成员里可能会有报错信息。
                 match,
                 resultSet,
                 0,
-                15,// 2018/3/15第一次获取15条，稍微超出平板，以事还按常量10条 WeiXinConst.C_OnePage_Count,
+                15,// 2018/3/15第一次获取15条，稍微超出平板， WeiXinConst.C_OnePage_Count,
                 out records,
                 out bNext,
                 out strError);
@@ -6490,10 +6487,10 @@ ErrorInfo成员里可能会有报错信息。
                 return searchRet;
             }
 
-            searchRet.records = records;
-            searchRet.resultCount = records.Count;
-            searchRet.isCanNext = bNext;
-            searchRet.apiResult.errorCode = lRet;
+            searchRet.records = records;  //返回的记录集合
+            searchRet.resultCount = records.Count; // 本次返回的记录数 
+            searchRet.isCanNext = bNext;  //是否有下页
+            searchRet.apiResult.errorCode = lRet;  //-1表示出错，0未命中，其它表示命中总数。
 
             // 测试加的日志
             //dp2WeiXinService.Instance.WriteErrorLog1("走到SearchBiblio-6");
@@ -6568,7 +6565,7 @@ ErrorInfo成员里可能会有报错信息。
             long start,
             long count,
             out List<BiblioRecord> records,
-            out bool bNext,
+            out bool bNext,  //是否有下一页
             out string strError)
         {
             strError = "";
@@ -7273,7 +7270,7 @@ ErrorInfo成员里可能会有报错信息。
 
         #endregion
 
-        // from来源，是从index过来的，还是detail过来的，主要用于好书推荐的返回，发现后来注释掉了。
+        // from来源，表示是从index过来的，还是detail过来的，主要用于好书推荐的返回，后来没用注释掉了。
         // 20170116 修改使用绑定的账户，如未绑定用public
         public BiblioDetailResult GetBiblioDetail(LoginInfo loginInfo,
             string weixinId,
@@ -8168,7 +8165,6 @@ ErrorInfo成员里可能会有报错信息。
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
-
                 if (result.Value == -1)
                 {
                     strError = "图书馆 " + lib.libName + " 的保存册信息时出错:" + result.ErrorInfo;
@@ -10754,7 +10750,6 @@ REDO1:
             //}
 
             CancellationToken cancel_token = new CancellationToken();
-
             string id = Guid.NewGuid().ToString();
             GetResRequest request = new GetResRequest(id,
                 loginInfo,

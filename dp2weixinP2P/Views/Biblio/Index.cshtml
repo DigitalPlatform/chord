@@ -393,7 +393,7 @@ function loadJs(sid, jsurl, callback) {
             var loginUserType = getLoginUserType();
             //alert(loginUserType);
 
-            // 调Search api
+            // 调书目Search web api
             var url = "/api/biblioapi?loginUserName=" + encodeURIComponent(loginUserName)
                 + "&loginUserType=" + encodeURIComponent(loginUserType)
                 + "&weixinId=" + encodeURIComponent(weixinId)

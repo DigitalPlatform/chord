@@ -13,15 +13,27 @@ namespace dp2weixinWeb.ApiControllers
 {
     public class BiblioApiController : ApiController
     {
+
         /// <summary>
-        /// 检索
+        /// 检索书目
         /// </summary>
-        /// <param name="libId"></param>
-        /// <param name="from"></param>
-        /// <param name="word"></param>
-        /// <param name="match"></param>
-        /// <param name="resultSet"></param>
-        /// <returns></returns>
+        /// <param name="loginUserName">登录帐号</param>
+        /// <param name="loginUserType">"patron"表示读者</param>
+        /// <param name="weixinId">用户微信ID，当图书馆配置了不支持外部检索时，用weixinId检查该微信用户是否绑定了图书馆账户，如果未绑定，则不能检索。另外还用于获取该微信绑定帐户的分馆代码。
+        /// <param name="libId">本地库图书馆id</param>
+        /// <param name="from">检索途径，简单检索时传的是：title,ISBN,contributor,subject,clc,_class,publishtime,publisher
+        ///  _N表示下一页，此时word传是开始序号
+        ///  _ReView表示重新获取数据，此时word传是要获取多少条记录
+        /// </param>
+        /// <param name="word">检索词</param>
+        /// <param name="match">匹配方式，简单检索时传的left</param>
+        /// <param name="resultSet">结果集</param>
+        /// <returns>
+        /// searchRet.records = records;  //返回的记录集合
+        /// searchRet.resultCount = records.Count; // 本次返回的记录数 
+        /// searchRet.isCanNext = bNext;  //是否有下页
+        /// searchRet.apiResult.errorCode = lRet;  //-1表示出错，0未命中，其它表示命中总数。
+        /// </returns>
         [HttpGet]
         public SearchBiblioResult Search(string loginUserName,
             string loginUserType,
@@ -43,7 +55,7 @@ namespace dp2weixinWeb.ApiControllers
 
             if (String.IsNullOrEmpty(resultSet) == true)
             {
-                if (from == "_ReView")
+                if (from == "_ReView")  // 重新获取信息时，如果不存在结果集，则返回错误。
                 {
                     searchRet.apiResult = new ApiResult();
                     searchRet.apiResult.errorCode = -1;
@@ -190,11 +202,17 @@ namespace dp2weixinWeb.ApiControllers
             return "未实现的风格:" + format;
         }
 
+
         /// <summary>
-        /// 获取书目详细信息,包括summary与items
+        /// 获取书目详细信息
         /// </summary>
-        /// <param name="libUserName"></param>
-        /// <param name="biblioPath"></param>
+        /// <param name="loginUserName">登录帐号</param>
+        /// <param name="loginUserType">帐号类型，"patron"表示读者</param>
+        /// <param name="weixinId">用户微信ID，用于获取绑定帐户对应的分馆代码</param>
+        /// <param name="libId">本地库图书馆id</param>
+        /// <param name="biblioPath">书目路径</param>
+        /// <param name="format">风格，summary表示摘要和封面，table表示表格显示和封面</param>
+        /// <param name="from">获取详情来源，表示是从index过来的，还是detail过来的，主要用于好书推荐的返回，后来没用注释掉了。</param>
         /// <returns></returns>
         [HttpGet]
         public BiblioDetailResult GetBiblioDetail(string loginUserName,
