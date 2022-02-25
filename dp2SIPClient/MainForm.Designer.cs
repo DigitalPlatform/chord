@@ -51,6 +51,27 @@
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.textBox_message = new System.Windows.Forms.TextBox();
             this.button1 = new System.Windows.Forms.Button();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.textBox_feeAmount = new System.Windows.Forms.TextBox();
+            this.textBox_currencyType = new System.Windows.Forms.TextBox();
+            this.textBox_barcodes = new System.Windows.Forms.TextBox();
+            this.button_fee = new System.Windows.Forms.Button();
+            this.textBox_BQ = new System.Windows.Forms.TextBox();
+            this.button_checkIn = new System.Windows.Forms.Button();
+            this.button_renew = new System.Windows.Forms.Button();
+            this.label73 = new System.Windows.Forms.Label();
+            this.textBox_readerBarcode = new System.Windows.Forms.TextBox();
+            this.button_checkOut = new System.Windows.Forms.Button();
+            this.label83 = new System.Windows.Forms.Label();
+            this.button_getPatronInfo = new System.Windows.Forms.Button();
+            this.label63 = new System.Windows.Forms.Label();
+            this.button_getItemInfo = new System.Windows.Forms.Button();
+            this.textBox_BP = new System.Windows.Forms.TextBox();
+            this.textBox_readerPassword = new System.Windows.Forms.TextBox();
+            this.label74 = new System.Windows.Forms.Label();
+            this.label82 = new System.Windows.Forms.Label();
+            this.label75 = new System.Windows.Forms.Label();
+            this.label76 = new System.Windows.Forms.Label();
             this.groupBox7 = new System.Windows.Forms.GroupBox();
             this.textBox_19_HS = new System.Windows.Forms.TextBox();
             this.label81 = new System.Windows.Forms.Label();
@@ -64,6 +85,7 @@
             this.textBox_19_AQ = new System.Windows.Forms.TextBox();
             this.label77 = new System.Windows.Forms.Label();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.button_send98 = new System.Windows.Forms.Button();
             this.checkBox_UrlEncode = new System.Windows.Forms.CheckBox();
             this.button_login = new System.Windows.Forms.Button();
             this.textBox_login_copies = new System.Windows.Forms.TextBox();
@@ -226,28 +248,8 @@
             this.textBox_FeePaid37_transactionDate_18 = new System.Windows.Forms.TextBox();
             this.label61 = new System.Windows.Forms.Label();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
-            this.button_send98 = new System.Windows.Forms.Button();
-            this.label82 = new System.Windows.Forms.Label();
-            this.label74 = new System.Windows.Forms.Label();
-            this.textBox_readerPassword = new System.Windows.Forms.TextBox();
-            this.textBox_BP = new System.Windows.Forms.TextBox();
-            this.button_getItemInfo = new System.Windows.Forms.Button();
-            this.label63 = new System.Windows.Forms.Label();
-            this.button_getPatronInfo = new System.Windows.Forms.Button();
-            this.label83 = new System.Windows.Forms.Label();
-            this.button_checkOut = new System.Windows.Forms.Button();
-            this.textBox_readerBarcode = new System.Windows.Forms.TextBox();
-            this.label73 = new System.Windows.Forms.Label();
-            this.button_renew = new System.Windows.Forms.Button();
-            this.button_checkIn = new System.Windows.Forms.Button();
-            this.textBox_BQ = new System.Windows.Forms.TextBox();
-            this.button_fee = new System.Windows.Forms.Button();
-            this.textBox_barcodes = new System.Windows.Forms.TextBox();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.label75 = new System.Windows.Forms.Label();
-            this.textBox_currencyType = new System.Windows.Forms.TextBox();
-            this.label76 = new System.Windows.Forms.Label();
-            this.textBox_feeAmount = new System.Windows.Forms.TextBox();
+            this.label84 = new System.Windows.Forms.Label();
+            this.textBox_returnCurLocation = new System.Windows.Forms.TextBox();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -258,6 +260,7 @@
             this.tabControl_main.SuspendLayout();
             this.tabPage_function.SuspendLayout();
             this.groupBox4.SuspendLayout();
+            this.groupBox1.SuspendLayout();
             this.groupBox7.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -269,7 +272,6 @@
             this.tabPage_ItemInformation17.SuspendLayout();
             this.tabPage_Renew29.SuspendLayout();
             this.tabPage_FeePaid37.SuspendLayout();
-            this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // txtMsg
@@ -513,6 +515,233 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.label84);
+            this.groupBox1.Controls.Add(this.textBox_returnCurLocation);
+            this.groupBox1.Controls.Add(this.textBox_feeAmount);
+            this.groupBox1.Controls.Add(this.textBox_currencyType);
+            this.groupBox1.Controls.Add(this.textBox_barcodes);
+            this.groupBox1.Controls.Add(this.button_fee);
+            this.groupBox1.Controls.Add(this.textBox_BQ);
+            this.groupBox1.Controls.Add(this.button_checkIn);
+            this.groupBox1.Controls.Add(this.button_renew);
+            this.groupBox1.Controls.Add(this.label73);
+            this.groupBox1.Controls.Add(this.textBox_readerBarcode);
+            this.groupBox1.Controls.Add(this.button_checkOut);
+            this.groupBox1.Controls.Add(this.label83);
+            this.groupBox1.Controls.Add(this.button_getPatronInfo);
+            this.groupBox1.Controls.Add(this.label63);
+            this.groupBox1.Controls.Add(this.button_getItemInfo);
+            this.groupBox1.Controls.Add(this.textBox_BP);
+            this.groupBox1.Controls.Add(this.textBox_readerPassword);
+            this.groupBox1.Controls.Add(this.label74);
+            this.groupBox1.Controls.Add(this.label82);
+            this.groupBox1.Controls.Add(this.label75);
+            this.groupBox1.Controls.Add(this.label76);
+            this.groupBox1.Location = new System.Drawing.Point(10, 232);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(505, 367);
+            this.groupBox1.TabIndex = 11;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "基础操作";
+            // 
+            // textBox_feeAmount
+            // 
+            this.textBox_feeAmount.Location = new System.Drawing.Point(276, 270);
+            this.textBox_feeAmount.Margin = new System.Windows.Forms.Padding(4);
+            this.textBox_feeAmount.Name = "textBox_feeAmount";
+            this.textBox_feeAmount.Size = new System.Drawing.Size(92, 28);
+            this.textBox_feeAmount.TabIndex = 14;
+            // 
+            // textBox_currencyType
+            // 
+            this.textBox_currencyType.Location = new System.Drawing.Point(127, 270);
+            this.textBox_currencyType.Margin = new System.Windows.Forms.Padding(4);
+            this.textBox_currencyType.Name = "textBox_currencyType";
+            this.textBox_currencyType.Size = new System.Drawing.Size(44, 28);
+            this.textBox_currencyType.TabIndex = 12;
+            this.textBox_currencyType.Text = "CNY";
+            // 
+            // textBox_barcodes
+            // 
+            this.textBox_barcodes.Location = new System.Drawing.Point(112, 30);
+            this.textBox_barcodes.Margin = new System.Windows.Forms.Padding(4);
+            this.textBox_barcodes.Name = "textBox_barcodes";
+            this.textBox_barcodes.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.textBox_barcodes.Size = new System.Drawing.Size(206, 28);
+            this.textBox_barcodes.TabIndex = 3;
+            // 
+            // button_fee
+            // 
+            this.button_fee.Location = new System.Drawing.Point(11, 310);
+            this.button_fee.Margin = new System.Windows.Forms.Padding(4);
+            this.button_fee.Name = "button_fee";
+            this.button_fee.Size = new System.Drawing.Size(101, 33);
+            this.button_fee.TabIndex = 3;
+            this.button_fee.Text = "交费";
+            this.button_fee.UseVisualStyleBackColor = true;
+            this.button_fee.Click += new System.EventHandler(this.button_fee_Click);
+            // 
+            // textBox_BQ
+            // 
+            this.textBox_BQ.Location = new System.Drawing.Point(445, 71);
+            this.textBox_BQ.Margin = new System.Windows.Forms.Padding(4);
+            this.textBox_BQ.Name = "textBox_BQ";
+            this.textBox_BQ.Size = new System.Drawing.Size(41, 28);
+            this.textBox_BQ.TabIndex = 9;
+            this.textBox_BQ.Text = "5";
+            // 
+            // button_checkIn
+            // 
+            this.button_checkIn.Location = new System.Drawing.Point(325, 220);
+            this.button_checkIn.Margin = new System.Windows.Forms.Padding(4);
+            this.button_checkIn.Name = "button_checkIn";
+            this.button_checkIn.Size = new System.Drawing.Size(112, 34);
+            this.button_checkIn.TabIndex = 2;
+            this.button_checkIn.Text = "还书";
+            this.button_checkIn.UseVisualStyleBackColor = true;
+            this.button_checkIn.Click += new System.EventHandler(this.button_checkIn_Click);
+            // 
+            // button_renew
+            // 
+            this.button_renew.Location = new System.Drawing.Point(127, 186);
+            this.button_renew.Margin = new System.Windows.Forms.Padding(4);
+            this.button_renew.Name = "button_renew";
+            this.button_renew.Size = new System.Drawing.Size(112, 34);
+            this.button_renew.TabIndex = 7;
+            this.button_renew.Text = "续借";
+            this.button_renew.UseVisualStyleBackColor = true;
+            this.button_renew.Click += new System.EventHandler(this.button_renew_Click);
+            // 
+            // label73
+            // 
+            this.label73.AutoSize = true;
+            this.label73.Location = new System.Drawing.Point(5, 33);
+            this.label73.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label73.Name = "label73";
+            this.label73.Size = new System.Drawing.Size(107, 18);
+            this.label73.TabIndex = 4;
+            this.label73.Text = "图书册条码:";
+            // 
+            // textBox_readerBarcode
+            // 
+            this.textBox_readerBarcode.Location = new System.Drawing.Point(111, 71);
+            this.textBox_readerBarcode.Margin = new System.Windows.Forms.Padding(4);
+            this.textBox_readerBarcode.Name = "textBox_readerBarcode";
+            this.textBox_readerBarcode.Size = new System.Drawing.Size(207, 28);
+            this.textBox_readerBarcode.TabIndex = 6;
+            // 
+            // button_checkOut
+            // 
+            this.button_checkOut.Location = new System.Drawing.Point(7, 186);
+            this.button_checkOut.Margin = new System.Windows.Forms.Padding(4);
+            this.button_checkOut.Name = "button_checkOut";
+            this.button_checkOut.Size = new System.Drawing.Size(112, 34);
+            this.button_checkOut.TabIndex = 2;
+            this.button_checkOut.Text = "借书";
+            this.button_checkOut.UseVisualStyleBackColor = true;
+            this.button_checkOut.Click += new System.EventHandler(this.button_checkOut_Click);
+            // 
+            // label83
+            // 
+            this.label83.AutoSize = true;
+            this.label83.Location = new System.Drawing.Point(410, 74);
+            this.label83.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label83.Name = "label83";
+            this.label83.Size = new System.Drawing.Size(44, 18);
+            this.label83.TabIndex = 10;
+            this.label83.Text = "BQ：";
+            // 
+            // button_getPatronInfo
+            // 
+            this.button_getPatronInfo.Location = new System.Drawing.Point(157, 144);
+            this.button_getPatronInfo.Margin = new System.Windows.Forms.Padding(4);
+            this.button_getPatronInfo.Name = "button_getPatronInfo";
+            this.button_getPatronInfo.Size = new System.Drawing.Size(131, 34);
+            this.button_getPatronInfo.TabIndex = 2;
+            this.button_getPatronInfo.Text = "获取读者信息";
+            this.button_getPatronInfo.UseVisualStyleBackColor = true;
+            this.button_getPatronInfo.Click += new System.EventHandler(this.button_getPatronInfo_Click);
+            // 
+            // label63
+            // 
+            this.label63.AutoSize = true;
+            this.label63.Location = new System.Drawing.Point(7, 108);
+            this.label63.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label63.Name = "label63";
+            this.label63.Size = new System.Drawing.Size(98, 18);
+            this.label63.TabIndex = 6;
+            this.label63.Text = "读者密码：";
+            // 
+            // button_getItemInfo
+            // 
+            this.button_getItemInfo.Location = new System.Drawing.Point(11, 144);
+            this.button_getItemInfo.Margin = new System.Windows.Forms.Padding(4);
+            this.button_getItemInfo.Name = "button_getItemInfo";
+            this.button_getItemInfo.Size = new System.Drawing.Size(138, 34);
+            this.button_getItemInfo.TabIndex = 2;
+            this.button_getItemInfo.Text = "获取图书信息";
+            this.button_getItemInfo.UseVisualStyleBackColor = true;
+            this.button_getItemInfo.Click += new System.EventHandler(this.button_getItemInfo_Click);
+            // 
+            // textBox_BP
+            // 
+            this.textBox_BP.Location = new System.Drawing.Point(361, 71);
+            this.textBox_BP.Margin = new System.Windows.Forms.Padding(4);
+            this.textBox_BP.Name = "textBox_BP";
+            this.textBox_BP.Size = new System.Drawing.Size(41, 28);
+            this.textBox_BP.TabIndex = 7;
+            this.textBox_BP.Text = "1";
+            // 
+            // textBox_readerPassword
+            // 
+            this.textBox_readerPassword.Location = new System.Drawing.Point(112, 105);
+            this.textBox_readerPassword.Margin = new System.Windows.Forms.Padding(4);
+            this.textBox_readerPassword.Name = "textBox_readerPassword";
+            this.textBox_readerPassword.Size = new System.Drawing.Size(206, 28);
+            this.textBox_readerPassword.TabIndex = 6;
+            // 
+            // label74
+            // 
+            this.label74.AutoSize = true;
+            this.label74.Location = new System.Drawing.Point(7, 74);
+            this.label74.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label74.Name = "label74";
+            this.label74.Size = new System.Drawing.Size(116, 18);
+            this.label74.TabIndex = 6;
+            this.label74.Text = "读者证条码：";
+            // 
+            // label82
+            // 
+            this.label82.AutoSize = true;
+            this.label82.Location = new System.Drawing.Point(326, 74);
+            this.label82.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label82.Name = "label82";
+            this.label82.Size = new System.Drawing.Size(44, 18);
+            this.label82.TabIndex = 8;
+            this.label82.Text = "BP：";
+            // 
+            // label75
+            // 
+            this.label75.AutoSize = true;
+            this.label75.Location = new System.Drawing.Point(6, 273);
+            this.label75.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label75.Name = "label75";
+            this.label75.Size = new System.Drawing.Size(125, 18);
+            this.label75.TabIndex = 11;
+            this.label75.Text = "currencyType:";
+            // 
+            // label76
+            // 
+            this.label76.AutoSize = true;
+            this.label76.Location = new System.Drawing.Point(179, 273);
+            this.label76.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label76.Name = "label76";
+            this.label76.Size = new System.Drawing.Size(98, 18);
+            this.label76.TabIndex = 13;
+            this.label76.Text = "feeAmount:";
+            // 
             // groupBox7
             // 
             this.groupBox7.Controls.Add(this.textBox_19_HS);
@@ -657,6 +886,17 @@
             this.groupBox3.TabIndex = 2;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "登录";
+            // 
+            // button_send98
+            // 
+            this.button_send98.Location = new System.Drawing.Point(282, 143);
+            this.button_send98.Margin = new System.Windows.Forms.Padding(4);
+            this.button_send98.Name = "button_send98";
+            this.button_send98.Size = new System.Drawing.Size(89, 33);
+            this.button_send98.TabIndex = 7;
+            this.button_send98.Text = "发送98";
+            this.button_send98.UseVisualStyleBackColor = true;
+            this.button_send98.Click += new System.EventHandler(this.button_send98_Click);
             // 
             // checkBox_UrlEncode
             // 
@@ -2289,241 +2529,23 @@
             this.webBrowser1.Size = new System.Drawing.Size(213, 669);
             this.webBrowser1.TabIndex = 1;
             // 
-            // button_send98
+            // label84
             // 
-            this.button_send98.Location = new System.Drawing.Point(282, 143);
-            this.button_send98.Margin = new System.Windows.Forms.Padding(4);
-            this.button_send98.Name = "button_send98";
-            this.button_send98.Size = new System.Drawing.Size(89, 33);
-            this.button_send98.TabIndex = 7;
-            this.button_send98.Text = "发送98";
-            this.button_send98.UseVisualStyleBackColor = true;
-            this.button_send98.Click += new System.EventHandler(this.button_send98_Click);
+            this.label84.AutoSize = true;
+            this.label84.Location = new System.Drawing.Point(7, 228);
+            this.label84.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label84.Name = "label84";
+            this.label84.Size = new System.Drawing.Size(116, 18);
+            this.label84.TabIndex = 15;
+            this.label84.Text = "当前位置(AP)";
             // 
-            // label82
+            // textBox_returnCurLocation
             // 
-            this.label82.AutoSize = true;
-            this.label82.Location = new System.Drawing.Point(326, 74);
-            this.label82.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label82.Name = "label82";
-            this.label82.Size = new System.Drawing.Size(44, 18);
-            this.label82.TabIndex = 8;
-            this.label82.Text = "BP：";
-            // 
-            // label74
-            // 
-            this.label74.AutoSize = true;
-            this.label74.Location = new System.Drawing.Point(7, 74);
-            this.label74.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label74.Name = "label74";
-            this.label74.Size = new System.Drawing.Size(116, 18);
-            this.label74.TabIndex = 6;
-            this.label74.Text = "读者证条码：";
-            // 
-            // textBox_readerPassword
-            // 
-            this.textBox_readerPassword.Location = new System.Drawing.Point(112, 105);
-            this.textBox_readerPassword.Margin = new System.Windows.Forms.Padding(4);
-            this.textBox_readerPassword.Name = "textBox_readerPassword";
-            this.textBox_readerPassword.Size = new System.Drawing.Size(206, 28);
-            this.textBox_readerPassword.TabIndex = 6;
-            // 
-            // textBox_BP
-            // 
-            this.textBox_BP.Location = new System.Drawing.Point(361, 71);
-            this.textBox_BP.Margin = new System.Windows.Forms.Padding(4);
-            this.textBox_BP.Name = "textBox_BP";
-            this.textBox_BP.Size = new System.Drawing.Size(41, 28);
-            this.textBox_BP.TabIndex = 7;
-            this.textBox_BP.Text = "1";
-            // 
-            // button_getItemInfo
-            // 
-            this.button_getItemInfo.Location = new System.Drawing.Point(11, 144);
-            this.button_getItemInfo.Margin = new System.Windows.Forms.Padding(4);
-            this.button_getItemInfo.Name = "button_getItemInfo";
-            this.button_getItemInfo.Size = new System.Drawing.Size(138, 34);
-            this.button_getItemInfo.TabIndex = 2;
-            this.button_getItemInfo.Text = "获取图书信息";
-            this.button_getItemInfo.UseVisualStyleBackColor = true;
-            this.button_getItemInfo.Click += new System.EventHandler(this.button_getItemInfo_Click);
-            // 
-            // label63
-            // 
-            this.label63.AutoSize = true;
-            this.label63.Location = new System.Drawing.Point(7, 108);
-            this.label63.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label63.Name = "label63";
-            this.label63.Size = new System.Drawing.Size(98, 18);
-            this.label63.TabIndex = 6;
-            this.label63.Text = "读者密码：";
-            // 
-            // button_getPatronInfo
-            // 
-            this.button_getPatronInfo.Location = new System.Drawing.Point(157, 144);
-            this.button_getPatronInfo.Margin = new System.Windows.Forms.Padding(4);
-            this.button_getPatronInfo.Name = "button_getPatronInfo";
-            this.button_getPatronInfo.Size = new System.Drawing.Size(131, 34);
-            this.button_getPatronInfo.TabIndex = 2;
-            this.button_getPatronInfo.Text = "获取读者信息";
-            this.button_getPatronInfo.UseVisualStyleBackColor = true;
-            this.button_getPatronInfo.Click += new System.EventHandler(this.button_getPatronInfo_Click);
-            // 
-            // label83
-            // 
-            this.label83.AutoSize = true;
-            this.label83.Location = new System.Drawing.Point(410, 74);
-            this.label83.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label83.Name = "label83";
-            this.label83.Size = new System.Drawing.Size(44, 18);
-            this.label83.TabIndex = 10;
-            this.label83.Text = "BQ：";
-            // 
-            // button_checkOut
-            // 
-            this.button_checkOut.Location = new System.Drawing.Point(7, 186);
-            this.button_checkOut.Margin = new System.Windows.Forms.Padding(4);
-            this.button_checkOut.Name = "button_checkOut";
-            this.button_checkOut.Size = new System.Drawing.Size(112, 34);
-            this.button_checkOut.TabIndex = 2;
-            this.button_checkOut.Text = "借书";
-            this.button_checkOut.UseVisualStyleBackColor = true;
-            this.button_checkOut.Click += new System.EventHandler(this.button_checkOut_Click);
-            // 
-            // textBox_readerBarcode
-            // 
-            this.textBox_readerBarcode.Location = new System.Drawing.Point(111, 71);
-            this.textBox_readerBarcode.Margin = new System.Windows.Forms.Padding(4);
-            this.textBox_readerBarcode.Name = "textBox_readerBarcode";
-            this.textBox_readerBarcode.Size = new System.Drawing.Size(207, 28);
-            this.textBox_readerBarcode.TabIndex = 6;
-            // 
-            // label73
-            // 
-            this.label73.AutoSize = true;
-            this.label73.Location = new System.Drawing.Point(5, 33);
-            this.label73.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label73.Name = "label73";
-            this.label73.Size = new System.Drawing.Size(107, 18);
-            this.label73.TabIndex = 4;
-            this.label73.Text = "图书册条码:";
-            // 
-            // button_renew
-            // 
-            this.button_renew.Location = new System.Drawing.Point(127, 186);
-            this.button_renew.Margin = new System.Windows.Forms.Padding(4);
-            this.button_renew.Name = "button_renew";
-            this.button_renew.Size = new System.Drawing.Size(112, 34);
-            this.button_renew.TabIndex = 7;
-            this.button_renew.Text = "续借";
-            this.button_renew.UseVisualStyleBackColor = true;
-            this.button_renew.Click += new System.EventHandler(this.button_renew_Click);
-            // 
-            // button_checkIn
-            // 
-            this.button_checkIn.Location = new System.Drawing.Point(254, 186);
-            this.button_checkIn.Margin = new System.Windows.Forms.Padding(4);
-            this.button_checkIn.Name = "button_checkIn";
-            this.button_checkIn.Size = new System.Drawing.Size(112, 34);
-            this.button_checkIn.TabIndex = 2;
-            this.button_checkIn.Text = "还书";
-            this.button_checkIn.UseVisualStyleBackColor = true;
-            this.button_checkIn.Click += new System.EventHandler(this.button_checkIn_Click);
-            // 
-            // textBox_BQ
-            // 
-            this.textBox_BQ.Location = new System.Drawing.Point(445, 71);
-            this.textBox_BQ.Margin = new System.Windows.Forms.Padding(4);
-            this.textBox_BQ.Name = "textBox_BQ";
-            this.textBox_BQ.Size = new System.Drawing.Size(41, 28);
-            this.textBox_BQ.TabIndex = 9;
-            this.textBox_BQ.Text = "5";
-            // 
-            // button_fee
-            // 
-            this.button_fee.Location = new System.Drawing.Point(11, 310);
-            this.button_fee.Margin = new System.Windows.Forms.Padding(4);
-            this.button_fee.Name = "button_fee";
-            this.button_fee.Size = new System.Drawing.Size(101, 33);
-            this.button_fee.TabIndex = 3;
-            this.button_fee.Text = "交费";
-            this.button_fee.UseVisualStyleBackColor = true;
-            this.button_fee.Click += new System.EventHandler(this.button_fee_Click);
-            // 
-            // textBox_barcodes
-            // 
-            this.textBox_barcodes.Location = new System.Drawing.Point(112, 30);
-            this.textBox_barcodes.Margin = new System.Windows.Forms.Padding(4);
-            this.textBox_barcodes.Name = "textBox_barcodes";
-            this.textBox_barcodes.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textBox_barcodes.Size = new System.Drawing.Size(206, 28);
-            this.textBox_barcodes.TabIndex = 3;
-            // 
-            // groupBox1
-            // 
-            this.groupBox1.Controls.Add(this.textBox_feeAmount);
-            this.groupBox1.Controls.Add(this.textBox_currencyType);
-            this.groupBox1.Controls.Add(this.textBox_barcodes);
-            this.groupBox1.Controls.Add(this.button_fee);
-            this.groupBox1.Controls.Add(this.textBox_BQ);
-            this.groupBox1.Controls.Add(this.button_checkIn);
-            this.groupBox1.Controls.Add(this.button_renew);
-            this.groupBox1.Controls.Add(this.label73);
-            this.groupBox1.Controls.Add(this.textBox_readerBarcode);
-            this.groupBox1.Controls.Add(this.button_checkOut);
-            this.groupBox1.Controls.Add(this.label83);
-            this.groupBox1.Controls.Add(this.button_getPatronInfo);
-            this.groupBox1.Controls.Add(this.label63);
-            this.groupBox1.Controls.Add(this.button_getItemInfo);
-            this.groupBox1.Controls.Add(this.textBox_BP);
-            this.groupBox1.Controls.Add(this.textBox_readerPassword);
-            this.groupBox1.Controls.Add(this.label74);
-            this.groupBox1.Controls.Add(this.label82);
-            this.groupBox1.Controls.Add(this.label75);
-            this.groupBox1.Controls.Add(this.label76);
-            this.groupBox1.Location = new System.Drawing.Point(10, 232);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(505, 367);
-            this.groupBox1.TabIndex = 11;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "基础操作";
-            // 
-            // label75
-            // 
-            this.label75.AutoSize = true;
-            this.label75.Location = new System.Drawing.Point(6, 273);
-            this.label75.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label75.Name = "label75";
-            this.label75.Size = new System.Drawing.Size(125, 18);
-            this.label75.TabIndex = 11;
-            this.label75.Text = "currencyType:";
-            // 
-            // textBox_currencyType
-            // 
-            this.textBox_currencyType.Location = new System.Drawing.Point(127, 270);
-            this.textBox_currencyType.Margin = new System.Windows.Forms.Padding(4);
-            this.textBox_currencyType.Name = "textBox_currencyType";
-            this.textBox_currencyType.Size = new System.Drawing.Size(44, 28);
-            this.textBox_currencyType.TabIndex = 12;
-            this.textBox_currencyType.Text = "CNY";
-            // 
-            // label76
-            // 
-            this.label76.AutoSize = true;
-            this.label76.Location = new System.Drawing.Point(179, 273);
-            this.label76.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label76.Name = "label76";
-            this.label76.Size = new System.Drawing.Size(98, 18);
-            this.label76.TabIndex = 13;
-            this.label76.Text = "feeAmount:";
-            // 
-            // textBox_feeAmount
-            // 
-            this.textBox_feeAmount.Location = new System.Drawing.Point(276, 270);
-            this.textBox_feeAmount.Margin = new System.Windows.Forms.Padding(4);
-            this.textBox_feeAmount.Name = "textBox_feeAmount";
-            this.textBox_feeAmount.Size = new System.Drawing.Size(92, 28);
-            this.textBox_feeAmount.TabIndex = 14;
+            this.textBox_returnCurLocation.Location = new System.Drawing.Point(127, 225);
+            this.textBox_returnCurLocation.Margin = new System.Windows.Forms.Padding(4);
+            this.textBox_returnCurLocation.Name = "textBox_returnCurLocation";
+            this.textBox_returnCurLocation.Size = new System.Drawing.Size(190, 28);
+            this.textBox_returnCurLocation.TabIndex = 16;
             // 
             // MainForm
             // 
@@ -2554,6 +2576,8 @@
             this.tabPage_function.ResumeLayout(false);
             this.groupBox4.ResumeLayout(false);
             this.groupBox4.PerformLayout();
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.groupBox7.ResumeLayout(false);
             this.groupBox7.PerformLayout();
             this.groupBox3.ResumeLayout(false);
@@ -2576,8 +2600,6 @@
             this.tabPage_Renew29.PerformLayout();
             this.tabPage_FeePaid37.ResumeLayout(false);
             this.tabPage_FeePaid37.PerformLayout();
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -2805,6 +2827,8 @@
         private System.Windows.Forms.Label label82;
         private System.Windows.Forms.Label label75;
         private System.Windows.Forms.Label label76;
+        private System.Windows.Forms.Label label84;
+        private System.Windows.Forms.TextBox textBox_returnCurLocation;
     }
 }
 
