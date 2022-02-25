@@ -903,7 +903,7 @@ namespace dp2SIPClient
                 NoBlock_1 = "N",
                 TransactionDate_18 = this.TransactionDate,
                 ReturnDate_18 = this.TransactionDate,
-                AP_CurrentLocation_r = "",
+                AP_CurrentLocation_r = this.textBox_returnCurLocation.Text.Trim(),//2022/2/25 当前位置，可以只传馆藏地
                 AC_TerminalPassword_r = "",
                 AO_InstitutionId_r = this.AO,//"",// dp2Library",
                 BI_Cancel_1_o = "N"
