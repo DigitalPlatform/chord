@@ -483,9 +483,16 @@ namespace dp2Capo
                     goto ERROR1;
                 }
 
+                string currentLocation = "#SIP@" + strClientIP;
+                // 2022/2/25
+                if (string.IsNullOrEmpty(strLocationCode) == false
+                    && strLocationCode.StartsWith("!")
+                    && strLocationCode.Length > 1)
+                    currentLocation = StringUtil.EscapeString(strLocationCode.Substring(1), "=,");
+
                 long lRet = library_channel.Login(strUserName,
                     strPassword,
-                    "type=worker,client=dp2SIPServer|0.01,location=#SIP@" + strClientIP + ",clientip=" + strClientIP,
+                    $"type=worker,client=dp2SIPServer|0.01,location={currentLocation},clientip=" + strClientIP,
                     out strError);
                 if (lRet == -1 || lRet == 0)
                 {
@@ -760,6 +767,9 @@ namespace dp2Capo
                     return response.ToText();
                 }
 
+                // 2022/2/25
+                string strCurrentLocation = request.AP_CurrentLocation_r;
+
                 string strItemIdentifier = request.AB_ItemIdentifier_r;
 
                 // 2021/3/3
@@ -768,14 +778,16 @@ namespace dp2Capo
                 if (!string.IsNullOrEmpty(strItemIdentifier))
                 {
                     response.AB_ItemIdentifier_r = strItemIdentifier;
-
+                    string style = "item,biblio,reader";
+                    if (string.IsNullOrEmpty(strCurrentLocation) == false)
+                        style += ",currentLocation:" + StringUtil.EscapeString(strCurrentLocation, ":,");
                     long lRet = info.LibraryChannel.Return(
                         "return",
                         "",    //strReaderBarcode,
                         AddOI(strItemIdentifier, strInstitution),
                         "", // strConfirmItemRecPath
                         false,
-                        "item,biblio,reader",
+                        style,
                         "xml",
                         out string[] item_records,
                         "",
