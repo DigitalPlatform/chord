@@ -32,8 +32,8 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“生成号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”: 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.36.*")]
-[assembly: AssemblyFileVersion("1.36.0.0")]
+[assembly: AssemblyVersion("1.37.*")]
+[assembly: AssemblyFileVersion("1.37.0.0")]
 
 // 1.1 (2016/6/26) 首次使用了版本号
 // 1.2 (2016/9/14) 管理线程中会不断重试连接 dp2mserver，并将此情况写入日志
@@ -71,3 +71,5 @@ using System.Runtime.InteropServices;
 // 1.34 (2018/11/13) Z39.50 Service 中消除了 BuildPartTree() 中出现死循环的 bug。遇到有问题的 BER 包，会记入错误日志
 // 1.35 (2021/3/3) SIP Service 对 ItemInfomation ItemStatusUpdate Checkout Checkin Renew 请求都要求正确使用 AO 字段 
 // 1.36 (2021/4/17)
+// 1.37 (2022/2/28) SIP Login() API 可以接纳 CP 字段，若其内容以感叹号开头，还会用于 dp2library Login() API 的 parameters location=xxx 子参数中
+//                  SIP Return() API 可以接纳 AP 字段，用于 dp2library Return() API 的 strStyle 子参数 currentLocation=xxxx

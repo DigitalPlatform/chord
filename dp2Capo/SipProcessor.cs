@@ -483,16 +483,21 @@ namespace dp2Capo
                     goto ERROR1;
                 }
 
-                string currentLocation = "#SIP@" + strClientIP;
+                string style = $"type=worker,client=dp2SIPServer|0.01,clientip={strClientIP}";
+
                 // 2022/2/25
                 if (string.IsNullOrEmpty(strLocationCode) == false
                     && strLocationCode.StartsWith("!")
                     && strLocationCode.Length > 1)
-                    currentLocation = StringUtil.EscapeString(strLocationCode.Substring(1), "=,");
+                {
+                    // string currentLocation = "#SIP@" + strClientIP;
+                    var currentLocation = StringUtil.EscapeString(strLocationCode.Substring(1), "=,");
+                    style += $",location={currentLocation}";
+                }
 
                 long lRet = library_channel.Login(strUserName,
                     strPassword,
-                    $"type=worker,client=dp2SIPServer|0.01,location={currentLocation},clientip=" + strClientIP,
+                    style, // $"type=worker,client=dp2SIPServer|0.01,location={currentLocation},clientip=" + strClientIP,
                     out strError);
                 if (lRet == -1 || lRet == 0)
                 {
@@ -891,10 +896,10 @@ namespace dp2Capo
                             goto ERROR1;
                         }
                     }
-                    else
+                    else if (response.Ok_1 == "1")  // 注意，如果 API 不成功，不要返回书目摘要
                     {
                         lRet = info.LibraryChannel.GetBiblioSummary(
-                            strItemIdentifier,
+                            AddOI(strItemIdentifier, strInstitution),   // strItemIdentifier,
                             "",
                             "",
                             out string strBiblioRecPath,
@@ -3276,9 +3281,9 @@ namespace dp2Capo
 
             return nRet;
         UNDO:
-            lRet = DeleteReader(library_channel, 
+            lRet = DeleteReader(library_channel,
                 strRecPath,
-                baTimestamp, 
+                baTimestamp,
                 out string strError1);
             if (lRet == -1)
                 strError = $"办证过程中交费发生错误({strMsg})。然后回滚失败: " + strError1;
