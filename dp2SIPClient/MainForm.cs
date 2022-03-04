@@ -937,7 +937,17 @@ namespace dp2SIPClient
                     return;
                 }
 
-                this.Print("recv:" + responseText);
+                if (string.IsNullOrEmpty(responseText) == false
+                    && responseText.Length >= 6
+                    && responseText.Substring(5, 1) == "Y")
+                    {
+                    this.Print("<span style='background-color:yellow'>recv:" + responseText +"</span>");
+
+                }
+                else
+                {
+                    this.Print("recv:" + responseText);
+                }
 
                 button.Text = "还书(" + (i + 1).ToString() + ")";
                 i++;
