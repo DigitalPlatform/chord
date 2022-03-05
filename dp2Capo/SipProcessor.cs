@@ -462,6 +462,8 @@ namespace dp2Capo
             // 注：登录以后 Timeout 才按照实例参数来设定。此前是 sip_channel.Timeout 的默认值
             // sip_channel.Timeout = instance.sip_host.AutoClearSeconds == 0 ? TimeSpan.MinValue : TimeSpan.FromSeconds(instance.sip_host.AutoClearSeconds);
             SetChannelTimeout(sip_channel, sip_channel.UserName, instance);
+            // 2022/3/4
+            sip_channel.Style = instance.sip_host.GetSipParam(sip_channel.UserName, true).Style;
 
             LoginInfo login_info = new LoginInfo { UserName = sip_channel.UserName, Password = sip_channel.Password };
 
@@ -717,6 +719,7 @@ namespace dp2Capo
                 MagneticMedia_1 = "N",
                 Alert_1 = "N",
                 TransactionDate_18 = SIPUtility.NowDateTime,
+                AB_ItemIdentifier_r = "",   // 2022/3/4
                 AO_InstitutionId_r = "",    // "dp2Library",
                 AJ_TitleIdentifier_o = string.Empty,
                 AQ_PermanentLocation_r = string.Empty,
@@ -777,6 +780,14 @@ namespace dp2Capo
 
                 string strItemIdentifier = request.AB_ItemIdentifier_r;
 
+                // 2022/3/4
+                if (StringUtil.IsInList("bookUiiStrict", sip_channel.Style)
+                    && strItemIdentifier.Contains(".") == false)
+                {
+                    strError = $"请求的 AB 字段内容 '{strItemIdentifier}' 不合法。应为 UII 形态";
+                    goto ERROR1;
+                }
+
                 // 2021/3/3
                 string strInstitution = request.AO_InstitutionId_r;
 
@@ -815,9 +826,13 @@ namespace dp2Capo
                     else
                     {
                         response.Ok_1 = "1";
+                        if (lRet == 1)  // 表示有提示需要提醒工作人员
+                            response.Alert_1 = "Y";
                         response.AA_PatronIdentifier_o = strOutputReaderBarcode;
-                        response.AF_ScreenMessage_o = "成功";
-                        response.AG_PrintLine_o = "成功";
+                        if (lRet == 0)
+                            strError = "还书成功";
+                        response.AF_ScreenMessage_o = strError;
+                        response.AG_PrintLine_o = strError;
 
 #if REMOVED
                         // 2021/3/4
@@ -931,6 +946,11 @@ namespace dp2Capo
 
             LibraryManager.Log?.Info("Checkin() error: " + strError);
             response.Ok_1 = "0";
+
+            // 2022/3/4
+            response.AF_ScreenMessage_o = strError;
+            response.AG_PrintLine_o = strError;
+
             return response.ToText();
         }
 
@@ -963,6 +983,8 @@ namespace dp2Capo
                 MagneticMedia_1 = "N",
                 Desensitize_1 = "Y",
                 TransactionDate_18 = SIPUtility.NowDateTime,
+                AA_PatronIdentifier_r = "", // 2022/3/4
+                AB_ItemIdentifier_r = "",   // 2022/3/4
                 AO_InstitutionId_r = "",    // "dp2Library",
                 AJ_TitleIdentifier_r = string.Empty,
                 AH_DueDate_r = string.Empty,
@@ -982,9 +1004,18 @@ namespace dp2Capo
                 goto ERROR1;
             }
 
-            string strItemIdentifier = request.AB_ItemIdentifier_r;
             // 2021/3/3
             string strInstitution = request.AO_InstitutionId_r;
+
+            string strItemIdentifier = request.AB_ItemIdentifier_r;
+
+            // 2022/3/4
+            if (StringUtil.IsInList("bookUiiStrict", sip_channel.Style)
+                && strItemIdentifier.Contains(".") == false)
+            {
+                strError = $"请求的 AB 字段内容 '{strItemIdentifier}' 不合法。应为 UII 形态";
+                goto ERROR1;
+            }
 
             string strPatronIdentifier = request.AA_PatronIdentifier_r;
             if (String.IsNullOrEmpty(strItemIdentifier)
@@ -1149,6 +1180,7 @@ namespace dp2Capo
         ERROR1:
             response.Ok_1 = "0";
             response.AF_ScreenMessage_o = strError;
+            response.AG_PrintLine_o = strError;
             return response.ToText();
         }
 
@@ -1241,20 +1273,26 @@ namespace dp2Capo
             {
                 string strItemIdentifier = request.AB_ItemIdentifier_r;
 
+                // 2022/3/4
+                if (StringUtil.IsInList("bookUiiStrict", sip_channel.Style)
+                    && strItemIdentifier.Contains(".") == false)
+                {
+                    strError = $"请求的 AB 字段内容 '{strItemIdentifier}' 不合法。应为 UII 形态";
+                    goto ERROR1;
+                }
+                response.AB_ItemIdentifier_r = strItemIdentifier;
+
                 // 2021/1/31
                 string strInstitution = request.AO_InstitutionId_r;
 
-                response.AB_ItemIdentifier_r = strItemIdentifier;
-                string strItemXml = "";
-                string strBiblio = "";
                 string uii = AddOI(strItemIdentifier, strInstitution);
             REDO:
                 long lRet = info.LibraryChannel.GetItemInfo(
                     uii,
                     "xml",
-                    out strItemXml,
+                    out string strItemXml,
                     "xml",
-                    out strBiblio,
+                    out string strBiblio,
                     out strError);
                 if (lRet == -1 || lRet == 0)
                 {
@@ -1404,6 +1442,7 @@ namespace dp2Capo
         ERROR1:
             LibraryManager.Log?.Info("ItemInfo() error: " + strError);
             response.AF_ScreenMessage_o = strError;
+            response.AG_PrintLine_o = strError;
             // 2021/4/7
             // 迫使前端感觉到错误
             response.AB_ItemIdentifier_r = "";
@@ -1556,8 +1595,8 @@ namespace dp2Capo
             ItemStatusUpdateResponse_20 response = new ItemStatusUpdateResponse_20()
             {
                 ItemPropertiesOk_1 = "0",
-                //AB_ItemIdentifier_r = "",
-                //AJ_TitleIdentifier_o = "",
+                AB_ItemIdentifier_r = "",
+                // AJ_TitleIdentifier_o = "",
                 TransactionDate_18 = SIPUtility.NowDateTime,
             };
 
@@ -1589,12 +1628,20 @@ namespace dp2Capo
             {
                 string strItemIdentifier = request.AB_ItemIdentifier_r;
 
+                // 2022/3/4
+                if (StringUtil.IsInList("bookUiiStrict", sip_channel.Style)
+                    && strItemIdentifier.Contains(".") == false)
+                {
+                    strError = $"请求的 AB 字段内容 '{strItemIdentifier}' 不合法。应为 UII 形态";
+                    goto ERROR1;
+                }
+
                 // 2021/1/31
                 string strInstitution = request.AO_InstitutionId_r;
 
                 response.AB_ItemIdentifier_r = strItemIdentifier;
-                string strItemXml = "";
-                string strBiblio = "";
+                // string strItemXml = "";
+                // string strBiblio = "";
 
             REDO:
                 long lRet = info.LibraryChannel.GetItemInfo(
@@ -1602,11 +1649,11 @@ namespace dp2Capo
                     AddOI(strItemIdentifier, strInstitution),
                     "",
                     "xml",
-                    out strItemXml,
+                    out string strItemXml,
                     out string item_recpath,
                     out byte[] item_timestamp,
                     "xml",
-                    out strBiblio,
+                    out string strBiblio,
                     out string biblio_recpath,
                     out strError);
                 if (-1 >= lRet)
@@ -1862,6 +1909,8 @@ namespace dp2Capo
                 MagneticMedia_1 = "N",
                 Desensitize_1 = "N",
                 TransactionDate_18 = SIPUtility.NowDateTime,
+                AA_PatronIdentifier_r = "", // 2022/3/4
+                AB_ItemIdentifier_r = "",   // 2022/3/4
                 AO_InstitutionId_r = "",    // "dp2Library",
                 AJ_TitleIdentifier_r = string.Empty,
                 AH_DueDate_r = string.Empty,
@@ -1894,6 +1943,14 @@ namespace dp2Capo
             try
             {
                 string strItemIdentifier = request.AB_ItemIdentifier_o;
+
+                // 2022/3/4
+                if (StringUtil.IsInList("bookUiiStrict", sip_channel.Style)
+                    && strItemIdentifier.Contains(".") == false)
+                {
+                    strError = $"请求的 AB 字段内容 '{strItemIdentifier}' 不合法。应为 UII 形态";
+                    goto ERROR1;
+                }
 
                 // 2021/3/3
                 string strInstitution = request.AO_InstitutionId_r;
@@ -2050,6 +2107,7 @@ namespace dp2Capo
             LibraryManager.Log?.Info("Renew() error: " + strError);
             response.Ok_1 = "0";
             response.AF_ScreenMessage_o = strError;
+            response.AG_PrintLine_o = strError;
             return response.ToText();
         }
 

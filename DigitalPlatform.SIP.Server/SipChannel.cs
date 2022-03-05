@@ -30,6 +30,12 @@ namespace DigitalPlatform.SIP.Server
             set { _encoding = value; }
         }
 
+        // 2022/3/4
+        public string Style
+        {
+            get;set;
+        }
+
         // 最近的一条响应消息
         public string LastMsg { get; set; }
 

@@ -214,6 +214,8 @@ namespace dp2Capo.Install
                 item.UserName = user.GetAttribute("userName");
                 item.DateFormat = user.GetAttribute("dateFormat");
                 item.EncodingName = user.GetAttribute("encoding");
+                string style = user.GetAttribute("style");
+                item.BookUiiStrict = StringUtil.IsInList("bookUiiStrict", style);
                 item.IpList = user.GetAttribute("ipList");
                 item.AutoClearSeconds = user.GetAttribute("autoClearSeconds");
                 item.PropertyChanged += Item_PropertyChanged;
@@ -264,8 +266,13 @@ namespace dp2Capo.Install
                 XmlElement user = root.OwnerDocument.CreateElement("user");
                 root.AppendChild(user);
 
+                string style = "";
+                if (item.BookUiiStrict)
+                    style = "bookUiiStrict";
+
                 user.SetAttribute("userName", item.UserName);
                 user.SetAttribute("dateFormat", item.DateFormat);
+                user.SetAttribute("style", style);
                 user.SetAttribute("encoding", item.EncodingName);
                 user.SetAttribute("ipList", item.IpList);
                 user.SetAttribute("autoClearSeconds", item.AutoClearSeconds);
@@ -378,6 +385,21 @@ namespace dp2Capo.Install
                         && Int32.TryParse(value, out int seconds) == false)
                         throw new ArgumentException("自动清理秒数值 '" + value + "' 不合法。应为纯数字");
                     _autoClearSeconds = value;
+                }
+            }
+
+            bool _bookUiiStrict = SipServer.DEFAULT_BOOKUIISTRICT;
+
+            [DisplayName("图书 UII 严格要求"), Description("是否严格要求请求中的图书号码采用 UII 形态")]
+            [DefaultValue(SipServer.DEFAULT_ENCODING_NAME)]
+            [Category("SIP 参数")]
+            public bool BookUiiStrict
+            {
+                get { return _bookUiiStrict; }
+                set
+                {
+                    _bookUiiStrict = value;
+                    OnPropertyChanged("BookUiiStrict");
                 }
             }
 

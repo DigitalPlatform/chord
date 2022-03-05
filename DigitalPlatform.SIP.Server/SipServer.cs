@@ -16,6 +16,7 @@ namespace DigitalPlatform.SIP.Server
         // 常量
         public const string DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
         public const string DEFAULT_ENCODING_NAME = "UTF-8";
+        public const bool DEFAULT_BOOKUIISTRICT = false;
 
         int _maxPackageLength = 4096;
         public int MaxPackageLength

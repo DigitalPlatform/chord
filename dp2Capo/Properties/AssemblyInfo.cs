@@ -32,8 +32,8 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“生成号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”: 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.37.*")]
-[assembly: AssemblyFileVersion("1.37.0.0")]
+[assembly: AssemblyVersion("1.38.*")]
+[assembly: AssemblyFileVersion("1.38.0.0")]
 
 // 1.1 (2016/6/26) 首次使用了版本号
 // 1.2 (2016/9/14) 管理线程中会不断重试连接 dp2mserver，并将此情况写入日志
@@ -73,3 +73,4 @@ using System.Runtime.InteropServices;
 // 1.36 (2021/4/17)
 // 1.37 (2022/2/28) SIP Login() API 可以接纳 CP 字段，若其内容以感叹号开头，还会用于 dp2library Login() API 的 parameters location=xxx 子参数中
 //                  SIP Return() API 可以接纳 AP 字段，用于 dp2library Return() API 的 strStyle 子参数 currentLocation=xxxx
+// 1.38 (2022/3/4) SIP 账户配置增加了 bookUiiStrict 参数，用于定义是否严格要求图书号码为 UII 形态。影响到 checkin checkout renew iteminfo 四个 API

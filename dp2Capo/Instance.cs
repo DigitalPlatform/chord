@@ -1916,6 +1916,10 @@ namespace dp2Capo
         // 前端 IP 地址白名单。空表示所有 IP 地址都许可，和 * 作用一致
         public string IpList { get; set; }
 
+        // 2022/3/4
+        // 特性。可用值 bookUiiStrict
+        public string Style { get; set; }
+
         // parameters:
         //      neutralLanguage 是否采用中立语言抛出异常?
         public static SipParam GetSipParam(XmlElement element1,
@@ -1964,6 +1968,9 @@ namespace dp2Capo
                 throw new Exception(error);
             }
             param.AutoClearSeconds = seconds;
+
+            // 2022/3/4
+            param.Style = user.GetAttribute("style");
 
             return param;
         }
