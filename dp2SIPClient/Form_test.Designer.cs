@@ -77,6 +77,11 @@
             this.更多ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.参数配置ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.创建流通权限ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.tabPage_sip2 = new System.Windows.Forms.TabPage();
+            this.tabPage_borrowreturn = new System.Windows.Forms.TabPage();
+            this.button_iniLIb = new System.Windows.Forms.Button();
+            this.button_delLib = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -85,13 +90,16 @@
             this.groupBox2.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
+            this.tabControl1.SuspendLayout();
+            this.tabPage_sip2.SuspendLayout();
+            this.tabPage_borrowreturn.SuspendLayout();
             this.SuspendLayout();
             // 
             // button_createTestEnv
             // 
             this.button_createTestEnv.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button_createTestEnv.Location = new System.Drawing.Point(15, 9);
-            this.button_createTestEnv.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.button_createTestEnv.Location = new System.Drawing.Point(5, 5);
+            this.button_createTestEnv.Margin = new System.Windows.Forms.Padding(2);
             this.button_createTestEnv.Name = "button_createTestEnv";
             this.button_createTestEnv.Size = new System.Drawing.Size(160, 38);
             this.button_createTestEnv.TabIndex = 0;
@@ -105,10 +113,10 @@
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripStatusLabel1,
             this.toolStripProgressBar1});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 720);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 718);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Padding = new System.Windows.Forms.Padding(1, 0, 10, 0);
-            this.statusStrip1.Size = new System.Drawing.Size(1053, 30);
+            this.statusStrip1.Size = new System.Drawing.Size(1053, 32);
             this.statusStrip1.TabIndex = 1;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -129,46 +137,30 @@
             this.txtInfo.Dock = System.Windows.Forms.DockStyle.Fill;
             this.txtInfo.HideSelection = false;
             this.txtInfo.Location = new System.Drawing.Point(0, 0);
-            this.txtInfo.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.txtInfo.Margin = new System.Windows.Forms.Padding(2);
             this.txtInfo.Multiline = true;
             this.txtInfo.Name = "txtInfo";
             this.txtInfo.ReadOnly = true;
             this.txtInfo.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtInfo.Size = new System.Drawing.Size(544, 688);
+            this.txtInfo.Size = new System.Drawing.Size(154, 686);
             this.txtInfo.TabIndex = 22;
             // 
             // splitContainer1
             // 
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.splitContainer1.Location = new System.Drawing.Point(0, 32);
-            this.splitContainer1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.splitContainer1.Margin = new System.Windows.Forms.Padding(2);
             this.splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel1
             // 
-            this.splitContainer1.Panel1.Controls.Add(this.groupBox2);
-            this.splitContainer1.Panel1.Controls.Add(this.button_stpp);
-            this.splitContainer1.Panel1.Controls.Add(this.button_deleteTestEnv);
-            this.splitContainer1.Panel1.Controls.Add(this.textBox_93_password);
-            this.splitContainer1.Panel1.Controls.Add(this.textBox_93_username);
-            this.splitContainer1.Panel1.Controls.Add(this.label14);
-            this.splitContainer1.Panel1.Controls.Add(this.label13);
-            this.splitContainer1.Panel1.Controls.Add(this.textBox_17_itemNum);
-            this.splitContainer1.Panel1.Controls.Add(this.button_itemInfo);
-            this.splitContainer1.Panel1.Controls.Add(this.label12);
-            this.splitContainer1.Panel1.Controls.Add(this.textBox_63_patronNum);
-            this.splitContainer1.Panel1.Controls.Add(this.button_patronInfo);
-            this.splitContainer1.Panel1.Controls.Add(this.label11);
-            this.splitContainer1.Panel1.Controls.Add(this.groupBox1);
-            this.splitContainer1.Panel1.Controls.Add(this.button_SCStatus);
-            this.splitContainer1.Panel1.Controls.Add(this.button_login);
-            this.splitContainer1.Panel1.Controls.Add(this.button_createTestEnv);
+            this.splitContainer1.Panel1.Controls.Add(this.tabControl1);
             // 
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.txtInfo);
-            this.splitContainer1.Size = new System.Drawing.Size(1053, 688);
-            this.splitContainer1.SplitterDistance = 506;
+            this.splitContainer1.Size = new System.Drawing.Size(1053, 686);
+            this.splitContainer1.SplitterDistance = 896;
             this.splitContainer1.SplitterWidth = 3;
             this.splitContainer1.TabIndex = 23;
             // 
@@ -176,11 +168,11 @@
             // 
             this.groupBox2.Controls.Add(this.checkBox_wrongItem);
             this.groupBox2.Controls.Add(this.checkBox_wrongPatron);
-            this.groupBox2.Location = new System.Drawing.Point(15, 628);
-            this.groupBox2.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.groupBox2.Location = new System.Drawing.Point(322, 513);
+            this.groupBox2.Margin = new System.Windows.Forms.Padding(2);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
-            this.groupBox2.Size = new System.Drawing.Size(422, 62);
+            this.groupBox2.Padding = new System.Windows.Forms.Padding(2);
+            this.groupBox2.Size = new System.Drawing.Size(155, 95);
             this.groupBox2.TabIndex = 31;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "异常情况测试";
@@ -188,8 +180,8 @@
             // checkBox_wrongItem
             // 
             this.checkBox_wrongItem.AutoSize = true;
-            this.checkBox_wrongItem.Location = new System.Drawing.Point(165, 37);
-            this.checkBox_wrongItem.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.checkBox_wrongItem.Location = new System.Drawing.Point(9, 60);
+            this.checkBox_wrongItem.Margin = new System.Windows.Forms.Padding(2);
             this.checkBox_wrongItem.Name = "checkBox_wrongItem";
             this.checkBox_wrongItem.Size = new System.Drawing.Size(142, 22);
             this.checkBox_wrongItem.TabIndex = 26;
@@ -199,8 +191,8 @@
             // checkBox_wrongPatron
             // 
             this.checkBox_wrongPatron.AutoSize = true;
-            this.checkBox_wrongPatron.Location = new System.Drawing.Point(4, 37);
-            this.checkBox_wrongPatron.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.checkBox_wrongPatron.Location = new System.Drawing.Point(11, 25);
+            this.checkBox_wrongPatron.Margin = new System.Windows.Forms.Padding(2);
             this.checkBox_wrongPatron.Name = "checkBox_wrongPatron";
             this.checkBox_wrongPatron.Size = new System.Drawing.Size(142, 22);
             this.checkBox_wrongPatron.TabIndex = 25;
@@ -210,8 +202,8 @@
             // button_stpp
             // 
             this.button_stpp.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button_stpp.Location = new System.Drawing.Point(346, 9);
-            this.button_stpp.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.button_stpp.Location = new System.Drawing.Point(336, 5);
+            this.button_stpp.Margin = new System.Windows.Forms.Padding(2);
             this.button_stpp.Name = "button_stpp";
             this.button_stpp.Size = new System.Drawing.Size(66, 38);
             this.button_stpp.TabIndex = 30;
@@ -222,8 +214,8 @@
             // button_deleteTestEnv
             // 
             this.button_deleteTestEnv.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button_deleteTestEnv.Location = new System.Drawing.Point(181, 9);
-            this.button_deleteTestEnv.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.button_deleteTestEnv.Location = new System.Drawing.Point(171, 5);
+            this.button_deleteTestEnv.Margin = new System.Windows.Forms.Padding(2);
             this.button_deleteTestEnv.Name = "button_deleteTestEnv";
             this.button_deleteTestEnv.Size = new System.Drawing.Size(161, 38);
             this.button_deleteTestEnv.TabIndex = 30;
@@ -233,8 +225,8 @@
             // 
             // textBox_93_password
             // 
-            this.textBox_93_password.Location = new System.Drawing.Point(406, 73);
-            this.textBox_93_password.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_93_password.Location = new System.Drawing.Point(396, 69);
+            this.textBox_93_password.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_93_password.Name = "textBox_93_password";
             this.textBox_93_password.Size = new System.Drawing.Size(56, 28);
             this.textBox_93_password.TabIndex = 29;
@@ -242,8 +234,8 @@
             // 
             // textBox_93_username
             // 
-            this.textBox_93_username.Location = new System.Drawing.Point(281, 73);
-            this.textBox_93_username.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_93_username.Location = new System.Drawing.Point(271, 69);
+            this.textBox_93_username.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_93_username.Name = "textBox_93_username";
             this.textBox_93_username.Size = new System.Drawing.Size(66, 28);
             this.textBox_93_username.TabIndex = 27;
@@ -252,7 +244,7 @@
             // label14
             // 
             this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(358, 80);
+            this.label14.Location = new System.Drawing.Point(348, 76);
             this.label14.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label14.Name = "label14";
             this.label14.Size = new System.Drawing.Size(44, 18);
@@ -262,7 +254,7 @@
             // label13
             // 
             this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(215, 80);
+            this.label13.Location = new System.Drawing.Point(205, 76);
             this.label13.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(62, 18);
@@ -271,8 +263,8 @@
             // 
             // textBox_17_itemNum
             // 
-            this.textBox_17_itemNum.Location = new System.Drawing.Point(227, 578);
-            this.textBox_17_itemNum.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_17_itemNum.Location = new System.Drawing.Point(218, 573);
+            this.textBox_17_itemNum.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_17_itemNum.Name = "textBox_17_itemNum";
             this.textBox_17_itemNum.Size = new System.Drawing.Size(50, 28);
             this.textBox_17_itemNum.TabIndex = 22;
@@ -281,8 +273,8 @@
             // button_itemInfo
             // 
             this.button_itemInfo.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button_itemInfo.Location = new System.Drawing.Point(14, 573);
-            this.button_itemInfo.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.button_itemInfo.Location = new System.Drawing.Point(5, 568);
+            this.button_itemInfo.Margin = new System.Windows.Forms.Padding(2);
             this.button_itemInfo.Name = "button_itemInfo";
             this.button_itemInfo.Size = new System.Drawing.Size(202, 40);
             this.button_itemInfo.TabIndex = 23;
@@ -294,7 +286,7 @@
             // label12
             // 
             this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(276, 587);
+            this.label12.Location = new System.Drawing.Point(267, 582);
             this.label12.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(26, 18);
@@ -303,8 +295,8 @@
             // 
             // textBox_63_patronNum
             // 
-            this.textBox_63_patronNum.Location = new System.Drawing.Point(227, 522);
-            this.textBox_63_patronNum.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_63_patronNum.Location = new System.Drawing.Point(218, 517);
+            this.textBox_63_patronNum.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_63_patronNum.Name = "textBox_63_patronNum";
             this.textBox_63_patronNum.Size = new System.Drawing.Size(50, 28);
             this.textBox_63_patronNum.TabIndex = 19;
@@ -313,8 +305,8 @@
             // button_patronInfo
             // 
             this.button_patronInfo.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button_patronInfo.Location = new System.Drawing.Point(14, 517);
-            this.button_patronInfo.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.button_patronInfo.Location = new System.Drawing.Point(5, 512);
+            this.button_patronInfo.Margin = new System.Windows.Forms.Padding(2);
             this.button_patronInfo.Name = "button_patronInfo";
             this.button_patronInfo.Size = new System.Drawing.Size(202, 42);
             this.button_patronInfo.TabIndex = 20;
@@ -326,7 +318,7 @@
             // label11
             // 
             this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(276, 532);
+            this.label11.Location = new System.Drawing.Point(267, 527);
             this.label11.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(26, 18);
@@ -356,10 +348,10 @@
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Controls.Add(this.label5);
             this.groupBox1.Controls.Add(this.label6);
-            this.groupBox1.Location = new System.Drawing.Point(14, 151);
-            this.groupBox1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.groupBox1.Location = new System.Drawing.Point(5, 156);
+            this.groupBox1.Margin = new System.Windows.Forms.Padding(2);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.groupBox1.Padding = new System.Windows.Forms.Padding(2);
             this.groupBox1.Size = new System.Drawing.Size(422, 352);
             this.groupBox1.TabIndex = 6;
             this.groupBox1.TabStop = false;
@@ -368,7 +360,7 @@
             // 
             this.button_renew.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.button_renew.Location = new System.Drawing.Point(11, 304);
-            this.button_renew.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.button_renew.Margin = new System.Windows.Forms.Padding(2);
             this.button_renew.Name = "button_renew";
             this.button_renew.Size = new System.Drawing.Size(114, 35);
             this.button_renew.TabIndex = 25;
@@ -389,7 +381,7 @@
             // textBox_checkinout_inNum
             // 
             this.textBox_checkinout_inNum.Location = new System.Drawing.Point(326, 249);
-            this.textBox_checkinout_inNum.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_checkinout_inNum.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_checkinout_inNum.Name = "textBox_checkinout_inNum";
             this.textBox_checkinout_inNum.Size = new System.Drawing.Size(29, 28);
             this.textBox_checkinout_inNum.TabIndex = 23;
@@ -407,7 +399,7 @@
             // textBox_checkinout_outNum
             // 
             this.textBox_checkinout_outNum.Location = new System.Drawing.Point(263, 249);
-            this.textBox_checkinout_outNum.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_checkinout_outNum.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_checkinout_outNum.Name = "textBox_checkinout_outNum";
             this.textBox_checkinout_outNum.Size = new System.Drawing.Size(29, 28);
             this.textBox_checkinout_outNum.TabIndex = 21;
@@ -425,7 +417,7 @@
             // textBox_checkinout_itemNum
             // 
             this.textBox_checkinout_itemNum.Location = new System.Drawing.Point(196, 249);
-            this.textBox_checkinout_itemNum.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_checkinout_itemNum.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_checkinout_itemNum.Name = "textBox_checkinout_itemNum";
             this.textBox_checkinout_itemNum.Size = new System.Drawing.Size(29, 28);
             this.textBox_checkinout_itemNum.TabIndex = 19;
@@ -443,7 +435,7 @@
             // textBox_checkinout_patronNum
             // 
             this.textBox_checkinout_patronNum.Location = new System.Drawing.Point(133, 249);
-            this.textBox_checkinout_patronNum.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox_checkinout_patronNum.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_checkinout_patronNum.Name = "textBox_checkinout_patronNum";
             this.textBox_checkinout_patronNum.Size = new System.Drawing.Size(29, 28);
             this.textBox_checkinout_patronNum.TabIndex = 7;
@@ -452,7 +444,7 @@
             // 
             this.button_checkoutin_customer.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.button_checkoutin_customer.Location = new System.Drawing.Point(11, 243);
-            this.button_checkoutin_customer.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.button_checkoutin_customer.Margin = new System.Windows.Forms.Padding(2);
             this.button_checkoutin_customer.Name = "button_checkoutin_customer";
             this.button_checkoutin_customer.Size = new System.Drawing.Size(114, 38);
             this.button_checkoutin_customer.TabIndex = 17;
@@ -464,7 +456,7 @@
             // 
             this.button_checkout_dup.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.button_checkout_dup.Location = new System.Drawing.Point(11, 199);
-            this.button_checkout_dup.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.button_checkout_dup.Margin = new System.Windows.Forms.Padding(2);
             this.button_checkout_dup.Name = "button_checkout_dup";
             this.button_checkout_dup.Size = new System.Drawing.Size(78, 35);
             this.button_checkout_dup.TabIndex = 15;
@@ -476,7 +468,7 @@
             // 
             this.button_checkin_dup.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.button_checkin_dup.Location = new System.Drawing.Point(11, 154);
-            this.button_checkin_dup.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.button_checkin_dup.Margin = new System.Windows.Forms.Padding(2);
             this.button_checkin_dup.Name = "button_checkin_dup";
             this.button_checkin_dup.Size = new System.Drawing.Size(78, 35);
             this.button_checkin_dup.TabIndex = 13;
@@ -498,7 +490,7 @@
             // 
             this.button_checkoutin.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.button_checkoutin.Location = new System.Drawing.Point(11, 111);
-            this.button_checkoutin.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.button_checkoutin.Margin = new System.Windows.Forms.Padding(2);
             this.button_checkoutin.Name = "button_checkoutin";
             this.button_checkoutin.Size = new System.Drawing.Size(78, 34);
             this.button_checkoutin.TabIndex = 9;
@@ -510,7 +502,7 @@
             // 
             this.button_checkin.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.button_checkin.Location = new System.Drawing.Point(11, 68);
-            this.button_checkin.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.button_checkin.Margin = new System.Windows.Forms.Padding(2);
             this.button_checkin.Name = "button_checkin";
             this.button_checkin.Size = new System.Drawing.Size(78, 34);
             this.button_checkin.TabIndex = 8;
@@ -522,7 +514,7 @@
             // 
             this.button_checkout.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.button_checkout.Location = new System.Drawing.Point(11, 26);
-            this.button_checkout.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.button_checkout.Margin = new System.Windows.Forms.Padding(2);
             this.button_checkout.Name = "button_checkout";
             this.button_checkout.Size = new System.Drawing.Size(78, 34);
             this.button_checkout.TabIndex = 7;
@@ -584,8 +576,8 @@
             // button_SCStatus
             // 
             this.button_SCStatus.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button_SCStatus.Location = new System.Drawing.Point(15, 108);
-            this.button_SCStatus.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.button_SCStatus.Location = new System.Drawing.Point(5, 104);
+            this.button_SCStatus.Margin = new System.Windows.Forms.Padding(2);
             this.button_SCStatus.Name = "button_SCStatus";
             this.button_SCStatus.Size = new System.Drawing.Size(201, 38);
             this.button_SCStatus.TabIndex = 5;
@@ -597,8 +589,8 @@
             // button_login
             // 
             this.button_login.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button_login.Location = new System.Drawing.Point(15, 67);
-            this.button_login.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.button_login.Location = new System.Drawing.Point(5, 63);
+            this.button_login.Margin = new System.Windows.Forms.Padding(2);
             this.button_login.Name = "button_login";
             this.button_login.Size = new System.Drawing.Size(201, 32);
             this.button_login.TabIndex = 4;
@@ -609,6 +601,7 @@
             // 
             // menuStrip1
             // 
+            this.menuStrip1.GripMargin = new System.Windows.Forms.Padding(2, 2, 0, 2);
             this.menuStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.更多ToolStripMenuItem});
@@ -625,22 +618,96 @@
             this.参数配置ToolStripMenuItem,
             this.创建流通权限ToolStripMenuItem});
             this.更多ToolStripMenuItem.Name = "更多ToolStripMenuItem";
-            this.更多ToolStripMenuItem.Size = new System.Drawing.Size(58, 28);
+            this.更多ToolStripMenuItem.Size = new System.Drawing.Size(62, 32);
             this.更多ToolStripMenuItem.Text = "更多";
             // 
             // 参数配置ToolStripMenuItem
             // 
             this.参数配置ToolStripMenuItem.Name = "参数配置ToolStripMenuItem";
-            this.参数配置ToolStripMenuItem.Size = new System.Drawing.Size(200, 30);
+            this.参数配置ToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
             this.参数配置ToolStripMenuItem.Text = "参数配置";
             this.参数配置ToolStripMenuItem.Click += new System.EventHandler(this.参数配置ToolStripMenuItem_Click);
             // 
             // 创建流通权限ToolStripMenuItem
             // 
             this.创建流通权限ToolStripMenuItem.Name = "创建流通权限ToolStripMenuItem";
-            this.创建流通权限ToolStripMenuItem.Size = new System.Drawing.Size(200, 30);
+            this.创建流通权限ToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
             this.创建流通权限ToolStripMenuItem.Text = "创建流通权限";
             this.创建流通权限ToolStripMenuItem.Click += new System.EventHandler(this.创建流通权限ToolStripMenuItem_Click);
+            // 
+            // tabControl1
+            // 
+            this.tabControl1.Controls.Add(this.tabPage_borrowreturn);
+            this.tabControl1.Controls.Add(this.tabPage_sip2);
+            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabControl1.Location = new System.Drawing.Point(0, 0);
+            this.tabControl1.Name = "tabControl1";
+            this.tabControl1.SelectedIndex = 0;
+            this.tabControl1.Size = new System.Drawing.Size(896, 686);
+            this.tabControl1.TabIndex = 32;
+            // 
+            // tabPage_sip2
+            // 
+            this.tabPage_sip2.Controls.Add(this.button_createTestEnv);
+            this.tabPage_sip2.Controls.Add(this.groupBox2);
+            this.tabPage_sip2.Controls.Add(this.button_login);
+            this.tabPage_sip2.Controls.Add(this.textBox_17_itemNum);
+            this.tabPage_sip2.Controls.Add(this.button_stpp);
+            this.tabPage_sip2.Controls.Add(this.button_itemInfo);
+            this.tabPage_sip2.Controls.Add(this.button_SCStatus);
+            this.tabPage_sip2.Controls.Add(this.label12);
+            this.tabPage_sip2.Controls.Add(this.button_deleteTestEnv);
+            this.tabPage_sip2.Controls.Add(this.textBox_63_patronNum);
+            this.tabPage_sip2.Controls.Add(this.label13);
+            this.tabPage_sip2.Controls.Add(this.button_patronInfo);
+            this.tabPage_sip2.Controls.Add(this.label11);
+            this.tabPage_sip2.Controls.Add(this.textBox_93_password);
+            this.tabPage_sip2.Controls.Add(this.label14);
+            this.tabPage_sip2.Controls.Add(this.groupBox1);
+            this.tabPage_sip2.Controls.Add(this.textBox_93_username);
+            this.tabPage_sip2.Location = new System.Drawing.Point(4, 28);
+            this.tabPage_sip2.Name = "tabPage_sip2";
+            this.tabPage_sip2.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage_sip2.Size = new System.Drawing.Size(888, 654);
+            this.tabPage_sip2.TabIndex = 0;
+            this.tabPage_sip2.Text = "SIP2测试";
+            this.tabPage_sip2.UseVisualStyleBackColor = true;
+            // 
+            // tabPage_borrowreturn
+            // 
+            this.tabPage_borrowreturn.Controls.Add(this.button_iniLIb);
+            this.tabPage_borrowreturn.Controls.Add(this.button_delLib);
+            this.tabPage_borrowreturn.Location = new System.Drawing.Point(4, 28);
+            this.tabPage_borrowreturn.Name = "tabPage_borrowreturn";
+            this.tabPage_borrowreturn.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage_borrowreturn.Size = new System.Drawing.Size(888, 650);
+            this.tabPage_borrowreturn.TabIndex = 1;
+            this.tabPage_borrowreturn.Text = "馆际互际";
+            this.tabPage_borrowreturn.UseVisualStyleBackColor = true;
+            // 
+            // button_iniLIb
+            // 
+            this.button_iniLIb.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.button_iniLIb.Location = new System.Drawing.Point(7, 14);
+            this.button_iniLIb.Margin = new System.Windows.Forms.Padding(2);
+            this.button_iniLIb.Name = "button_iniLIb";
+            this.button_iniLIb.Size = new System.Drawing.Size(160, 38);
+            this.button_iniLIb.TabIndex = 31;
+            this.button_iniLIb.Text = "初始化测试环境";
+            this.button_iniLIb.UseVisualStyleBackColor = true;
+            this.button_iniLIb.Click += new System.EventHandler(this.button_iniLIb_Click);
+            // 
+            // button_delLib
+            // 
+            this.button_delLib.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.button_delLib.Location = new System.Drawing.Point(173, 14);
+            this.button_delLib.Margin = new System.Windows.Forms.Padding(2);
+            this.button_delLib.Name = "button_delLib";
+            this.button_delLib.Size = new System.Drawing.Size(161, 38);
+            this.button_delLib.TabIndex = 33;
+            this.button_delLib.Text = "删除测试环境";
+            this.button_delLib.UseVisualStyleBackColor = true;
+            this.button_delLib.Click += new System.EventHandler(this.button_delLib_Click);
             // 
             // Form_Test
             // 
@@ -651,13 +718,12 @@
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "Form_Test";
             this.Text = "Form_test";
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
             this.splitContainer1.Panel1.ResumeLayout(false);
-            this.splitContainer1.Panel1.PerformLayout();
             this.splitContainer1.Panel2.ResumeLayout(false);
             this.splitContainer1.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
@@ -668,6 +734,10 @@
             this.groupBox1.PerformLayout();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
+            this.tabControl1.ResumeLayout(false);
+            this.tabPage_sip2.ResumeLayout(false);
+            this.tabPage_sip2.PerformLayout();
+            this.tabPage_borrowreturn.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -724,6 +794,10 @@
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.CheckBox checkBox_wrongItem;
         private System.Windows.Forms.ToolStripMenuItem 参数配置ToolStripMenuItem;
-
+        private System.Windows.Forms.TabControl tabControl1;
+        private System.Windows.Forms.TabPage tabPage_borrowreturn;
+        private System.Windows.Forms.Button button_iniLIb;
+        private System.Windows.Forms.Button button_delLib;
+        private System.Windows.Forms.TabPage tabPage_sip2;
     }
 }

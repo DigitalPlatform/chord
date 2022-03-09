@@ -431,7 +431,7 @@ namespace DigitalPlatform.CirculationClient
                 bool bCanBorrow,
                 bool bItemBarcodeNullable)
             {
-                this.LibraryCode = LibraryCode;
+                this.LibraryCode = strLibraryCode;
                 this.Room = strRoom;
                 this.CanBorrow = bCanBorrow;
                 this.ItemBarcodeNullable = bItemBarcodeNullable;
@@ -505,10 +505,13 @@ namespace DigitalPlatform.CirculationClient
 
                     if (string.IsNullOrEmpty(item.LibraryCode) == false)
                     {
-                        XmlElement library = null;
-                        library = dom.CreateElement("library");
-                        dom.DocumentElement.AppendChild(library);
-                        library.SetAttribute("code", item.LibraryCode);
+                        XmlNode library = dom.DocumentElement.SelectSingleNode("library[@code='"+ item.LibraryCode + "']");
+                        if (library == null)
+                        {
+                            library = dom.CreateElement("library");
+                            dom.DocumentElement.AppendChild(library);
+                           ( (XmlElement)library).SetAttribute("code", item.LibraryCode);
+                        }
                         library.AppendChild(new_item);
                     }
                     else

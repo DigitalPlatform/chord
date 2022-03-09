@@ -3500,7 +3500,7 @@ out strError);
                     out strOutputInfo,
                     strAction,
                     strDatabaseName,
-                    strDatabaseInfo
+                    strDatabaseInfo,""  // 2022/3/9增加一个参数
                     );
                 if (result.Value == -1 && result.ErrorCode == ErrorCode.NotLogin)
                 {
