@@ -1879,6 +1879,13 @@ namespace dp2SIPClient
 
         private void button_iniLIb_Click(object sender, EventArgs e)
         {
+            this.IniLibEnv(true);
+        }
+
+
+        // 初始化测试环境
+        public void IniLibEnv(bool bzfg)
+        {
             Task.Run(() =>
             {
                 string error = "";
@@ -1889,7 +1896,7 @@ namespace dp2SIPClient
 
 
                 //先删除测试环境
-                nRet = this.DeleteLibEnv(out error);
+                nRet = this.DeleteLibEnv(bzfg, out error);
                 if (nRet == -1)
                 {
                     error = "删除测试环境出错：" + error;
@@ -1926,32 +1933,35 @@ namespace dp2SIPClient
                     if (lRet == -1)
                         goto ERROR1;
 
-                    // A馆读者库
-                    info = "正在创建A馆读者库 ...";
-                    ProgressSetMessage(info);
-                    LogManager.Logger.Info(info);
-                    lRet = CreateReaderDb(channel, Env_A_ReaderDbName,
-                        Env_A_LibraryCode);
-                    if (lRet == -1)
-                        goto ERROR1;
+                    if (bzfg == true)
+                    {
+                        // A馆读者库
+                        info = "正在创建A馆读者库 ...";
+                        ProgressSetMessage(info);
+                        LogManager.Logger.Info(info);
+                        lRet = CreateReaderDb(channel, Env_A_ReaderDbName,
+                            Env_A_LibraryCode);
+                        if (lRet == -1)
+                            goto ERROR1;
 
-                    // B馆读者库
-                    info = "正在创建B馆读者库 ...";
-                    ProgressSetMessage(info);
-                    LogManager.Logger.Info(info);
-                    lRet = CreateReaderDb(channel, Env_B_ReaderDbName,
-                        Env_B_LibraryCode);
-                    if (lRet == -1)
-                        goto ERROR1;
+                        // B馆读者库
+                        info = "正在创建B馆读者库 ...";
+                        ProgressSetMessage(info);
+                        LogManager.Logger.Info(info);
+                        lRet = CreateReaderDb(channel, Env_B_ReaderDbName,
+                            Env_B_LibraryCode);
+                        if (lRet == -1)
+                            goto ERROR1;
 
-                    // C馆读者库
-                    info = "正在创建C馆读者库 ...";
-                    ProgressSetMessage(info);
-                    LogManager.Logger.Info(info);
-                    lRet = CreateReaderDb(channel, Env_C_ReaderDbName,
-                        Env_C_LibraryCode);
-                    if (lRet == -1)
-                        goto ERROR1;
+                        // C馆读者库
+                        info = "正在创建C馆读者库 ...";
+                        ProgressSetMessage(info);
+                        LogManager.Logger.Info(info);
+                        lRet = CreateReaderDb(channel, Env_C_ReaderDbName,
+                            Env_C_LibraryCode);
+                        if (lRet == -1)
+                            goto ERROR1;
+                    }
 
                     // *** 定义测试所需的馆藏地
                     info = "正在定义测试所需的馆藏地 ...";
@@ -1960,9 +1970,12 @@ namespace dp2SIPClient
 
                     List<DigitalPlatform.CirculationClient.ManageHelper.LocationItem> items = new List<DigitalPlatform.CirculationClient.ManageHelper.LocationItem>();
                     items.Add(new DigitalPlatform.CirculationClient.ManageHelper.LocationItem("", Env_ZG_Location, true, true));
-                    items.Add(new DigitalPlatform.CirculationClient.ManageHelper.LocationItem(Env_A_LibraryCode, Env_A_Location, true, true));
-                    items.Add(new DigitalPlatform.CirculationClient.ManageHelper.LocationItem(Env_B_LibraryCode, Env_B_Location, true, true));
-                    items.Add(new DigitalPlatform.CirculationClient.ManageHelper.LocationItem(Env_C_LibraryCode, Env_C_Location, true, true));
+                    if (bzfg == true)
+                    {
+                        items.Add(new DigitalPlatform.CirculationClient.ManageHelper.LocationItem(Env_A_LibraryCode, Env_A_Location, true, true));
+                        items.Add(new DigitalPlatform.CirculationClient.ManageHelper.LocationItem(Env_B_LibraryCode, Env_B_Location, true, true));
+                        items.Add(new DigitalPlatform.CirculationClient.ManageHelper.LocationItem(Env_C_LibraryCode, Env_C_Location, true, true));
+                    }
                     nRet = ManageHelper.AddLocationTypes(
                         channel,
                         // this.Progress,
@@ -1989,104 +2002,111 @@ namespace dp2SIPClient
                        out error);
                     if (lRet == -1)
                         goto ERROR1;
-                    // A馆
-                    cInfo = new CalenderInfo();
-                    cInfo.Name = Env_A_LibraryCode + "/" + Env_A_CalenderName;
-                    cInfo.Range = "20220101-20241231";
-                    cInfo.Comment = "";
-                    cInfo.Content = "";
-                    lRet = channel.SetCalendar(
-                       // _stop,
-                       "new",
-                       cInfo,
-                       out error);
-                    if (lRet == -1)
-                        goto ERROR1;
-                    // B馆
-                    cInfo = new CalenderInfo();
-                    cInfo.Name = Env_B_LibraryCode+"/"+ Env_B_CalenderName;
-                    cInfo.Range = "20220101-20241231";
-                    cInfo.Comment = "";
-                    cInfo.Content = "";
-                    lRet = channel.SetCalendar(
-                       // _stop,
-                       "new",
-                       cInfo,
-                       out error);
-                    if (lRet == -1)
-                        goto ERROR1;
 
-                    // C馆
-                    cInfo = new CalenderInfo();
-                    cInfo.Name = Env_C_LibraryCode + "/" + Env_C_CalenderName;
-                    cInfo.Range = "20220101-20241231";
-                    cInfo.Comment = "";
-                    cInfo.Content = "";
-                    lRet = channel.SetCalendar(
-                       // _stop,
-                       "new",
-                       cInfo,
-                       out error);
-                    if (lRet == -1)
-                        goto ERROR1;
+                    if (bzfg == true)
+                    {
+                        // A馆
+                        cInfo = new CalenderInfo();
+                        cInfo.Name = Env_A_LibraryCode + "/" + Env_A_CalenderName;
+                        cInfo.Range = "20220101-20241231";
+                        cInfo.Comment = "";
+                        cInfo.Content = "";
+                        lRet = channel.SetCalendar(
+                           // _stop,
+                           "new",
+                           cInfo,
+                           out error);
+                        if (lRet == -1)
+                            goto ERROR1;
+                        // B馆
+                        cInfo = new CalenderInfo();
+                        cInfo.Name = Env_B_LibraryCode + "/" + Env_B_CalenderName;
+                        cInfo.Range = "20220101-20241231";
+                        cInfo.Comment = "";
+                        cInfo.Content = "";
+                        lRet = channel.SetCalendar(
+                           // _stop,
+                           "new",
+                           cInfo,
+                           out error);
+                        if (lRet == -1)
+                            goto ERROR1;
+
+                        // C馆
+                        cInfo = new CalenderInfo();
+                        cInfo.Name = Env_C_LibraryCode + "/" + Env_C_CalenderName;
+                        cInfo.Range = "20220101-20241231";
+                        cInfo.Comment = "";
+                        cInfo.Content = "";
+                        lRet = channel.SetCalendar(
+                           // _stop,
+                           "new",
+                           cInfo,
+                           out error);
+                        if (lRet == -1)
+                            goto ERROR1;
+                    }
 
                     // ***创建流通权限
                     info = "正在创建测试所需的流通权限 ...";
                     ProgressSetMessage(info);
                     LogManager.Logger.Info(info);
 
+                    // 总馆
                     List<rightTable> rightList = new List<rightTable>();
                     rightTable zg = new rightTable(Env_ZG_LibraryCode,
-                        Env_ZG_PatronType,true,
+                        Env_ZG_PatronType, true,
                         Env_ZG_BookType,
                         Env_ZG_CalenderName);
                     rightList.Add(zg);
 
                     rightTable zg1 = new rightTable(Env_ZG_LibraryCode,
-    Env_ZG_PatronType_teacher, true,
-    Env_ZG_BookType,
-    Env_ZG_CalenderName);
+                        Env_ZG_PatronType_teacher, true,
+                        Env_ZG_BookType,
+                        Env_ZG_CalenderName);
                     rightList.Add(zg1);
 
-                    // A馆
-                    rightTable a = new rightTable(Env_A_LibraryCode,
-                        Env_A_PatronType, true,
-                        Env_A_BookType,
-                        Env_A_LibraryCode + "/" + Env_A_CalenderName);
-                    rightList.Add(a);
+                    if (bzfg == true)
+                    {
+                        // A馆
+                        rightTable a = new rightTable(Env_A_LibraryCode,
+                            Env_A_PatronType, true,
+                            Env_A_BookType,
+                            Env_A_LibraryCode + "/" + Env_A_CalenderName);
+                        rightList.Add(a);
 
-                    rightTable a2 = new rightTable(Env_A_LibraryCode,
-                        Env_A_PatronType_teacher, true,
-                        Env_A_BookType,
-                        Env_A_LibraryCode + "/" +Env_A_CalenderName);
-                    rightList.Add(a2);
+                        rightTable a2 = new rightTable(Env_A_LibraryCode,
+                            Env_A_PatronType_teacher, true,
+                            Env_A_BookType,
+                            Env_A_LibraryCode + "/" + Env_A_CalenderName);
+                        rightList.Add(a2);
 
-                    //B馆
-                    rightTable b = new rightTable(Env_B_LibraryCode,
-                        Env_B_PatronType, true,
-                        Env_B_BookType,
-                        Env_B_LibraryCode + "/" + Env_B_CalenderName);
-                    rightList.Add(b);
+                        //B馆
+                        rightTable b = new rightTable(Env_B_LibraryCode,
+                            Env_B_PatronType, true,
+                            Env_B_BookType,
+                            Env_B_LibraryCode + "/" + Env_B_CalenderName);
+                        rightList.Add(b);
 
-                    rightTable b2 = new rightTable(Env_B_LibraryCode,
-                        Env_B_PatronType_teacher,true,
-                        Env_B_BookType,
-                        Env_B_LibraryCode + "/" + Env_B_CalenderName);
-                    rightList.Add(b2);
+                        rightTable b2 = new rightTable(Env_B_LibraryCode,
+                            Env_B_PatronType_teacher, true,
+                            Env_B_BookType,
+                            Env_B_LibraryCode + "/" + Env_B_CalenderName);
+                        rightList.Add(b2);
 
-                    //C馆
-                    rightTable c = new rightTable(Env_C_LibraryCode,
-                        Env_C_PatronType, true,
-                        Env_C_BookType,
-                        Env_C_LibraryCode + "/" + Env_C_CalenderName);
-                    rightList.Add(c);
+                        //C馆
+                        rightTable c = new rightTable(Env_C_LibraryCode,
+                            Env_C_PatronType, true,
+                            Env_C_BookType,
+                            Env_C_LibraryCode + "/" + Env_C_CalenderName);
+                        rightList.Add(c);
 
-                    rightTable c2 = new rightTable(Env_C_LibraryCode,
-                        Env_C_PatronType_teacher, true,
-                        Env_C_BookType,
-                        Env_C_LibraryCode + "/" + Env_C_CalenderName);
-                    rightList.Add(c2);
-
+                        rightTable c2 = new rightTable(Env_C_LibraryCode,
+                            Env_C_PatronType_teacher, true,
+                            Env_C_BookType,
+                            Env_C_LibraryCode + "/" + Env_C_CalenderName);
+                        rightList.Add(c2);
+                    }
 
                     nRet = this.AddTestRightsTable(channel, null, rightList,
                         out error);
@@ -2120,22 +2140,24 @@ namespace dp2SIPClient
 
                     List<LocItem> locs = new List<LocItem>();
                     locs.Add(new LocItem(Env_ZG_Location, "Z", Env_ZG_BookType));
-                    locs.Add(new LocItem(Env_A_LibraryCode+"/"+Env_A_Location, "A", Env_A_BookType));
-                    locs.Add(new LocItem(Env_B_LibraryCode + "/"+Env_B_Location, "B", Env_B_BookType));
-                    locs.Add(new LocItem(Env_C_LibraryCode + "/" + Env_C_Location, "C", Env_C_BookType));
-
-                    nRet = this.CreateBiblioRecord(channel, Env_BiblioDbName, locs,out error);
+                    if (bzfg == true)
+                    {
+                        locs.Add(new LocItem(Env_A_LibraryCode + "/" + Env_A_Location, "A", Env_A_BookType));
+                        locs.Add(new LocItem(Env_B_LibraryCode + "/" + Env_B_Location, "B", Env_B_BookType));
+                        locs.Add(new LocItem(Env_C_LibraryCode + "/" + Env_C_Location, "C", Env_C_BookType));
+                    }
+                    nRet = this.CreateBiblioRecord(channel, Env_BiblioDbName, locs, out error);
                     if (nRet == -1)
                         goto ERROR1;
 
- 
+
 
 
                     info = "正在创建测试读者记录 ...";
                     ProgressSetMessage(info);
                     LogManager.Logger.Info(info);
-                    //总库读者
-                    lRet = this.CreateReaderRecord(channel,Env_ZG_ReaderDbName,
+                    //总库读者-学生
+                    lRet = this.CreateReaderRecord(channel, Env_ZG_ReaderDbName,
                         Env_ZG_PatronType,
                         "PZX",
                         3,
@@ -2143,7 +2165,7 @@ namespace dp2SIPClient
                     if (lRet == -1)
                         goto ERROR1;
 
-                    //总库读者
+                    //总库读者-老师
                     lRet = this.CreateReaderRecord(channel, Env_ZG_ReaderDbName,
                         Env_ZG_PatronType_teacher,
                         "PZT",
@@ -2152,81 +2174,85 @@ namespace dp2SIPClient
                     if (lRet == -1)
                         goto ERROR1;
 
-
-                    info = "正在创建A馆读者记录 ...";
-                    ProgressSetMessage(info);
-                    LogManager.Logger.Info(info);
-                    //A读者
-                    lRet = this.CreateReaderRecord(channel, Env_A_ReaderDbName,
-                        Env_A_PatronType,
-                        "PAX",
-                        3,
-                        out error);
-                    if (lRet == -1)
-                        goto ERROR1;
-                    lRet = this.CreateReaderRecord(channel, Env_A_ReaderDbName,
-                        Env_A_PatronType_teacher,
-                        "PAT",
-                        3,
-                        out error);
-                    if (lRet == -1)
-                        goto ERROR1;
-
-
-                    info = "正在创建B馆读者记录 ...";
-                    ProgressSetMessage(info);
-                    LogManager.Logger.Info(info);
-                    //B库读者
-                    lRet = this.CreateReaderRecord(channel, Env_B_ReaderDbName,
-                        Env_B_PatronType,
-                        "PBX",
-                        3,
-                        out error);
-                    if (lRet == -1)
-                        goto ERROR1;
-                    lRet = this.CreateReaderRecord(channel, Env_B_ReaderDbName,
-                        Env_B_PatronType_teacher,
-                        "PBT",
-                        3,
-                        out error);
-                    if (lRet == -1)
-                        goto ERROR1;
-
-                    info = "正在创建C馆读者记录 ...";
-                    ProgressSetMessage(info);
-                    LogManager.Logger.Info(info);
-                    //C库读者
-                    lRet = this.CreateReaderRecord(channel, Env_C_ReaderDbName,
-                        Env_C_PatronType,
-                        "PCX",
-                        3,
-                        out error);
-                    if (lRet == -1)
-                        goto ERROR1;
-                    lRet = this.CreateReaderRecord(channel, Env_C_ReaderDbName,
-                        Env_C_PatronType_teacher,
-                        "PCT",
-                        3,
-                        out error);
-                    if (lRet == -1)
-                        goto ERROR1;
+                    if (bzfg == true)
+                    {
+                        info = "正在创建A馆读者记录 ...";
+                        ProgressSetMessage(info);
+                        LogManager.Logger.Info(info);
+                        //A读者
+                        lRet = this.CreateReaderRecord(channel, Env_A_ReaderDbName,
+                            Env_A_PatronType,
+                            "PAX",
+                            3,
+                            out error);
+                        if (lRet == -1)
+                            goto ERROR1;
+                        lRet = this.CreateReaderRecord(channel, Env_A_ReaderDbName,
+                            Env_A_PatronType_teacher,
+                            "PAT",
+                            3,
+                            out error);
+                        if (lRet == -1)
+                            goto ERROR1;
 
 
+                        info = "正在创建B馆读者记录 ...";
+                        ProgressSetMessage(info);
+                        LogManager.Logger.Info(info);
+                        //B库读者
+                        lRet = this.CreateReaderRecord(channel, Env_B_ReaderDbName,
+                            Env_B_PatronType,
+                            "PBX",
+                            3,
+                            out error);
+                        if (lRet == -1)
+                            goto ERROR1;
+                        lRet = this.CreateReaderRecord(channel, Env_B_ReaderDbName,
+                            Env_B_PatronType_teacher,
+                            "PBT",
+                            3,
+                            out error);
+                        if (lRet == -1)
+                            goto ERROR1;
+
+                        info = "正在创建C馆读者记录 ...";
+                        ProgressSetMessage(info);
+                        LogManager.Logger.Info(info);
+                        //C库读者
+                        lRet = this.CreateReaderRecord(channel, Env_C_ReaderDbName,
+                            Env_C_PatronType,
+                            "PCX",
+                            3,
+                            out error);
+                        if (lRet == -1)
+                            goto ERROR1;
+                        lRet = this.CreateReaderRecord(channel, Env_C_ReaderDbName,
+                            Env_C_PatronType_teacher,
+                            "PCT",
+                            3,
+                            out error);
+                        if (lRet == -1)
+                            goto ERROR1;
+
+                    }
                     info = "正在创建工作人员帐号 ...";
                     ProgressSetMessage(info);
                     LogManager.Logger.Info(info);
-                    lRet = this.SetUser(channel, "new",Env_ZG_LibraryCode,"zg", out error);
+                    lRet = this.SetUser(channel, "new", Env_ZG_LibraryCode, "zg", out error);
                     if (lRet == -1)
                         goto ERROR1;
-                    lRet = this.SetUser(channel, "new", Env_A_LibraryCode, "a", out error);
-                    if (lRet == -1)
-                        goto ERROR1;
-                    lRet = this.SetUser(channel, "new", Env_B_LibraryCode, "b", out error);
-                    if (lRet == -1)
-                        goto ERROR1;
-                    lRet = this.SetUser(channel, "new", Env_C_LibraryCode, "c", out error);
-                    if (lRet == -1)
-                        goto ERROR1;
+                    if (bzfg == true)
+                    {
+                        lRet = this.SetUser(channel, "new", Env_A_LibraryCode, "a", out error);
+                        if (lRet == -1)
+                            goto ERROR1;
+                        lRet = this.SetUser(channel, "new", Env_B_LibraryCode, "b", out error);
+                        if (lRet == -1)
+                            goto ERROR1;
+                        lRet = this.SetUser(channel, "new", Env_C_LibraryCode, "c", out error);
+                        if (lRet == -1)
+                            goto ERROR1;
+                    }
 
                     info = "初始化测试环境完成";
                     ProgressSetMessage(info);
@@ -2331,7 +2357,7 @@ namespace dp2SIPClient
         {
             string error = "";
             //先删除测试环境
-            int nRet = this.DeleteLibEnv(out error);
+            int nRet = this.DeleteLibEnv(true,out error);
             if (nRet == -1)
             {
                 error = "删除测试环境出错：" + error;
@@ -2345,7 +2371,7 @@ namespace dp2SIPClient
         #region
 
         // 删除测试环境
-        public int DeleteLibEnv(out string error)
+        public int DeleteLibEnv(bool bzfg,out string error)
         {
             error = "";
             int nRet = 0;
@@ -2400,16 +2426,21 @@ namespace dp2SIPClient
 
                 // 删除读者库
                 info = "正在删除测试用读者库 ...";
-                string strDatabaseNames = Env_ZG_ReaderDbName 
-                    + "," + Env_A_ReaderDbName 
-                    + "," + Env_B_ReaderDbName 
-                    + "," + Env_C_ReaderDbName;
+                string strDatabaseNames = Env_ZG_ReaderDbName;
+                if (bzfg == true)
+                {
+                    strDatabaseNames = Env_ZG_ReaderDbName
+                        + "," + Env_A_ReaderDbName
+                        + "," + Env_B_ReaderDbName
+                        + "," + Env_C_ReaderDbName;
+                }
+
                 ProgressSetMessage(info);
                 LogManager.Logger.Info(info);
                 lRet = channel.ManageDatabase(
                    // _stop,
                    "delete",
-                   strDatabaseNames,//C_ReaderDbName,    // strDatabaseNames,
+                   strDatabaseNames,
                    "",
                    out strOutputInfo,
                    out error);
@@ -2427,11 +2458,12 @@ namespace dp2SIPClient
                 LogManager.Logger.Info(info);
                 List<DigitalPlatform.CirculationClient.ManageHelper.LocationItem> items = new List<DigitalPlatform.CirculationClient.ManageHelper.LocationItem>();
                 items.Add(new DigitalPlatform.CirculationClient.ManageHelper.LocationItem(Env_ZG_LibraryCode, Env_ZG_Location, true, false));
-
-                items.Add(new DigitalPlatform.CirculationClient.ManageHelper.LocationItem(Env_A_LibraryCode, Env_A_Location, true, false));
-                items.Add(new DigitalPlatform.CirculationClient.ManageHelper.LocationItem(Env_B_LibraryCode, Env_B_Location, true, false));
-                items.Add(new DigitalPlatform.CirculationClient.ManageHelper.LocationItem(Env_C_LibraryCode, Env_C_Location, true, false));
-
+                if (bzfg == true)
+                {
+                    items.Add(new DigitalPlatform.CirculationClient.ManageHelper.LocationItem(Env_A_LibraryCode, Env_A_Location, true, false));
+                    items.Add(new DigitalPlatform.CirculationClient.ManageHelper.LocationItem(Env_B_LibraryCode, Env_B_Location, true, false));
+                    items.Add(new DigitalPlatform.CirculationClient.ManageHelper.LocationItem(Env_C_LibraryCode, Env_C_Location, true, false));
+                }
                 nRet = ManageHelper.AddLocationTypes(
                     channel,
                     // this.Progress,
@@ -2474,22 +2506,66 @@ namespace dp2SIPClient
                         goto ERROR1;
                 }
 
-
-                lRet = channel.GetCalendar(
-                    // this.Progress,
-                    "get",
-                    Env_A_LibraryCode + "/" + Env_A_CalenderName,
-                    0,
-                    -1,
-                    out infos1,
-                    out error);
-                if (lRet == -1)
-                    goto ERROR1;
-                if (lRet > 0)
+                // 删除分馆的开馆日历
+                if (bzfg == true)
                 {
-                    // 册A馆日历
+                    lRet = channel.GetCalendar(
+                        // this.Progress,
+                        "get",
+                        Env_A_LibraryCode + "/" + Env_A_CalenderName,
+                        0,
+                        -1,
+                        out infos1,
+                        out error);
+                    if (lRet == -1)
+                        goto ERROR1;
+                    if (lRet > 0)
+                    {
+                        // 册A馆日历
+                        cInfo = new CalenderInfo();
+                        cInfo.Name = Env_A_LibraryCode + "/" + Env_A_CalenderName;
+                        cInfo.Range = "20220101-20241231";
+                        cInfo.Comment = "";
+                        cInfo.Content = "";
+                        lRet = channel.SetCalendar(
+                           // _stop,
+                           "delete",
+                           cInfo,
+                           out error);
+                        if (lRet == -1)
+                            goto ERROR1;
+                    }
+                    lRet = channel.GetCalendar(
+                        // this.Progress,
+                        "get",
+                        Env_B_LibraryCode + "/" + Env_B_CalenderName,
+                        0,
+                        -1,
+                        out infos1,
+                        out error);
+                    if (lRet == -1)
+                        goto ERROR1;
+                    if (lRet > 0)
+                    {
+                        // 册B馆日历
+                        cInfo = new CalenderInfo();
+                        cInfo.Name = Env_B_LibraryCode + "/" + Env_B_CalenderName;
+                        cInfo.Range = "20220101-20241231";
+                        cInfo.Comment = "";
+                        cInfo.Content = "";
+                        lRet = channel.SetCalendar(
+                           // _stop,
+                           "delete",
+                           cInfo,
+                           out error);
+                        if (lRet == -1)
+                            goto ERROR1;
+
+                    }
+
+                    // 册C馆日历
                     cInfo = new CalenderInfo();
-                    cInfo.Name = Env_A_LibraryCode + "/" + Env_A_CalenderName;
+                    cInfo.Name = Env_C_LibraryCode + "/" + Env_C_CalenderName;
                     cInfo.Range = "20220101-20241231";
                     cInfo.Comment = "";
                     cInfo.Content = "";
@@ -2499,53 +2575,11 @@ namespace dp2SIPClient
                        cInfo,
                        out error);
                     if (lRet == -1)
-                        goto ERROR1;
+                    {
+                        // 删除失败有可能是根本没有这个日历
+                        //goto ERROR1;
+                    }
                 }
-                lRet = channel.GetCalendar(
-    // this.Progress,
-    "get",
-    Env_B_LibraryCode + "/" + Env_B_CalenderName,
-    0,
-    -1,
-    out infos1,
-    out error);
-                if (lRet == -1)
-                    goto ERROR1;
-                if (lRet > 0)
-                {
-                    // 册B馆日历
-                    cInfo = new CalenderInfo();
-                    cInfo.Name = Env_B_LibraryCode + "/" + Env_B_CalenderName;
-                    cInfo.Range = "20220101-20241231";
-                    cInfo.Comment = "";
-                    cInfo.Content = "";
-                    lRet = channel.SetCalendar(
-                       // _stop,
-                       "delete",
-                       cInfo,
-                       out error);
-                    if (lRet == -1)
-                        goto ERROR1;
-
-                }
-
-                // 册C馆日历
-                cInfo = new CalenderInfo();
-                cInfo.Name = Env_C_LibraryCode + "/" + Env_C_CalenderName;
-                cInfo.Range = "20220101-20241231";
-                cInfo.Comment = "";
-                cInfo.Content = "";
-                lRet = channel.SetCalendar(
-                   // _stop,
-                   "delete",
-                   cInfo,
-                   out error);
-                if (lRet == -1)
-                {
-                    // 删除失败有可能是根本没有这个日历
-                    //goto ERROR1;
-                }
-
 
 
                 // ***删除权限流通权限
@@ -2558,10 +2592,14 @@ namespace dp2SIPClient
                 zgReaderTypes.Add(Env_ZG_PatronType_teacher);
                 List<string> zgBookTypes = new List<string>();
                 zgBookTypes.Add(Env_ZG_BookType);
+
                 List<string> fglist = new List<string>();
-                fglist.Add(Env_A_LibraryCode);
-                fglist.Add(Env_B_LibraryCode);
-                fglist.Add(Env_C_LibraryCode);
+                if (bzfg == true)
+                {
+                    fglist.Add(Env_A_LibraryCode);
+                    fglist.Add(Env_B_LibraryCode);
+                    fglist.Add(Env_C_LibraryCode);
+                }
                 nRet = this.RemoveTestRightsTable(channel, null,
                     zgReaderTypes,
                     zgBookTypes,
@@ -2576,15 +2614,19 @@ namespace dp2SIPClient
                 lRet = this.SetUser(channel, "delete", Env_ZG_LibraryCode, "zg", out error);
                 if (lRet == -1)
                     goto ERROR1;
-                lRet = this.SetUser(channel, "delete", Env_A_LibraryCode, "a", out error);
-                if (lRet == -1)
-                    goto ERROR1;
-                lRet = this.SetUser(channel, "delete", Env_B_LibraryCode, "b", out error);
-                if (lRet == -1)
-                    goto ERROR1;
-                lRet = this.SetUser(channel, "delete", Env_C_LibraryCode, "c", out error);
-                if (lRet == -1)
-                    goto ERROR1;
+
+                if (bzfg == true)
+                {
+                    lRet = this.SetUser(channel, "delete", Env_A_LibraryCode, "a", out error);
+                    if (lRet == -1)
+                        goto ERROR1;
+                    lRet = this.SetUser(channel, "delete", Env_B_LibraryCode, "b", out error);
+                    if (lRet == -1)
+                        goto ERROR1;
+                    lRet = this.SetUser(channel, "delete", Env_C_LibraryCode, "c", out error);
+                    if (lRet == -1)
+                        goto ERROR1;
+                }
 
                 return 0;
             }
@@ -2615,5 +2657,25 @@ namespace dp2SIPClient
         }
 
         #endregion
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            string error = "";
+            //先删除测试环境
+            int nRet = this.DeleteLibEnv(false, out error);
+            if (nRet == -1)
+            {
+                error = "删除测试环境出错：" + error;
+                MessageBox.Show(this, error);
+                return;
+            }
+
+            MessageBox.Show(this, "删除完成");
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            this.IniLibEnv(false);
+        }
     }
 }

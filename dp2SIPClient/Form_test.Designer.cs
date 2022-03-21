@@ -34,21 +34,27 @@
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
             this.txtInfo = new System.Windows.Forms.TextBox();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.tabPage_borrowreturn = new System.Windows.Forms.TabPage();
+            this.button_iniLIb = new System.Windows.Forms.Button();
+            this.button_delLib = new System.Windows.Forms.Button();
+            this.tabPage_sip2 = new System.Windows.Forms.TabPage();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.checkBox_wrongItem = new System.Windows.Forms.CheckBox();
             this.checkBox_wrongPatron = new System.Windows.Forms.CheckBox();
-            this.button_stpp = new System.Windows.Forms.Button();
-            this.button_deleteTestEnv = new System.Windows.Forms.Button();
-            this.textBox_93_password = new System.Windows.Forms.TextBox();
-            this.textBox_93_username = new System.Windows.Forms.TextBox();
-            this.label14 = new System.Windows.Forms.Label();
-            this.label13 = new System.Windows.Forms.Label();
+            this.button_login = new System.Windows.Forms.Button();
             this.textBox_17_itemNum = new System.Windows.Forms.TextBox();
+            this.button_stpp = new System.Windows.Forms.Button();
             this.button_itemInfo = new System.Windows.Forms.Button();
+            this.button_SCStatus = new System.Windows.Forms.Button();
             this.label12 = new System.Windows.Forms.Label();
+            this.button_deleteTestEnv = new System.Windows.Forms.Button();
             this.textBox_63_patronNum = new System.Windows.Forms.TextBox();
+            this.label13 = new System.Windows.Forms.Label();
             this.button_patronInfo = new System.Windows.Forms.Button();
             this.label11 = new System.Windows.Forms.Label();
+            this.textBox_93_password = new System.Windows.Forms.TextBox();
+            this.label14 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.button_renew = new System.Windows.Forms.Button();
             this.label10 = new System.Windows.Forms.Label();
@@ -71,28 +77,24 @@
             this.label1 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
-            this.button_SCStatus = new System.Windows.Forms.Button();
-            this.button_login = new System.Windows.Forms.Button();
+            this.textBox_93_username = new System.Windows.Forms.TextBox();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.更多ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.参数配置ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.创建流通权限ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.tabControl1 = new System.Windows.Forms.TabControl();
-            this.tabPage_sip2 = new System.Windows.Forms.TabPage();
-            this.tabPage_borrowreturn = new System.Windows.Forms.TabPage();
-            this.button_iniLIb = new System.Windows.Forms.Button();
-            this.button_delLib = new System.Windows.Forms.Button();
+            this.button1 = new System.Windows.Forms.Button();
+            this.button2 = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
+            this.tabControl1.SuspendLayout();
+            this.tabPage_borrowreturn.SuspendLayout();
+            this.tabPage_sip2.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
-            this.tabControl1.SuspendLayout();
-            this.tabPage_sip2.SuspendLayout();
-            this.tabPage_borrowreturn.SuspendLayout();
             this.SuspendLayout();
             // 
             // button_createTestEnv
@@ -164,6 +166,82 @@
             this.splitContainer1.SplitterWidth = 3;
             this.splitContainer1.TabIndex = 23;
             // 
+            // tabControl1
+            // 
+            this.tabControl1.Controls.Add(this.tabPage_borrowreturn);
+            this.tabControl1.Controls.Add(this.tabPage_sip2);
+            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabControl1.Location = new System.Drawing.Point(0, 0);
+            this.tabControl1.Name = "tabControl1";
+            this.tabControl1.SelectedIndex = 0;
+            this.tabControl1.Size = new System.Drawing.Size(896, 686);
+            this.tabControl1.TabIndex = 32;
+            // 
+            // tabPage_borrowreturn
+            // 
+            this.tabPage_borrowreturn.Controls.Add(this.button1);
+            this.tabPage_borrowreturn.Controls.Add(this.button2);
+            this.tabPage_borrowreturn.Controls.Add(this.button_iniLIb);
+            this.tabPage_borrowreturn.Controls.Add(this.button_delLib);
+            this.tabPage_borrowreturn.Location = new System.Drawing.Point(4, 28);
+            this.tabPage_borrowreturn.Name = "tabPage_borrowreturn";
+            this.tabPage_borrowreturn.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage_borrowreturn.Size = new System.Drawing.Size(888, 654);
+            this.tabPage_borrowreturn.TabIndex = 1;
+            this.tabPage_borrowreturn.Text = "馆际互际";
+            this.tabPage_borrowreturn.UseVisualStyleBackColor = true;
+            // 
+            // button_iniLIb
+            // 
+            this.button_iniLIb.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.button_iniLIb.Location = new System.Drawing.Point(7, 115);
+            this.button_iniLIb.Margin = new System.Windows.Forms.Padding(2);
+            this.button_iniLIb.Name = "button_iniLIb";
+            this.button_iniLIb.Size = new System.Drawing.Size(212, 38);
+            this.button_iniLIb.TabIndex = 31;
+            this.button_iniLIb.Text = "初始化总分馆测试环境";
+            this.button_iniLIb.UseVisualStyleBackColor = true;
+            this.button_iniLIb.Click += new System.EventHandler(this.button_iniLIb_Click);
+            // 
+            // button_delLib
+            // 
+            this.button_delLib.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.button_delLib.Location = new System.Drawing.Point(246, 115);
+            this.button_delLib.Margin = new System.Windows.Forms.Padding(2);
+            this.button_delLib.Name = "button_delLib";
+            this.button_delLib.Size = new System.Drawing.Size(251, 38);
+            this.button_delLib.TabIndex = 33;
+            this.button_delLib.Text = "删除总分馆测试环境";
+            this.button_delLib.UseVisualStyleBackColor = true;
+            this.button_delLib.Click += new System.EventHandler(this.button_delLib_Click);
+            // 
+            // tabPage_sip2
+            // 
+            this.tabPage_sip2.Controls.Add(this.button_createTestEnv);
+            this.tabPage_sip2.Controls.Add(this.groupBox2);
+            this.tabPage_sip2.Controls.Add(this.button_login);
+            this.tabPage_sip2.Controls.Add(this.textBox_17_itemNum);
+            this.tabPage_sip2.Controls.Add(this.button_stpp);
+            this.tabPage_sip2.Controls.Add(this.button_itemInfo);
+            this.tabPage_sip2.Controls.Add(this.button_SCStatus);
+            this.tabPage_sip2.Controls.Add(this.label12);
+            this.tabPage_sip2.Controls.Add(this.button_deleteTestEnv);
+            this.tabPage_sip2.Controls.Add(this.textBox_63_patronNum);
+            this.tabPage_sip2.Controls.Add(this.label13);
+            this.tabPage_sip2.Controls.Add(this.button_patronInfo);
+            this.tabPage_sip2.Controls.Add(this.label11);
+            this.tabPage_sip2.Controls.Add(this.textBox_93_password);
+            this.tabPage_sip2.Controls.Add(this.label14);
+            this.tabPage_sip2.Controls.Add(this.groupBox1);
+            this.tabPage_sip2.Controls.Add(this.textBox_93_username);
+            this.tabPage_sip2.Location = new System.Drawing.Point(4, 28);
+            this.tabPage_sip2.Name = "tabPage_sip2";
+            this.tabPage_sip2.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage_sip2.Size = new System.Drawing.Size(888, 654);
+            this.tabPage_sip2.TabIndex = 0;
+            this.tabPage_sip2.Text = "SIP2测试";
+            this.tabPage_sip2.UseVisualStyleBackColor = true;
+            // 
             // groupBox2
             // 
             this.groupBox2.Controls.Add(this.checkBox_wrongItem);
@@ -199,6 +277,28 @@
             this.checkBox_wrongPatron.Text = "错误读者条码";
             this.checkBox_wrongPatron.UseVisualStyleBackColor = true;
             // 
+            // button_login
+            // 
+            this.button_login.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.button_login.Location = new System.Drawing.Point(5, 63);
+            this.button_login.Margin = new System.Windows.Forms.Padding(2);
+            this.button_login.Name = "button_login";
+            this.button_login.Size = new System.Drawing.Size(201, 32);
+            this.button_login.TabIndex = 4;
+            this.button_login.Text = " 第一步 登录 93/94";
+            this.button_login.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.button_login.UseVisualStyleBackColor = true;
+            this.button_login.Click += new System.EventHandler(this.button_login_Click);
+            // 
+            // textBox_17_itemNum
+            // 
+            this.textBox_17_itemNum.Location = new System.Drawing.Point(218, 573);
+            this.textBox_17_itemNum.Margin = new System.Windows.Forms.Padding(2);
+            this.textBox_17_itemNum.Name = "textBox_17_itemNum";
+            this.textBox_17_itemNum.Size = new System.Drawing.Size(50, 28);
+            this.textBox_17_itemNum.TabIndex = 22;
+            this.textBox_17_itemNum.Text = "10";
+            // 
             // button_stpp
             // 
             this.button_stpp.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
@@ -210,65 +310,6 @@
             this.button_stpp.Text = "停止";
             this.button_stpp.UseVisualStyleBackColor = true;
             this.button_stpp.Click += new System.EventHandler(this.button_stop_Click);
-            // 
-            // button_deleteTestEnv
-            // 
-            this.button_deleteTestEnv.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button_deleteTestEnv.Location = new System.Drawing.Point(171, 5);
-            this.button_deleteTestEnv.Margin = new System.Windows.Forms.Padding(2);
-            this.button_deleteTestEnv.Name = "button_deleteTestEnv";
-            this.button_deleteTestEnv.Size = new System.Drawing.Size(161, 38);
-            this.button_deleteTestEnv.TabIndex = 30;
-            this.button_deleteTestEnv.Text = "删除测试环境";
-            this.button_deleteTestEnv.UseVisualStyleBackColor = true;
-            this.button_deleteTestEnv.Click += new System.EventHandler(this.button_deleteTestEnv_Click);
-            // 
-            // textBox_93_password
-            // 
-            this.textBox_93_password.Location = new System.Drawing.Point(396, 69);
-            this.textBox_93_password.Margin = new System.Windows.Forms.Padding(2);
-            this.textBox_93_password.Name = "textBox_93_password";
-            this.textBox_93_password.Size = new System.Drawing.Size(56, 28);
-            this.textBox_93_password.TabIndex = 29;
-            this.textBox_93_password.Text = "1";
-            // 
-            // textBox_93_username
-            // 
-            this.textBox_93_username.Location = new System.Drawing.Point(271, 69);
-            this.textBox_93_username.Margin = new System.Windows.Forms.Padding(2);
-            this.textBox_93_username.Name = "textBox_93_username";
-            this.textBox_93_username.Size = new System.Drawing.Size(66, 28);
-            this.textBox_93_username.TabIndex = 27;
-            this.textBox_93_username.Text = "supervisor";
-            // 
-            // label14
-            // 
-            this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(348, 76);
-            this.label14.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label14.Name = "label14";
-            this.label14.Size = new System.Drawing.Size(44, 18);
-            this.label14.TabIndex = 28;
-            this.label14.Text = "密码";
-            // 
-            // label13
-            // 
-            this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(205, 76);
-            this.label13.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(62, 18);
-            this.label13.TabIndex = 26;
-            this.label13.Text = "用户名";
-            // 
-            // textBox_17_itemNum
-            // 
-            this.textBox_17_itemNum.Location = new System.Drawing.Point(218, 573);
-            this.textBox_17_itemNum.Margin = new System.Windows.Forms.Padding(2);
-            this.textBox_17_itemNum.Name = "textBox_17_itemNum";
-            this.textBox_17_itemNum.Size = new System.Drawing.Size(50, 28);
-            this.textBox_17_itemNum.TabIndex = 22;
-            this.textBox_17_itemNum.Text = "10";
             // 
             // button_itemInfo
             // 
@@ -283,6 +324,19 @@
             this.button_itemInfo.UseVisualStyleBackColor = true;
             this.button_itemInfo.Click += new System.EventHandler(this.button_itemInfo_Click);
             // 
+            // button_SCStatus
+            // 
+            this.button_SCStatus.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.button_SCStatus.Location = new System.Drawing.Point(5, 104);
+            this.button_SCStatus.Margin = new System.Windows.Forms.Padding(2);
+            this.button_SCStatus.Name = "button_SCStatus";
+            this.button_SCStatus.Size = new System.Drawing.Size(201, 38);
+            this.button_SCStatus.TabIndex = 5;
+            this.button_SCStatus.Text = " 第二步 SC状态 99/98";
+            this.button_SCStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.button_SCStatus.UseVisualStyleBackColor = true;
+            this.button_SCStatus.Click += new System.EventHandler(this.button_SCStatus_Click);
+            // 
             // label12
             // 
             this.label12.AutoSize = true;
@@ -293,6 +347,18 @@
             this.label12.TabIndex = 24;
             this.label12.Text = "册";
             // 
+            // button_deleteTestEnv
+            // 
+            this.button_deleteTestEnv.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.button_deleteTestEnv.Location = new System.Drawing.Point(171, 5);
+            this.button_deleteTestEnv.Margin = new System.Windows.Forms.Padding(2);
+            this.button_deleteTestEnv.Name = "button_deleteTestEnv";
+            this.button_deleteTestEnv.Size = new System.Drawing.Size(161, 38);
+            this.button_deleteTestEnv.TabIndex = 30;
+            this.button_deleteTestEnv.Text = "删除测试环境";
+            this.button_deleteTestEnv.UseVisualStyleBackColor = true;
+            this.button_deleteTestEnv.Click += new System.EventHandler(this.button_deleteTestEnv_Click);
+            // 
             // textBox_63_patronNum
             // 
             this.textBox_63_patronNum.Location = new System.Drawing.Point(218, 517);
@@ -301,6 +367,16 @@
             this.textBox_63_patronNum.Size = new System.Drawing.Size(50, 28);
             this.textBox_63_patronNum.TabIndex = 19;
             this.textBox_63_patronNum.Text = "10";
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.Location = new System.Drawing.Point(205, 76);
+            this.label13.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(62, 18);
+            this.label13.TabIndex = 26;
+            this.label13.Text = "用户名";
             // 
             // button_patronInfo
             // 
@@ -324,6 +400,25 @@
             this.label11.Size = new System.Drawing.Size(26, 18);
             this.label11.TabIndex = 21;
             this.label11.Text = "人";
+            // 
+            // textBox_93_password
+            // 
+            this.textBox_93_password.Location = new System.Drawing.Point(396, 69);
+            this.textBox_93_password.Margin = new System.Windows.Forms.Padding(2);
+            this.textBox_93_password.Name = "textBox_93_password";
+            this.textBox_93_password.Size = new System.Drawing.Size(56, 28);
+            this.textBox_93_password.TabIndex = 29;
+            this.textBox_93_password.Text = "1";
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.Location = new System.Drawing.Point(348, 76);
+            this.label14.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(44, 18);
+            this.label14.TabIndex = 28;
+            this.label14.Text = "密码";
             // 
             // groupBox1
             // 
@@ -573,31 +668,14 @@
             this.label6.TabIndex = 18;
             this.label6.Text = "人*";
             // 
-            // button_SCStatus
+            // textBox_93_username
             // 
-            this.button_SCStatus.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button_SCStatus.Location = new System.Drawing.Point(5, 104);
-            this.button_SCStatus.Margin = new System.Windows.Forms.Padding(2);
-            this.button_SCStatus.Name = "button_SCStatus";
-            this.button_SCStatus.Size = new System.Drawing.Size(201, 38);
-            this.button_SCStatus.TabIndex = 5;
-            this.button_SCStatus.Text = " 第二步 SC状态 99/98";
-            this.button_SCStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.button_SCStatus.UseVisualStyleBackColor = true;
-            this.button_SCStatus.Click += new System.EventHandler(this.button_SCStatus_Click);
-            // 
-            // button_login
-            // 
-            this.button_login.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button_login.Location = new System.Drawing.Point(5, 63);
-            this.button_login.Margin = new System.Windows.Forms.Padding(2);
-            this.button_login.Name = "button_login";
-            this.button_login.Size = new System.Drawing.Size(201, 32);
-            this.button_login.TabIndex = 4;
-            this.button_login.Text = " 第一步 登录 93/94";
-            this.button_login.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.button_login.UseVisualStyleBackColor = true;
-            this.button_login.Click += new System.EventHandler(this.button_login_Click);
+            this.textBox_93_username.Location = new System.Drawing.Point(271, 69);
+            this.textBox_93_username.Margin = new System.Windows.Forms.Padding(2);
+            this.textBox_93_username.Name = "textBox_93_username";
+            this.textBox_93_username.Size = new System.Drawing.Size(66, 28);
+            this.textBox_93_username.TabIndex = 27;
+            this.textBox_93_username.Text = "supervisor";
             // 
             // menuStrip1
             // 
@@ -618,96 +696,46 @@
             this.参数配置ToolStripMenuItem,
             this.创建流通权限ToolStripMenuItem});
             this.更多ToolStripMenuItem.Name = "更多ToolStripMenuItem";
-            this.更多ToolStripMenuItem.Size = new System.Drawing.Size(62, 32);
+            this.更多ToolStripMenuItem.Size = new System.Drawing.Size(62, 28);
             this.更多ToolStripMenuItem.Text = "更多";
             // 
             // 参数配置ToolStripMenuItem
             // 
             this.参数配置ToolStripMenuItem.Name = "参数配置ToolStripMenuItem";
-            this.参数配置ToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
+            this.参数配置ToolStripMenuItem.Size = new System.Drawing.Size(218, 34);
             this.参数配置ToolStripMenuItem.Text = "参数配置";
             this.参数配置ToolStripMenuItem.Click += new System.EventHandler(this.参数配置ToolStripMenuItem_Click);
             // 
             // 创建流通权限ToolStripMenuItem
             // 
             this.创建流通权限ToolStripMenuItem.Name = "创建流通权限ToolStripMenuItem";
-            this.创建流通权限ToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
+            this.创建流通权限ToolStripMenuItem.Size = new System.Drawing.Size(218, 34);
             this.创建流通权限ToolStripMenuItem.Text = "创建流通权限";
             this.创建流通权限ToolStripMenuItem.Click += new System.EventHandler(this.创建流通权限ToolStripMenuItem_Click);
             // 
-            // tabControl1
+            // button1
             // 
-            this.tabControl1.Controls.Add(this.tabPage_borrowreturn);
-            this.tabControl1.Controls.Add(this.tabPage_sip2);
-            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabControl1.Location = new System.Drawing.Point(0, 0);
-            this.tabControl1.Name = "tabControl1";
-            this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(896, 686);
-            this.tabControl1.TabIndex = 32;
+            this.button1.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.button1.Location = new System.Drawing.Point(7, 24);
+            this.button1.Margin = new System.Windows.Forms.Padding(2);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(212, 38);
+            this.button1.TabIndex = 34;
+            this.button1.Text = "初始化单一馆测试环境";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
-            // tabPage_sip2
+            // button2
             // 
-            this.tabPage_sip2.Controls.Add(this.button_createTestEnv);
-            this.tabPage_sip2.Controls.Add(this.groupBox2);
-            this.tabPage_sip2.Controls.Add(this.button_login);
-            this.tabPage_sip2.Controls.Add(this.textBox_17_itemNum);
-            this.tabPage_sip2.Controls.Add(this.button_stpp);
-            this.tabPage_sip2.Controls.Add(this.button_itemInfo);
-            this.tabPage_sip2.Controls.Add(this.button_SCStatus);
-            this.tabPage_sip2.Controls.Add(this.label12);
-            this.tabPage_sip2.Controls.Add(this.button_deleteTestEnv);
-            this.tabPage_sip2.Controls.Add(this.textBox_63_patronNum);
-            this.tabPage_sip2.Controls.Add(this.label13);
-            this.tabPage_sip2.Controls.Add(this.button_patronInfo);
-            this.tabPage_sip2.Controls.Add(this.label11);
-            this.tabPage_sip2.Controls.Add(this.textBox_93_password);
-            this.tabPage_sip2.Controls.Add(this.label14);
-            this.tabPage_sip2.Controls.Add(this.groupBox1);
-            this.tabPage_sip2.Controls.Add(this.textBox_93_username);
-            this.tabPage_sip2.Location = new System.Drawing.Point(4, 28);
-            this.tabPage_sip2.Name = "tabPage_sip2";
-            this.tabPage_sip2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage_sip2.Size = new System.Drawing.Size(888, 654);
-            this.tabPage_sip2.TabIndex = 0;
-            this.tabPage_sip2.Text = "SIP2测试";
-            this.tabPage_sip2.UseVisualStyleBackColor = true;
-            // 
-            // tabPage_borrowreturn
-            // 
-            this.tabPage_borrowreturn.Controls.Add(this.button_iniLIb);
-            this.tabPage_borrowreturn.Controls.Add(this.button_delLib);
-            this.tabPage_borrowreturn.Location = new System.Drawing.Point(4, 28);
-            this.tabPage_borrowreturn.Name = "tabPage_borrowreturn";
-            this.tabPage_borrowreturn.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage_borrowreturn.Size = new System.Drawing.Size(888, 650);
-            this.tabPage_borrowreturn.TabIndex = 1;
-            this.tabPage_borrowreturn.Text = "馆际互际";
-            this.tabPage_borrowreturn.UseVisualStyleBackColor = true;
-            // 
-            // button_iniLIb
-            // 
-            this.button_iniLIb.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button_iniLIb.Location = new System.Drawing.Point(7, 14);
-            this.button_iniLIb.Margin = new System.Windows.Forms.Padding(2);
-            this.button_iniLIb.Name = "button_iniLIb";
-            this.button_iniLIb.Size = new System.Drawing.Size(160, 38);
-            this.button_iniLIb.TabIndex = 31;
-            this.button_iniLIb.Text = "初始化测试环境";
-            this.button_iniLIb.UseVisualStyleBackColor = true;
-            this.button_iniLIb.Click += new System.EventHandler(this.button_iniLIb_Click);
-            // 
-            // button_delLib
-            // 
-            this.button_delLib.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button_delLib.Location = new System.Drawing.Point(173, 14);
-            this.button_delLib.Margin = new System.Windows.Forms.Padding(2);
-            this.button_delLib.Name = "button_delLib";
-            this.button_delLib.Size = new System.Drawing.Size(161, 38);
-            this.button_delLib.TabIndex = 33;
-            this.button_delLib.Text = "删除测试环境";
-            this.button_delLib.UseVisualStyleBackColor = true;
-            this.button_delLib.Click += new System.EventHandler(this.button_delLib_Click);
+            this.button2.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.button2.Location = new System.Drawing.Point(246, 24);
+            this.button2.Margin = new System.Windows.Forms.Padding(2);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(251, 38);
+            this.button2.TabIndex = 35;
+            this.button2.Text = "删除单一馆测试环境";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // Form_Test
             // 
@@ -728,16 +756,16 @@
             this.splitContainer1.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
+            this.tabControl1.ResumeLayout(false);
+            this.tabPage_borrowreturn.ResumeLayout(false);
+            this.tabPage_sip2.ResumeLayout(false);
+            this.tabPage_sip2.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
-            this.tabControl1.ResumeLayout(false);
-            this.tabPage_sip2.ResumeLayout(false);
-            this.tabPage_sip2.PerformLayout();
-            this.tabPage_borrowreturn.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -799,5 +827,7 @@
         private System.Windows.Forms.Button button_iniLIb;
         private System.Windows.Forms.Button button_delLib;
         private System.Windows.Forms.TabPage tabPage_sip2;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button button2;
     }
 }
