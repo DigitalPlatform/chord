@@ -1920,6 +1920,9 @@ namespace dp2Capo
         // 特性。可用值 bookUiiStrict
         public string Style { get; set; }
 
+        // 2022/3/22
+        public int MaxChannels { get; set; }
+
         // parameters:
         //      neutralLanguage 是否采用中立语言抛出异常?
         public static SipParam GetSipParam(XmlElement element1,
@@ -1971,6 +1974,13 @@ namespace dp2Capo
 
             // 2022/3/4
             param.Style = user.GetAttribute("style");
+
+            // 2022/3/22
+            string maxChannels = user.GetAttribute("maxChannels");
+            if (Int32.TryParse(maxChannels, out int value))
+                param.MaxChannels = value;
+            else
+                param.MaxChannels = SipServer.DEFAULT_MAXCHANNELS;
 
             return param;
         }

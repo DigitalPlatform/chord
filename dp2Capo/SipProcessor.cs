@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -194,7 +195,10 @@ namespace dp2Capo
                     }
                 case "93":
                     {
-                        strResponse = Login(sip_channel, ip, strRequest);
+                        strResponse = Login(sip_channel,
+                            ip,
+                            strRequest,
+                            e.AccountTable);
                         if ("941" == strResponse)
                         {
 
@@ -207,7 +211,6 @@ namespace dp2Capo
                             sip_channel._locationCode = "";
                             */
                         }
-
                         break;
                     }
                 case "96":
@@ -354,7 +357,8 @@ namespace dp2Capo
 
         static string Login(SipChannel sip_channel,
             string strClientIP,
-            string message)
+            string message,
+            Hashtable channel_count_table)
         {
             int nRet = 0;
             string strError = "";
@@ -454,11 +458,16 @@ namespace dp2Capo
 
             // 让 channel 从此携带 Instance Name
             sip_channel.InstanceName = strInstanceName;
-            sip_channel.UserName = strUserName;
-            sip_channel.Password = strPassword;
+            // 2022/3/22
+            sip_channel.MaxChannels = instance.sip_host.GetSipParam(strUserName, true).MaxChannels;
             // 从此以后，报错信息才可以使用中文了
             // 此处可能会抛出异常
-            sip_channel.Encoding = instance.sip_host.GetSipParam(sip_channel.UserName, sip_channel.Encoding == null).Encoding;
+            sip_channel.Encoding = instance.sip_host.GetSipParam(strUserName, sip_channel.Encoding == null).Encoding;
+
+            strError = sip_channel.SetUserName(strUserName, channel_count_table);
+            if (strError != null)
+                goto ERROR1;
+            sip_channel.Password = strPassword;
             // 注：登录以后 Timeout 才按照实例参数来设定。此前是 sip_channel.Timeout 的默认值
             // sip_channel.Timeout = instance.sip_host.AutoClearSeconds == 0 ? TimeSpan.MinValue : TimeSpan.FromSeconds(instance.sip_host.AutoClearSeconds);
             SetChannelTimeout(sip_channel, sip_channel.UserName, instance);
@@ -525,7 +534,9 @@ namespace dp2Capo
                     sip_channel.Institution = strInstitution;
                     sip_channel.LocationCode = strLocationCode;
                     sip_channel.InstanceName = strInstanceName; // "";  BUG 2018/8/24 排除
-                    sip_channel.UserName = strUserName;
+                    strError =  sip_channel.SetUserName(strUserName, channel_count_table);
+                    if (strError != null)
+                        goto ERROR1;
                     sip_channel.Password = strPassword;
 
                     LibraryManager.Log?.Info("终端 " + strLocationCode + " : " + strUserName + " 接入");
@@ -542,7 +553,7 @@ namespace dp2Capo
         ERROR1:
             sip_channel.LocationCode = "";
             sip_channel.InstanceName = null;
-            sip_channel.UserName = "";
+            var error = sip_channel.SetUserName("", channel_count_table);
             sip_channel.Password = "";
 
             response.Ok_1 = "0";
@@ -588,6 +599,7 @@ namespace dp2Capo
             public string ErrorInfo { get; set; }
         }
 
+        // 注：一定不要忘记最后调用 EndFunction() 以便释放 LibraryChannel
         static FunctionInfo BeginFunction(
             SipChannel sip_channel,
             bool check_login = true)
@@ -941,8 +953,8 @@ namespace dp2Capo
 
         ERROR1:
             sip_channel.LocationCode = "";
-            sip_channel.UserName = "";
-            sip_channel.Password = "";
+            // sip_channel.UserName = "";  // TODO: Clear()
+            // sip_channel.Password = "";
 
             LibraryManager.Log?.Info("Checkin() error: " + strError);
             response.Ok_1 = "0";
@@ -1640,8 +1652,8 @@ namespace dp2Capo
                 string strInstitution = request.AO_InstitutionId_r;
 
                 response.AB_ItemIdentifier_r = strItemIdentifier;
-                // string strItemXml = "";
-                // string strBiblio = "";
+            // string strItemXml = "";
+            // string strBiblio = "";
 
             REDO:
                 long lRet = info.LibraryChannel.GetItemInfo(
@@ -3600,6 +3612,7 @@ namespace dp2Capo
             {
                 EndFunction(info);
             }
+
         ERROR1:
             {
                 response.AF_ScreenMessage_o = strError;
