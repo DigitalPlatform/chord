@@ -416,7 +416,7 @@ namespace dp2Capo
             if (string.IsNullOrEmpty(strUserName))
             {
                 // 如果定义了允许匿名登录
-                if (String.IsNullOrEmpty(instance.zhost.AnonymousUserName) == false)
+                if (String.IsNullOrEmpty(instance.sip_host.AnonymousUserName) == false)
                 {
                     strUserName = instance.sip_host.AnonymousUserName;
                     strPassword = instance.sip_host.AnonymousPassword;
