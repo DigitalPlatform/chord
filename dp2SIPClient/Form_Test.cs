@@ -530,9 +530,9 @@ namespace dp2SIPClient
                     LogManager.Logger.Info(info);
 
                     rightTable one = new rightTable("",
-    C_PatronType, true,
-    C_BookType,
-    C_CalenderName);
+                        C_PatronType, true,
+                        C_BookType,
+                        C_CalenderName);
                     List<rightTable> rightList = new List<rightTable>();
                     rightList.Add(one);
                     nRet = this.AddTestRightsTable(channel, null, rightList, out error);
@@ -569,7 +569,10 @@ namespace dp2SIPClient
                     List<LocItem> locs=new List<LocItem>();
                     locs.Add(loc);
 
-                    nRet = this.CreateBiblioRecord(channel, C_BiblioDbName,locs, out error);
+                    nRet = this.CreateBiblioRecord(channel, C_BiblioDbName,locs,
+                        10,
+                        1,//itemCountPerBiblio
+                        out error);
                     if (nRet == -1)
                         goto ERROR1;
 
@@ -659,13 +662,15 @@ namespace dp2SIPClient
         int CreateBiblioRecord(LibraryChannel channel,
             string strBiblioDbName,
             List<LocItem> locs,
+            int biblioCount,
+            int itemCountPerBiblio,
             out string strError)
         {
             strError = "";
 
             int barcordStart = 1;
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < biblioCount; i++)
             {
                 string strTitle = "测试题名" + (i+1);
 
@@ -707,13 +712,25 @@ namespace dp2SIPClient
                     return -1;
                 }
 
+                string dbpre = "";
+                string temp=strBiblioDbName.Substring(strBiblioDbName.Length - 1);
+                try
+                {
+                    int n = Convert.ToInt32(temp);
+                    dbpre = n.ToString();
+                }
+                catch
+                { }
+               
+                
+
                 //// 创建册记录
                 //List<string> refids = CreateEntityRecords(entity_form, 10);
                 EntityInfo[] entities = null;
-                entities = new EntityInfo[1*locs.Count];
+                entities = new EntityInfo[itemCountPerBiblio * locs.Count];
 
 
-                    for (int j = 0; j < 1; j++)
+                    for (int j = 0; j < itemCountPerBiblio; j++)
                 {
                     for (int x = 0; x < locs.Count; x++)
                     {
@@ -754,7 +771,7 @@ namespace dp2SIPClient
                         string strTargetBiblioRecID = GetRecordID(strOutputPath);
                         DomUtil.SetElementText(root, "parent", strTargetBiblioRecID);
 
-                        string barcode = loc.Prefix+ barcordStart.ToString().PadLeft(5, '0');// i.ToString().PadLeft(2, '0')+j.ToString().PadLeft(3,'0');
+                        string barcode = loc.Prefix+ dbpre + barcordStart.ToString().PadLeft(5, '0');// i.ToString().PadLeft(2, '0')+j.ToString().PadLeft(3,'0');
                         DomUtil.SetElementText(root, "barcode", barcode);
                         DomUtil.SetElementText(root, "location", loc.Location);
                         DomUtil.SetElementText(root, "batchNo", "test001");
@@ -1839,7 +1856,7 @@ namespace dp2SIPClient
 
         #region
 
-        public string Env_BiblioDbName = "测试中文图书";
+        //public string Env_BiblioDbName = "测试中文图书";
 
         public string Env_ZG_LibraryCode = "";
         public string Env_A_LibraryCode = "A馆";
@@ -1879,12 +1896,18 @@ namespace dp2SIPClient
 
         private void button_iniLIb_Click(object sender, EventArgs e)
         {
-            this.IniLibEnv(true);
+            this.IniLibEnv(true,
+                this.DbCount,
+                this.BiblioCount,
+                this.ItemCountPerBiblio);
         }
 
 
         // 初始化测试环境
-        public void IniLibEnv(bool bzfg)
+        public void IniLibEnv(bool bzfg,
+            int dbCount,
+            int biblioCount,
+            int itemCountPerBiblio)
         {
             Task.Run(() =>
             {
@@ -1896,7 +1919,8 @@ namespace dp2SIPClient
 
 
                 //先删除测试环境
-                nRet = this.DeleteLibEnv(bzfg, out error);
+                nRet = this.DeleteLibEnv(bzfg, this.DbCount,
+                    out error);
                 if (nRet == -1)
                 {
                     error = "删除测试环境出错：" + error;
@@ -2113,43 +2137,54 @@ namespace dp2SIPClient
                     if (nRet == -1)
                         goto ERROR1;
 
-                    // ***创建测试所需的书目库
-                    info = "正在创建测试用书目库 ...";
-                    ProgressSetMessage(info);
-                    LogManager.Logger.Info(info);
-                    // 创建一个书目库
-                    // parameters:
-                    // return:
-                    //      -1  出错
-                    //      0   没有必要创建，或者操作者放弃创建。原因在 strError 中
-                    //      1   成功创建
-                    nRet = ManageHelper.CreateBiblioDatabase(
-                        channel,
-                        // this.Progress,
-                        Env_BiblioDbName, //C_BiblioDbName,
-                        "book",
-                        "unimarc",
-                        out error);
-                    if (nRet == -1)
-                        goto ERROR1;
 
-                    // 创建书目记录
-                    info = "正在创建书目记录和册记录 ...";
-                    ProgressSetMessage(info);
-                    LogManager.Logger.Info(info);
 
-                    List<LocItem> locs = new List<LocItem>();
-                    locs.Add(new LocItem(Env_ZG_Location, "Z", Env_ZG_BookType));
-                    if (bzfg == true)
+
+                    for (int i = 0; i < DbCount; i++)
                     {
-                        locs.Add(new LocItem(Env_A_LibraryCode + "/" + Env_A_Location, "A", Env_A_BookType));
-                        locs.Add(new LocItem(Env_B_LibraryCode + "/" + Env_B_Location, "B", Env_B_BookType));
-                        locs.Add(new LocItem(Env_C_LibraryCode + "/" + Env_C_Location, "C", Env_C_BookType));
-                    }
-                    nRet = this.CreateBiblioRecord(channel, Env_BiblioDbName, locs, out error);
-                    if (nRet == -1)
-                        goto ERROR1;
+                        string biblioDbName = "测试中文图书"+(i+1).ToString();
 
+                        // ***创建测试所需的书目库
+                        info = "正在创建" + biblioDbName;
+                        ProgressSetMessage(info);
+                        LogManager.Logger.Info(info);
+                        // 创建一个书目库
+                        // parameters:
+                        // return:
+                        //      -1  出错
+                        //      0   没有必要创建，或者操作者放弃创建。原因在 strError 中
+                        //      1   成功创建
+                        nRet = ManageHelper.CreateBiblioDatabase(
+                            channel,
+                            // this.Progress,
+                            biblioDbName, //Env_BiblioDbName, //C_BiblioDbName,
+                            "book",
+                            "unimarc",
+                            out error);
+                        if (nRet == -1)
+                            goto ERROR1;
+
+                        // 创建书目记录
+                        info = "正在创建书目记录和册记录 ...";
+                        ProgressSetMessage(info);
+                        LogManager.Logger.Info(info);
+
+                        List<LocItem> locs = new List<LocItem>();
+                        locs.Add(new LocItem(Env_ZG_Location, "Z", Env_ZG_BookType));
+                        if (bzfg == true)
+                        {
+                            locs.Add(new LocItem(Env_A_LibraryCode + "/" + Env_A_Location, "A", Env_A_BookType));
+                            locs.Add(new LocItem(Env_B_LibraryCode + "/" + Env_B_Location, "B", Env_B_BookType));
+                            locs.Add(new LocItem(Env_C_LibraryCode + "/" + Env_C_Location, "C", Env_C_BookType));
+                        }
+                        nRet = this.CreateBiblioRecord(channel,
+                            biblioDbName,
+                            locs,
+                            biblioCount,
+                            itemCountPerBiblio, out error);
+                        if (nRet == -1)
+                            goto ERROR1;
+                    }
 
 
 
@@ -2357,7 +2392,8 @@ namespace dp2SIPClient
         {
             string error = "";
             //先删除测试环境
-            int nRet = this.DeleteLibEnv(true,out error);
+            int nRet = this.DeleteLibEnv(true,1,
+                out error);
             if (nRet == -1)
             {
                 error = "删除测试环境出错：" + error;
@@ -2371,7 +2407,9 @@ namespace dp2SIPClient
         #region
 
         // 删除测试环境
-        public int DeleteLibEnv(bool bzfg,out string error)
+        public int DeleteLibEnv(bool bzfg,
+            int dbCount,
+            out string error)
         {
             error = "";
             int nRet = 0;
@@ -2405,6 +2443,17 @@ namespace dp2SIPClient
             EnableControls(false);
             try
             {
+                if (dbCount <= 0)
+                    dbCount = 1;
+
+                string dbName = "测试中文图书";
+                for (int i = 0; i < dbCount; i++)
+                {
+                    if (dbName != "")
+                        dbName += ",";
+                    dbName += "测试中文图书" + (i + 1);
+                }
+
                 // 删除书目库
                 info = "正在删除测试用书目库 ...";
                 ProgressSetMessage(info);
@@ -2413,7 +2462,7 @@ namespace dp2SIPClient
                 long lRet = channel.ManageDatabase(
                     // _stop,
                     "delete",
-                    Env_BiblioDbName,    // strDatabaseNames,
+                    dbName,//Env_BiblioDbName,    // strDatabaseNames,
                     "",
                     out strOutputInfo,
                     out error);
@@ -2662,7 +2711,9 @@ namespace dp2SIPClient
         {
             string error = "";
             //先删除测试环境
-            int nRet = this.DeleteLibEnv(false, out error);
+            int nRet = this.DeleteLibEnv(false, 
+                this.DbCount,
+                out error);
             if (nRet == -1)
             {
                 error = "删除测试环境出错：" + error;
@@ -2673,9 +2724,72 @@ namespace dp2SIPClient
             MessageBox.Show(this, "删除完成");
         }
 
-        private void button1_Click(object sender, EventArgs e)
+
+        private void button3_Click(object sender, EventArgs e)
         {
-            this.IniLibEnv(false);
+            this.IniLibEnv(false,
+                this.DbCount,
+                this.BiblioCount,
+                this.ItemCountPerBiblio);
         }
+
+        public int DbCount
+        {
+            get
+            {
+                int count = 10;
+                string strCount = this.textBox_dbCount.Text.Trim();
+                if (string.IsNullOrEmpty(strCount) == false)
+                {
+                    try
+                    {
+                        count = Convert.ToInt32(strCount);
+                    }
+                    catch
+                    { }
+                }
+                return count;
+            }
+        }
+
+        public int BiblioCount
+        {
+            get
+            {
+                int count = 10;
+                string strCount = this.textBox_biblioCount.Text.Trim();
+                if (string.IsNullOrEmpty(strCount) == false)
+                {
+                    try
+                    {
+                        count = Convert.ToInt32(strCount);
+                    }
+                    catch
+                    { }
+                }
+                return count;
+            }
+        }
+
+        public int ItemCountPerBiblio
+        {
+            get
+            {
+                int count = 1;
+                string strCount = this.textBox_itemCountPerBiblio.Text.Trim();
+                if (string.IsNullOrEmpty(strCount) == false)
+                {
+                    try
+                    {
+                        count = Convert.ToInt32(strCount);
+                    }
+                    catch
+                    { }
+                }
+                return count;
+            }
+        }
+
+
     }
 }

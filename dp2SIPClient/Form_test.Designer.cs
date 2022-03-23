@@ -36,6 +36,12 @@
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage_borrowreturn = new System.Windows.Forms.TabPage();
+            this.textBox_itemCountPerBiblio = new System.Windows.Forms.TextBox();
+            this.lableItemCount = new System.Windows.Forms.Label();
+            this.textBox_biblioCount = new System.Windows.Forms.TextBox();
+            this.label15 = new System.Windows.Forms.Label();
+            this.button3 = new System.Windows.Forms.Button();
+            this.button2 = new System.Windows.Forms.Button();
             this.button_iniLIb = new System.Windows.Forms.Button();
             this.button_delLib = new System.Windows.Forms.Button();
             this.tabPage_sip2 = new System.Windows.Forms.TabPage();
@@ -82,8 +88,8 @@
             this.更多ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.参数配置ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.创建流通权限ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.button1 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
+            this.label16 = new System.Windows.Forms.Label();
+            this.textBox_dbCount = new System.Windows.Forms.TextBox();
             this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -179,7 +185,13 @@
             // 
             // tabPage_borrowreturn
             // 
-            this.tabPage_borrowreturn.Controls.Add(this.button1);
+            this.tabPage_borrowreturn.Controls.Add(this.textBox_dbCount);
+            this.tabPage_borrowreturn.Controls.Add(this.label16);
+            this.tabPage_borrowreturn.Controls.Add(this.textBox_itemCountPerBiblio);
+            this.tabPage_borrowreturn.Controls.Add(this.lableItemCount);
+            this.tabPage_borrowreturn.Controls.Add(this.textBox_biblioCount);
+            this.tabPage_borrowreturn.Controls.Add(this.label15);
+            this.tabPage_borrowreturn.Controls.Add(this.button3);
             this.tabPage_borrowreturn.Controls.Add(this.button2);
             this.tabPage_borrowreturn.Controls.Add(this.button_iniLIb);
             this.tabPage_borrowreturn.Controls.Add(this.button_delLib);
@@ -191,10 +203,68 @@
             this.tabPage_borrowreturn.Text = "馆际互际";
             this.tabPage_borrowreturn.UseVisualStyleBackColor = true;
             // 
+            // textBox_itemCountPerBiblio
+            // 
+            this.textBox_itemCountPerBiblio.Location = new System.Drawing.Point(599, 15);
+            this.textBox_itemCountPerBiblio.Name = "textBox_itemCountPerBiblio";
+            this.textBox_itemCountPerBiblio.Size = new System.Drawing.Size(100, 28);
+            this.textBox_itemCountPerBiblio.TabIndex = 40;
+            this.textBox_itemCountPerBiblio.Text = "1";
+            // 
+            // lableItemCount
+            // 
+            this.lableItemCount.AutoSize = true;
+            this.lableItemCount.Location = new System.Drawing.Point(441, 20);
+            this.lableItemCount.Name = "lableItemCount";
+            this.lableItemCount.Size = new System.Drawing.Size(161, 18);
+            this.lableItemCount.TabIndex = 39;
+            this.lableItemCount.Text = "每条书目下级册数:";
+            // 
+            // textBox_biblioCount
+            // 
+            this.textBox_biblioCount.Location = new System.Drawing.Point(342, 19);
+            this.textBox_biblioCount.Name = "textBox_biblioCount";
+            this.textBox_biblioCount.Size = new System.Drawing.Size(100, 28);
+            this.textBox_biblioCount.TabIndex = 38;
+            this.textBox_biblioCount.Text = "10";
+            // 
+            // label15
+            // 
+            this.label15.AutoSize = true;
+            this.label15.Location = new System.Drawing.Point(247, 27);
+            this.label15.Name = "label15";
+            this.label15.Size = new System.Drawing.Size(89, 18);
+            this.label15.TabIndex = 37;
+            this.label15.Text = "书目数量:";
+            // 
+            // button3
+            // 
+            this.button3.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.button3.Location = new System.Drawing.Point(11, 72);
+            this.button3.Margin = new System.Windows.Forms.Padding(2);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(212, 38);
+            this.button3.TabIndex = 36;
+            this.button3.Text = "初始化单一馆测试环境";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
+            // 
+            // button2
+            // 
+            this.button2.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.button2.Location = new System.Drawing.Point(250, 72);
+            this.button2.Margin = new System.Windows.Forms.Padding(2);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(251, 38);
+            this.button2.TabIndex = 35;
+            this.button2.Text = "删除单一馆测试环境";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
+            // 
             // button_iniLIb
             // 
             this.button_iniLIb.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button_iniLIb.Location = new System.Drawing.Point(7, 115);
+            this.button_iniLIb.Location = new System.Drawing.Point(11, 131);
             this.button_iniLIb.Margin = new System.Windows.Forms.Padding(2);
             this.button_iniLIb.Name = "button_iniLIb";
             this.button_iniLIb.Size = new System.Drawing.Size(212, 38);
@@ -206,7 +276,7 @@
             // button_delLib
             // 
             this.button_delLib.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button_delLib.Location = new System.Drawing.Point(246, 115);
+            this.button_delLib.Location = new System.Drawing.Point(250, 131);
             this.button_delLib.Margin = new System.Windows.Forms.Padding(2);
             this.button_delLib.Name = "button_delLib";
             this.button_delLib.Size = new System.Drawing.Size(251, 38);
@@ -237,7 +307,7 @@
             this.tabPage_sip2.Location = new System.Drawing.Point(4, 28);
             this.tabPage_sip2.Name = "tabPage_sip2";
             this.tabPage_sip2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage_sip2.Size = new System.Drawing.Size(888, 654);
+            this.tabPage_sip2.Size = new System.Drawing.Size(888, 650);
             this.tabPage_sip2.TabIndex = 0;
             this.tabPage_sip2.Text = "SIP2测试";
             this.tabPage_sip2.UseVisualStyleBackColor = true;
@@ -713,29 +783,22 @@
             this.创建流通权限ToolStripMenuItem.Text = "创建流通权限";
             this.创建流通权限ToolStripMenuItem.Click += new System.EventHandler(this.创建流通权限ToolStripMenuItem_Click);
             // 
-            // button1
+            // label16
             // 
-            this.button1.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button1.Location = new System.Drawing.Point(7, 24);
-            this.button1.Margin = new System.Windows.Forms.Padding(2);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(212, 38);
-            this.button1.TabIndex = 34;
-            this.button1.Text = "初始化单一馆测试环境";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.label16.AutoSize = true;
+            this.label16.Location = new System.Drawing.Point(17, 27);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(107, 18);
+            this.label16.TabIndex = 41;
+            this.label16.Text = "数据库数量:";
             // 
-            // button2
+            // textBox_dbCount
             // 
-            this.button2.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button2.Location = new System.Drawing.Point(246, 24);
-            this.button2.Margin = new System.Windows.Forms.Padding(2);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(251, 38);
-            this.button2.TabIndex = 35;
-            this.button2.Text = "删除单一馆测试环境";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.textBox_dbCount.Location = new System.Drawing.Point(123, 17);
+            this.textBox_dbCount.Name = "textBox_dbCount";
+            this.textBox_dbCount.Size = new System.Drawing.Size(100, 28);
+            this.textBox_dbCount.TabIndex = 42;
+            this.textBox_dbCount.Text = "2";
             // 
             // Form_Test
             // 
@@ -758,6 +821,7 @@
             this.splitContainer1.ResumeLayout(false);
             this.tabControl1.ResumeLayout(false);
             this.tabPage_borrowreturn.ResumeLayout(false);
+            this.tabPage_borrowreturn.PerformLayout();
             this.tabPage_sip2.ResumeLayout(false);
             this.tabPage_sip2.PerformLayout();
             this.groupBox2.ResumeLayout(false);
@@ -827,7 +891,13 @@
         private System.Windows.Forms.Button button_iniLIb;
         private System.Windows.Forms.Button button_delLib;
         private System.Windows.Forms.TabPage tabPage_sip2;
-        private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.TextBox textBox_itemCountPerBiblio;
+        private System.Windows.Forms.Label lableItemCount;
+        private System.Windows.Forms.TextBox textBox_biblioCount;
+        private System.Windows.Forms.Label label15;
+        private System.Windows.Forms.TextBox textBox_dbCount;
+        private System.Windows.Forms.Label label16;
     }
 }
