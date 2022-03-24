@@ -106,6 +106,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DigitalPlatform.LibraryRest
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dp2weixinWeb", "dp2weixinP2P\dp2weixinWeb.csproj", "{95CB7353-995B-4B82-8DFF-41C0133FFF78}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C9E057A7-5AB2-43CF-AD84-103FB5ADA74C}"
+	ProjectSection(SolutionItems) = preProject
+		comment.txt = comment.txt
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
@@ -10,7 +11,14 @@ namespace DigitalPlatform.SIP.Server
     {
         public string InstanceName { get; set; }
         // 登录dp2系统的帐户
-        public string UserName { get; set; }
+        string _userName = null;
+        public string UserName
+        {
+            get
+            {
+                return _userName;
+            }
+        }
         public string Password { get; set; }
         // 3M设备工作台号
         public string LocationCode { get; set; }
@@ -33,7 +41,13 @@ namespace DigitalPlatform.SIP.Server
         // 2022/3/4
         public string Style
         {
-            get;set;
+            get; set;
+        }
+
+        // 2022/3/22
+        public int MaxChannels
+        {
+            get; set;
         }
 
         // 最近的一条响应消息
@@ -50,6 +64,93 @@ namespace DigitalPlatform.SIP.Server
             return this.Property as SipChannelProperty;
         }
 #endif
+
+        public string SetUserName(string userName,
+            Hashtable channel_count_table)
+        {
+            // 空 --> 有值
+            if (string.IsNullOrEmpty(this.UserName) == true
+                && string.IsNullOrEmpty(userName) == false)
+            {
+                this._userName = userName;
+                var result = IncCount(channel_count_table, this);
+                return result;
+            }
+            // 有值 --> 空
+            else if (string.IsNullOrEmpty(this.UserName) == false
+                && string.IsNullOrEmpty(userName) == true)
+            {
+                DecCount(channel_count_table, this);
+                this._userName = userName;
+                return null;
+            }
+            // 有值 --> 不同的有值
+            else if (string.IsNullOrEmpty(this.UserName) == false
+                && string.IsNullOrEmpty(userName) == false
+                && this.UserName != userName)
+            {
+                // 先减量
+                DecCount(channel_count_table, this);
+                this._userName = userName;
+                // 再增量
+                return IncCount(channel_count_table, this);
+            }
+
+            return null;
+        }
+
+        static string IncCount(Hashtable channel_count_table,
+    SipChannel sip_channel)
+        {
+            string key = MakeKey(sip_channel);
+            return IncCount(channel_count_table, key, sip_channel.MaxChannels);
+        }
+
+        static void DecCount(Hashtable channel_count_table,
+            SipChannel sip_channel)
+        {
+            string key = MakeKey(sip_channel);
+            DecCount(channel_count_table, key);
+        }
+
+        static string MakeKey(SipChannel sip_channel)
+        {
+            return sip_channel.UserName + "@" + sip_channel.InstanceName;
+        }
+
+        // parameters:
+        //      maxChannels 最大数。如果为 -1 表示不限制
+        static string IncCount(Hashtable channel_count_table,
+            string key,
+            int maxChannels)
+        {
+            int count = 0;
+            lock (channel_count_table.SyncRoot)
+            {
+                if (channel_count_table.Contains(key))
+                    count = (int)channel_count_table[key];
+                if (maxChannels != -1 && count + 1 > maxChannels)
+                {
+                    return $"Login failed. User '{key}' has already use {count} TCP channels(max value is {maxChannels}). 用户 '{key}' 已经使用了 {count} 根 TCP 通道(极限值为 {maxChannels})，登录被拒绝";
+                }
+                channel_count_table[key] = count + 1;
+                return null;
+            }
+        }
+
+        static void DecCount(Hashtable channel_count_table,
+            string key)
+        {
+            lock (channel_count_table.SyncRoot)
+            {
+                if (channel_count_table.Contains(key))
+                {
+                    int count = (int)channel_count_table[key];
+                    channel_count_table[key] = count - 1;
+                }
+            }
+        }
+
     }
 
     // 每个(SIP 服务器)通道特有的信息

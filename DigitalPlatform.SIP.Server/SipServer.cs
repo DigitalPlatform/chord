@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+
 using DigitalPlatform.Core;
 using DigitalPlatform.Net;
 
@@ -13,10 +15,13 @@ namespace DigitalPlatform.SIP.Server
     /// </summary>
     public class SipServer : TcpServer
     {
+        internal Hashtable _accountTable = new Hashtable(); // 限制每个账户的 LibraryChannel 最大通道数
+
         // 常量
         public const string DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
         public const string DEFAULT_ENCODING_NAME = "UTF-8";
         public const bool DEFAULT_BOOKUIISTRICT = false;
+        public const int DEFAULT_MAXCHANNELS = 2;
 
         int _maxPackageLength = 4096;
         public int MaxPackageLength
@@ -111,7 +116,7 @@ namespace DigitalPlatform.SIP.Server
                             if (token != null && token.IsCancellationRequested)
                                 return;
 
-                            ProcessSipRequestEventArgs e = new ProcessSipRequestEventArgs();
+                            ProcessSipRequestEventArgs e = new ProcessSipRequestEventArgs { AccountTable = _accountTable };
                             e.Request = result.Package;
                             this.ProcessRequest(channel, e);
                             response = e.Response;
@@ -153,6 +158,11 @@ namespace DigitalPlatform.SIP.Server
             finally
             {
                 _tcpChannels.Remove(channel);
+                // channel.InstanceName;channel.UserName;
+
+                // 2022/3/22
+                channel.SetUserName("", _accountTable);
+
                 channel.Close();
                 if (close_action != null)
                     close_action.Invoke();
@@ -180,5 +190,8 @@ namespace DigitalPlatform.SIP.Server
         public byte[] Response { get; set; }    // [out]
         // result.Value:
         // public Result Result = new Result();    // [out]
+
+        // 2022/3/22
+        public Hashtable AccountTable { get; set; }
     }
 }

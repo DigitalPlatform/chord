@@ -216,6 +216,16 @@ namespace dp2Capo.Install
                 item.EncodingName = user.GetAttribute("encoding");
                 string style = user.GetAttribute("style");
                 item.BookUiiStrict = StringUtil.IsInList("bookUiiStrict", style);
+                
+                // 2022/3/22
+                string maxChannels = user.GetAttribute("maxChannels");
+                if (string.IsNullOrEmpty(maxChannels))
+                    maxChannels = SipServer.DEFAULT_MAXCHANNELS.ToString();
+                if (Int32.TryParse(maxChannels, out int value))
+                    item.MaxChannels = value;
+                else
+                    item.MaxChannels = SipServer.DEFAULT_MAXCHANNELS;
+                
                 item.IpList = user.GetAttribute("ipList");
                 item.AutoClearSeconds = user.GetAttribute("autoClearSeconds");
                 item.PropertyChanged += Item_PropertyChanged;
@@ -273,6 +283,10 @@ namespace dp2Capo.Install
                 user.SetAttribute("userName", item.UserName);
                 user.SetAttribute("dateFormat", item.DateFormat);
                 user.SetAttribute("style", style);
+
+                // 2022/3/22
+                user.SetAttribute("maxChannels", item.MaxChannels.ToString());
+
                 user.SetAttribute("encoding", item.EncodingName);
                 user.SetAttribute("ipList", item.IpList);
                 user.SetAttribute("autoClearSeconds", item.AutoClearSeconds);
@@ -400,6 +414,21 @@ namespace dp2Capo.Install
                 {
                     _bookUiiStrict = value;
                     OnPropertyChanged("BookUiiStrict");
+                }
+            }
+
+            int _maxChannels = SipServer.DEFAULT_MAXCHANNELS;
+
+            [DisplayName("TCP 通道数限额"), Description("允许使用的最多 TCP 通道数。-1 表示不限制")]
+            [DefaultValue(SipServer.DEFAULT_MAXCHANNELS)]
+            [Category("SIP 参数")]
+            public int MaxChannels
+            {
+                get { return _maxChannels; }
+                set
+                {
+                    _maxChannels = value;
+                    OnPropertyChanged("MaxChannels");
                 }
             }
 
