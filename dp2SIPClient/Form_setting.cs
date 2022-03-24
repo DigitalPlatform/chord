@@ -52,7 +52,7 @@ namespace dp2SIPClient
                 MessageBox.Show(this, "'端口号'只能是纯数字");
                 return;
             }
-            Properties.Settings.Default.SIPServerPort = v;
+            Properties.Settings.Default.SIPServerPort = this.SIPServerPort;
             Properties.Settings.Default.Save();
 
             this.DialogResult = DialogResult.OK;

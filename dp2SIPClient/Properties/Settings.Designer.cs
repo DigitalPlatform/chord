@@ -38,9 +38,9 @@ namespace dp2SIPClient.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("8100")]
-        public int SIPServerPort {
+        public string SIPServerPort {
             get {
-                return ((int)(this["SIPServerPort"]));
+                return ((string)(this["SIPServerPort"]));
             }
             set {
                 this["SIPServerPort"] = value;

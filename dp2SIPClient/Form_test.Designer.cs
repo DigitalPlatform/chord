@@ -36,6 +36,8 @@
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage_borrowreturn = new System.Windows.Forms.TabPage();
+            this.textBox_dbCount = new System.Windows.Forms.TextBox();
+            this.label16 = new System.Windows.Forms.Label();
             this.textBox_itemCountPerBiblio = new System.Windows.Forms.TextBox();
             this.lableItemCount = new System.Windows.Forms.Label();
             this.textBox_biblioCount = new System.Windows.Forms.TextBox();
@@ -88,8 +90,6 @@
             this.更多ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.参数配置ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.创建流通权限ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.label16 = new System.Windows.Forms.Label();
-            this.textBox_dbCount = new System.Windows.Forms.TextBox();
             this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -203,6 +203,23 @@
             this.tabPage_borrowreturn.Text = "馆际互际";
             this.tabPage_borrowreturn.UseVisualStyleBackColor = true;
             // 
+            // textBox_dbCount
+            // 
+            this.textBox_dbCount.Location = new System.Drawing.Point(123, 17);
+            this.textBox_dbCount.Name = "textBox_dbCount";
+            this.textBox_dbCount.Size = new System.Drawing.Size(100, 28);
+            this.textBox_dbCount.TabIndex = 42;
+            this.textBox_dbCount.Text = "2";
+            // 
+            // label16
+            // 
+            this.label16.AutoSize = true;
+            this.label16.Location = new System.Drawing.Point(17, 27);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(107, 18);
+            this.label16.TabIndex = 41;
+            this.label16.Text = "数据库数量:";
+            // 
             // textBox_itemCountPerBiblio
             // 
             this.textBox_itemCountPerBiblio.Location = new System.Drawing.Point(599, 15);
@@ -307,7 +324,7 @@
             this.tabPage_sip2.Location = new System.Drawing.Point(4, 28);
             this.tabPage_sip2.Name = "tabPage_sip2";
             this.tabPage_sip2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage_sip2.Size = new System.Drawing.Size(888, 650);
+            this.tabPage_sip2.Size = new System.Drawing.Size(888, 654);
             this.tabPage_sip2.TabIndex = 0;
             this.tabPage_sip2.Text = "SIP2测试";
             this.tabPage_sip2.UseVisualStyleBackColor = true;
@@ -783,23 +800,6 @@
             this.创建流通权限ToolStripMenuItem.Text = "创建流通权限";
             this.创建流通权限ToolStripMenuItem.Click += new System.EventHandler(this.创建流通权限ToolStripMenuItem_Click);
             // 
-            // label16
-            // 
-            this.label16.AutoSize = true;
-            this.label16.Location = new System.Drawing.Point(17, 27);
-            this.label16.Name = "label16";
-            this.label16.Size = new System.Drawing.Size(107, 18);
-            this.label16.TabIndex = 41;
-            this.label16.Text = "数据库数量:";
-            // 
-            // textBox_dbCount
-            // 
-            this.textBox_dbCount.Location = new System.Drawing.Point(123, 17);
-            this.textBox_dbCount.Name = "textBox_dbCount";
-            this.textBox_dbCount.Size = new System.Drawing.Size(100, 28);
-            this.textBox_dbCount.TabIndex = 42;
-            this.textBox_dbCount.Text = "2";
-            // 
             // Form_Test
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
@@ -812,6 +812,7 @@
             this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "Form_Test";
             this.Text = "Form_test";
+            this.Load += new System.EventHandler(this.Form_Test_Load);
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
             this.splitContainer1.Panel1.ResumeLayout(false);

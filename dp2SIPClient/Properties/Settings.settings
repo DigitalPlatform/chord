@@ -5,7 +5,7 @@
     <Setting Name="SIPServerUrl" Type="System.String" Scope="User">
       <Value Profile="(Default)">127.0.0.1</Value>
     </Setting>
-    <Setting Name="SIPServerPort" Type="System.Int32" Scope="User">
+    <Setting Name="SIPServerPort" Type="System.String" Scope="User">
       <Value Profile="(Default)">8100</Value>
     </Setting>
     <Setting Name="dp2ServerUrl" Type="System.String" Scope="User">

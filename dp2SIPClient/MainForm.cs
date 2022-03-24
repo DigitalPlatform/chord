@@ -72,7 +72,7 @@ namespace dp2SIPClient
 
 
 
-        public int SIPServerPort
+        public string SIPServerPort
         {
             get
             {
@@ -108,7 +108,20 @@ namespace dp2SIPClient
         public void ConnectionServer(out string info)
         {
             info = "";
-            bool bRet = SCHelper.Instance.Connection(this.SIPServerUrl, this.SIPServerPort, out info);
+
+            int nPort = 0;
+            try
+            {
+                nPort = int.Parse(this.SIPServerPort);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, "端口[" + SipPort + "]不合法，必须是数字。");
+                return;
+            }
+
+
+            bool bRet = SCHelper.Instance.Connection(this.SIPServerUrl,nPort , out info);
             if (bRet == false) // 出错
             {
                 this.toolStripStatusLabel_info.Text = info;
@@ -713,28 +726,67 @@ namespace dp2SIPClient
             }
         }
 
+        public void SaveSipInfo()
+        {
+
+            // 连接参数
+            Properties.Settings.Default.SIPServerUrl = SipIP;
+            Properties.Settings.Default.SIPServerPort = SipPort;
+            Properties.Settings.Default.SIPEncoding = this.comboBox_encoding.Text.Trim();
+
+            // 登录参数
+            Properties.Settings.Default.SIPAccount = SipAccount;
+            Properties.Settings.Default.SipLoginCP = SipCP;
+            Properties.Settings.Default.Save();
+        }
+        public string SipIP
+        {
+            get
+            {
+                return this.textBox_addr.Text.Trim();
+            }
+        }
+        public string SipPort
+        {
+            get
+            {
+                return this.textBox_port.Text.Trim();
+            }
+        }
+
+        public string SipAccount
+        {
+            get
+            {
+                return this.textBox_username.Text.Trim();
+            }
+        }
+
+        public string SipCP
+        {
+            get
+            {
+                return this.textBox_locationCode.Text.Trim(); 
+            }
+        }
+
         private void button_connection_Click(object sender, EventArgs e)
         {
             string info = "";
 
-            string strIP = this.textBox_addr.Text.Trim();
-            string strPort=this.textBox_port.Text.Trim();
-            int nPort = 8001;
+            int nPort = 0;
             try
             {
-                nPort = int.Parse(strPort);
+                nPort = int.Parse(SipPort);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(this,"端口["+strPort+ "]不合法，必须是数字。");
+                MessageBox.Show(this, "端口[" + SipPort + "]不合法，必须是数字。");
                 return;
             }
 
             // 先保存一下连接参数
-            Properties.Settings.Default.SIPServerUrl = strIP;
-            Properties.Settings.Default.SIPServerPort = nPort;
-            Properties.Settings.Default.SIPEncoding = this.comboBox_encoding.Text.Trim();
-            Properties.Settings.Default.Save();
+            this.SaveSipInfo();
 
 
             for (int i = 0; i < int.Parse(this.textBox_copies.Text); i++)
@@ -742,7 +794,7 @@ namespace dp2SIPClient
                 this.Update();
                 Application.DoEvents();
 
-                bool bRet = SCHelper.Instance.Connection(strIP,nPort , _encoding, out info);
+                bool bRet = SCHelper.Instance.Connection(SipIP,nPort , _encoding, out info);
                 if (bRet == false) // 出错
                 {
                     this.toolStripStatusLabel_info.Text = info;
@@ -750,7 +802,7 @@ namespace dp2SIPClient
                 }
 
                 // 连接成功
-                string text =strIP + ":" + strPort;
+                string text =SipIP + ":" + SipPort;
                 info = "连接SIP2服务器[" + text + "]成功(" + (i + 1).ToString() + ")编码方式：" + this._encoding?.EncodingName;
                 this.toolStripStatusLabel_info.Text = info;
 
@@ -764,14 +816,10 @@ namespace dp2SIPClient
             string responseText = "";
             string error = "";
 
-            string account = this.textBox_username.Text.Trim();
             string password = this.textBox_password.Text.Trim();
-            string cp = this.textBox_locationCode.Text.Trim();
 
             // 先保存一下连接参数
-            Properties.Settings.Default.SIPAccount = account;
-            Properties.Settings.Default.SipLoginCP = cp;
-            Properties.Settings.Default.Save();
+            this.SaveSipInfo();
 
             for (int i = 0; i < int.Parse(this.textBox_login_copies.Text); i++)
             {
@@ -780,9 +828,9 @@ namespace dp2SIPClient
                     UIDAlgorithm_1 = " ",
                     PWDAlgorithm_1 = " ",
 
-                    CN_LoginUserId_r = account,
+                    CN_LoginUserId_r = SipAccount,
                     CO_LoginPassword_r = password,
-                    CP_LocationCode_o = cp
+                    CP_LocationCode_o = SipCP
                 };
                 string cmdText = request.ToText();
 
@@ -1270,6 +1318,10 @@ namespace dp2SIPClient
         {
             // 切断通道
             SCHelper.Instance.Close();
+
+            // 保存界面参数
+            this.SaveSipInfo();
+
         }
 
         private void label71_Click(object sender, EventArgs e)

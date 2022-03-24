@@ -2790,6 +2790,9 @@ namespace dp2SIPClient
             }
         }
 
+        private void Form_Test_Load(object sender, EventArgs e)
+        {
 
+        }
     }
 }
