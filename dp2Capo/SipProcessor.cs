@@ -223,6 +223,12 @@ namespace dp2Capo
                         strResponse = SCStatus(sip_channel, strRequest);
                         break;
                     }
+                case "D1":
+                    {
+                        // 列出通道信息
+                        strResponse = ListChannel(sip_channel, strRequest);
+                        break;
+                    }
                 default:
                     strResponse = "无法识别的命令'" + strMessageIdentifiers + "'";
                     break;
@@ -3618,6 +3624,17 @@ namespace dp2Capo
                 response.AF_ScreenMessage_o = strError;
                 return response.ToText();
             }
+        }
+
+        /// <summary>
+        /// 列出通道信息
+        /// </summary>
+        /// <param name="sip_channel">SIP 通道</param>
+        /// <param name="message">SIP 请求消息</param>
+        /// <returns></returns>
+        static string ListChannel(SipChannel sip_channel, string message)
+        {
+            return "not implemented";
         }
 
         // 确保获得所连接的 dp2library 服务器的版本号
