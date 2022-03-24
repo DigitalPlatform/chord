@@ -12,7 +12,7 @@ namespace dp2SIPClient.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.8.1.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.1.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -37,7 +37,7 @@ namespace dp2SIPClient.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2000")]
+        [global::System.Configuration.DefaultSettingValueAttribute("8100")]
         public int SIPServerPort {
             get {
                 return ((int)(this["SIPServerPort"]));
@@ -104,6 +104,42 @@ namespace dp2SIPClient.Properties {
             }
             set {
                 this["Item"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("UTF-8")]
+        public string SIPEncoding {
+            get {
+                return ((string)(this["SIPEncoding"]));
+            }
+            set {
+                this["SIPEncoding"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string SIPAccount {
+            get {
+                return ((string)(this["SIPAccount"]));
+            }
+            set {
+                this["SIPAccount"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string SipLoginCP {
+            get {
+                return ((string)(this["SipLoginCP"]));
+            }
+            set {
+                this["SipLoginCP"] = value;
             }
         }
     }

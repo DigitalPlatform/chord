@@ -53,6 +53,13 @@ namespace dp2SIPClient
 
             this.tabControl_main.SelectedTab = this.tabPage_function;
             ClearHtml();
+
+            // 给界面设置值
+            this.textBox_addr.Text =this.SIPServerUrl;
+            this.textBox_port.Text =this.SIPServerPort.ToString();
+            this.comboBox_encoding.Text = this.SIPEncoding;
+            this.textBox_username.Text = this.SIPAccount;
+            this.textBox_locationCode.Text = this.SipLoginCP;
         }
 
         public string SIPServerUrl
@@ -63,11 +70,36 @@ namespace dp2SIPClient
             }
         }
 
+
+
         public int SIPServerPort
         {
             get
             {
                 return Properties.Settings.Default.SIPServerPort;
+            }
+        }
+
+        public string SIPEncoding
+        {
+            get
+            {
+                return Properties.Settings.Default.SIPEncoding;
+            }
+        }
+
+        public string SIPAccount
+        {
+            get
+            {
+                return Properties.Settings.Default.SIPAccount;
+            }
+        }
+        public string SipLoginCP
+        {
+            get
+            {
+                return Properties.Settings.Default.SipLoginCP;
             }
         }
 
@@ -673,7 +705,7 @@ namespace dp2SIPClient
         {
             get
             {
-                string strEncoding = this.comboBox_encoding.Text;
+                string strEncoding = this.comboBox_encoding.Text.Trim();
                 if (string.IsNullOrEmpty(strEncoding))
                     return Encoding.UTF8;
                 else
@@ -685,12 +717,32 @@ namespace dp2SIPClient
         {
             string info = "";
 
+            string strIP = this.textBox_addr.Text.Trim();
+            string strPort=this.textBox_port.Text.Trim();
+            int nPort = 8001;
+            try
+            {
+                nPort = int.Parse(strPort);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this,"端口["+strPort+ "]不合法，必须是数字。");
+                return;
+            }
+
+            // 先保存一下连接参数
+            Properties.Settings.Default.SIPServerUrl = strIP;
+            Properties.Settings.Default.SIPServerPort = nPort;
+            Properties.Settings.Default.SIPEncoding = this.comboBox_encoding.Text.Trim();
+            Properties.Settings.Default.Save();
+
+
             for (int i = 0; i < int.Parse(this.textBox_copies.Text); i++)
             {
                 this.Update();
                 Application.DoEvents();
 
-                bool bRet = SCHelper.Instance.Connection(this.textBox_addr.Text, int.Parse(this.textBox_port.Text), _encoding, out info);
+                bool bRet = SCHelper.Instance.Connection(strIP,nPort , _encoding, out info);
                 if (bRet == false) // 出错
                 {
                     this.toolStripStatusLabel_info.Text = info;
@@ -698,7 +750,7 @@ namespace dp2SIPClient
                 }
 
                 // 连接成功
-                string text = this.textBox_addr.Text + ":" + this.textBox_port.Text;
+                string text =strIP + ":" + strPort;
                 info = "连接SIP2服务器[" + text + "]成功(" + (i + 1).ToString() + ")编码方式：" + this._encoding?.EncodingName;
                 this.toolStripStatusLabel_info.Text = info;
 
@@ -712,6 +764,15 @@ namespace dp2SIPClient
             string responseText = "";
             string error = "";
 
+            string account = this.textBox_username.Text.Trim();
+            string password = this.textBox_password.Text.Trim();
+            string cp = this.textBox_locationCode.Text.Trim();
+
+            // 先保存一下连接参数
+            Properties.Settings.Default.SIPAccount = account;
+            Properties.Settings.Default.SipLoginCP = cp;
+            Properties.Settings.Default.Save();
+
             for (int i = 0; i < int.Parse(this.textBox_login_copies.Text); i++)
             {
                 Login_93 request = new Login_93()
@@ -719,9 +780,9 @@ namespace dp2SIPClient
                     UIDAlgorithm_1 = " ",
                     PWDAlgorithm_1 = " ",
 
-                    CN_LoginUserId_r = this.textBox_username.Text,
-                    CO_LoginPassword_r = this.textBox_password.Text,
-                    CP_LocationCode_o = this.textBox_locationCode.Text
+                    CN_LoginUserId_r = account,
+                    CO_LoginPassword_r = password,
+                    CP_LocationCode_o = cp
                 };
                 string cmdText = request.ToText();
 
@@ -1203,6 +1264,17 @@ namespace dp2SIPClient
             }
 
             this.Print("recv:" + responseText);
+        }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // 切断通道
+            SCHelper.Instance.Close();
+        }
+
+        private void label71_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
