@@ -85,6 +85,9 @@ namespace dp2Capo
 
             SipChannel sip_channel = sender as SipChannel;
 
+            // 附加的信息
+            sip_channel.Tag = e.AccountTable;
+
             // TODO: TcpClient 可能为 null, 表示通道已经被切断
             string ip = TcpServer.GetClientIP(sip_channel.TcpClient);
 
@@ -197,8 +200,7 @@ namespace dp2Capo
                     {
                         strResponse = Login(sip_channel,
                             ip,
-                            strRequest,
-                            e.AccountTable);
+                            strRequest);
                         if ("941" == strResponse)
                         {
 
@@ -363,8 +365,7 @@ namespace dp2Capo
 
         static string Login(SipChannel sip_channel,
             string strClientIP,
-            string message,
-            Hashtable channel_count_table)
+            string message)
         {
             int nRet = 0;
             string strError = "";
@@ -470,7 +471,7 @@ namespace dp2Capo
             // 此处可能会抛出异常
             sip_channel.Encoding = instance.sip_host.GetSipParam(strUserName, sip_channel.Encoding == null).Encoding;
 
-            strError = sip_channel.SetUserName(strUserName, channel_count_table);
+            strError = sip_channel.SetUserName(strUserName, sip_channel.Tag as Hashtable);
             if (strError != null)
                 goto ERROR1;
             sip_channel.Password = strPassword;
@@ -540,7 +541,7 @@ namespace dp2Capo
                     sip_channel.Institution = strInstitution;
                     sip_channel.LocationCode = strLocationCode;
                     sip_channel.InstanceName = strInstanceName; // "";  BUG 2018/8/24 排除
-                    strError =  sip_channel.SetUserName(strUserName, channel_count_table);
+                    strError = sip_channel.SetUserName(strUserName, sip_channel.Tag as Hashtable);
                     if (strError != null)
                         goto ERROR1;
                     sip_channel.Password = strPassword;
@@ -559,7 +560,7 @@ namespace dp2Capo
         ERROR1:
             sip_channel.LocationCode = "";
             sip_channel.InstanceName = null;
-            var error = sip_channel.SetUserName("", channel_count_table);
+            var error = sip_channel.SetUserName("", sip_channel.Tag as Hashtable);
             sip_channel.Password = "";
 
             response.Ok_1 = "0";
@@ -681,6 +682,20 @@ namespace dp2Capo
                         login_info.Password = "";
 
                     SetChannelTimeout(sip_channel, login_info.UserName, info.Instance);
+
+                    // 2022/3/25
+                    if (sip_channel.UserName == null)
+                    {
+                        sip_channel.SetUserName(login_info.UserName, sip_channel.Tag as Hashtable);
+                        sip_channel.Password = login_info.Password;
+                    }
+
+                    // 2022/3/25
+                    // 从此以后，报错信息才可以使用中文了
+                    // 此处可能会抛出异常
+                    if (sip_channel.Encoding == null
+                        && info.Instance != null)
+                        sip_channel.Encoding = info.Instance.sip_host.GetSipParam(login_info.UserName, sip_channel.Encoding == null)?.Encoding;
                 }
                 else
                 {
@@ -1174,8 +1189,10 @@ namespace dp2Capo
 
                         response.AJ_TitleIdentifier_r = strBiblioSummary;
 
+                        // TODO: 这里可能会抛出异常
+                        var date_format = info.Instance.sip_host.GetSipParam(sip_channel.UserName, true).DateFormat;
                         string strLatestReturnTime = DateTimeUtil.Rfc1123DateTimeStringToLocal(borrow_info.LatestReturnTime,
-                            info.Instance.sip_host.GetSipParam(sip_channel.UserName, true).DateFormat);
+                            date_format);
                         response.AH_DueDate_r = strLatestReturnTime;
 
                         response.AF_ScreenMessage_o = "成功";
@@ -3593,12 +3610,14 @@ namespace dp2Capo
                     }
                 }
 
+                var is_hangup = string.IsNullOrEmpty(strExistingHangupValue) == false;
+
                 response = new ACSStatus_98()
                 {
                     OnlineStatus_1 = "Y",   // see instance info
-                    CheckinOk_1 = (lRet == -1 ? "N" : "Y"),
-                    CheckoutOk_1 = (lRet == -1 ? "N" : "Y"),
-                    ACSRenewalPolicy_1 = (lRet == -1 ? "N" : "Y"),
+                    CheckinOk_1 = (is_hangup ? "N" : "Y"), // && string.IsNullOrEmpty(sip_channel.UserName) 
+                    CheckoutOk_1 = (is_hangup ? "N" : "Y"),
+                    ACSRenewalPolicy_1 = (is_hangup ? "N" : "Y"),
                     StatusUpdateOk_1 = "N", // "Y",
                     OfflineOk_1 = "N",   // "Y",
                     TimeoutPeriod_3 = "010",
@@ -3609,7 +3628,7 @@ namespace dp2Capo
                     AO_InstitutionId_r = sip_channel.Institution == null ? "" : sip_channel.Institution,    // "dp2Library",
                     AM_LibraryName_o = strExistingLibraryName,  // "dp2Library",
                     BX_SupportedMessages_r = "YYYYYYYYYYYYYYYY",
-                    AF_ScreenMessage_o = (lRet == -1 ? strExistingHangupValue : ""),
+                    AF_ScreenMessage_o = (is_hangup ? strExistingHangupValue : ""),
                 };
 
                 return response.ToText();
