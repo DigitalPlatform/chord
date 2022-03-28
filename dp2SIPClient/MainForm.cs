@@ -613,7 +613,7 @@ namespace dp2SIPClient
 
         #endregion
 
-        #region 通用函数
+        #region 输入信息浏览器通用函数
 
         private void Print(string strHtml)
         {
