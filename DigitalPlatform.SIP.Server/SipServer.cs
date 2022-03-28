@@ -113,6 +113,7 @@ namespace DigitalPlatform.SIP.Server
                             // byte [] 转换为 string
 
                             channel.Touch();
+                            channel.RequestCount++;
                             if (token != null && token.IsCancellationRequested)
                                 return;
 

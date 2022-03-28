@@ -225,7 +225,7 @@ namespace dp2Capo
                         strResponse = SCStatus(sip_channel, strRequest);
                         break;
                     }
-                case "D1":
+                case "41":
                     {
                         // 列出通道信息
                         strResponse = ListChannel(sip_channel, strRequest);
@@ -538,6 +538,7 @@ namespace dp2Capo
                     if (nRet == -1)
                         goto ERROR1;
 
+                    sip_channel.LibraryCodeList = libraryCodeList;
                     sip_channel.Institution = strInstitution;
                     sip_channel.LocationCode = strLocationCode;
                     sip_channel.InstanceName = strInstanceName; // "";  BUG 2018/8/24 排除
@@ -3653,7 +3654,128 @@ namespace dp2Capo
         /// <returns></returns>
         static string ListChannel(SipChannel sip_channel, string message)
         {
-            return "not implemented";
+            string strError = "";
+            int nRet = 0;
+            long lRet = 0;
+
+            ChannelInformationResponse_42 response = new ChannelInformationResponse_42()
+            {
+                Status_1 = "N",
+                TransactionDate_18 = SIPUtility.NowDateTime,
+                ZT_TotalCount_r = "0",
+                ZV_Value_r = "",
+            };
+
+            ChannelInformation_41 request = new ChannelInformation_41();
+            try
+            {
+                nRet = request.parse(message, out strError);
+                if (-1 == nRet)
+                {
+                    LibraryManager.Log?.Error(strError);
+                    response.AF_ScreenMessage_o = strError;
+                    response.AG_PrintLine_o = strError;
+                    return response.ToText();
+                }
+            }
+            catch (Exception ex)
+            {
+                response.AF_ScreenMessage_o = ex.Message;
+                LibraryManager.Log?.Error(ExceptionUtil.GetDebugText(ex));
+                return response.ToText();
+            }
+
+            FunctionInfo info = BeginFunction(sip_channel);
+            if (string.IsNullOrEmpty(info.ErrorInfo) == false)
+            {
+                strError = info.ErrorInfo;
+                goto ERROR1;
+            }
+            try
+            {
+                string query_word = request.ZW_SearchWord_r;
+                long offset = 0;
+                if (string.IsNullOrEmpty(request.BP_StartItem_r) == false
+                    && long.TryParse(request.BP_StartItem_r, out offset) == false)
+                {
+                    strError = $"StartItem 参数值 '{request.BP_StartItem_r}' 不合法";
+                    goto ERROR1;
+                }
+
+                long max_count = -1;
+                if (string.IsNullOrEmpty(request.ZC_MaxCount_r) == false
+    && long.TryParse(request.ZC_MaxCount_r, out max_count) == false)
+                {
+                    strError = $"MaxCount 参数值 '{request.ZC_MaxCount_r}' 不合法";
+                    goto ERROR1;
+                }
+
+                string format = request.ZF_format_r;
+                if (string.IsNullOrEmpty(format))
+                    format = "json";
+
+                string id = sip_channel.GetHashCode().ToString();
+                List<SipChannel> results = null;
+                if (offset == 0)
+                {
+
+                }
+                else
+                {
+                    results = _channelResults.GetResult(id)?.Channels;
+                }
+
+                if (results == null)
+                {
+                    results = SearchChannel(query_word);
+                    _channelResults.PutResult(id,
+                        results);
+                }
+
+                List<SipChannel> outputs = new List<SipChannel>();
+                for (int i = (int)offset; i < results.Count; i++)
+                {
+                    if (max_count != -1 && i > i + max_count)
+                        break;
+                    outputs.Add(results[i]);
+                }
+
+                response.Status_1 = "Y";
+                response.ZT_TotalCount_r = results.Count.ToString();
+                response.ZV_Value_r = SipChannelResults.ToString(outputs, format);
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                LibraryManager.Log?.Error(ExceptionUtil.GetDebugText(ex));
+                goto ERROR1;
+            }
+            finally
+            {
+                EndFunction(info);
+            }
+
+        ERROR1:
+            LibraryManager.Log?.Info("ListChannel() error: " + strError);
+            response.AF_ScreenMessage_o = strError;
+            response.AG_PrintLine_o = strError;
+            return response.ToText();
+        }
+
+        // 通道检索结果集合
+        static SipChannelResultsManager _channelResults = new SipChannelResultsManager();
+
+        // 检索获得通道
+        static List<SipChannel> SearchChannel(string query_word)
+        {
+            List<SipChannel> results = new List<SipChannel>();
+            ServerInfo.SipServer?._tcpChannels?.Clean((channel) =>
+            {
+                SipChannel sip_channel = channel as SipChannel;
+                results.Add(sip_channel);
+                return false;
+            });
+            return results;
         }
 
         // 确保获得所连接的 dp2library 服务器的版本号
