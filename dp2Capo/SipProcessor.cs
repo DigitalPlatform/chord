@@ -3763,7 +3763,7 @@ namespace dp2Capo
         }
 
         // 通道检索结果集合
-        static SipChannelResultsManager _channelResults = new SipChannelResultsManager();
+        internal static SipChannelResultsManager _channelResults = new SipChannelResultsManager();
 
         // 检索获得通道
         static List<SipChannel> SearchChannel(string query_word)

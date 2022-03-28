@@ -876,6 +876,8 @@ Exception Info: System.Net.NetworkInformation.PingException
                     // 清理闲置超期的 Channels
                     ZServer?._tcpChannels?.CleanIdleChannels(TimeSpan.FromMinutes(2));
                     SipServer?._tcpChannels?.CleanIdleChannels(TimeSpan.MaxValue);   // TimeSpan.FromMinutes(2)
+                    // 2022/3/29
+                    SipProcessor._channelResults?.ClearIdle(TimeSpan.FromMinutes(2));
 
                     ZServer?.TryClearBlackList();
                     SipServer?.TryClearBlackList();
