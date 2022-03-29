@@ -92,6 +92,7 @@
     <Compile Include="ServerConnection.cs" />
     <Compile Include="ServerInfo.cs" />
     <Compile Include="ServiceControlServer.cs" />
+    <Compile Include="SipChannelResults.cs" />
     <Compile Include="SipProcessor.cs" />
     <Compile Include="Z3950Processor.cs" />
     <Compile Include="Z3950Utility.cs" />

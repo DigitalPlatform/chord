@@ -32,8 +32,8 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“生成号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”: 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.39.*")]
-[assembly: AssemblyFileVersion("1.39.0.0")]
+[assembly: AssemblyVersion("1.40.*")]
+[assembly: AssemblyFileVersion("1.40.0.0")]
 
 // 1.1 (2016/6/26) 首次使用了版本号
 // 1.2 (2016/9/14) 管理线程中会不断重试连接 dp2mserver，并将此情况写入日志
@@ -75,3 +75,7 @@ using System.Runtime.InteropServices;
 //                  SIP Return() API 可以接纳 AP 字段，用于 dp2library Return() API 的 strStyle 子参数 currentLocation=xxxx
 // 1.38 (2022/3/4) SIP 账户配置增加了 bookUiiStrict 参数，用于定义是否严格要求图书号码为 UII 形态。影响到 checkin checkout renew iteminfo 四个 API
 // 1.39 (2022/3/22) SIP 账户配置增加了 maxChannels 参数，用于定义该账户允许最多使用的 TCP 通道的数量。实际上前端连接 TCP 通道数可以超过这个数量，但登录成功的通道数量会被限制在这个数量之类，超出的登录会失败
+// 1.40 (2022/3/28) 改进优化 SIP 匿名登录功能。所谓匿名登录就是不登录也可以使用 SIP 服务器。当然此时再登录也是可以的，登录则按照原来登录方式处理
+//                  ScStatus 功能修正了以前版本返回状态不准确的 bug
+// 1.41 (2022/3/29) SIP Server 增加 ListChannel() API。
+//                  dp2Capo 实例停止时，SIP Login() API 会返回“正在维护”报错 
