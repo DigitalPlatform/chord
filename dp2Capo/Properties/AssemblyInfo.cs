@@ -77,3 +77,5 @@ using System.Runtime.InteropServices;
 // 1.39 (2022/3/22) SIP 账户配置增加了 maxChannels 参数，用于定义该账户允许最多使用的 TCP 通道的数量。实际上前端连接 TCP 通道数可以超过这个数量，但登录成功的通道数量会被限制在这个数量之类，超出的登录会失败
 // 1.40 (2022/3/28) 改进优化 SIP 匿名登录功能。所谓匿名登录就是不登录也可以使用 SIP 服务器。当然此时再登录也是可以的，登录则按照原来登录方式处理
 //                  ScStatus 功能修正了以前版本返回状态不准确的 bug
+// 1.41 (2022/3/29) SIP Server 增加 ListChannel() API。
+//                  dp2Capo 实例停止时，SIP Login() API 会返回“正在维护”报错 

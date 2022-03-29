@@ -419,6 +419,16 @@ namespace dp2Capo
 
             strInstanceName = instance.Name;
 
+            // 检查实例是否正在维护
+            if (instance.Running == false)
+            {
+                if (sip_channel.Encoding == null)
+                    strError = $"instance '{strInstanceName}' is in maintenance";
+                else
+                    strError = $"实例 '{strInstanceName}' 正在维护中，暂时不能访问";
+                goto ERROR1;
+            }
+
             // 匿名登录情形
             if (string.IsNullOrEmpty(strUserName))
             {
@@ -654,9 +664,9 @@ namespace dp2Capo
             if (info.Instance.Running == false)
             {
                 if (sip_channel.Encoding == null)
-                    strError = "instance '" + info.Instance.Name + "' is in maintenance";
+                    strError = $"instance '{ info.Instance.Name }' is in maintenance";
                 else
-                    strError = "实例 '" + info.Instance.Name + "' 正在维护中，暂时不能访问";
+                    strError = $"实例 '{ info.Instance.Name }' 正在维护中，暂时不能访问";
                 goto ERROR1;
             }
 
