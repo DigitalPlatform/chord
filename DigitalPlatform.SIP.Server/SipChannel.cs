@@ -38,6 +38,9 @@ namespace DigitalPlatform.SIP.Server
         // 被请求的累计次数
         public int RequestCount { get; set; }
 
+        // 2022/3/29
+        public DateTime CreateTime { get; set; }
+
         // 消息所用编码方式
         Encoding _encoding = null;  // null 表示根本没有初始化这个参数 // Encoding.UTF8;
         public Encoding Encoding

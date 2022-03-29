@@ -22,6 +22,7 @@ namespace DigitalPlatform.SIP.Server
         public const string DEFAULT_ENCODING_NAME = "UTF-8";
         public const bool DEFAULT_BOOKUIISTRICT = false;
         public const int DEFAULT_MAXCHANNELS = 2;
+        public const bool DEFAULT_ISMANAGER = false;
 
         int _maxPackageLength = 4096;
         public int MaxPackageLength
@@ -67,6 +68,7 @@ namespace DigitalPlatform.SIP.Server
             CancellationToken token)
         {
             SipChannel channel = _tcpChannels.Add(tcpClient, () => { return new SipChannel(); }) as SipChannel;
+            channel.CreateTime = channel.LastTime;  // 2022/3/29
             channel.Timeout = TimeSpan.FromSeconds(DEFAULT_CLEAR_SECONDS);  // 在登录以前，TCP 连接可以存活 DEFAULT_CLEAR_SECONDS 秒。DEFAULT_CLEAR_SECONDS 秒以后还不接到登录请求，TCP 连接会被自动清除。登录后，Timeout 则会被设置为实例参数 AutoClearSeconds 值
 
             List<byte> cache = new List<byte>();

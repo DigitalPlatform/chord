@@ -1917,7 +1917,7 @@ namespace dp2Capo
         public string IpList { get; set; }
 
         // 2022/3/4
-        // 特性。可用值 bookUiiStrict
+        // 特性。可用值 bookUiiStrict isManager
         public string Style { get; set; }
 
         // 2022/3/22

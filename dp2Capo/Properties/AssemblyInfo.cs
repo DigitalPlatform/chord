@@ -32,8 +32,8 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“生成号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”: 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.40.*")]
-[assembly: AssemblyFileVersion("1.40.0.0")]
+[assembly: AssemblyVersion("1.42.*")]
+[assembly: AssemblyFileVersion("1.42.0.0")]
 
 // 1.1 (2016/6/26) 首次使用了版本号
 // 1.2 (2016/9/14) 管理线程中会不断重试连接 dp2mserver，并将此情况写入日志
@@ -78,4 +78,5 @@ using System.Runtime.InteropServices;
 // 1.40 (2022/3/28) 改进优化 SIP 匿名登录功能。所谓匿名登录就是不登录也可以使用 SIP 服务器。当然此时再登录也是可以的，登录则按照原来登录方式处理
 //                  ScStatus 功能修正了以前版本返回状态不准确的 bug
 // 1.41 (2022/3/29) SIP Server 增加 ListChannel() API。
-//                  dp2Capo 实例停止时，SIP Login() API 会返回“正在维护”报错 
+//                  dp2Capo 实例停止时，SIP Login() API 会返回“正在维护”报错
+// 1.42 (2022/3/29) SIP Server 账户配置增加了 isManager 参数，用于定义是否管理员身份。只有管理员才被允许使用 listChannel 功能

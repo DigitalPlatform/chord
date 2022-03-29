@@ -1,13 +1,15 @@
-﻿using DigitalPlatform.Net;
-using DigitalPlatform.SIP.Server;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+
+using Newtonsoft.Json;
+
+using DigitalPlatform.Net;
+using DigitalPlatform.SIP.Server;
 
 namespace dp2Capo
 {
@@ -29,7 +31,7 @@ namespace dp2Capo
             }
         }
 
-        public void PutResult(string id, List<SipChannel> results)
+        public void PutResult(string id, List<SipChannelInfo> results)
         {
             SipChannelResults item = new SipChannelResults(id, results);
             lock (_channelResults.SyncRoot)
@@ -63,7 +65,7 @@ namespace dp2Capo
     public class SipChannelResults
     {
         public string ID { get; set; }
-        public List<SipChannel> Channels { get; set; }
+        public List<SipChannelInfo> Infos { get; set; }
         public DateTime CreateTime { get; set; }    // 创建时间
         public DateTime LastTime { get; set; }  // 最后一次访问时间
 
@@ -71,19 +73,36 @@ namespace dp2Capo
             List<SipChannel> channels)
         {
             this.ID = id;
-            this.Channels = channels;
+            this.Infos = ToInfo(channels);
             this.CreateTime = DateTime.Now;
             this.LastTime = DateTime.Now;
         }
 
-        public static string ToString(List<SipChannel> channels,
+        public SipChannelResults(string id,
+    List<SipChannelInfo> infos)
+        {
+            this.ID = id;
+            this.Infos = infos;
+            this.CreateTime = DateTime.Now;
+            this.LastTime = DateTime.Now;
+        }
+
+        public static List<SipChannelInfo> ToInfo(List<SipChannel> channels)
+        {
+            List<SipChannelInfo> results = new List<SipChannelInfo>();
+            foreach (var channel in channels)
+            {
+                results.Add(new SipChannelInfo(channel));
+            }
+
+            return results;
+        }
+
+        public static string ToString(List<SipChannelInfo> infos,
             string format)
         {
-            List<SipChannelInfo> infos = new List<SipChannelInfo>();
-            foreach(var channel in channels)
-            {
-                infos.Add(new SipChannelInfo(channel));
-            }
+            if (format != null)
+                format = format.ToLower();
 
             if (format == "xml")
             {
@@ -98,51 +117,55 @@ namespace dp2Capo
 
                 return dom.DocumentElement.OuterXml;
             }
-            else if (format == "json" || string.IsNullOrEmpty(format))
+            else if (string.IsNullOrEmpty(format) || format == "json")
             {
                 return JsonConvert.SerializeObject(infos);
             }
             else
                 throw new ArgumentException($"未知的格式 '{format}'");
         }
+    }
 
-        class SipChannelInfo
+    public class SipChannelInfo
+    {
+        public string ClientIP { get; set; }
+        public string UserName { get; set; }
+        public string Location { get; set; }
+        public string RequestCount { get; set; }
+        public string LibraryCode { get; set; }
+        public string ID { get; set; }
+        public string CreateTime { get; set; }
+        public string LastTime { get; set; }
+        public string Encoding { get; set; }
+
+        public SipChannelInfo(SipChannel channel)
         {
-            public string ClientIP { get; set; }
-            public string UserName { get; set; }
-            public string Location { get; set; }
-            public string RequestCount { get; set; }
-            public string LibraryCode { get; set; }
-            public string ID { get; set; }
-            public string LastTime { get; set; }
-            public string Encoding { get; set; }
+            this.ID = channel.GetHashCode().ToString();
+            this.CreateTime = channel.CreateTime.ToString("u");
+            this.LastTime = channel.LastTime.ToString("u");
+            this.ClientIP = TcpServer.GetClientIP(channel.TcpClient);
+            if (string.IsNullOrEmpty(channel.InstanceName) == true)
+                this.UserName = channel.UserName;
+            else
+                this.UserName = channel.UserName + "@" + channel.InstanceName;
+            this.Location = channel.LocationCode;
+            this.RequestCount = channel.RequestCount.ToString();
+            this.LibraryCode = channel.LibraryCodeList;
+            this.Encoding = channel.Encoding?.WebName;
+        }
 
-            public SipChannelInfo(SipChannel channel)
-            {
-                this.ID = channel.GetHashCode().ToString();
-                this.LastTime = channel.LastTime.ToString();
-                this.ClientIP = TcpServer.GetClientIP(channel.TcpClient);
-                if (string.IsNullOrEmpty(channel.InstanceName) == true)
-                    this.UserName = channel.UserName;
-                else
-                    this.UserName = channel.UserName + "@" + channel.InstanceName;
-                this.Location = channel.LocationCode;
-                this.RequestCount = channel.RequestCount.ToString();
-                this.LibraryCode = channel.LibraryCodeList;
-                this.Encoding = channel.Encoding?.EncodingName;
-            }
-
-            public void SetXmlAttributes(XmlElement element)
-            {
-                element.SetAttribute("id", this.ID);
-                element.SetAttribute("lastTime", this.LastTime);
-                element.SetAttribute("encoding", this.Encoding);
-                element.SetAttribute("clientIP", this.ClientIP);
-                element.SetAttribute("userName", this.UserName);
-                element.SetAttribute("location", this.Location);
-                element.SetAttribute("requestCount", this.RequestCount);
-                element.SetAttribute("libraryCode", this.LibraryCode);
-            }
+        public void SetXmlAttributes(XmlElement element)
+        {
+            element.SetAttribute("id", this.ID);
+            element.SetAttribute("createTime", this.CreateTime);
+            element.SetAttribute("lastTime", this.LastTime);
+            element.SetAttribute("encoding", this.Encoding);
+            element.SetAttribute("clientIP", this.ClientIP);
+            element.SetAttribute("userName", this.UserName);
+            element.SetAttribute("location", this.Location);
+            element.SetAttribute("requestCount", this.RequestCount);
+            element.SetAttribute("libraryCode", this.LibraryCode);
         }
     }
+
 }

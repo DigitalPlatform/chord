@@ -216,7 +216,8 @@ namespace dp2Capo.Install
                 item.EncodingName = user.GetAttribute("encoding");
                 string style = user.GetAttribute("style");
                 item.BookUiiStrict = StringUtil.IsInList("bookUiiStrict", style);
-                
+                item.IsManager = StringUtil.IsInList("isManager", style);
+
                 // 2022/3/22
                 string maxChannels = user.GetAttribute("maxChannels");
                 if (string.IsNullOrEmpty(maxChannels))
@@ -278,7 +279,9 @@ namespace dp2Capo.Install
 
                 string style = "";
                 if (item.BookUiiStrict)
-                    style = "bookUiiStrict";
+                    StringUtil.SetInList(ref style, "bookUiiStrict", true);
+                if (item.IsManager)
+                    StringUtil.SetInList(ref style, "isManager", true);
 
                 user.SetAttribute("userName", item.UserName);
                 user.SetAttribute("dateFormat", item.DateFormat);
@@ -429,6 +432,21 @@ namespace dp2Capo.Install
                 {
                     _maxChannels = value;
                     OnPropertyChanged("MaxChannels");
+                }
+            }
+
+            bool _isManager = SipServer.DEFAULT_ISMANAGER;
+
+            [DisplayName("SIP 管理员"), Description("是否为 SIP 管理员身份")]
+            [DefaultValue(SipServer.DEFAULT_ISMANAGER)]
+            [Category("SIP 参数")]
+            public bool IsManager
+            {
+                get { return _isManager; }
+                set
+                {
+                    _isManager = value;
+                    OnPropertyChanged("IsManager");
                 }
             }
 

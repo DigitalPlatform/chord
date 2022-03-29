@@ -3676,6 +3676,15 @@ namespace dp2Capo
                 ZV_Value_r = "",
             };
 
+            if (StringUtil.IsInList("isManager", sip_channel.Style) == false)
+            {
+                if (sip_channel.Encoding == null)
+                    strError = $"Current user is not SIP server manager, can't use ListChannel function";
+                else
+                    strError = $"当前用户不具备 SIP Server 管理者权限，无法使用 ListChannel 功能";
+                goto ERROR1;
+            }
+
             ChannelInformation_41 request = new ChannelInformation_41();
             try
             {
@@ -3725,33 +3734,36 @@ namespace dp2Capo
                     format = "json";
 
                 string id = sip_channel.GetHashCode().ToString();
-                List<SipChannel> results = null;
+                List<SipChannelInfo> infos = null;
                 if (offset == 0)
                 {
 
                 }
                 else
                 {
-                    results = _channelResults.GetResult(id)?.Channels;
+                    infos = _channelResults.GetResult(id)?.Infos;
                 }
 
-                if (results == null)
+                if (infos == null)
                 {
-                    results = SearchChannel(query_word);
+                    infos = SearchChannel(query_word);
                     _channelResults.PutResult(id,
-                        results);
+                        infos);
                 }
 
-                List<SipChannel> outputs = new List<SipChannel>();
-                for (int i = (int)offset; i < results.Count; i++)
+                var outputs = new List<SipChannelInfo>();
+                for (int i = (int)offset; i < infos.Count; i++)
                 {
                     if (max_count != -1 && i > i + max_count)
                         break;
-                    outputs.Add(results[i]);
+                    outputs.Add(infos[i]);
+                    // 最多 100 行
+                    if (outputs.Count > 100)
+                        break;
                 }
 
                 response.Status_1 = "Y";
-                response.ZT_TotalCount_r = results.Count.ToString();
+                response.ZT_TotalCount_r = infos.Count.ToString();
                 response.ZV_Value_r = SipChannelResults.ToString(outputs, format);
 
                 return response.ToText();
@@ -3777,8 +3789,8 @@ namespace dp2Capo
         // 通道检索结果集合
         internal static SipChannelResultsManager _channelResults = new SipChannelResultsManager();
 
-        // 检索获得通道
-        static List<SipChannel> SearchChannel(string query_word)
+        // 检索获得通道信息集合
+        static List<SipChannelInfo> SearchChannel(string query_word)
         {
             List<SipChannel> results = new List<SipChannel>();
             ServerInfo.SipServer?._tcpChannels?.Clean((channel) =>
@@ -3787,7 +3799,7 @@ namespace dp2Capo
                 results.Add(sip_channel);
                 return false;
             });
-            return results;
+            return SipChannelResults.ToInfo(results);
         }
 
         // 确保获得所连接的 dp2library 服务器的版本号
