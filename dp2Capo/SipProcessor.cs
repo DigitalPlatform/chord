@@ -3753,6 +3753,8 @@ namespace dp2Capo
                 response.Status_1 = "Y";
                 response.ZT_TotalCount_r = results.Count.ToString();
                 response.ZV_Value_r = SipChannelResults.ToString(outputs, format);
+
+                return response.ToText();
             }
             catch (Exception ex)
             {
