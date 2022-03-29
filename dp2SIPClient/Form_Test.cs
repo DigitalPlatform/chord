@@ -748,7 +748,8 @@ namespace dp2SIPClient
                         info.NewRecord = "";
                         info.NewTimestamp = null;
 
-                        entities[x * 1 + j] = info;
+                        int nIndex = j * locs.Count + x;
+                        entities[nIndex] = info;
 
                         /*
     <dprms:item path="中文图书实体/87" timestamp="2a3a427665d5d4080000000000000010" xmlns:dprms="http://dp2003.com/dprms">

@@ -617,6 +617,7 @@ namespace dp2SIPClient
 
         private void Print(string strHtml)
         {
+            strHtml=HttpUtility.HtmlEncode(strHtml);
             strHtml = String.Format("{0}  {1}<br />", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), strHtml);
             WriteHtml(this.webBrowser1,
                 strHtml);
