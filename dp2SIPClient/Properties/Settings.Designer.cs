@@ -142,5 +142,53 @@ namespace dp2SIPClient.Properties {
                 this["SipLoginCP"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string ZW {
+            get {
+                return ((string)(this["ZW"]));
+            }
+            set {
+                this["ZW"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string BP {
+            get {
+                return ((string)(this["BP"]));
+            }
+            set {
+                this["BP"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string ZC {
+            get {
+                return ((string)(this["ZC"]));
+            }
+            set {
+                this["ZC"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string ZF {
+            get {
+                return ((string)(this["ZF"]));
+            }
+            set {
+                this["ZF"] = value;
+            }
+        }
     }
 }

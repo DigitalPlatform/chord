@@ -18,6 +18,8 @@ using DigitalPlatform.Text;
 using System.Web;
 using DigitalPlatform.SIP2;
 using DigitalPlatform.SIP2.Request;
+using DigitalPlatform.SIP2.Response;
+using System.Xml;
 
 namespace dp2SIPClient
 {
@@ -57,9 +59,15 @@ namespace dp2SIPClient
             // 给界面设置值
             this.textBox_addr.Text =this.SIPServerUrl;
             this.textBox_port.Text =this.SIPServerPort.ToString();
-            this.comboBox_encoding.Text = this.SIPEncoding;
-            this.textBox_username.Text = this.SIPAccount;
-            this.textBox_locationCode.Text = this.SipLoginCP;
+            this.comboBox_encoding.Text = Properties.Settings.Default.SIPEncoding;
+            this.textBox_username.Text = Properties.Settings.Default.SIPAccount;
+            this.textBox_locationCode.Text = Properties.Settings.Default.SipLoginCP;
+
+            // 41消息
+            this.textBox_ZW.Text = Properties.Settings.Default.ZW;
+            this.textBox_BP2.Text = Properties.Settings.Default.BP;
+            this.textBox_ZC.Text = Properties.Settings.Default.ZC;
+            this.textBox_ZF.Text = Properties.Settings.Default.ZF;
         }
 
         public string SIPServerUrl
@@ -80,28 +88,7 @@ namespace dp2SIPClient
             }
         }
 
-        public string SIPEncoding
-        {
-            get
-            {
-                return Properties.Settings.Default.SIPEncoding;
-            }
-        }
 
-        public string SIPAccount
-        {
-            get
-            {
-                return Properties.Settings.Default.SIPAccount;
-            }
-        }
-        public string SipLoginCP
-        {
-            get
-            {
-                return Properties.Settings.Default.SipLoginCP;
-            }
-        }
 
 
 
@@ -739,6 +726,12 @@ namespace dp2SIPClient
             Properties.Settings.Default.SIPAccount = SipAccount;
             Properties.Settings.Default.SipLoginCP = SipCP;
             Properties.Settings.Default.Save();
+
+            // 41
+            Properties.Settings.Default.ZW = this.textBox_ZW.Text.Trim();
+            Properties.Settings.Default.BP = this.textBox_BP2.Text.Trim();
+            Properties.Settings.Default.ZC = this.textBox_ZC.Text.Trim();
+            Properties.Settings.Default.ZF = this.textBox_ZF.Text.Trim();
         }
         public string SipIP
         {
@@ -1328,6 +1321,184 @@ namespace dp2SIPClient
         private void label71_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void button_channel_Click(object sender, EventArgs e)
+        {
+            string word = this.textBox_ZW.Text.Trim();
+            string start = this.textBox_BP2.Text.Trim();
+            string maxCount = this.textBox_ZC.Text.Trim();
+            string format = this.textBox_ZF.Text.Trim();
+
+            // 将start转成数值
+            int nStart = 0;
+            try
+            {
+                nStart = Convert.ToInt32(start);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show(this, "BP必须是数值");
+                return;
+            }
+
+            // 将maxCount转成数值
+            int nMaxCount = -1;
+            try
+            {
+                nMaxCount = Convert.ToInt32(maxCount);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show(this, "ZC必须是数值");
+                return;
+            }
+
+
+            int getCount = 0;
+
+            int nRet =this.GetChannel(word,
+                nStart,
+                nMaxCount,
+                format,
+                out int nTotalCount,
+                out string tv,
+                out string error);
+            if (nRet == -1)
+            {
+                this.Print("出错：" + error);
+                return;
+            }
+
+            getCount += nRet;
+            if (getCount < nTotalCount)
+            {
+                nStart = getCount;
+                //int perCount = 1;
+                for (; ; )
+                {
+
+                    nRet = this.GetChannel(word,
+                        nStart,
+                        nMaxCount,
+                        format,
+                        out nTotalCount,
+                        out tv,
+                        out error);
+                    if (nRet == -1)
+                    {
+                        this.Print("出错：" + error);
+                        return;
+                    }
+
+                    
+                    getCount += nRet;
+                    // 取完了所有数据
+                    if (getCount >= nTotalCount || nRet == 0)
+                    {
+                        break;
+                    }
+                }
+            }
+
+
+
+
+            
+
+        }
+
+
+        public int GetChannel(string word, int nStart, int perCount, string format, 
+            out int nTotalCount,
+            out string tv_value, 
+            out string error)
+        {
+            tv_value = "";
+            error = "";
+            nTotalCount = 0;
+
+            ChannelInformation_41 request = new ChannelInformation_41()
+            {
+                TransactionDate_18 = this.TransactionDate,
+                ZW_SearchWord_r = word,
+                BP_StartItem_r = nStart.ToString(),
+                ZC_MaxCount_r = perCount.ToString(),
+                ZF_format_r = format
+            };
+
+            string requestText = request.ToText();
+            this.Print("send:" + requestText);
+            BaseMessage response = null;
+            int nRet = SCHelper.Instance.SendAndRecvMessage(requestText,
+                out response,
+                out string responseText,
+                out error);
+            if (nRet == -1)
+            {
+                MessageBox.Show(error);
+                this.Print("error:" + error);
+                return -1;
+            }
+
+
+            this.Print("recv:" + responseText);
+            if (response != null)
+            {
+                // 解析一下
+                ChannelInformationResponse_42 r1 = (ChannelInformationResponse_42)response;
+                string totalCount = r1.ZT_TotalCount_r;
+                this.Print("total count=" + totalCount);
+                nTotalCount = Convert.ToInt32(totalCount);
+
+                string value = r1.ZV_Value_r;
+                /*
+                <?xml version="1.0" encoding="utf-8"?>
+                <collection>
+                    <channel id="50269307" createTime="2022-03-31 06:55:59Z" lastTime="2022-03-31 06:56:24Z" encoding="utf-8" clientIP="127.0.0.1" userName="zizhu@t1" location="" requestCount="3" libraryCode="" />
+                    <channel id="43785880" createTime="2022-03-31 06:56:19Z" lastTime="2022-03-31 06:56:22Z" encoding="utf-8" clientIP="127.0.0.1" userName="zizhu@t1" location="" requestCount="1" libraryCode="" />
+                </collection>
+                 */
+                if (string.IsNullOrEmpty(value) == false)
+                {
+                    if (format.ToLower() == "xml")
+                    {
+                        XmlDocument dom = new XmlDocument();
+
+                        dom.LoadXml(value);
+                        XmlNodeList list = dom.DocumentElement.SelectNodes("channel");
+                        foreach (XmlNode node in list)
+                        {
+                            this.Print(node.OuterXml);
+                        }
+                        return list.Count;
+                    }
+                    else
+                    {
+                        this.Print(value);
+                    }
+                }
+                else
+                {
+                    error = "还未解析json";
+                    return -1;
+                }
+            }
+
+
+            error = "返回的response对象为null";
+            return -1;
+
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button_close_Click(object sender, EventArgs e)
+        {
+            SCHelper.Instance.Close();
         }
     }
 }

@@ -48,9 +48,15 @@
             this.splitContainer_main = new System.Windows.Forms.SplitContainer();
             this.tabControl_main = new System.Windows.Forms.TabControl();
             this.tabPage_function = new System.Windows.Forms.TabPage();
-            this.groupBox4 = new System.Windows.Forms.GroupBox();
-            this.textBox_message = new System.Windows.Forms.TextBox();
-            this.button1 = new System.Windows.Forms.Button();
+            this.label88 = new System.Windows.Forms.Label();
+            this.textBox_BP2 = new System.Windows.Forms.TextBox();
+            this.label87 = new System.Windows.Forms.Label();
+            this.textBox_ZF = new System.Windows.Forms.TextBox();
+            this.label86 = new System.Windows.Forms.Label();
+            this.textBox_ZC = new System.Windows.Forms.TextBox();
+            this.label85 = new System.Windows.Forms.Label();
+            this.textBox_ZW = new System.Windows.Forms.TextBox();
+            this.button_channel = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.textBox_returnCurLocation = new System.Windows.Forms.TextBox();
             this.label84 = new System.Windows.Forms.Label();
@@ -74,6 +80,8 @@
             this.label82 = new System.Windows.Forms.Label();
             this.label75 = new System.Windows.Forms.Label();
             this.label76 = new System.Windows.Forms.Label();
+            this.button1 = new System.Windows.Forms.Button();
+            this.textBox_message = new System.Windows.Forms.TextBox();
             this.groupBox7 = new System.Windows.Forms.GroupBox();
             this.textBox_19_HS = new System.Windows.Forms.TextBox();
             this.label81 = new System.Windows.Forms.Label();
@@ -99,6 +107,7 @@
             this.label70 = new System.Windows.Forms.Label();
             this.label69 = new System.Windows.Forms.Label();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.button_close = new System.Windows.Forms.Button();
             this.textBox_AO = new System.Windows.Forms.TextBox();
             this.label68 = new System.Windows.Forms.Label();
             this.comboBox_encoding = new System.Windows.Forms.ComboBox();
@@ -259,7 +268,6 @@
             this.splitContainer_main.SuspendLayout();
             this.tabControl_main.SuspendLayout();
             this.tabPage_function.SuspendLayout();
-            this.groupBox4.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox7.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -410,7 +418,7 @@
             this.statusStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripStatusLabel_info});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 599);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 652);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Padding = new System.Windows.Forms.Padding(2, 0, 10, 0);
             this.statusStrip1.Size = new System.Drawing.Size(1154, 31);
@@ -439,7 +447,7 @@
             // splitContainer_main.Panel2
             // 
             this.splitContainer_main.Panel2.Controls.Add(this.webBrowser1);
-            this.splitContainer_main.Size = new System.Drawing.Size(1154, 538);
+            this.splitContainer_main.Size = new System.Drawing.Size(1154, 591);
             this.splitContainer_main.SplitterDistance = 946;
             this.splitContainer_main.SplitterWidth = 3;
             this.splitContainer_main.TabIndex = 27;
@@ -463,57 +471,121 @@
             this.tabControl_main.Margin = new System.Windows.Forms.Padding(2);
             this.tabControl_main.Name = "tabControl_main";
             this.tabControl_main.SelectedIndex = 0;
-            this.tabControl_main.Size = new System.Drawing.Size(919, 503);
+            this.tabControl_main.Size = new System.Drawing.Size(919, 556);
             this.tabControl_main.TabIndex = 19;
             this.tabControl_main.SelectedIndexChanged += new System.EventHandler(this.tabControl_main_SelectedIndexChanged);
             // 
             // tabPage_function
             // 
             this.tabPage_function.AutoScroll = true;
-            this.tabPage_function.Controls.Add(this.groupBox4);
+            this.tabPage_function.Controls.Add(this.label88);
+            this.tabPage_function.Controls.Add(this.textBox_BP2);
+            this.tabPage_function.Controls.Add(this.label87);
+            this.tabPage_function.Controls.Add(this.textBox_ZF);
+            this.tabPage_function.Controls.Add(this.label86);
+            this.tabPage_function.Controls.Add(this.textBox_ZC);
+            this.tabPage_function.Controls.Add(this.label85);
+            this.tabPage_function.Controls.Add(this.textBox_ZW);
+            this.tabPage_function.Controls.Add(this.button_channel);
             this.tabPage_function.Controls.Add(this.groupBox1);
+            this.tabPage_function.Controls.Add(this.button1);
+            this.tabPage_function.Controls.Add(this.textBox_message);
             this.tabPage_function.Controls.Add(this.groupBox7);
             this.tabPage_function.Controls.Add(this.groupBox3);
             this.tabPage_function.Controls.Add(this.groupBox2);
             this.tabPage_function.Location = new System.Drawing.Point(4, 28);
             this.tabPage_function.Margin = new System.Windows.Forms.Padding(4);
             this.tabPage_function.Name = "tabPage_function";
-            this.tabPage_function.Size = new System.Drawing.Size(911, 471);
+            this.tabPage_function.Size = new System.Drawing.Size(911, 524);
             this.tabPage_function.TabIndex = 9;
             this.tabPage_function.Text = "功能测试";
             this.tabPage_function.UseVisualStyleBackColor = true;
             // 
-            // groupBox4
+            // label88
             // 
-            this.groupBox4.Controls.Add(this.textBox_message);
-            this.groupBox4.Controls.Add(this.button1);
-            this.groupBox4.Location = new System.Drawing.Point(537, 502);
-            this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(402, 97);
-            this.groupBox4.TabIndex = 12;
-            this.groupBox4.TabStop = false;
-            this.groupBox4.Text = "直接发送消息";
+            this.label88.AutoSize = true;
+            this.label88.Location = new System.Drawing.Point(139, 559);
+            this.label88.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label88.Name = "label88";
+            this.label88.Size = new System.Drawing.Size(26, 18);
+            this.label88.TabIndex = 20;
+            this.label88.Text = "BP";
             // 
-            // textBox_message
+            // textBox_BP2
             // 
-            this.textBox_message.Location = new System.Drawing.Point(10, 28);
-            this.textBox_message.Margin = new System.Windows.Forms.Padding(4);
-            this.textBox_message.Multiline = true;
-            this.textBox_message.Name = "textBox_message";
-            this.textBox_message.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textBox_message.Size = new System.Drawing.Size(250, 56);
-            this.textBox_message.TabIndex = 6;
+            this.textBox_BP2.Location = new System.Drawing.Point(167, 554);
+            this.textBox_BP2.Margin = new System.Windows.Forms.Padding(4);
+            this.textBox_BP2.Name = "textBox_BP2";
+            this.textBox_BP2.Size = new System.Drawing.Size(92, 28);
+            this.textBox_BP2.TabIndex = 21;
+            this.textBox_BP2.Text = "0";
             // 
-            // button1
+            // label87
             // 
-            this.button1.Location = new System.Drawing.Point(269, 51);
-            this.button1.Margin = new System.Windows.Forms.Padding(4);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(101, 33);
-            this.button1.TabIndex = 3;
-            this.button1.Text = "发送";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.label87.AutoSize = true;
+            this.label87.Location = new System.Drawing.Point(385, 559);
+            this.label87.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label87.Name = "label87";
+            this.label87.Size = new System.Drawing.Size(26, 18);
+            this.label87.TabIndex = 18;
+            this.label87.Text = "ZF";
+            // 
+            // textBox_ZF
+            // 
+            this.textBox_ZF.Location = new System.Drawing.Point(413, 554);
+            this.textBox_ZF.Margin = new System.Windows.Forms.Padding(4);
+            this.textBox_ZF.Name = "textBox_ZF";
+            this.textBox_ZF.Size = new System.Drawing.Size(92, 28);
+            this.textBox_ZF.TabIndex = 19;
+            this.textBox_ZF.Text = "xml";
+            // 
+            // label86
+            // 
+            this.label86.AutoSize = true;
+            this.label86.Location = new System.Drawing.Point(260, 559);
+            this.label86.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label86.Name = "label86";
+            this.label86.Size = new System.Drawing.Size(26, 18);
+            this.label86.TabIndex = 16;
+            this.label86.Text = "ZC";
+            // 
+            // textBox_ZC
+            // 
+            this.textBox_ZC.Location = new System.Drawing.Point(288, 554);
+            this.textBox_ZC.Margin = new System.Windows.Forms.Padding(4);
+            this.textBox_ZC.Name = "textBox_ZC";
+            this.textBox_ZC.Size = new System.Drawing.Size(92, 28);
+            this.textBox_ZC.TabIndex = 17;
+            this.textBox_ZC.Text = "-1";
+            // 
+            // label85
+            // 
+            this.label85.AutoSize = true;
+            this.label85.Location = new System.Drawing.Point(7, 559);
+            this.label85.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label85.Name = "label85";
+            this.label85.Size = new System.Drawing.Size(26, 18);
+            this.label85.TabIndex = 15;
+            this.label85.Text = "ZW";
+            // 
+            // textBox_ZW
+            // 
+            this.textBox_ZW.Location = new System.Drawing.Point(35, 554);
+            this.textBox_ZW.Margin = new System.Windows.Forms.Padding(4);
+            this.textBox_ZW.Name = "textBox_ZW";
+            this.textBox_ZW.Size = new System.Drawing.Size(92, 28);
+            this.textBox_ZW.TabIndex = 15;
+            // 
+            // button_channel
+            // 
+            this.button_channel.Location = new System.Drawing.Point(513, 553);
+            this.button_channel.Margin = new System.Windows.Forms.Padding(4);
+            this.button_channel.Name = "button_channel";
+            this.button_channel.Size = new System.Drawing.Size(98, 31);
+            this.button_channel.TabIndex = 7;
+            this.button_channel.Text = "获取通道";
+            this.button_channel.UseVisualStyleBackColor = true;
+            this.button_channel.Click += new System.EventHandler(this.button_channel_Click);
             // 
             // groupBox1
             // 
@@ -541,7 +613,7 @@
             this.groupBox1.Controls.Add(this.label76);
             this.groupBox1.Location = new System.Drawing.Point(10, 232);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(505, 367);
+            this.groupBox1.Size = new System.Drawing.Size(505, 317);
             this.groupBox1.TabIndex = 11;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "基础操作";
@@ -593,7 +665,7 @@
             // 
             // button_fee
             // 
-            this.button_fee.Location = new System.Drawing.Point(11, 310);
+            this.button_fee.Location = new System.Drawing.Point(383, 266);
             this.button_fee.Margin = new System.Windows.Forms.Padding(4);
             this.button_fee.Name = "button_fee";
             this.button_fee.Size = new System.Drawing.Size(101, 33);
@@ -760,6 +832,27 @@
             this.label76.Size = new System.Drawing.Size(98, 18);
             this.label76.TabIndex = 13;
             this.label76.Text = "feeAmount:";
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(796, 518);
+            this.button1.Margin = new System.Windows.Forms.Padding(4);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(64, 31);
+            this.button1.TabIndex = 3;
+            this.button1.Text = "发送";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // textBox_message
+            // 
+            this.textBox_message.Location = new System.Drawing.Point(537, 493);
+            this.textBox_message.Margin = new System.Windows.Forms.Padding(4);
+            this.textBox_message.Multiline = true;
+            this.textBox_message.Name = "textBox_message";
+            this.textBox_message.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.textBox_message.Size = new System.Drawing.Size(251, 56);
+            this.textBox_message.TabIndex = 6;
             // 
             // groupBox7
             // 
@@ -992,7 +1085,6 @@
             this.label71.Size = new System.Drawing.Size(35, 18);
             this.label71.TabIndex = 9;
             this.label71.Text = "CP:";
-            this.label71.Click += new System.EventHandler(this.label71_Click);
             // 
             // label70
             // 
@@ -1016,6 +1108,7 @@
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.button_close);
             this.groupBox2.Controls.Add(this.textBox_AO);
             this.groupBox2.Controls.Add(this.label68);
             this.groupBox2.Controls.Add(this.comboBox_encoding);
@@ -1035,6 +1128,17 @@
             this.groupBox2.TabIndex = 1;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "服务器参数";
+            // 
+            // button_close
+            // 
+            this.button_close.Location = new System.Drawing.Point(272, 122);
+            this.button_close.Margin = new System.Windows.Forms.Padding(4);
+            this.button_close.Name = "button_close";
+            this.button_close.Size = new System.Drawing.Size(80, 34);
+            this.button_close.TabIndex = 6;
+            this.button_close.Text = "断开";
+            this.button_close.UseVisualStyleBackColor = true;
+            this.button_close.Click += new System.EventHandler(this.button_close_Click);
             // 
             // textBox_AO
             // 
@@ -1082,7 +1186,7 @@
             this.button_connection.Location = new System.Drawing.Point(184, 122);
             this.button_connection.Margin = new System.Windows.Forms.Padding(4);
             this.button_connection.Name = "button_connection";
-            this.button_connection.Size = new System.Drawing.Size(112, 34);
+            this.button_connection.Size = new System.Drawing.Size(80, 34);
             this.button_connection.TabIndex = 2;
             this.button_connection.Text = "连接";
             this.button_connection.UseVisualStyleBackColor = true;
@@ -1159,7 +1263,7 @@
             this.tabPage_Login93.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage_Login93.Name = "tabPage_Login93";
             this.tabPage_Login93.Padding = new System.Windows.Forms.Padding(2);
-            this.tabPage_Login93.Size = new System.Drawing.Size(911, 471);
+            this.tabPage_Login93.Size = new System.Drawing.Size(911, 524);
             this.tabPage_Login93.TabIndex = 0;
             this.tabPage_Login93.Text = "Login93";
             this.tabPage_Login93.UseVisualStyleBackColor = true;
@@ -1266,7 +1370,7 @@
             this.tabPage_SCStatus99.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage_SCStatus99.Name = "tabPage_SCStatus99";
             this.tabPage_SCStatus99.Padding = new System.Windows.Forms.Padding(2);
-            this.tabPage_SCStatus99.Size = new System.Drawing.Size(911, 471);
+            this.tabPage_SCStatus99.Size = new System.Drawing.Size(911, 524);
             this.tabPage_SCStatus99.TabIndex = 1;
             this.tabPage_SCStatus99.Text = "SCStatus99";
             this.tabPage_SCStatus99.UseVisualStyleBackColor = true;
@@ -1354,7 +1458,7 @@
             this.tabPage_Checkout11.Location = new System.Drawing.Point(4, 28);
             this.tabPage_Checkout11.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage_Checkout11.Name = "tabPage_Checkout11";
-            this.tabPage_Checkout11.Size = new System.Drawing.Size(911, 471);
+            this.tabPage_Checkout11.Size = new System.Drawing.Size(911, 524);
             this.tabPage_Checkout11.TabIndex = 2;
             this.tabPage_Checkout11.Text = "Checkout11";
             this.tabPage_Checkout11.UseVisualStyleBackColor = true;
@@ -1598,7 +1702,7 @@
             this.tabPage_Checkin09.Location = new System.Drawing.Point(4, 28);
             this.tabPage_Checkin09.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage_Checkin09.Name = "tabPage_Checkin09";
-            this.tabPage_Checkin09.Size = new System.Drawing.Size(911, 471);
+            this.tabPage_Checkin09.Size = new System.Drawing.Size(911, 524);
             this.tabPage_Checkin09.TabIndex = 3;
             this.tabPage_Checkin09.Text = "Checkin09";
             this.tabPage_Checkin09.UseVisualStyleBackColor = true;
@@ -1788,7 +1892,7 @@
             this.tabPage_PatronInformation63.Location = new System.Drawing.Point(4, 28);
             this.tabPage_PatronInformation63.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage_PatronInformation63.Name = "tabPage_PatronInformation63";
-            this.tabPage_PatronInformation63.Size = new System.Drawing.Size(911, 471);
+            this.tabPage_PatronInformation63.Size = new System.Drawing.Size(911, 524);
             this.tabPage_PatronInformation63.TabIndex = 4;
             this.tabPage_PatronInformation63.Text = "PatronInformation63";
             this.tabPage_PatronInformation63.UseVisualStyleBackColor = true;
@@ -1968,7 +2072,7 @@
             this.tabPage_ItemInformation17.Location = new System.Drawing.Point(4, 28);
             this.tabPage_ItemInformation17.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage_ItemInformation17.Name = "tabPage_ItemInformation17";
-            this.tabPage_ItemInformation17.Size = new System.Drawing.Size(911, 471);
+            this.tabPage_ItemInformation17.Size = new System.Drawing.Size(911, 524);
             this.tabPage_ItemInformation17.TabIndex = 6;
             this.tabPage_ItemInformation17.Text = "ItemInformation17";
             this.tabPage_ItemInformation17.UseVisualStyleBackColor = true;
@@ -2074,7 +2178,7 @@
             this.tabPage_Renew29.Location = new System.Drawing.Point(4, 28);
             this.tabPage_Renew29.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage_Renew29.Name = "tabPage_Renew29";
-            this.tabPage_Renew29.Size = new System.Drawing.Size(911, 471);
+            this.tabPage_Renew29.Size = new System.Drawing.Size(911, 524);
             this.tabPage_Renew29.TabIndex = 7;
             this.tabPage_Renew29.Text = "Renew29";
             this.tabPage_Renew29.UseVisualStyleBackColor = true;
@@ -2300,7 +2404,7 @@
             this.tabPage_EndPatronSession35.Location = new System.Drawing.Point(4, 28);
             this.tabPage_EndPatronSession35.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage_EndPatronSession35.Name = "tabPage_EndPatronSession35";
-            this.tabPage_EndPatronSession35.Size = new System.Drawing.Size(911, 471);
+            this.tabPage_EndPatronSession35.Size = new System.Drawing.Size(911, 524);
             this.tabPage_EndPatronSession35.TabIndex = 5;
             this.tabPage_EndPatronSession35.Text = "EndPatronSession35";
             this.tabPage_EndPatronSession35.UseVisualStyleBackColor = true;
@@ -2332,7 +2436,7 @@
             this.tabPage_FeePaid37.Location = new System.Drawing.Point(4, 28);
             this.tabPage_FeePaid37.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.tabPage_FeePaid37.Name = "tabPage_FeePaid37";
-            this.tabPage_FeePaid37.Size = new System.Drawing.Size(911, 471);
+            this.tabPage_FeePaid37.Size = new System.Drawing.Size(911, 524);
             this.tabPage_FeePaid37.TabIndex = 8;
             this.tabPage_FeePaid37.Text = "FeePaid37";
             this.tabPage_FeePaid37.UseVisualStyleBackColor = true;
@@ -2542,14 +2646,14 @@
             this.webBrowser1.Margin = new System.Windows.Forms.Padding(4);
             this.webBrowser1.MinimumSize = new System.Drawing.Size(30, 30);
             this.webBrowser1.Name = "webBrowser1";
-            this.webBrowser1.Size = new System.Drawing.Size(205, 538);
+            this.webBrowser1.Size = new System.Drawing.Size(205, 591);
             this.webBrowser1.TabIndex = 1;
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1154, 630);
+            this.ClientSize = new System.Drawing.Size(1154, 683);
             this.Controls.Add(this.splitContainer_main);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.toolStrip1);
@@ -2573,8 +2677,7 @@
             this.splitContainer_main.ResumeLayout(false);
             this.tabControl_main.ResumeLayout(false);
             this.tabPage_function.ResumeLayout(false);
-            this.groupBox4.ResumeLayout(false);
-            this.groupBox4.PerformLayout();
+            this.tabPage_function.PerformLayout();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.groupBox7.ResumeLayout(false);
@@ -2803,7 +2906,6 @@
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.CheckBox checkBox_UrlEncode;
         private System.Windows.Forms.TextBox textBox_message;
-        private System.Windows.Forms.GroupBox groupBox4;
         private System.Windows.Forms.Button button_send98;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.TextBox textBox_feeAmount;
@@ -2828,6 +2930,16 @@
         private System.Windows.Forms.Label label76;
         private System.Windows.Forms.TextBox textBox_returnCurLocation;
         private System.Windows.Forms.Label label84;
+        private System.Windows.Forms.Button button_channel;
+        private System.Windows.Forms.Label label85;
+        private System.Windows.Forms.TextBox textBox_ZW;
+        private System.Windows.Forms.Label label88;
+        private System.Windows.Forms.TextBox textBox_BP2;
+        private System.Windows.Forms.Label label87;
+        private System.Windows.Forms.TextBox textBox_ZF;
+        private System.Windows.Forms.Label label86;
+        private System.Windows.Forms.TextBox textBox_ZC;
+        private System.Windows.Forms.Button button_close;
     }
 }
 
