@@ -499,7 +499,19 @@ namespace dp2Capo
             // 2022/3/31
             // 按照用户名字符串进行锁定。让相同用户名的并发登录请求变成顺次处理，避免并发情况突然耗费多根 dp2library 通道
             string lock_userName = sip_channel.UserName;
-            _userNameLocks.LockForWrite(lock_userName);
+            try
+            {
+                _userNameLocks.LockForWrite(lock_userName);
+            }
+            catch (ApplicationException)
+            {
+                // 超时了
+                if (sip_channel.Encoding == null)
+                    strError = $"Login request concurrent locking fail";
+                else
+                    strError = $"登录请求并发锁定失败";
+                goto ERROR1;
+            }
 
             LibraryChannel library_channel = instance.MessageConnection.GetChannel(login_info);
 
@@ -3540,6 +3552,20 @@ namespace dp2Capo
                 strError = info.ErrorInfo;
                 goto ERROR1;
             }
+
+            // 2022/3/31
+            // 使用 dp2library 通道的过程，要变为顺次执行，避免 libraryChannelPool 中突然被大量分配 dp2library 通道
+            string lock_userName = info.LibraryChannel.UserName;
+            /*
+            if (string.IsNullOrEmpty(lock_userName))
+            {
+                EndFunction(info);
+                strError = "ScStatus lock_userName is empty";
+                goto ERROR1;
+            }
+            */
+            _userNameLocks.LockForWrite(lock_userName);
+
             try
             {
                 // TODO: 要检查相关 dp2Capo 实例是否在线
@@ -3571,10 +3597,10 @@ namespace dp2Capo
                     {
                         //2018/06/19 
                         lRet = info.LibraryChannel.GetSystemParameter(
-                            "system",
-                            "hangup",
-                            out strExistingHangupValue,
-                            out strError);
+                        "system",
+                        "hangup",
+                        out strExistingHangupValue,
+                        out strError);
                         if (lRet == -1)
                         {
                             strError = "GetSystemParameter('system', 'hangup') error: " + strError;
@@ -3656,6 +3682,7 @@ namespace dp2Capo
             finally
             {
                 EndFunction(info);
+                _userNameLocks.UnlockForWrite(lock_userName);
             }
 
         ERROR1:
@@ -3763,12 +3790,12 @@ namespace dp2Capo
                 var outputs = new List<SipChannelInfo>();
                 for (int i = (int)offset; i < infos.Count; i++)
                 {
-                    if (max_count != -1 && i > i + max_count)
+                    if (max_count != -1 && outputs.Count >= max_count)
+                        break;
+                    // 最多 100 行
+                    if (outputs.Count >= 100)
                         break;
                     outputs.Add(infos[i]);
-                    // 最多 100 行
-                    if (outputs.Count > 100)
-                        break;
                 }
 
                 response.Status_1 = "Y";
