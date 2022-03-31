@@ -3710,6 +3710,7 @@ namespace dp2Capo
                 TransactionDate_18 = SIPUtility.NowDateTime,
                 ZT_TotalCount_r = "0",
                 ZV_Value_r = "",
+                ZR_ReturnCount_r = "0",
             };
 
             if (StringUtil.IsInList("isManager", sip_channel.Style) == false)
