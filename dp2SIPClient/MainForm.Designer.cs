@@ -48,12 +48,8 @@
             this.splitContainer_main = new System.Windows.Forms.SplitContainer();
             this.tabControl_main = new System.Windows.Forms.TabControl();
             this.tabPage_function = new System.Windows.Forms.TabPage();
-            this.label88 = new System.Windows.Forms.Label();
-            this.textBox_BP2 = new System.Windows.Forms.TextBox();
             this.label87 = new System.Windows.Forms.Label();
             this.textBox_ZF = new System.Windows.Forms.TextBox();
-            this.label86 = new System.Windows.Forms.Label();
-            this.textBox_ZC = new System.Windows.Forms.TextBox();
             this.label85 = new System.Windows.Forms.Label();
             this.textBox_ZW = new System.Windows.Forms.TextBox();
             this.button_channel = new System.Windows.Forms.Button();
@@ -259,6 +255,8 @@
             this.textBox_FeePaid37_transactionDate_18 = new System.Windows.Forms.TextBox();
             this.label61 = new System.Windows.Forms.Label();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
+            this.label86 = new System.Windows.Forms.Label();
+            this.textBox_ZC = new System.Windows.Forms.TextBox();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -478,12 +476,10 @@
             // tabPage_function
             // 
             this.tabPage_function.AutoScroll = true;
-            this.tabPage_function.Controls.Add(this.label88);
-            this.tabPage_function.Controls.Add(this.textBox_BP2);
-            this.tabPage_function.Controls.Add(this.label87);
-            this.tabPage_function.Controls.Add(this.textBox_ZF);
             this.tabPage_function.Controls.Add(this.label86);
             this.tabPage_function.Controls.Add(this.textBox_ZC);
+            this.tabPage_function.Controls.Add(this.label87);
+            this.tabPage_function.Controls.Add(this.textBox_ZF);
             this.tabPage_function.Controls.Add(this.label85);
             this.tabPage_function.Controls.Add(this.textBox_ZW);
             this.tabPage_function.Controls.Add(this.button_channel);
@@ -501,29 +497,10 @@
             this.tabPage_function.Text = "功能测试";
             this.tabPage_function.UseVisualStyleBackColor = true;
             // 
-            // label88
-            // 
-            this.label88.AutoSize = true;
-            this.label88.Location = new System.Drawing.Point(139, 559);
-            this.label88.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label88.Name = "label88";
-            this.label88.Size = new System.Drawing.Size(26, 18);
-            this.label88.TabIndex = 20;
-            this.label88.Text = "BP";
-            // 
-            // textBox_BP2
-            // 
-            this.textBox_BP2.Location = new System.Drawing.Point(167, 554);
-            this.textBox_BP2.Margin = new System.Windows.Forms.Padding(4);
-            this.textBox_BP2.Name = "textBox_BP2";
-            this.textBox_BP2.Size = new System.Drawing.Size(92, 28);
-            this.textBox_BP2.TabIndex = 21;
-            this.textBox_BP2.Text = "0";
-            // 
             // label87
             // 
             this.label87.AutoSize = true;
-            this.label87.Location = new System.Drawing.Point(385, 559);
+            this.label87.Location = new System.Drawing.Point(129, 559);
             this.label87.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label87.Name = "label87";
             this.label87.Size = new System.Drawing.Size(26, 18);
@@ -532,31 +509,12 @@
             // 
             // textBox_ZF
             // 
-            this.textBox_ZF.Location = new System.Drawing.Point(413, 554);
+            this.textBox_ZF.Location = new System.Drawing.Point(157, 554);
             this.textBox_ZF.Margin = new System.Windows.Forms.Padding(4);
             this.textBox_ZF.Name = "textBox_ZF";
             this.textBox_ZF.Size = new System.Drawing.Size(92, 28);
             this.textBox_ZF.TabIndex = 19;
             this.textBox_ZF.Text = "xml";
-            // 
-            // label86
-            // 
-            this.label86.AutoSize = true;
-            this.label86.Location = new System.Drawing.Point(260, 559);
-            this.label86.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label86.Name = "label86";
-            this.label86.Size = new System.Drawing.Size(26, 18);
-            this.label86.TabIndex = 16;
-            this.label86.Text = "ZC";
-            // 
-            // textBox_ZC
-            // 
-            this.textBox_ZC.Location = new System.Drawing.Point(288, 554);
-            this.textBox_ZC.Margin = new System.Windows.Forms.Padding(4);
-            this.textBox_ZC.Name = "textBox_ZC";
-            this.textBox_ZC.Size = new System.Drawing.Size(92, 28);
-            this.textBox_ZC.TabIndex = 17;
-            this.textBox_ZC.Text = "-1";
             // 
             // label85
             // 
@@ -578,7 +536,7 @@
             // 
             // button_channel
             // 
-            this.button_channel.Location = new System.Drawing.Point(513, 553);
+            this.button_channel.Location = new System.Drawing.Point(405, 551);
             this.button_channel.Margin = new System.Windows.Forms.Padding(4);
             this.button_channel.Name = "button_channel";
             this.button_channel.Size = new System.Drawing.Size(98, 31);
@@ -2649,6 +2607,25 @@
             this.webBrowser1.Size = new System.Drawing.Size(205, 591);
             this.webBrowser1.TabIndex = 1;
             // 
+            // label86
+            // 
+            this.label86.AutoSize = true;
+            this.label86.Location = new System.Drawing.Point(257, 559);
+            this.label86.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label86.Name = "label86";
+            this.label86.Size = new System.Drawing.Size(80, 18);
+            this.label86.TabIndex = 20;
+            this.label86.Text = "每批数量";
+            // 
+            // textBox_ZC
+            // 
+            this.textBox_ZC.Location = new System.Drawing.Point(336, 554);
+            this.textBox_ZC.Margin = new System.Windows.Forms.Padding(4);
+            this.textBox_ZC.Name = "textBox_ZC";
+            this.textBox_ZC.Size = new System.Drawing.Size(64, 28);
+            this.textBox_ZC.TabIndex = 21;
+            this.textBox_ZC.Text = "1";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
@@ -2933,13 +2910,11 @@
         private System.Windows.Forms.Button button_channel;
         private System.Windows.Forms.Label label85;
         private System.Windows.Forms.TextBox textBox_ZW;
-        private System.Windows.Forms.Label label88;
-        private System.Windows.Forms.TextBox textBox_BP2;
         private System.Windows.Forms.Label label87;
         private System.Windows.Forms.TextBox textBox_ZF;
+        private System.Windows.Forms.Button button_close;
         private System.Windows.Forms.Label label86;
         private System.Windows.Forms.TextBox textBox_ZC;
-        private System.Windows.Forms.Button button_close;
     }
 }
 

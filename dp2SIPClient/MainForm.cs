@@ -65,7 +65,7 @@ namespace dp2SIPClient
 
             // 41消息
             this.textBox_ZW.Text = Properties.Settings.Default.ZW;
-            this.textBox_BP2.Text = Properties.Settings.Default.BP;
+            //this.textBox_BP2.Text = Properties.Settings.Default.BP;
             this.textBox_ZC.Text = Properties.Settings.Default.ZC;
             this.textBox_ZF.Text = Properties.Settings.Default.ZF;
         }
@@ -729,7 +729,7 @@ namespace dp2SIPClient
 
             // 41
             Properties.Settings.Default.ZW = this.textBox_ZW.Text.Trim();
-            Properties.Settings.Default.BP = this.textBox_BP2.Text.Trim();
+            //Properties.Settings.Default.BP = this.textBox_BP2.Text.Trim();
             Properties.Settings.Default.ZC = this.textBox_ZC.Text.Trim();
             Properties.Settings.Default.ZF = this.textBox_ZF.Text.Trim();
         }
@@ -1326,86 +1326,50 @@ namespace dp2SIPClient
         private void button_channel_Click(object sender, EventArgs e)
         {
             string word = this.textBox_ZW.Text.Trim();
-            string start = this.textBox_BP2.Text.Trim();
-            string maxCount = this.textBox_ZC.Text.Trim();
             string format = this.textBox_ZF.Text.Trim();
+            string maxCount= this.textBox_ZC.Text.Trim();
 
             // 将start转成数值
             int nStart = 0;
-            try
-            {
-                nStart = Convert.ToInt32(start);
-            }
-            catch (Exception)
-            {
-                MessageBox.Show(this, "BP必须是数值");
-                return;
-            }
 
-            // 将maxCount转成数值
+            // 每次取2条
             int nMaxCount = -1;
             try
             {
                 nMaxCount = Convert.ToInt32(maxCount);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                MessageBox.Show(this, "ZC必须是数值");
+                MessageBox.Show("每批条数必须是数值");
                 return;
             }
 
 
             int getCount = 0;
 
-            int nRet =this.GetChannel(word,
-                nStart,
-                nMaxCount,
-                format,
-                out int nTotalCount,
-                out string tv,
-                out string error);
-            if (nRet == -1)
+            for (; ; )
             {
-                this.Print("出错：" + error);
-                return;
-            }
-
-            getCount += nRet;
-            if (getCount < nTotalCount)
-            {
-                nStart = getCount;
-                //int perCount = 1;
-                for (; ; )
+                int nRet = this.GetChannel(word,
+                    nStart,
+                    nMaxCount,
+                    format,
+                    out int nTotalCount,
+                    out string tv,
+                    out string error);
+                if (nRet == -1)
                 {
+                    this.Print("出错：" + error);
+                    return;
+                }
 
-                    nRet = this.GetChannel(word,
-                        nStart,
-                        nMaxCount,
-                        format,
-                        out nTotalCount,
-                        out tv,
-                        out error);
-                    if (nRet == -1)
-                    {
-                        this.Print("出错：" + error);
-                        return;
-                    }
+                getCount += nRet;
 
-                    
-                    getCount += nRet;
-                    // 取完了所有数据
-                    if (getCount >= nTotalCount || nRet == 0)
-                    {
-                        break;
-                    }
+                // 取完了
+                if (getCount >= nTotalCount || nRet == 0)
+                {
+                    break;
                 }
             }
-
-
-
-
-            
-
         }
 
 
