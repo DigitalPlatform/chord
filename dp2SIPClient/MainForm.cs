@@ -725,13 +725,16 @@ namespace dp2SIPClient
             // 登录参数
             Properties.Settings.Default.SIPAccount = SipAccount;
             Properties.Settings.Default.SipLoginCP = SipCP;
-            Properties.Settings.Default.Save();
+
 
             // 41
             Properties.Settings.Default.ZW = this.textBox_ZW.Text.Trim();
             //Properties.Settings.Default.BP = this.textBox_BP2.Text.Trim();
             Properties.Settings.Default.ZC = this.textBox_ZC.Text.Trim();
             Properties.Settings.Default.ZF = this.textBox_ZF.Text.Trim();
+
+            //保存
+            Properties.Settings.Default.Save();
         }
         public string SipIP
         {
@@ -1358,7 +1361,7 @@ namespace dp2SIPClient
                     out string error);
                 if (nRet == -1)
                 {
-                    this.Print("出错：" + error);
+                    //this.Print("出错：" + error);
                     return;
                 }
 
