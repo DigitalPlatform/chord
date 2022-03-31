@@ -363,6 +363,9 @@ namespace dp2Capo
         // 所连接的 dp2library 的最低版本要求
         static string _dp2library_base_version = "3.49";
 
+        // 用来控制同一个用户名登录时候并发的 记录锁
+        public static RecordLockCollection _userNameLocks = new RecordLockCollection();
+
         static string Login(SipChannel sip_channel,
             string strClientIP,
             string message)
@@ -493,6 +496,11 @@ namespace dp2Capo
 
             LoginInfo login_info = new LoginInfo { UserName = sip_channel.UserName, Password = sip_channel.Password };
 
+            // 2022/3/31
+            // 按照用户名字符串进行锁定。让相同用户名的并发登录请求变成顺次处理，避免并发情况突然耗费多根 dp2library 通道
+            string lock_userName = sip_channel.UserName;
+            _userNameLocks.LockForWrite(lock_userName);
+
             LibraryChannel library_channel = instance.MessageConnection.GetChannel(login_info);
 
             try
@@ -551,7 +559,7 @@ namespace dp2Capo
                     sip_channel.LibraryCodeList = libraryCodeList;
                     sip_channel.Institution = strInstitution;
                     sip_channel.LocationCode = strLocationCode;
-                    sip_channel.InstanceName = strInstanceName; // "";  BUG 2018/8/24 排除
+                    sip_channel.InstanceName = strInstanceName; // "";  BUG 2018/8/24 排除。另注: InstanceName 必须在 SetUserName() 前准备好
                     strError = sip_channel.SetUserName(strUserName, sip_channel.Tag as Hashtable);
                     if (strError != null)
                         goto ERROR1;
@@ -566,12 +574,13 @@ namespace dp2Capo
             finally
             {
                 instance.MessageConnection.ReturnChannel(library_channel);
+                _userNameLocks.UnlockForWrite(lock_userName);
             }
 
         ERROR1:
             sip_channel.LocationCode = "";
-            sip_channel.InstanceName = null;
             var error = sip_channel.SetUserName("", sip_channel.Tag as Hashtable);
+            sip_channel.InstanceName = null;    // InstanceName 清空必须在 SetUserName() 之后!
             sip_channel.Password = "";
 
             response.Ok_1 = "0";
