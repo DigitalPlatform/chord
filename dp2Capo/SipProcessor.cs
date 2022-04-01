@@ -498,10 +498,10 @@ namespace dp2Capo
 
             // 2022/3/31
             // 按照用户名字符串进行锁定。让相同用户名的并发登录请求变成顺次处理，避免并发情况突然耗费多根 dp2library 通道
-            string lock_userName = sip_channel.UserName;
+            string lock_string = sip_channel.GetUserInstanceName();
             try
             {
-                _userNameLocks.LockForWrite(lock_userName);
+                _userNameLocks.LockForWrite(lock_string);
             }
             catch (ApplicationException)
             {
@@ -586,7 +586,7 @@ namespace dp2Capo
             finally
             {
                 instance.MessageConnection.ReturnChannel(library_channel);
-                _userNameLocks.UnlockForWrite(lock_userName);
+                _userNameLocks.UnlockForWrite(lock_string);
             }
 
         ERROR1:
@@ -639,7 +639,7 @@ namespace dp2Capo
 
             // 2022/4/1
             // 用于锁定的用户名
-            public string LockUserName { get; set; }
+            public string LockString { get; set; }
         }
 
         // 注：一定不要忘记最后调用 EndFunction() 以便释放 LibraryChannel
@@ -726,6 +726,10 @@ namespace dp2Capo
                         if (sip_channel.MaxChannels == 0)
                             sip_channel.MaxChannels = info.Instance.sip_host.GetSipParam(login_info.UserName, true).MaxChannels;
 
+                        // 2022/4/1
+                        if (string.IsNullOrEmpty(sip_channel.InstanceName))
+                            sip_channel.InstanceName = info.InstanceName;
+
                         strError = sip_channel.SetUserName(login_info.UserName, sip_channel.Tag as Hashtable);
                         if (strError != null)
                             goto ERROR1;
@@ -766,10 +770,10 @@ namespace dp2Capo
             // 按照用户名字符串进行锁定。让相同用户名的并发登录请求变成顺次处理，避免并发情况突然耗费多根 dp2library 通道
             if (locking_userName)
             {
-                var lock_userName = sip_channel.UserName;
+                var lock_string = sip_channel.GetUserInstanceName();
                 try
                 {
-                    _userNameLocks.LockForWrite(lock_userName);
+                    _userNameLocks.LockForWrite(lock_string);
                 }
                 catch (ApplicationException)
                 {
@@ -780,7 +784,7 @@ namespace dp2Capo
                         strError = $"获得 dp2library 通道时并发锁定失败";
                     goto ERROR1;
                 }
-                info.LockUserName = lock_userName;
+                info.LockString = lock_string;
             }
             info.LibraryChannel = info.Instance.MessageConnection.GetChannel(login_info);
             return info;
@@ -792,10 +796,10 @@ namespace dp2Capo
         static void EndFunction(FunctionInfo info)
         {
             info.Instance.MessageConnection.ReturnChannel(info.LibraryChannel);
-            if (info.LockUserName != null)
+            if (info.LockString != null)
             {
-                _userNameLocks.UnlockForWrite(info.LockUserName);
-                info.LockUserName = null;
+                _userNameLocks.UnlockForWrite(info.LockString);
+                info.LockString = null;
             }
         }
 

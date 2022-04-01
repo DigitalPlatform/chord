@@ -76,6 +76,12 @@ namespace DigitalPlatform.SIP.Server
         }
 #endif
 
+        // 获得 username@instance 形态的字符串
+        public string GetUserInstanceName()
+        {
+            return this.UserName + "@" + this.InstanceName;
+        }
+
         public string SetUserName(string userName,
             Hashtable channel_count_table)
         {
@@ -105,9 +111,13 @@ namespace DigitalPlatform.SIP.Server
             {
                 // 先减量
                 DecCount(channel_count_table, this);
+                string old_value = this._userName;
                 this._userName = userName;
                 // 再增量
-                return IncCount(channel_count_table, this);
+                var result = IncCount(channel_count_table, this);
+                if (result != null) // 2022/4/1
+                    this._userName = old_value;
+                return result;
             }
 
             return null;
