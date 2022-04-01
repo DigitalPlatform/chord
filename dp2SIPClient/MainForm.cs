@@ -786,26 +786,28 @@ namespace dp2SIPClient
             this.SaveSipInfo();
 
 
-            for (int i = 0; i < int.Parse(this.textBox_copies.Text); i++)
+            //for (int i = 0; i < int.Parse(this.textBox_copies.Text); i++)
+            //{
+            this.Update();
+            Application.DoEvents();
+
+            bool bRet = SCHelper.Instance.Connection(SipIP, nPort, _encoding, out info);
+            if (bRet == false) // 出错
             {
-                this.Update();
-                Application.DoEvents();
-
-                bool bRet = SCHelper.Instance.Connection(SipIP,nPort , _encoding, out info);
-                if (bRet == false) // 出错
-                {
-                    this.toolStripStatusLabel_info.Text = info;
-                    return;
-                }
-
-                // 连接成功
-                string text =SipIP + ":" + SipPort;
-                info = "连接SIP2服务器[" + text + "]成功(" + (i + 1).ToString() + ")编码方式：" + this._encoding?.EncodingName;
                 this.toolStripStatusLabel_info.Text = info;
-
-                this.button_connection.Text = "连接(" + (i + 1).ToString() + ")";
-                this.button_connection.Update();
+                return;
             }
+
+            // 连接成功
+            string text = SipIP + ":" + SipPort;
+            info = "连接SIP2服务器[" + text + "]成功,新通道，编码:" + this._encoding?.EncodingName;
+            this.toolStripStatusLabel_info.Text = info;
+
+            this.Print(info);
+
+            //this.button_connection.Text = "连接(" + (i + 1).ToString() + ")";
+            //this.button_connection.Update();
+            //}
         }
 
         private void button_login_Click(object sender, EventArgs e)
@@ -818,8 +820,8 @@ namespace dp2SIPClient
             // 先保存一下连接参数
             this.SaveSipInfo();
 
-            for (int i = 0; i < int.Parse(this.textBox_login_copies.Text); i++)
-            {
+            //for (int i = 0; i < int.Parse(this.textBox_login_copies.Text); i++)
+            //{
                 Login_93 request = new Login_93()
                 {
                     UIDAlgorithm_1 = " ",
@@ -846,9 +848,9 @@ namespace dp2SIPClient
 
                 this.Print("recv:" + responseText);
 
-                this.button_login.Text = "登录(" + (i + 1).ToString() + ")";
-                this.button_login.Update();
-            }
+                //this.button_login.Text = "登录(" + (i + 1).ToString() + ")";
+                //this.button_login.Update();
+            //}
         }
 
         // 2021/3/3 AO依据从界面输入的值
