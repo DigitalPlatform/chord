@@ -1478,6 +1478,7 @@ namespace dp2SIPClient
         private void button_close_Click(object sender, EventArgs e)
         {
             SCHelper.Instance.Close();
+            this.Print("手动断开连接");
         }
     }
 }
