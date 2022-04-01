@@ -164,7 +164,7 @@ namespace DigitalPlatform.SIP.Server
                 // channel.InstanceName;channel.UserName;
 
                 // 2022/3/22
-                channel.SetUserName("", _accountTable);
+                channel.SetUserName("", "", 0, _accountTable);
 
                 channel.Close();
                 if (close_action != null)

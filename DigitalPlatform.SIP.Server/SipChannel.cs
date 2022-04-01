@@ -9,7 +9,16 @@ namespace DigitalPlatform.SIP.Server
 {
     public class SipChannel : TcpChannel
     {
-        public string InstanceName { get; set; }
+        string _instanceName = null;
+        public string InstanceName
+        {
+            get
+            {
+                return _instanceName;
+            }
+        }
+
+
         // 登录dp2系统的帐户
         string _userName = null;
         public string UserName
@@ -56,9 +65,14 @@ namespace DigitalPlatform.SIP.Server
         }
 
         // 2022/3/22
+        // 登录当时留下的本用户名最大通道限额
+        int _maxChannels = 0;
         public int MaxChannels
         {
-            get; set;
+            get
+            {
+                return _maxChannels;
+            }
         }
 
         // 最近的一条响应消息
@@ -83,63 +97,99 @@ namespace DigitalPlatform.SIP.Server
         }
 
         public string SetUserName(string userName,
+            string instanceName,
+            int maxChannels,
             Hashtable channel_count_table)
         {
             // 空 --> 有值
             if (string.IsNullOrEmpty(this.UserName) == true
                 && string.IsNullOrEmpty(userName) == false)
             {
-                string old_value = this._userName;
+                string old_userName = this._userName;
+                string old_instanceName = this._instanceName;
                 this._userName = userName;
-                var result = IncCount(channel_count_table, this);
+                this._instanceName = instanceName;
+                var result = IncCount(channel_count_table, 
+                    userName,
+                    instanceName, 
+                    maxChannels);
                 if (result != null)
-                    this._userName = old_value;
+                {
+                    this._userName = old_userName;
+                    this._instanceName = old_instanceName;
+                }
+                this._maxChannels = maxChannels;
                 return result;
             }
             // 有值 --> 空
             else if (string.IsNullOrEmpty(this.UserName) == false
                 && string.IsNullOrEmpty(userName) == true)
             {
-                DecCount(channel_count_table, this);
+                DecCount(channel_count_table, 
+                    this.UserName,
+                    this.InstanceName);
                 this._userName = userName;
+                this._instanceName = instanceName;
+                this._maxChannels = maxChannels;
                 return null;
             }
             // 有值 --> 不同的有值
             else if (string.IsNullOrEmpty(this.UserName) == false
                 && string.IsNullOrEmpty(userName) == false
-                && this.UserName != userName)
+                && (this.UserName != userName || this.InstanceName != instanceName)
+                )
             {
-                // 先减量
-                DecCount(channel_count_table, this);
-                string old_value = this._userName;
+                string old_userName = this._userName;
+                string old_instanceName = this._instanceName;
                 this._userName = userName;
-                // 再增量
-                var result = IncCount(channel_count_table, this);
+                this._instanceName = instanceName;
+                // 先增量
+                var result = IncCount(channel_count_table, 
+                    userName,
+                    instanceName,
+                    maxChannels);
                 if (result != null) // 2022/4/1
-                    this._userName = old_value;
-                return result;
+                {
+                    this._userName = old_userName;
+                    this._instanceName = old_instanceName;
+                    return result;
+                }
+                // 再减量。注：减量一定会成功，不可能失败
+                DecCount(channel_count_table,
+                    old_userName,
+                    old_instanceName);
+                this._maxChannels = maxChannels;
+                return null;
             }
 
             return null;
         }
 
         static string IncCount(Hashtable channel_count_table,
-    SipChannel sip_channel)
+            string userName,
+            string instanceName,
+            int maxChannels)
         {
-            string key = MakeKey(sip_channel);
-            return IncCount(channel_count_table, key, sip_channel.MaxChannels);
+            string key = MakeKey(userName, instanceName);
+            return IncCount(channel_count_table, key, maxChannels);
         }
 
         static void DecCount(Hashtable channel_count_table,
-            SipChannel sip_channel)
+            string userName,
+            string instanceName)
         {
-            string key = MakeKey(sip_channel);
+            string key = MakeKey(userName, instanceName);
             DecCount(channel_count_table, key);
         }
 
         static string MakeKey(SipChannel sip_channel)
         {
             return sip_channel.UserName + "@" + sip_channel.InstanceName;
+        }
+
+        static string MakeKey(string userName, string instanceName)
+        {
+            return userName + "@" + instanceName;
         }
 
         // parameters:
