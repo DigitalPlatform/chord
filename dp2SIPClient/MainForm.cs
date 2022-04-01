@@ -1372,6 +1372,8 @@ namespace dp2SIPClient
                 {
                     break;
                 }
+
+                nStart += getCount;
             }
         }
 
@@ -1418,6 +1420,10 @@ namespace dp2SIPClient
                 this.Print("total count=" + totalCount);
                 nTotalCount = Convert.ToInt32(totalCount);
 
+                string returnCount = r1.ZR_ReturnCount_r;
+                this.Print("return count=" + returnCount);
+                int nReturnCount=Convert.ToInt32(r1.ZR_ReturnCount_r);
+
                 string value = r1.ZV_Value_r;
                 /*
                 <?xml version="1.0" encoding="utf-8"?>
@@ -1438,18 +1444,22 @@ namespace dp2SIPClient
                         {
                             this.Print(node.OuterXml);
                         }
-                        return list.Count;
+                        //return list.Count;
+                        if (nReturnCount != list.Count)
+                        {
+                            error = "ZR的值不等于channel数量？";
+                            return -1;
+                        }
                     }
                     else
                     {
+                        //json
                         this.Print(value);
                     }
                 }
-                else
-                {
-                    error = "还未解析json";
-                    return -1;
-                }
+
+                return nReturnCount;
+
             }
 
 
