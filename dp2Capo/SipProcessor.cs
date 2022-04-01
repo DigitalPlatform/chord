@@ -363,6 +363,9 @@ namespace dp2Capo
         // 所连接的 dp2library 的最低版本要求
         static string _dp2library_base_version = "3.49";
 
+        // 用来控制同一个用户名登录时候并发的 记录锁
+        public static RecordLockCollection _userNameLocks = new RecordLockCollection();
+
         static string Login(SipChannel sip_channel,
             string strClientIP,
             string message)
@@ -398,7 +401,7 @@ namespace dp2Capo
 
             // 解析出实例名
             List<string> parts = StringUtil.ParseTwoPart(strRequestUserID, "@");
-            string strUserName = parts[0];
+            string strPureUserName = parts[0];  // 纯粹的用户名部分，不带有 @实例名
             string strInstanceName = parts[1];
 
             string strPassword = request.CO_LoginPassword_r;
@@ -430,12 +433,12 @@ namespace dp2Capo
             }
 
             // 匿名登录情形
-            if (string.IsNullOrEmpty(strUserName))
+            if (string.IsNullOrEmpty(strPureUserName))
             {
                 // 如果定义了允许匿名登录
                 if (String.IsNullOrEmpty(instance.sip_host.AnonymousUserName) == false)
                 {
-                    strUserName = instance.sip_host.AnonymousUserName;
+                    strPureUserName = instance.sip_host.AnonymousUserName;
                     strPassword = instance.sip_host.AnonymousPassword;
                 }
                 else
@@ -450,7 +453,7 @@ namespace dp2Capo
 
             try
             {
-                SipParam sip_config = instance.sip_host.GetSipParam(strUserName, sip_channel.Encoding == null);
+                SipParam sip_config = instance.sip_host.GetSipParam(strPureUserName, sip_channel.Encoding == null);
 
                 // 检查 IP 白名单
                 string ipList = sip_config.IpList;
@@ -476,12 +479,12 @@ namespace dp2Capo
             // 让 channel 从此携带 Instance Name
             sip_channel.InstanceName = strInstanceName;
             // 2022/3/22
-            sip_channel.MaxChannels = instance.sip_host.GetSipParam(strUserName, true).MaxChannels;
+            sip_channel.MaxChannels = instance.sip_host.GetSipParam(strPureUserName, true).MaxChannels;
             // 从此以后，报错信息才可以使用中文了
             // 此处可能会抛出异常
-            sip_channel.Encoding = instance.sip_host.GetSipParam(strUserName, sip_channel.Encoding == null).Encoding;
+            sip_channel.Encoding = instance.sip_host.GetSipParam(strPureUserName, sip_channel.Encoding == null).Encoding;
 
-            strError = sip_channel.SetUserName(strUserName, sip_channel.Tag as Hashtable);
+            strError = sip_channel.SetUserName(strPureUserName, sip_channel.Tag as Hashtable);
             if (strError != null)
                 goto ERROR1;
             sip_channel.Password = strPassword;
@@ -492,6 +495,23 @@ namespace dp2Capo
             sip_channel.Style = instance.sip_host.GetSipParam(sip_channel.UserName, true).Style;
 
             LoginInfo login_info = new LoginInfo { UserName = sip_channel.UserName, Password = sip_channel.Password };
+
+            // 2022/3/31
+            // 按照用户名字符串进行锁定。让相同用户名的并发登录请求变成顺次处理，避免并发情况突然耗费多根 dp2library 通道
+            string lock_userName = sip_channel.UserName;
+            try
+            {
+                _userNameLocks.LockForWrite(lock_userName);
+            }
+            catch (ApplicationException)
+            {
+                // 超时了
+                if (sip_channel.Encoding == null)
+                    strError = $"Login request concurrent locking fail";
+                else
+                    strError = $"登录请求并发锁定失败";
+                goto ERROR1;
+            }
 
             LibraryChannel library_channel = instance.MessageConnection.GetChannel(login_info);
 
@@ -523,7 +543,7 @@ namespace dp2Capo
                     style += $",location={currentLocation}";
                 }
 
-                long lRet = library_channel.Login(strUserName,
+                long lRet = library_channel.Login(strPureUserName,
                     strPassword,
                     style, // $"type=worker,client=dp2SIPServer|0.01,location={currentLocation},clientip=" + strClientIP,
                     out strError);
@@ -551,13 +571,13 @@ namespace dp2Capo
                     sip_channel.LibraryCodeList = libraryCodeList;
                     sip_channel.Institution = strInstitution;
                     sip_channel.LocationCode = strLocationCode;
-                    sip_channel.InstanceName = strInstanceName; // "";  BUG 2018/8/24 排除
-                    strError = sip_channel.SetUserName(strUserName, sip_channel.Tag as Hashtable);
+                    sip_channel.InstanceName = strInstanceName; // "";  BUG 2018/8/24 排除。另注: InstanceName 必须在 SetUserName() 前准备好
+                    strError = sip_channel.SetUserName(strPureUserName, sip_channel.Tag as Hashtable);
                     if (strError != null)
                         goto ERROR1;
                     sip_channel.Password = strPassword;
 
-                    LibraryManager.Log?.Info("终端 " + strLocationCode + " : " + strUserName + " 接入");
+                    LibraryManager.Log?.Info("终端 " + strLocationCode + " : " + strPureUserName + " 接入");
                 }
 
                 response.Ok_1 = "1";
@@ -566,12 +586,13 @@ namespace dp2Capo
             finally
             {
                 instance.MessageConnection.ReturnChannel(library_channel);
+                _userNameLocks.UnlockForWrite(lock_userName);
             }
 
         ERROR1:
             sip_channel.LocationCode = "";
-            sip_channel.InstanceName = null;
             var error = sip_channel.SetUserName("", sip_channel.Tag as Hashtable);
+            sip_channel.InstanceName = null;    // InstanceName 清空必须在 SetUserName() 之后!
             sip_channel.Password = "";
 
             response.Ok_1 = "0";
@@ -615,12 +636,17 @@ namespace dp2Capo
             // LoginInfo LoginInfo { get; set; }
             public LibraryChannel LibraryChannel { get; set; }
             public string ErrorInfo { get; set; }
+
+            // 2022/4/1
+            // 用于锁定的用户名
+            public string LockUserName { get; set; }
         }
 
         // 注：一定不要忘记最后调用 EndFunction() 以便释放 LibraryChannel
         static FunctionInfo BeginFunction(
             SipChannel sip_channel,
-            bool check_login = true)
+            bool check_login = true,
+            bool locking_userName = false)
         {
             bool useSingleInstance = true;  // 是否允许单实例情况，不登录而直接使用唯一实例的匿名账户
 
@@ -697,7 +723,12 @@ namespace dp2Capo
                     // 2022/3/25
                     if (sip_channel.UserName == null)
                     {
-                        sip_channel.SetUserName(login_info.UserName, sip_channel.Tag as Hashtable);
+                        if (sip_channel.MaxChannels == 0)
+                            sip_channel.MaxChannels = info.Instance.sip_host.GetSipParam(login_info.UserName, true).MaxChannels;
+
+                        strError = sip_channel.SetUserName(login_info.UserName, sip_channel.Tag as Hashtable);
+                        if (strError != null)
+                            goto ERROR1;
                         sip_channel.Password = login_info.Password;
                     }
 
@@ -731,6 +762,26 @@ namespace dp2Capo
                 }
             }
 
+            // 2022/3/31
+            // 按照用户名字符串进行锁定。让相同用户名的并发登录请求变成顺次处理，避免并发情况突然耗费多根 dp2library 通道
+            if (locking_userName)
+            {
+                var lock_userName = sip_channel.UserName;
+                try
+                {
+                    _userNameLocks.LockForWrite(lock_userName);
+                }
+                catch (ApplicationException)
+                {
+                    // 超时了
+                    if (sip_channel.Encoding == null)
+                        strError = $"get dp2library channel concurrent locking fail";
+                    else
+                        strError = $"获得 dp2library 通道时并发锁定失败";
+                    goto ERROR1;
+                }
+                info.LockUserName = lock_userName;
+            }
             info.LibraryChannel = info.Instance.MessageConnection.GetChannel(login_info);
             return info;
         ERROR1:
@@ -741,6 +792,11 @@ namespace dp2Capo
         static void EndFunction(FunctionInfo info)
         {
             info.Instance.MessageConnection.ReturnChannel(info.LibraryChannel);
+            if (info.LockUserName != null)
+            {
+                _userNameLocks.UnlockForWrite(info.LockUserName);
+                info.LockUserName = null;
+            }
         }
 
         /// <summary>
@@ -3525,12 +3581,13 @@ namespace dp2Capo
 
             string strError = "";
 
-            FunctionInfo info = BeginFunction(sip_channel, false);
+            FunctionInfo info = BeginFunction(sip_channel, false, true);
             if (string.IsNullOrEmpty(info.ErrorInfo) == false)
             {
                 strError = info.ErrorInfo;
                 goto ERROR1;
             }
+
             try
             {
                 // TODO: 要检查相关 dp2Capo 实例是否在线
@@ -3562,10 +3619,10 @@ namespace dp2Capo
                     {
                         //2018/06/19 
                         lRet = info.LibraryChannel.GetSystemParameter(
-                            "system",
-                            "hangup",
-                            out strExistingHangupValue,
-                            out strError);
+                        "system",
+                        "hangup",
+                        out strExistingHangupValue,
+                        out strError);
                         if (lRet == -1)
                         {
                             strError = "GetSystemParameter('system', 'hangup') error: " + strError;
@@ -3674,6 +3731,7 @@ namespace dp2Capo
                 TransactionDate_18 = SIPUtility.NowDateTime,
                 ZT_TotalCount_r = "0",
                 ZV_Value_r = "",
+                ZR_ReturnCount_r = "0",
             };
 
             if (StringUtil.IsInList("isManager", sip_channel.Style) == false)
@@ -3754,18 +3812,18 @@ namespace dp2Capo
                 var outputs = new List<SipChannelInfo>();
                 for (int i = (int)offset; i < infos.Count; i++)
                 {
-                    if (max_count != -1 && i > i + max_count)
+                    if (max_count != -1 && outputs.Count >= max_count)
+                        break;
+                    // 最多 100 行
+                    if (outputs.Count >= 100)
                         break;
                     outputs.Add(infos[i]);
-                    // 最多 100 行
-                    if (outputs.Count > 100)
-                        break;
                 }
 
                 response.Status_1 = "Y";
                 response.ZT_TotalCount_r = infos.Count.ToString();
                 response.ZV_Value_r = SipChannelResults.ToString(outputs, format);
-
+                response.ZR_ReturnCount_r = outputs.Count.ToString();
                 return response.ToText();
             }
             catch (Exception ex)

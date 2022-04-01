@@ -83,8 +83,11 @@ namespace DigitalPlatform.SIP.Server
             if (string.IsNullOrEmpty(this.UserName) == true
                 && string.IsNullOrEmpty(userName) == false)
             {
+                string old_value = this._userName;
                 this._userName = userName;
                 var result = IncCount(channel_count_table, this);
+                if (result != null)
+                    this._userName = old_value;
                 return result;
             }
             // 有值 --> 空
