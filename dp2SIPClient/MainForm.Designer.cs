@@ -57,6 +57,8 @@
             this.button_channel = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.textBox_returnCurLocation = new System.Windows.Forms.TextBox();
+            this.label68 = new System.Windows.Forms.Label();
+            this.textBox_AO = new System.Windows.Forms.TextBox();
             this.label84 = new System.Windows.Forms.Label();
             this.textBox_feeAmount = new System.Windows.Forms.TextBox();
             this.textBox_currencyType = new System.Windows.Forms.TextBox();
@@ -104,8 +106,6 @@
             this.label69 = new System.Windows.Forms.Label();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.button_close = new System.Windows.Forms.Button();
-            this.textBox_AO = new System.Windows.Forms.TextBox();
-            this.label68 = new System.Windows.Forms.Label();
             this.comboBox_encoding = new System.Windows.Forms.ComboBox();
             this.label67 = new System.Windows.Forms.Label();
             this.button_connection = new System.Windows.Forms.Button();
@@ -496,7 +496,7 @@
             // label86
             // 
             this.label86.AutoSize = true;
-            this.label86.Location = new System.Drawing.Point(176, 498);
+            this.label86.Location = new System.Drawing.Point(262, 494);
             this.label86.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label86.Name = "label86";
             this.label86.Size = new System.Drawing.Size(80, 18);
@@ -505,7 +505,7 @@
             // 
             // textBox_ZC
             // 
-            this.textBox_ZC.Location = new System.Drawing.Point(255, 493);
+            this.textBox_ZC.Location = new System.Drawing.Point(343, 489);
             this.textBox_ZC.Margin = new System.Windows.Forms.Padding(4);
             this.textBox_ZC.Name = "textBox_ZC";
             this.textBox_ZC.Size = new System.Drawing.Size(36, 28);
@@ -515,7 +515,7 @@
             // label87
             // 
             this.label87.AutoSize = true;
-            this.label87.Location = new System.Drawing.Point(91, 498);
+            this.label87.Location = new System.Drawing.Point(179, 494);
             this.label87.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label87.Name = "label87";
             this.label87.Size = new System.Drawing.Size(26, 18);
@@ -524,7 +524,7 @@
             // 
             // textBox_ZF
             // 
-            this.textBox_ZF.Location = new System.Drawing.Point(119, 493);
+            this.textBox_ZF.Location = new System.Drawing.Point(207, 489);
             this.textBox_ZF.Margin = new System.Windows.Forms.Padding(4);
             this.textBox_ZF.Name = "textBox_ZF";
             this.textBox_ZF.Size = new System.Drawing.Size(51, 28);
@@ -534,7 +534,7 @@
             // label85
             // 
             this.label85.AutoSize = true;
-            this.label85.Location = new System.Drawing.Point(8, 498);
+            this.label85.Location = new System.Drawing.Point(95, 494);
             this.label85.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label85.Name = "label85";
             this.label85.Size = new System.Drawing.Size(26, 18);
@@ -543,7 +543,7 @@
             // 
             // textBox_ZW
             // 
-            this.textBox_ZW.Location = new System.Drawing.Point(36, 493);
+            this.textBox_ZW.Location = new System.Drawing.Point(123, 489);
             this.textBox_ZW.Margin = new System.Windows.Forms.Padding(4);
             this.textBox_ZW.Name = "textBox_ZW";
             this.textBox_ZW.Size = new System.Drawing.Size(57, 28);
@@ -551,12 +551,12 @@
             // 
             // button_channel
             // 
-            this.button_channel.Location = new System.Drawing.Point(299, 492);
+            this.button_channel.Location = new System.Drawing.Point(6, 488);
             this.button_channel.Margin = new System.Windows.Forms.Padding(4);
             this.button_channel.Name = "button_channel";
-            this.button_channel.Size = new System.Drawing.Size(98, 31);
+            this.button_channel.Size = new System.Drawing.Size(90, 31);
             this.button_channel.TabIndex = 7;
-            this.button_channel.Text = "获取通道";
+            this.button_channel.Text = "获通道";
             this.button_channel.UseVisualStyleBackColor = true;
             this.button_channel.Click += new System.EventHandler(this.button_channel_Click);
             // 
@@ -601,6 +601,24 @@
             this.textBox_returnCurLocation.ScrollBars = System.Windows.Forms.ScrollBars.Both;
             this.textBox_returnCurLocation.Size = new System.Drawing.Size(215, 28);
             this.textBox_returnCurLocation.TabIndex = 15;
+            // 
+            // label68
+            // 
+            this.label68.AutoSize = true;
+            this.label68.Location = new System.Drawing.Point(5, 24);
+            this.label68.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label68.Name = "label68";
+            this.label68.Size = new System.Drawing.Size(116, 18);
+            this.label68.TabIndex = 5;
+            this.label68.Text = "AO(机构代码)";
+            // 
+            // textBox_AO
+            // 
+            this.textBox_AO.Location = new System.Drawing.Point(139, 18);
+            this.textBox_AO.Margin = new System.Windows.Forms.Padding(4);
+            this.textBox_AO.Name = "textBox_AO";
+            this.textBox_AO.Size = new System.Drawing.Size(166, 28);
+            this.textBox_AO.TabIndex = 4;
             // 
             // label84
             // 
@@ -1089,24 +1107,6 @@
             this.button_close.Text = "断开";
             this.button_close.UseVisualStyleBackColor = true;
             this.button_close.Click += new System.EventHandler(this.button_close_Click);
-            // 
-            // textBox_AO
-            // 
-            this.textBox_AO.Location = new System.Drawing.Point(139, 18);
-            this.textBox_AO.Margin = new System.Windows.Forms.Padding(4);
-            this.textBox_AO.Name = "textBox_AO";
-            this.textBox_AO.Size = new System.Drawing.Size(166, 28);
-            this.textBox_AO.TabIndex = 4;
-            // 
-            // label68
-            // 
-            this.label68.AutoSize = true;
-            this.label68.Location = new System.Drawing.Point(5, 24);
-            this.label68.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label68.Name = "label68";
-            this.label68.Size = new System.Drawing.Size(116, 18);
-            this.label68.TabIndex = 5;
-            this.label68.Text = "AO(机构代码)";
             // 
             // comboBox_encoding
             // 
