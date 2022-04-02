@@ -453,6 +453,7 @@ namespace dp2Capo
             var error = sip_channel.SetUserName("", "", 0, sip_channel.Tag as Hashtable);
             // sip_channel.InstanceName = null;    // InstanceName 清空必须在 SetUserName() 之后!
             sip_channel.Password = "";
+            sip_channel.Encoding = null;    // 2022/4/2
 
             response.Ok_1 = "0";
             response.AF_ScreenMessage_o = strError;
@@ -471,6 +472,28 @@ namespace dp2Capo
             out string strError)
         {
             strError = "";
+
+            // 匿名登录情形
+            if (string.IsNullOrEmpty(strPureUserName))
+            {
+                // 如果定义了允许匿名登录
+                if (String.IsNullOrEmpty(instance.sip_host.AnonymousUserName) == false)
+                {
+                    strPureUserName = instance.sip_host.AnonymousUserName;
+                    strPassword = instance.sip_host.AnonymousPassword;
+                }
+                else
+                {
+                    strError = "Anonymouse login not allowed";
+                    /*
+                    if (encoding == null)
+                        strError = "anonymouse login not allowed";
+                    else
+                        strError = "不允许匿名登录";
+                    */
+                    goto ERROR1;
+                }
+            }
 
             // 从此以后，报错信息才可以使用中文了
             // 此处可能会抛出异常
@@ -493,25 +516,6 @@ namespace dp2Capo
                 else
                     strError = $"实例 '{strInstanceName}' 正在维护中，暂时不能访问";
                 goto ERROR1;
-            }
-
-            // 匿名登录情形
-            if (string.IsNullOrEmpty(strPureUserName))
-            {
-                // 如果定义了允许匿名登录
-                if (String.IsNullOrEmpty(instance.sip_host.AnonymousUserName) == false)
-                {
-                    strPureUserName = instance.sip_host.AnonymousUserName;
-                    strPassword = instance.sip_host.AnonymousPassword;
-                }
-                else
-                {
-                    if (encoding == null)
-                        strError = "anonymouse login not allowed";
-                    else
-                        strError = "不允许匿名登录";
-                    goto ERROR1;
-                }
             }
 
             try
