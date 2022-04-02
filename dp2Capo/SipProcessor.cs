@@ -21,6 +21,7 @@ using DigitalPlatform.SIP2.Request;
 using DigitalPlatform.SIP2.Response;
 using DigitalPlatform.Text;
 using DigitalPlatform.Xml;
+using static dp2Capo.ZHostInfo;
 
 namespace dp2Capo
 {
@@ -300,8 +301,20 @@ namespace dp2Capo
             // sip_channel.Timeout = instance.sip_host.AutoClearSeconds == 0 ? TimeSpan.MinValue : TimeSpan.FromSeconds(instance.sip_host.AutoClearSeconds);
 
             Debug.Assert(string.IsNullOrEmpty(userName) == false, "");
-            int autoclear_seconds = instance.sip_host.GetSipParam(userName, sip_channel.Encoding == null).AutoClearSeconds;
-            sip_channel.Timeout = autoclear_seconds == 0 ? TimeSpan.MinValue : TimeSpan.FromSeconds(autoclear_seconds);
+            // int autoclear_seconds = instance.sip_host.GetSipParam(userName, sip_channel.Encoding == null).AutoClearSeconds;
+            var sip_param = instance.sip_host.TryGetSipParam(userName,
+                sip_channel.Encoding == null,
+                out string error);
+            if (sip_param != null)
+            {
+                int autoclear_seconds = sip_param.AutoClearSeconds;
+                sip_channel.Timeout = autoclear_seconds == 0 ? TimeSpan.MinValue : TimeSpan.FromSeconds(autoclear_seconds);
+            }
+            else
+            {
+                sip_channel.Timeout = TimeSpan.MinValue;
+                // TODO: 报错？写入错误日志？
+            }
         }
 
         // 加校验码
@@ -366,6 +379,316 @@ namespace dp2Capo
         // 用来控制同一个用户名登录时候并发的 记录锁
         public static RecordLockCollection _userNameLocks = new RecordLockCollection();
 
+        static string Login(SipChannel sip_channel,
+    string strClientIP,
+    string message)
+        {
+            int nRet = 0;
+            string strError = "";
+
+            LoginResponse_94 response = new LoginResponse_94()
+            {
+                Ok_1 = "0",
+            };
+
+            Login_93 request = new Login_93();
+            try
+            {
+                nRet = request.parse(message, out strError);
+                if (-1 == nRet)
+                {
+                    LibraryManager.Log?.Error(strError);
+                    return response.ToText();
+                }
+            }
+            catch (Exception ex)
+            {
+                LibraryManager.Log?.Error(ExceptionUtil.GetDebugText(ex));
+                return response.ToText();
+            }
+
+            // 对用户名解除转义
+            string strRequestUserID = request.CN_LoginUserId_r;
+            if (string.IsNullOrEmpty(strRequestUserID) == false && strRequestUserID.IndexOf("%") != -1)
+                strRequestUserID = Uri.UnescapeDataString(strRequestUserID);
+
+            // 解析出实例名
+            List<string> parts = StringUtil.ParseTwoPart(strRequestUserID, "@");
+            string strPureUserName = parts[0];  // 纯粹的用户名部分，不带有 @实例名
+            string strInstanceName = parts[1];
+
+            string strPassword = request.CO_LoginPassword_r;
+            string strLocationCode = request.CP_LocationCode_o;
+            if (string.IsNullOrEmpty(strLocationCode) == false && strLocationCode.IndexOf("%") != -1)
+                strLocationCode = Uri.UnescapeDataString(strLocationCode);
+
+            var ret = FindSipInstance(strInstanceName, sip_channel.Encoding == null);
+            if (ret.Item1 == null)
+            {
+                if (sip_channel.Encoding == null)
+                    strError = "user name '" + strRequestUserID + "' locate instance, " + ret.Item2;
+                else
+                    strError = "以用户名 '" + strRequestUserID + "' 定位实例，" + ret.Item2;
+                goto ERROR1;
+            }
+            Instance instance = ret.Item1;
+
+            nRet = DoLogin(
+            sip_channel,
+            instance,
+            strClientIP,
+            strPureUserName,
+            strPassword,
+            strLocationCode,
+            false,
+            out strError);
+            if (nRet == -1)
+                goto ERROR1;
+
+            LibraryManager.Log?.Info("终端 " + strLocationCode + " : " + strPureUserName + " 接入");
+            response.Ok_1 = "1";
+            return response.ToText();
+        ERROR1:
+            sip_channel.LocationCode = "";
+            var error = sip_channel.SetUserName("", "", 0, sip_channel.Tag as Hashtable);
+            // sip_channel.InstanceName = null;    // InstanceName 清空必须在 SetUserName() 之后!
+            sip_channel.Password = "";
+
+            response.Ok_1 = "0";
+            response.AF_ScreenMessage_o = strError;
+            LibraryManager.Log?.Info("Login() error: " + strError);
+            return response.ToText();
+        }
+
+        static int DoLogin(
+            SipChannel sip_channel,
+            Instance instance,
+            string strClientIP,
+            string strPureUserName,
+            string strPassword,
+            string strLocationCode,
+            bool skipLogin,
+            out string strError)
+        {
+            strError = "";
+
+            // 从此以后，报错信息才可以使用中文了
+            // 此处可能会抛出异常
+            var sip_param = instance.sip_host.TryGetSipParam(strPureUserName,
+                sip_channel.Encoding == null,
+                out strError);
+            if (sip_param == null)
+                goto ERROR1;
+
+            var encoding = sip_param.Encoding;
+            sip_channel.Encoding = encoding;    // 确保最后打包 respons 时编码方式正确
+
+            var strInstanceName = instance.Name;
+
+            // 检查实例是否正在维护
+            if (instance.Running == false)
+            {
+                if (encoding == null)
+                    strError = $"instance '{strInstanceName}' is in maintenance";
+                else
+                    strError = $"实例 '{strInstanceName}' 正在维护中，暂时不能访问";
+                goto ERROR1;
+            }
+
+            // 匿名登录情形
+            if (string.IsNullOrEmpty(strPureUserName))
+            {
+                // 如果定义了允许匿名登录
+                if (String.IsNullOrEmpty(instance.sip_host.AnonymousUserName) == false)
+                {
+                    strPureUserName = instance.sip_host.AnonymousUserName;
+                    strPassword = instance.sip_host.AnonymousPassword;
+                }
+                else
+                {
+                    if (encoding == null)
+                        strError = "anonymouse login not allowed";
+                    else
+                        strError = "不允许匿名登录";
+                    goto ERROR1;
+                }
+            }
+
+            try
+            {
+                /*
+                SipParam sip_config = instance.sip_host.TryGetSipParam(strPureUserName, sip_channel.Encoding == null, out strError);
+                if (sip_config == null)
+                {
+                    goto ERROR1;
+                }
+                */
+
+                // 检查 IP 白名单
+                string ipList = sip_param.IpList;
+                if (string.IsNullOrEmpty(ipList) == false && ipList != "*"
+                    && StringUtil.MatchIpAddressList(ipList, strClientIP) == false)
+                {
+                    if (encoding == null)
+                        strError = "client IP address '" + strClientIP + "' not in white list";
+                    else
+                        strError = "前端 IP 地址 '" + strClientIP + "' 不在白名单允许的范围内";
+                    goto ERROR1;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (encoding == null)
+                    strError = "get SIP configuration error:" + ExceptionUtil.GetAutoText(ex);
+                else
+                    strError = "获取 SIP 参数时出错:" + ExceptionUtil.GetAutoText(ex);
+                goto ERROR1;
+            }
+
+            // 让 channel 从此携带 Instance Name
+            // sip_channel.InstanceName = strInstanceName;
+
+            // var maxChannels = instance.sip_host.GetSipParam(strPureUserName, true)?.MaxChannels;
+            var maxChannels = sip_param.MaxChannels;
+
+            /*
+            strError = sip_channel.SetUserName(strPureUserName,
+                strInstanceName,
+                maxChannels,
+                sip_channel.Tag as Hashtable);
+            if (strError != null)
+                goto ERROR1;
+            sip_channel.Password = strPassword;
+            // 注：登录以后 Timeout 才按照实例参数来设定。此前是 sip_channel.Timeout 的默认值
+            // sip_channel.Timeout = instance.sip_host.AutoClearSeconds == 0 ? TimeSpan.MinValue : TimeSpan.FromSeconds(instance.sip_host.AutoClearSeconds);
+            SetChannelTimeout(sip_channel, sip_channel.UserName, instance);
+            // 2022/3/4
+            sip_channel.Style = instance.sip_host.GetSipParam(sip_channel.UserName, true).Style;
+            */
+
+            LoginInfo login_info = new LoginInfo
+            {
+                UserName = strPureUserName,
+                Password = strPassword
+            };
+            if (string.IsNullOrEmpty(strClientIP) == false)
+                login_info.Style = $"clientIP:{strClientIP}";
+
+            // 2022/3/31
+            // 按照用户名字符串进行锁定。让相同用户名的并发登录请求变成顺次处理，避免并发情况突然耗费多根 dp2library 通道
+            string lock_string = SipChannel.GetUserInstanceName(strPureUserName, strInstanceName);
+            try
+            {
+                _userNameLocks.LockForWrite(lock_string);
+            }
+            catch (ApplicationException)
+            {
+                // 超时了
+                if (encoding == null)
+                    strError = $"Login request concurrent locking fail";
+                else
+                    strError = $"登录请求并发锁定失败";
+                goto ERROR1;
+            }
+
+            LibraryChannel library_channel = instance.MessageConnection.GetChannel(login_info);
+
+            try
+            {
+                // 确保获得 dp2library 版本号
+                // 报错要用英文
+                if (EnsureGetVersion(library_channel, out strError) == -1)
+                    goto ERROR1;
+
+                if (StringUtil.CompareVersion(_libraryServerVersion, _dp2library_base_version) < 0)
+                {
+                    if (encoding == null)
+                        strError = $"dp2Capo requir dp2Library { _dp2library_base_version} or higher version (but currently dp2Library version is { _libraryServerVersion }. please upgrade dp2Library to newest version";
+                    else
+                        strError = $"dp2Capo 要求和 dp2Library { _dp2library_base_version} 或以上版本配套使用 (而当前 dp2Library 版本号为 { _libraryServerVersion }。请尽快升级 dp2Library 到最新版本";
+                    goto ERROR1;
+                }
+
+                string style = $"type=worker,client=dp2capo|0.01,clientip={strClientIP},publicError";
+
+                // 2022/2/25
+                if (string.IsNullOrEmpty(strLocationCode) == false
+                    && strLocationCode.StartsWith("!")
+                    && strLocationCode.Length > 1)
+                {
+                    // string currentLocation = "#SIP@" + strClientIP;
+                    var currentLocation = StringUtil.EscapeString(strLocationCode.Substring(1), "=,");
+                    style += $",location={currentLocation}";
+                }
+
+                if (encoding == null)
+                    style += ",lang=en";
+
+                long lRet = 0;
+
+                if (skipLogin)
+                    lRet = 1;
+                else
+                    lRet = library_channel.Login(strPureUserName,
+                        strPassword,
+                        style, // $"type=worker,client=dp2SIPServer|0.01,location={currentLocation},clientip=" + strClientIP,
+                        out strError);
+                if (skipLogin == false
+                    && (lRet == -1 || lRet == 0))
+                {
+                    goto ERROR1;
+                }
+                else
+                {
+                    // 2021/3/4
+                    // 将登录者的馆代码转换为机构代码
+                    string libraryCodeList = library_channel.LibraryCodeList;
+                    var codes = StringUtil.SplitList(libraryCodeList);
+                    if (codes.Count == 0)
+                        codes.Add("");
+                    // 注意报错要用英文
+                    // TODO: 是否可以为多个馆代码分别得到机构代码，然后用逗号连接返回？
+                    int nRet = GetOwnerInstitution(library_channel,
+        codes[0] + "/",
+        out string strInstitution,
+        out strError);
+                    if (nRet == -1)
+                        goto ERROR1;
+
+                    // sip_channel.InstanceName = strInstanceName; // "";  BUG 2018/8/24 排除。另注: InstanceName 必须在 SetUserName() 前准备好
+                    strError = sip_channel.SetUserName(strPureUserName,
+                        strInstanceName,
+                        maxChannels,
+                        sip_channel.Tag as Hashtable);
+                    if (strError != null)
+                        goto ERROR1;
+                    sip_channel.Password = strPassword;
+                    sip_channel.Encoding = encoding;
+
+                    sip_channel.LibraryCodeList = libraryCodeList;
+                    sip_channel.Institution = strInstitution;
+                    sip_channel.LocationCode = strLocationCode;
+
+                    // 注：登录以后 Timeout 才按照实例参数来设定。此前是 sip_channel.Timeout 的默认值
+                    // sip_channel.Timeout = instance.sip_host.AutoClearSeconds == 0 ? TimeSpan.MinValue : TimeSpan.FromSeconds(instance.sip_host.AutoClearSeconds);
+                    SetChannelTimeout(sip_channel, sip_channel.UserName, instance);
+                    // 2022/3/4
+                    // sip_channel.Style = instance.sip_host.GetSipParam(sip_channel.UserName, true).Style;
+                    sip_channel.Style = sip_param.Style;
+                }
+
+                return 0;
+            }
+            finally
+            {
+                instance.MessageConnection.ReturnChannel(library_channel);
+                _userNameLocks.UnlockForWrite(lock_string);
+            }
+        ERROR1:
+            return -1;
+        }
+
+#if OLD
         static string Login(SipChannel sip_channel,
             string strClientIP,
             string message)
@@ -607,11 +930,13 @@ namespace dp2Capo
             return response.ToText();
         }
 
+#endif
+
         // 请求 dp2library 获得一个馆藏位置对应的机构代码
         static int GetOwnerInstitution(LibraryChannel library_channel,
-            string location,
-            out string strInstitution,
-            out string strError)
+                string location,
+                out string strInstitution,
+                out string strError)
         {
             strError = "";
             strInstitution = "";
@@ -702,7 +1027,16 @@ namespace dp2Capo
                 goto ERROR1;
             }
 
-            var login_info = new LoginInfo { UserName = sip_channel.UserName, Password = sip_channel.Password };
+
+            var login_info = new LoginInfo
+            {
+                UserName = sip_channel.UserName,
+                Password = sip_channel.Password,
+            };
+
+            string ip = TcpServer.GetClientIP(sip_channel.TcpClient);
+            if (string.IsNullOrEmpty(ip) == false)
+                login_info.Style = $"clientIP:{ip}";
 
             // 单实例特殊情况下，使用匿名登录账户
             if (login_info.UserName == null)
@@ -724,6 +1058,24 @@ namespace dp2Capo
                     if (login_info.Password == null)
                         login_info.Password = "";
 
+                    int nRet = DoLogin(
+sip_channel,
+info.Instance,
+ip,
+login_info.UserName,
+login_info.Password,
+"",
+false,
+out strError);
+                    if (nRet == -1)
+                    {
+                        if (sip_channel.Encoding == null)
+                            strError = $"Anonymouse login fail: {strError}";
+                        else
+                            strError = $"匿名登录失败: {strError}";
+                        goto ERROR1;
+                    }
+#if OLD
                     SetChannelTimeout(sip_channel, login_info.UserName, info.Instance);
 
                     // 2022/3/25
@@ -752,6 +1104,7 @@ namespace dp2Capo
                     if (sip_channel.Encoding == null
                         && info.Instance != null)
                         sip_channel.Encoding = info.Instance.sip_host.GetSipParam(login_info.UserName, sip_channel.Encoding == null)?.Encoding;
+#endif
                 }
                 else
                 {
@@ -1271,7 +1624,9 @@ namespace dp2Capo
                         response.AJ_TitleIdentifier_r = strBiblioSummary;
 
                         // TODO: 这里可能会抛出异常
-                        var date_format = info.Instance.sip_host.GetSipParam(sip_channel.UserName, true).DateFormat;
+                        // var date_format = info.Instance.sip_host.GetSipParam(sip_channel.UserName, true).DateFormat;
+                        var date_format = GetDateFormat(info.Instance, sip_channel.UserName, true);
+
                         string strLatestReturnTime = DateTimeUtil.Rfc1123DateTimeStringToLocal(borrow_info.LatestReturnTime,
                             date_format);
                         response.AH_DueDate_r = strLatestReturnTime;
@@ -1298,6 +1653,16 @@ namespace dp2Capo
             response.AF_ScreenMessage_o = strError;
             response.AG_PrintLine_o = strError;
             return response.ToText();
+        }
+
+        static string GetDateFormat(Instance instance,
+            string userName,
+            bool neutralLanguage)
+        {
+            var sip_param = instance.sip_host.TryGetSipParam(userName, neutralLanguage, out string error);
+            if (sip_param == null)
+                return SipServer.DEFAULT_DATE_FORMAT;  // 缺省的
+            return sip_param.DateFormat;
         }
 
         static string GetInstitution(string xml)
@@ -1451,7 +1816,8 @@ namespace dp2Capo
                 }
                 else if (1 == lRet)
                 {
-                    string dateFormat = info.Instance.sip_host.GetSipParam(sip_channel.UserName, true).DateFormat;
+                    // string dateFormat = info.Instance.sip_host.GetSipParam(sip_channel.UserName, true).DateFormat;
+                    var dateFormat = GetDateFormat(info.Instance, sip_channel.UserName, true);
 
                     if (GetItemInfoResponse(response,
     strItemXml,
@@ -1800,7 +2166,8 @@ namespace dp2Capo
                 }
                 else if (1 == lRet)
                 {
-                    string dateFormat = info.Instance.sip_host.GetSipParam(sip_channel.UserName, true).DateFormat;
+                    // string dateFormat = info.Instance.sip_host.GetSipParam(sip_channel.UserName, true).DateFormat;
+                    var dateFormat = GetDateFormat(info.Instance, sip_channel.UserName, true);
 
                     if (GetItemStatusUpdateResponse(
                         info,
@@ -2199,8 +2566,14 @@ namespace dp2Capo
 
                     response.AJ_TitleIdentifier_r = strBiblioSummary;
 
+                    /*
                     string strLatestReturnTime = DateTimeUtil.Rfc1123DateTimeStringToLocal(borrow_info.LatestReturnTime,
                         info.Instance.sip_host.GetSipParam(sip_channel.UserName, true).DateFormat);
+                    */
+                    var date_format = GetDateFormat(info.Instance, sip_channel.UserName, true);
+
+                    string strLatestReturnTime = DateTimeUtil.Rfc1123DateTimeStringToLocal(borrow_info.LatestReturnTime,
+date_format);
                     response.AH_DueDate_r = strLatestReturnTime;
 
                     response.AF_ScreenMessage_o = "成功";
@@ -3748,15 +4121,6 @@ namespace dp2Capo
                 ZR_ReturnCount_r = "0",
             };
 
-            if (StringUtil.IsInList("isManager", sip_channel.Style) == false)
-            {
-                if (sip_channel.Encoding == null)
-                    strError = $"Current user is not SIP server manager, can't use ListChannel function";
-                else
-                    strError = $"当前用户不具备 SIP Server 管理者权限，无法使用 ListChannel 功能";
-                goto ERROR1;
-            }
-
             ChannelInformation_41 request = new ChannelInformation_41();
             try
             {
@@ -3784,6 +4148,15 @@ namespace dp2Capo
             }
             try
             {
+                if (StringUtil.IsInList("isManager", sip_channel.Style) == false)
+                {
+                    if (sip_channel.Encoding == null)
+                        strError = $"Current user is not SIP server manager, can't use ListChannel function";
+                    else
+                        strError = $"当前用户不具备 SIP Server 管理者权限，无法使用 ListChannel 功能";
+                    goto ERROR1;
+                }
+
                 string query_word = request.ZW_SearchWord_r;
                 long offset = 0;
                 if (string.IsNullOrEmpty(request.BP_StartItem_r) == false

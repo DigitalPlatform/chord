@@ -126,7 +126,11 @@ namespace dp2Capo
                 if (data.IsPatron == true)
                     e.Parameters += ",type=reader";
 
-                e.Parameters += ",client=dp2capo|" + "0.01";    // +Program.ClientVersion;
+                // TODO: clientip ? 等等
+                e.Parameters += ",publicError,client=dp2capo|" + "0.01";    // +Program.ClientVersion;
+
+                if (string.IsNullOrEmpty(data.ClientIP) == false)
+                    e.Parameters += ",clientip=" + data.ClientIP;
 
                 if (String.IsNullOrEmpty(e.UserName) == false)
                     return; // 立即返回, 以便作第一次 不出现 对话框的自动登录
@@ -268,6 +272,10 @@ namespace dp2Capo
         {
             public bool IsPatron { get; set; }
             public string Password { get; set; }    // 如果不为 null，表示使用这个密码，就不是代理登录方式了
+
+            // 2022/4/2
+            // (SIP等)前端 IP 地址
+            public string ClientIP { get; set; }
         }
 
         public LibraryChannel GetChannel(LoginInfo loginInfo)
@@ -284,6 +292,11 @@ namespace dp2Capo
             ChannelExtData data = new ChannelExtData();
             if (loginInfo.Password != null)
                 data.Password = loginInfo.Password;
+
+            // 2022/4/2
+            var clientIP = StringUtil.GetParameterByPrefix(loginInfo.Style, "clientIP");
+            if (string.IsNullOrEmpty(clientIP) == false)
+                data.ClientIP = clientIP;
 
             string strUserName = loginInfo.UserName;
             if (loginInfo.UserType == "patron")
@@ -960,7 +973,7 @@ namespace dp2Capo
                             error.ErrorCode = kernel_errorcode;
                             if (lRet == -1)
                                 error.ErrorInfo = strError;
-                            errors.Add(error); 
+                            errors.Add(error);
                         }
                         errorinfos = errors.ToArray();
                     }
@@ -1575,7 +1588,7 @@ strErrorCode));
         }
 
         void SearchBiblio(SearchRequest searchParam)
-        { 
+        {
             string strError = "";
             string strErrorCode = "";
             IList<DigitalPlatform.Message.Record> records = new List<DigitalPlatform.Message.Record>();
@@ -1715,7 +1728,7 @@ strErrorCode));
                 goto ERROR1;
             }
 
-            ERROR1:
+        ERROR1:
             // 报错
             TryResponseSearch(
                 new SearchResponse(
@@ -1771,7 +1784,7 @@ strErrorCode));
                     string strBrowseStyle = searchParam.FormatList; // "id,xml";
 
                     long lRet = channel.GetSearchResult(
-                        // null,
+        // null,
         strResultSetName,
         lStart,
         lPerCount,
@@ -2051,7 +2064,7 @@ strErrorCode));
                 {
                 // TODO: 若一次调用不足以满足 searchParam.Count 所要求的数量，要能反复多次发出响应数据，直到满足要求的数量未为止。这样的好处是让调用者比较简单，可以假定请求的数量一定会被满足
 
-                    BEGIN:
+                BEGIN:
                     DigitalPlatform.LibraryClient.localhost.EntityInfo[] entities = null;
 
                     long lRet = 0;
@@ -2060,7 +2073,7 @@ strErrorCode));
                         lRet = channel.GetEntities(
                              searchParam.QueryWord,  // strBiblioRecPath
                              searchParam.Start,
-                            // searchParam.Count == -1 ? 20 : searchParam.Count,  // 为何这里直接用 -1 导致检索命中 100 个记录后，dp2mserver 收不到？
+                             // searchParam.Count == -1 ? 20 : searchParam.Count,  // 为何这里直接用 -1 导致检索命中 100 个记录后，dp2mserver 收不到？
                              searchParam.Count,  // 为何这里直接用 -1 导致检索命中 100 个记录后，dp2mserver 收不到？
                              searchParam.FormatList,
                              "zh",
@@ -2865,7 +2878,7 @@ strError,
 strErrorCode));
         }
 
-#endregion
+        #endregion
 
 #if NO
         // 连接成功后被调用，执行登录功能。重载时要调用 Login(...) 向 server 发送 login 消息
