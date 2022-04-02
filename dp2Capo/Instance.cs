@@ -1932,6 +1932,7 @@ namespace dp2Capo
             if (element1 == null)
                 return null;
 
+            // TODO: 可以改进为顺次匹配，模式字符串可以支持 * ? 字符
             if (!(element1.SelectSingleNode("user[@userName='" + userName + "']") is XmlElement user))
             {
                 user = element1.SelectSingleNode("user[@userName='*']") as XmlElement;
