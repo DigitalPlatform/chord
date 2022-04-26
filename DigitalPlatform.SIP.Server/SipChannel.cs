@@ -96,6 +96,11 @@ namespace DigitalPlatform.SIP.Server
             return this.UserName + "@" + this.InstanceName;
         }
 
+        public static string GetUserInstanceName(string userName, string instanceName)
+        {
+            return userName + "@" + instanceName;
+        }
+
         public string SetUserName(string userName,
             string instanceName,
             int maxChannels,

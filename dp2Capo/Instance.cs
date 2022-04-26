@@ -18,6 +18,7 @@ using DigitalPlatform.LibraryClient.localhost;
 using DigitalPlatform.Xml;
 using DigitalPlatform.LibraryClient;
 using DigitalPlatform.SIP.Server;
+using static dp2Capo.ZHostInfo;
 
 namespace dp2Capo
 {
@@ -1893,13 +1894,53 @@ namespace dp2Capo
         }
 
         // 获得一个用户相关的 SIP 服务参数
-        public SipParam GetSipParam(string userName,
+        public SipParam TryGetSipParam(string userName,
+            bool neutralLanguage,
+            out string strError)
+        {
+            strError = "";
+            try
+            {
+                // exception:
+                //      可能会抛出 Exception 异常
+                return SipParam.GetSipParam(this._root,
+                    userName,
+                    neutralLanguage);
+            }
+            catch(Exception ex)
+            {
+                strError = ex.Message;
+                return null;
+            }
+        }
+
+        /*
+        public GetSipParamResult GetSipParam(string userName,
             bool neutralLanguage)
         {
-            return SipParam.GetSipParam(this._root, 
-                userName,
-                neutralLanguage);
+            try
+            {
+                var result = SipParam.GetSipParam(this._root,
+        userName,
+        neutralLanguage);
+                return new GetSipParamResult { SipParam = result };
+            }
+            catch(Exception ex)
+            {
+                return new GetSipParamResult
+                {
+                    Value = -1,
+                    ErrorInfo = ex.Message,
+                    ErrorCode = ex.GetType().ToString()
+                };
+            }
         }
+
+        public class GetSipParamResult : NormalResult
+        {
+            public SipParam SipParam { get; set; }
+        }
+        */
     }
 
     public class SipParam
@@ -1925,6 +1966,8 @@ namespace dp2Capo
 
         // parameters:
         //      neutralLanguage 是否采用中立语言抛出异常?
+        // exception:
+        //      可能会抛出 Exception 异常
         public static SipParam GetSipParam(XmlElement element1,
             string userName,
             bool neutralLanguage)
