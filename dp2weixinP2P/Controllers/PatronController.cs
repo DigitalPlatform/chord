@@ -1011,6 +1011,12 @@ namespace dp2weixinWeb.Controllers
                     sessionInfo.ActiveUser.showPhoto,//ViewBag.showPhoto,
                     true);
 
+            // 设置一下二维码url，因为ParsePatronXml无法处理证条码中有*号的情况
+            string qrcodeUrl = "../patron/getphoto?libId=" + HttpUtility.UrlEncode(libId)
+    + "&type=pqri"
+    + "&barcode=" + HttpUtility.UrlEncode(sessionInfo.ActiveUser.readerBarcode); //注意一定要用本地帐户的证条码号，返回的xml不可靠，有*号
+            patron.qrcodeUrl = qrcodeUrl;
+
             string comment = patron.comment;
             comment = comment.Replace("\r\n", "\n");
             comment = comment.Replace("\n", "<br/>");

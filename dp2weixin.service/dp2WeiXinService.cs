@@ -9185,15 +9185,14 @@ ErrorInfo成员里可能会有报错信息。
             patron.foregift = strForegift;
 
             // 二维码
-            // 2020-2-28加
-            //string temp = patron.barcode;
-            //if (string.IsNullOrEmpty(temp) == true)
-            //    temp = "@path:" + recPath;
-            // 二维码
-            string qrcodeUrl = "../patron/getphoto?libId=" + HttpUtility.UrlEncode(libId)
-                + "&type=pqri"
-                + "&barcode=" + HttpUtility.UrlEncode(patron.barcode);
-            patron.qrcodeUrl = qrcodeUrl;
+            // 2022/4/26注：如果用户实例配置了读者信息脱敏，证条码可能是一个***的情况。如果有***号，索性就不显示了，调用者外面再设一下参数。
+            if (patron.barcode.IndexOf("*") == -1)
+            {
+                string qrcodeUrl = "../patron/getphoto?libId=" + HttpUtility.UrlEncode(libId)
+                    + "&type=pqri"
+                    + "&barcode=" + HttpUtility.UrlEncode(patron.barcode);
+                patron.qrcodeUrl = qrcodeUrl;
+            }
 
             //头像
             string imageUrl = "";
