@@ -242,14 +242,13 @@ namespace DigitalPlatform.Z3950.Server
                             task = null;
                         }
 
-                        task = Task.Run(() =>
-                         ProcessAndResponse(
-    tcpClient,
-    close_action,
-    channel,
-    request,
-    token));
-
+                        task = Task.Run(() => ProcessAndResponse(
+                            tcpClient,
+                            close_action,
+                            channel,
+                            request,
+                            token
+                            ));
                         i++;
                     }
                 }
@@ -546,7 +545,7 @@ namespace DigitalPlatform.Z3950.Server
 
             Encoding encoding = Encoding.GetEncoding(936);
 
-            REDO:
+        REDO:
             int nRet = ZProcessor.Decode_InitRequest(
                 root,
                 encoding,
@@ -721,7 +720,7 @@ namespace DigitalPlatform.Z3950.Server
             }
 #endif
 
-            DO_RESPONSE:
+        DO_RESPONSE:
             // 填充 response_info 的其它结构
             response_info.m_strReferenceId = info.m_strReferenceId;
 
@@ -751,7 +750,7 @@ namespace DigitalPlatform.Z3950.Server
                 out byte[] baResponsePackage);
 
             return Task.FromResult(baResponsePackage);
-            ERROR1:
+        ERROR1:
             // TODO: 将错误原因写入日志
             LibraryManager.Log?.Error(strError);
             return null;
@@ -795,7 +794,7 @@ namespace DigitalPlatform.Z3950.Server
                 goto ERROR1;
 
             return baResponsePackage;
-            ERROR1:
+        ERROR1:
             // TODO: 将错误原因写入日志
             return null;
         }
@@ -841,7 +840,7 @@ namespace DigitalPlatform.Z3950.Server
                 goto ERROR1;
 
             return baResponsePackage;
-            ERROR1:
+        ERROR1:
             // TODO: 将错误原因写入日志
             return null;
         }

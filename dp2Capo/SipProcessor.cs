@@ -453,7 +453,6 @@ namespace dp2Capo
             var error = sip_channel.SetUserName("", "", 0, sip_channel.Tag as Hashtable);
             // sip_channel.InstanceName = null;    // InstanceName 清空必须在 SetUserName() 之后!
             sip_channel.Password = "";
-            sip_channel.Encoding = null;    // 2022/4/2
 
             response.Ok_1 = "0";
             response.AF_ScreenMessage_o = strError;
@@ -481,9 +480,14 @@ namespace dp2Capo
                 {
                     strPureUserName = instance.sip_host.AnonymousUserName;
                     strPassword = instance.sip_host.AnonymousPassword;
+
+                    // Password 为 null 表示需要代理方式登录。要避免出现 null 这种情况 
+                    if (strPassword == null)
+                        strPassword = "";
                 }
                 else
                 {
+                    sip_channel.Encoding = null;    // 2022/4/3
                     strError = "Anonymouse login not allowed";
                     /*
                     if (encoding == null)
@@ -498,7 +502,7 @@ namespace dp2Capo
             // 从此以后，报错信息才可以使用中文了
             // 此处可能会抛出异常
             var sip_param = instance.sip_host.TryGetSipParam(strPureUserName,
-                sip_channel.Encoding == null,
+                true,   // sip_channel.Encoding == null,
                 out strError);
             if (sip_param == null)
                 goto ERROR1;
@@ -644,15 +648,26 @@ namespace dp2Capo
                 }
                 else
                 {
+                    // 2022/5/23
+                    // 检查 dp2library 账户权限是否含有危险权限
+                    var danger_rights = MatchDangerousRights(library_channel.Rights);
+                    if (danger_rights.Count > 0)
+                    {
+                        strError = $"dp2library 账户 '{strPureUserName}'({library_channel.Url}) 使用了下列不必要的权限 '{StringUtil.MakePathList(danger_rights)}'，被 dp2capo 拒绝用于登录";
+                        library_channel.Logout(out string _);
+                        goto ERROR1;
+                    }
+
                     // 2021/3/4
                     // 将登录者的馆代码转换为机构代码
                     string libraryCodeList = library_channel.LibraryCodeList;
                     var codes = StringUtil.SplitList(libraryCodeList);
                     if (codes.Count == 0)
                         codes.Add("");
+
                     // 注意报错要用英文
                     // TODO: 是否可以为多个馆代码分别得到机构代码，然后用逗号连接返回？
-                    int nRet = GetOwnerInstitution(library_channel,
+                    int nRet = GetOwnerInstitution(instance,    // library_channel,
         codes[0] + "/",
         out string strInstitution,
         out strError);
@@ -690,6 +705,109 @@ namespace dp2Capo
             }
         ERROR1:
             return -1;
+        }
+
+        static string[] _dangerousRights = new string[] {
+        "managedatabase",
+        "clearalldbs",
+
+        "getuser",
+        "changeuser",
+        "newuser",
+        "deleteuser",
+
+        "setsystemparameter",
+
+        /*
+        "setclock",
+
+        "setreaderinfo",
+        "movereaderinfo",
+        "changereaderbarcode",
+        "changereaderpassword",
+
+        "amercemodifyprice",
+        "amercemodifycomment",
+        "amerceundo",
+
+        "inventory",
+        "inventorydelete",
+
+        "search",
+        "getrecord",
+        "changecalendar",
+        "newcalendar",
+        "deletecalendar",
+        "batchtask",
+        "devolvereaderinfo",
+
+        "changeuserpassword",
+        "simulatereader",
+        "simulateworker",
+
+        "urgentrecover",
+        "repairborrowinfo",
+        "passgate",
+        "getres",
+        "writeres",
+        "setbiblioinfo",
+        "setauthorityinfo",
+        "hire",
+        "foregift",
+        "returnforegift",
+
+        "settlement",
+        "deletesettlement",
+
+        "searchissue",
+        "getissueinfo",
+        "setissueinfo",
+
+        "order",
+        "searchorder",
+        "getorderinfo",
+        "setorderinfo",
+
+        "getcommentinfo",
+        "setcommentinfo",
+        "searchcomment",
+
+        "writeobject",
+        "writerecord",
+        "writetemplate",
+
+        "backup",
+        "restore",
+
+        "managecache",
+        "managecomment",
+        "manageopac",
+
+        "settailnumber",
+        "setutilinfo",
+
+        "getpatrontempid",
+        "getchannelinfo",
+        "managechannel",
+        "viewreport",
+        "upload",
+        "download",
+        "bindpatron",
+        */
+        };
+
+        // 检查危险性权限
+        static List<string> MatchDangerousRights(string rights)
+        {
+            List<string> results = new List<string>();
+            string[] parts = rights.Split(new char[] { ',' });
+            foreach (var part in parts)
+            {
+                if (Array.IndexOf(_dangerousRights, part) != -1)
+                    results.Add(part);
+            }
+
+            return results;
         }
 
 #if OLD
@@ -935,6 +1053,26 @@ namespace dp2Capo
         }
 
 #endif
+        // 获得一个 location 对应的机构代码
+        // 注: 利用 capo 账户的 LibraryChannel
+        static int GetOwnerInstitution(Instance instance,
+                string location,
+                out string strInstitution,
+                out string strError)
+        {
+            LibraryChannel library_channel = instance.MessageConnection.GetChannel(null);
+            try
+            {
+                return GetOwnerInstitution(library_channel,
+    location,
+    out strInstitution,
+    out strError);
+            }
+            finally
+            {
+                instance.MessageConnection.ReturnChannel(library_channel);
+            }
+        }
 
         // 请求 dp2library 获得一个馆藏位置对应的机构代码
         static int GetOwnerInstitution(LibraryChannel library_channel,
@@ -978,10 +1116,13 @@ namespace dp2Capo
         }
 
         // 注：一定不要忘记最后调用 EndFunction() 以便释放 LibraryChannel
+        // parameters:
+        //      use_capo_account    是否使用 capo 代理账户?
         static FunctionInfo BeginFunction(
             SipChannel sip_channel,
             bool check_login = true,
-            bool locking_userName = false)
+            bool locking_userName = false,
+            bool use_capo_account = false)
         {
             bool useSingleInstance = true;  // 是否允许单实例情况，不登录而直接使用唯一实例的匿名账户
 
@@ -1030,7 +1171,6 @@ namespace dp2Capo
                     strError = $"实例 '{ info.Instance.Name }' 正在维护中，暂时不能访问";
                 goto ERROR1;
             }
-
 
             var login_info = new LoginInfo
             {
@@ -1137,7 +1277,11 @@ out strError);
             // 按照用户名字符串进行锁定。让相同用户名的并发登录请求变成顺次处理，避免并发情况突然耗费多根 dp2library 通道
             if (locking_userName)
             {
-                var lock_string = sip_channel.GetUserInstanceName();
+                string lock_string;
+                if (use_capo_account)
+                    lock_string = sip_channel.InstanceName;
+                else
+                    lock_string = sip_channel.GetUserInstanceName();
                 try
                 {
                     _userNameLocks.LockForWrite(lock_string);
@@ -1153,7 +1297,7 @@ out strError);
                 }
                 info.LockString = lock_string;
             }
-            info.LibraryChannel = info.Instance.MessageConnection.GetChannel(login_info);
+            info.LibraryChannel = info.Instance.MessageConnection.GetChannel(use_capo_account ? null : login_info);
             return info;
         ERROR1:
             info.ErrorInfo = strError;
@@ -1629,7 +1773,7 @@ out strError);
 
                         // TODO: 这里可能会抛出异常
                         // var date_format = info.Instance.sip_host.GetSipParam(sip_channel.UserName, true).DateFormat;
-                        var date_format = GetDateFormat(info.Instance, sip_channel.UserName, true);
+                        var date_format = GetDateFormat(info.Instance, sip_channel.UserName, sip_channel.Encoding == null);
 
                         string strLatestReturnTime = DateTimeUtil.Rfc1123DateTimeStringToLocal(borrow_info.LatestReturnTime,
                             date_format);
@@ -1821,7 +1965,7 @@ out strError);
                 else if (1 == lRet)
                 {
                     // string dateFormat = info.Instance.sip_host.GetSipParam(sip_channel.UserName, true).DateFormat;
-                    var dateFormat = GetDateFormat(info.Instance, sip_channel.UserName, true);
+                    var dateFormat = GetDateFormat(info.Instance, sip_channel.UserName, sip_channel.Encoding == null);
 
                     if (GetItemInfoResponse(response,
     strItemXml,
@@ -2171,7 +2315,7 @@ out strError);
                 else if (1 == lRet)
                 {
                     // string dateFormat = info.Instance.sip_host.GetSipParam(sip_channel.UserName, true).DateFormat;
-                    var dateFormat = GetDateFormat(info.Instance, sip_channel.UserName, true);
+                    var dateFormat = GetDateFormat(info.Instance, sip_channel.UserName, sip_channel.Encoding == null);
 
                     if (GetItemStatusUpdateResponse(
                         info,
@@ -2375,7 +2519,6 @@ out strError);
             }
         }
 
-
         /// <summary>
         /// 续借
         /// </summary>
@@ -2574,7 +2717,7 @@ out strError);
                     string strLatestReturnTime = DateTimeUtil.Rfc1123DateTimeStringToLocal(borrow_info.LatestReturnTime,
                         info.Instance.sip_host.GetSipParam(sip_channel.UserName, true).DateFormat);
                     */
-                    var date_format = GetDateFormat(info.Instance, sip_channel.UserName, true);
+                    var date_format = GetDateFormat(info.Instance, sip_channel.UserName, sip_channel.Encoding == null);
 
                     string strLatestReturnTime = DateTimeUtil.Rfc1123DateTimeStringToLocal(borrow_info.LatestReturnTime,
 date_format);
@@ -2700,6 +2843,12 @@ date_format);
                 // 2021/3/3
                 string strInstitution = request.AO_InstitutionId_r;
 
+                // 2022/5/25
+                string strFeeIdentifier = request.CG_FeeIdentifier_o;
+                List<string> ids = null;
+                if (string.IsNullOrEmpty(strFeeIdentifier) == false)
+                    ids = StringUtil.SplitList(strFeeIdentifier, ',');
+
                 // 先查到读者记录
                 string[] results = null;
                 lRet = info.LibraryChannel.GetReaderInfo(
@@ -2757,7 +2906,7 @@ date_format);
                 XmlNodeList overdues = dom.DocumentElement.SelectNodes("overdues/overdue");
                 if (overdues == null || overdues.Count == 0)
                 {
-                    strError = "当前读者没有欠款";
+                    strError = "当前读者没有任何待交费事项";
                     goto ERROR1;
                 }
 
@@ -2765,13 +2914,22 @@ date_format);
                 foreach (XmlNode node in overdues)
                 {
                     string strID = DomUtil.GetAttr(node, "id");
+
+                    // 2022/5/25
+                    if (ids != null && ids.Count > 0)
+                    {
+                        if (ids.IndexOf(strID) == -1)
+                            continue;
+                    }
+
                     string price = DomUtil.GetAttr(node, "price");
                     prices.Add(price);
 
                     AmerceItem amerceItem = new AmerceItem();
                     amerceItem.ID = strID;
-                    amerceItem.NewPrice = price;
-                    amerceItem.NewComment = "自助机交费";
+                    // 注: 如果没有变化，NewPrice 和 NewComment 里面不要放东西，因为这样会导致额外需要权限 amercemodifyprice
+                    //amerceItem.NewPrice = price;
+                    //amerceItem.NewComment = "自助机交费";
                     amerce_itemList.Add(amerceItem);
                 }
 
@@ -2789,7 +2947,7 @@ date_format);
 
                 if (request.CurrencyType_3 != currItem.Prefix)
                 {
-                    strMessage = "货币类型不一致";
+                    strMessage = $"货币类型不一致: 事项 {currItem.Value} 的货币类型 '{currItem.Prefix}'，请求的货币类型 '{request.CurrencyType_3}'";
                     response.AF_ScreenMessage_o = strMessage;
                     response.AG_PrintLine_o = strMessage;
                     return response.ToText();
@@ -2798,16 +2956,17 @@ date_format);
                 // 金额要与欠款总额保持一致
                 if (feeAmount != currItem.Value)
                 {
-                    strMessage = "传来的金额应该与读者欠款总额完全一致";
+                    strMessage = $"请求的金额({feeAmount})与读者待交费总额({currItem.Value})不一致，无法交费";
                     response.AF_ScreenMessage_o = strMessage;
                     response.AG_PrintLine_o = strMessage;
                     return response.ToText();
                 }
 
-
                 // 对所有记录进行交费
-                AmerceItem[] amerce_items = new AmerceItem[amerce_itemList.Count];
-                amerce_itemList.CopyTo(amerce_items);
+                //AmerceItem[] amerce_items = new AmerceItem[amerce_itemList.Count];
+                //amerce_itemList.CopyTo(amerce_items);
+                var amerce_items = amerce_itemList.ToArray();
+
                 AmerceItem[] failed_items = null;
                 string patronXml = "";
                 lRet = info.LibraryChannel.Amerce(
@@ -3972,7 +4131,10 @@ date_format);
 
             string strError = "";
 
-            FunctionInfo info = BeginFunction(sip_channel, false, true);
+            FunctionInfo info = BeginFunction(sip_channel,
+                false,
+                true,
+                true);  // 使用 capo 账户
             if (string.IsNullOrEmpty(info.ErrorInfo) == false)
             {
                 strError = info.ErrorInfo;
