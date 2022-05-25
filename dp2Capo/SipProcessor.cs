@@ -2897,7 +2897,7 @@ date_format);
                 }
                 catch (Exception ex)
                 {
-                    strError = "传来的金额字符串 '" + request.BV_FeeAmount_r + "' 不合法: " + ex.Message;
+                    strError = $"请求的金额字符串 '{ request.BV_FeeAmount_r }' 不合法: { ex.Message }";
                     goto ERROR1;
                 }
 
@@ -2906,7 +2906,7 @@ date_format);
                 XmlNodeList overdues = dom.DocumentElement.SelectNodes("overdues/overdue");
                 if (overdues == null || overdues.Count == 0)
                 {
-                    strError = "当前读者没有任何待交费事项";
+                    strError = "交费失败: 当前读者没有任何待交费事项";
                     goto ERROR1;
                 }
 
@@ -2916,10 +2916,11 @@ date_format);
                     string strID = DomUtil.GetAttr(node, "id");
 
                     // 2022/5/25
-                    if (ids != null && ids.Count > 0)
+                    if (ids != null)
                     {
                         if (ids.IndexOf(strID) == -1)
                             continue;
+                        ids.Remove(strID);
                     }
 
                     string price = DomUtil.GetAttr(node, "price");
@@ -2933,13 +2934,20 @@ date_format);
                     amerce_itemList.Add(amerceItem);
                 }
 
-                // 累计欠款金额
-                string totlePrice = PriceUtil.TotalPrice(prices);
-                CurrencyItem currItem = null;
-                nRet = PriceUtil.ParseSinglePrice(totlePrice, out currItem, out strError);
+                if (ids != null && ids.Count > 0)
+                {
+                    strError = $"交费失败: 请求的下列 ID '{StringUtil.MakePathList(ids)}' 在读者记录中没有找到对应的交费事项";
+                    goto ERROR1;
+                }
+
+                // 累计交费金额
+                string totalPrice = PriceUtil.TotalPrice(prices);
+                nRet = PriceUtil.ParseSinglePrice(totalPrice,
+                    out CurrencyItem currItem,
+                    out strError);
                 if (nRet == -1)
                 {
-                    strMessage = "计算读者违约金额出错：" + strError;
+                    strMessage = $"解析金额字符串 '{totalPrice}' 时出错：{ strError } ";
                     response.AF_ScreenMessage_o = strMessage;
                     response.AG_PrintLine_o = strMessage;
                     return response.ToText();
