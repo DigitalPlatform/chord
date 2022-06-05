@@ -379,9 +379,9 @@ function getDetail(libId, recPath, obj, from,biblioName) {
 
 
 
-        var myHtml = result.info + itemTables;
+        var myHtml = result.info;//20220511把新增册调到前面， + itemTables;
 
-
+        // 2022/5/11 把新增册的按钮提前到书目下方
         // 检查要不要出现册登记按钮
         if (worker != null && worker != "") {
 
@@ -391,6 +391,9 @@ function getDetail(libId, recPath, obj, from,biblioName) {
                 myHtml += "<div style='padding-top:10px'><button  class='mui-btn' onclick='gotoSetItem(\"" + recPath + "\",\"" + biblioName + "\")'>新增册</button></div>";
             }
         }
+
+        // 册信息
+        myHtml += itemTables
 
         obj.html(myHtml);
 
