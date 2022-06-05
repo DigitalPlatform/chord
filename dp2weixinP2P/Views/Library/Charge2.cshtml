@@ -905,6 +905,8 @@
             //alert(cmd.cmdHtml);
             cmds.prepend(cmd.cmdHtml); //append(cmdHtml);//
 
+           
+
             var cmdContainer = $("#cmdContainer");
             var display = $(cmdContainer).css("display");
             if (display == "none")
@@ -950,6 +952,8 @@
 
                 // 更新summary
                 window.setTimeout("fillPending()", 1);
+
+                //alert("hi");
 
 
             }, function (xhq, textStatus, errorThrown) {

@@ -9,13 +9,13 @@
     <link href="@Url.Content("~/Content/icons-extra.css?test=2")" rel="stylesheet" />
     <link href="@Url.Content("~/Content/style.css?a=2")" rel="stylesheet" type="text/css" />
     <link href="@Url.Content("~/Content/jquery-ui.css?a=2")" rel="stylesheet">
-    <script src='@Url.Content("~/Scripts/jquery-3.5.1.js?a=2")'></script>
 
+    <script src='@Url.Content("~/Scripts/jquery-3.5.1.js?a=2")'></script>
     <script src='@Url.Content("~/Scripts/jquery-ui-1.12.1.js?a=2")'></script>
     <script src="@Url.Content("~/Scripts/knockout-2.2.0.js?a=2")"></script>
-    <script src="@Url.Content("~/Scripts/weixin.js?test=3")"></script>
-
+    <script src="@Url.Content("~/Scripts/weixin.js?test=9")"></script>
     <script src="@Url.Content("~/Scripts/layer.js?a=2")"></script>
+
     <link href="@Url.Content("~/Content/layer.css?a=2")" rel="stylesheet">
 
 
@@ -242,15 +242,16 @@
                 //alert("3");
             };
 
-            // 获得当前登录帐户
-            function getLoginUserName() {
-                return $('#_loginUserName').text();
-            }
+            // 20220605-移到weixin.js
+            //// 获得当前登录帐户
+            //function getLoginUserName() {
+            //    return $('#_loginUserName').text();
+            //}
 
-            // 获得当前登录帐户
-            function getLoginUserType() {
-                return $('#_loginUserType').text();
-            }
+            //// 获得当前登录帐户
+            //function getLoginUserType() {
+            //    return $('#_loginUserType').text();
+            //}
 
             // 控制菜单是否显示
             function controlMenu(no, bView) {

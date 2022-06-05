@@ -818,6 +818,15 @@ function fillPending() {
 }
 
 
+// 获得当前登录帐户
+function getLoginUserName() {
+    return $('#_loginUserName').text();
+}
+
+// 获得当前登录帐户
+function getLoginUserType() {
+    return $('#_loginUserType').text();
+}
 
 //============消息相关=============
 
