@@ -8377,6 +8377,24 @@ ErrorInfo成员里可能会有报错信息。
                     }
                 }
 
+                // 2022/6/20 过滤内部册
+                if (StringUtil.IsInList("内部", item.state) == true)
+                {
+                    // 读者帐号或者public帐户不显示
+                    if (string.IsNullOrEmpty(patronBarcode) == false
+                        || activeItem.userName == WxUserDatabase.C_Public)
+                    {
+                        // 不显示
+                        continue;
+                    }
+                    else
+                    {
+                        // 馆员身份，灰色显示
+                        item.isGray = true;
+                    }
+                }
+
+
                 // 当前位置
                 item.currentLocation = DomUtil.GetElementText(dom.DocumentElement, "currentLocation");
                 // 架号
