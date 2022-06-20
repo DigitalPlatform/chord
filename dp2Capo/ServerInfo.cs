@@ -888,6 +888,8 @@ Exception Info: System.Net.NetworkInformation.PingException
 
                     // 顺便清理一下 hangup 状态缓存
                     SipProcessor.ClearHangupStatusTable();
+                    // 清理闲置的 LoginCache
+                    SipProcessor.ClearLoginCache();
                 }
 
                 // 阻塞，直到全部任务完成。避免 BeginConnect() 函数被重叠调用

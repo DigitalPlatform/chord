@@ -79,6 +79,7 @@
     </Compile>
     <Compile Include="Instance.cs" />
     <Compile Include="LifeThread.cs" />
+    <Compile Include="LoginCache.cs" />
     <Compile Include="NotifyThread.cs" />
     <Compile Include="Program.cs">
       <SubType>Component</SubType>

@@ -32,8 +32,8 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“生成号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”: 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.44.*")]
-[assembly: AssemblyFileVersion("1.44.0.0")]
+[assembly: AssemblyVersion("1.45.*")]
+[assembly: AssemblyFileVersion("1.45.0.0")]
 
 // 1.1 (2016/6/26) 首次使用了版本号
 // 1.2 (2016/9/14) 管理线程中会不断重试连接 dp2mserver，并将此情况写入日志
@@ -83,3 +83,4 @@ using System.Runtime.InteropServices;
 // 1.43 (2022/3/31) SIP Server 修正了计算每个账户通道数过程中的 bug。
 //                  登录时，把对 dp2library 的 Login() 调用用记录锁保护起来，令针对同一个用户名(和实例名)的登录从并发变为顺次调用，避免突然在 dp2libraryChannelPool 中分配很多 dp2library 通道(可能导致通道配额耗尽)
 // 1.44 (2022/5/24) ScStatus() API 改用 capo 账户。Login() API 增加检查危险权限功能
+// 1.45 (2022/6/20) 增加了 LoginCache 机制，避免高密度的 Login() 请求引起 dp2library CPU 耗用居高不下
