@@ -231,7 +231,7 @@ DeleteMessage(temp_records, this.GroupName);
                 if (this._sendedTable.ContainsKey(record.id))
                     continue;
 
-                dp2WeiXinService.Instance.WriteDebug2("开始处理:" + record.id);
+                dp2WeiXinService.Instance.WriteDebug("MsgRouter开始处理:" + record.id);
                 
                 // 内容太多了，不适合加
                 //dp2WeiXinService.Instance.WriteDebug2("消息内容：" + record.data);
@@ -243,7 +243,7 @@ DeleteMessage(temp_records, this.GroupName);
                     e.Message = record;
                     handler(this, e);
                 }
-                dp2WeiXinService.Instance.WriteDebug2("处理结束:" + record.id);
+                dp2WeiXinService.Instance.WriteDebug("MsgRouter处理结束:" + record.id);
 
                 if (this._sendedTable.Count < C_SendTable_MaxCount)  //大于了5K则不再给里面增加了。
                 {
