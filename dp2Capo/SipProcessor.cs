@@ -460,6 +460,14 @@ namespace dp2Capo
             return response.ToText();
         }
 
+        static LoginCache _loginCache = new LoginCache();
+
+        // 清除 LoginCache 中衰老的事项
+        public static void ClearLoginCache()
+        {
+            _loginCache.CleanOld(TimeSpan.FromMinutes(5));
+        }
+
         static int DoLogin(
             SipChannel sip_channel,
             Instance instance,
@@ -637,10 +645,29 @@ namespace dp2Capo
                 if (skipLogin)
                     lRet = 1;
                 else
-                    lRet = library_channel.Login(strPureUserName,
+                {
+                    if (_loginCache.Contains(sip_channel,
+                        strPureUserName + "@" + instance.MessageConnection.GetHashCode().ToString(),
                         strPassword,
-                        style, // $"type=worker,client=dp2SIPServer|0.01,location={currentLocation},clientip=" + strClientIP,
-                        out strError);
+                        style) == true)
+                        lRet = 1;
+                    else
+                    {
+                        lRet = library_channel.Login(strPureUserName,
+                            strPassword,
+                            style, // $"type=worker,client=dp2SIPServer|0.01,location={currentLocation},clientip=" + strClientIP,
+                            out strError);
+
+                        if (lRet == 1)
+                            _loginCache.Set(sip_channel,
+                                strPureUserName + "@" + instance.MessageConnection.GetHashCode().ToString(),
+                                strPassword,
+                                style);
+                        else
+                            _loginCache.Clear(sip_channel);
+                    }
+                }
+
                 if (skipLogin == false
                     && (lRet == -1 || lRet == 0))
                 {
@@ -704,6 +731,7 @@ namespace dp2Capo
                 _userNameLocks.UnlockForWrite(lock_string);
             }
         ERROR1:
+            _loginCache.Clear(sip_channel);
             return -1;
         }
 
@@ -3268,12 +3296,15 @@ date_format);
                 XmlNodeList overdues = dom.DocumentElement.SelectNodes("overdues/overdue");
                 if (overdues != null && overdues.Count > 0)
                 {
+                    // List<VariableLengthField> fineItems = new List<VariableLengthField>();
+
                     List<string> prices = new List<string>();
 
                     string strWords = "押金,租金";
                     string strWords2 = "超期,丢失";
-                    foreach (XmlNode node in overdues)
+                    foreach (XmlElement node in overdues)
                     {
+                        string id = node.GetAttribute("id");
                         string strReason = DomUtil.GetAttr(node, "reason");
                         string strPart = "";
                         if (strReason.Length > 2)
@@ -3290,6 +3321,8 @@ date_format);
                         // 计算金额
                         string price = DomUtil.GetAttr(node, "price");
                         prices.Add(price);
+
+                        // fineItems.Add(new VariableLengthField(SIPConst.F_AV_FineItems, false, $"{id}:{price}"));
                     }
 
                     // 累计欠款金额
@@ -3305,6 +3338,12 @@ date_format);
                     }
                     response.BV_feeAmount_o = "-" + currItem.Value.ToString(); //设为负值
                     response.BH_CurrencyType_3 = currItem.Prefix;
+
+                    /*
+                    // 2022/5/26
+                    if (fineItems.Count > 0)
+                        response.AV_FineItems_o = fineItems;
+                    */
                 }
 
                 string strBarcode = DomUtil.GetElementText(dom.DocumentElement, "barcode");
