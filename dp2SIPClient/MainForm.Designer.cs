@@ -997,7 +997,7 @@
             this.button_send98.Name = "button_send98";
             this.button_send98.Size = new System.Drawing.Size(81, 34);
             this.button_send98.TabIndex = 7;
-            this.button_send98.Text = "发送98";
+            this.button_send98.Text = "发送99";
             this.button_send98.UseVisualStyleBackColor = true;
             this.button_send98.Click += new System.EventHandler(this.button_send98_Click);
             // 

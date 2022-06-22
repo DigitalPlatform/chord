@@ -1218,6 +1218,19 @@ namespace dp2weixin.service
                     workerList,
                     send2PatronIsMask,
                     out strError);
+            }           
+            else if (strType == "召回通知")  //召回通知 20220622加
+            {
+                nRet = this.SendCallMsg(bodyDom,
+                    libName,
+                    bindPatronList,
+                    patronBarcode,
+                    patronName,
+                    libraryCode,
+                    workerList,
+                    maskDef,
+                    send2PatronIsMask,
+                    out strError);
             }
             else if (strType == "借书成功")
             {
@@ -2052,6 +2065,115 @@ namespace dp2weixin.service
             return 0;
         }
 
+        // 20220622 召回通知
+        /*
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <type>召回通知</type>
+    <items overdueCount="0" normalCount="2">
+        <item barcode="B002" location="流通库" refID="" summary="彼得兔的故事 [专著]  / (英)比阿特丽斯·波特著 ; (美)查尔斯·桑托利绘 ; 司南译. -- ISBN 978-7-5346-5588-3 : CNY16.80" borrowDate="Mon, 20 Jun 2022 19:53:43 +0800" borrowPeriod="31day" timeReturning="2022/7/21" overdue="" overdueType="warning" />
+        <item barcode="B004" location="流通库" refID="" summary="兔子布莱尔 [专著]  / (美)约耳·钱德勒·哈里斯原著 ; (美)唐·戴利绘 ; 司南译. -- ISBN 978-7-5346-5595-1 : CNY16.80" borrowDate="Mon, 20 Jun 2022 12:05:34 +0800" borrowPeriod="31day" timeReturning="2022/7/21" overdue="" overdueType="warning" />
+    </items>
+    <text>因 毕业手续需要，图书馆提醒您尽快归还下列书刊：
+彼得兔的故事 [专著]  / (英)比阿特丽斯·波特著 ; (美)查尔斯·桑托利绘 ; 司南译. -- ISBN 978-7-5346-5588-3 : CNY16.80 
+兔子布莱尔 [专著]  / (美)约耳·钱德勒·哈里斯原著 ; (美)唐·戴利绘 ; 司南译. -- ISBN 978-7-5346-5595-1 : CNY16.80 
+</text>
+    <patronRecord>
+        <barcode>P001</barcode>
+        <readerType>本科生</readerType>
+        <name>张三</name>
+        <tel>13862157150</tel>
+        <refID>30704c50-21a5-43ba-b7a9-ab99826a1fb9</refID>
+        <libraryCode>
+        </libraryCode>
+        <borrows>
+            <borrow barcode="B002" oi="" recPath="中文图书实体/2" biblioRecPath="中文图书/2" location="流通库" borrowDate="Mon, 20 Jun 2022 19:53:43 +0800" borrowPeriod="31day" borrowID="7235d0a7-ddc4-4d96-951d-89cee40e6764" returningDate="Thu, 21 Jul 2022 12:00:00 +0800" operator="supervisor" type="普通" price="CNY16.80" notifyHistory="" />
+            <borrow barcode="B004" oi="" recPath="中文图书实体/4" biblioRecPath="中文图书/4" location="流通库" borrowDate="Mon, 20 Jun 2022 12:05:34 +0800" borrowPeriod="31day" borrowID="ad28a288-b98f-4869-b46f-6205644e52ef" returningDate="Thu, 21 Jul 2022 12:00:00 +0800" operator="supervisor" type="普通" price="CNY16.80" notifyHistory="" />
+        </borrows>
+        <state operator="supervisor" time="Tue, 14 Jun 2022 03:19:28 GMT">
+        </state>
+        <comment>测试注释</comment>
+        <hire expireDate="" period="" />
+        <overdues>
+        </overdues>
+    </patronRecord>
+</root>
+         */
+        private int SendCallMsg(XmlDocument bodyDom,
+             string libName,
+             List<WxUserItem> bindPatronList,
+             string patronBarcode,
+             string patronName,
+             string patronLibraryCode,
+             List<WxUserItem> workers,
+             string maskDef, //2021/8/3 mask定义
+             bool send2PatronIsMask,
+             out string strError)
+        {
+            strError = "";
+            XmlNode root = bodyDom.DocumentElement;
+
+            // 直接获取text
+            string text = DomUtil.GetElementText(root, "text");
+            /*
+<text>因 毕业手续需要，图书馆提醒您尽快归还下列书刊：
+彼得兔的故事 [专著]  / (英)比阿特丽斯·波特著 ; (美)查尔斯·桑托利绘 ; 司南译. -- ISBN 978-7-5346-5588-3 : CNY16.80 
+兔子布莱尔 [专著]  / (美)约耳·钱德勒·哈里斯原著 ; (美)唐·戴利绘 ; 司南译. -- ISBN 978-7-5346-5595-1 : CNY16.80 
+</text>
+             */
+
+
+            // todo 等模板消息申请下来，改为一册一条消息，枚举下面item
+            /*
+    <items overdueCount="0" normalCount="2">
+        <item barcode="B002" location="流通库" refID="" summary="彼得兔的故事 [专著]  / (英)比阿特丽斯·波特著 ; (美)查尔斯·桑托利绘 ; 司南译. -- ISBN 978-7-5346-5588-3 : CNY16.80" borrowDate="Mon, 20 Jun 2022 19:53:43 +0800" borrowPeriod="31day" timeReturning="2022/7/21" overdue="" overdueType="warning" />
+        <item barcode="B004" location="流通库" refID="" summary="兔子布莱尔 [专著]  / (美)约耳·钱德勒·哈里斯原著 ; (美)唐·戴利绘 ; 司南译. -- ISBN 978-7-5346-5595-1 : CNY16.80" borrowDate="Mon, 20 Jun 2022 12:05:34 +0800" borrowPeriod="31day" timeReturning="2022/7/21" overdue="" overdueType="warning" />
+    </items>
+             */
+
+
+            // 备注
+            string remark = this._msgRemark;
+            string operTime = DateTime.Now.ToString("yyyy/MM/dd");
+
+            string first_text = "☀☀☀☀☀☀☀☀☀☀";
+            string first_color = "#9400D3";
+            string title = "图书召回通知";
+            //{{first.DATA}}
+            //标题：{{keyword1.DATA}}
+            //时间：{{keyword2.DATA}}
+            //内容：{{keyword3.DATA}}
+            //{{remark.DATA}}
+            MessageTemplateData msgData = new MessageTemplateData(first_text,
+                first_color,
+                title,
+                operTime,
+                text,
+                remark);
+
+            // mask
+            //strText = strText.Replace(fullPatronName, maskFullPatronName);
+            MessageTemplateData maskMsgData = new MessageTemplateData(first_text,
+                first_color,
+                title,
+                operTime,
+                remark,
+                remark);
+
+            int nRet = this.SendTemplateMsg(GzhCfg.C_Template_Message,
+                bindPatronList,//bindWeixinIds,
+                workers,
+                msgData,
+                maskMsgData,
+                "",//linkurl
+                "",//theOperator,
+                send2PatronIsMask,  // 2021/8/3 不mask
+                out strError);
+            if (nRet == -1)
+                return -1;
+
+            return 0;
+        }
 
         /// 借书成功
         /// <returns>
