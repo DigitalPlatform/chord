@@ -1256,6 +1256,17 @@ function save(msgId) {
             alert("请先选择栏目");
             return;
         }
+
+        if (subject.indexOf("(") != -1
+            || subject.indexOf(")") != -1
+            || subject.indexOf(",") != -1
+            || subject.indexOf(" ") != -1
+            || subject.indexOf("[") != -1
+            || subject.indexOf("]") != -1)
+        {
+            alert("栏目名称不支持特殊字符()[],空格");
+            return;
+        }
     }
     //alert(subject);
 
@@ -1278,6 +1289,18 @@ function save(msgId) {
     if (titleCanEmpty == false) {
         if (title == "") {
             alert("请输入标题。");
+            return;
+        }
+    }
+
+    if (title != "" && title != null) {
+        if (title.indexOf("(") != -1
+            || title.indexOf(")") != -1
+            || title.indexOf(",") != -1
+            || title.indexOf(" ") != -1
+            || title.indexOf("[") != -1
+            || title.indexOf("]") != -1) {
+            alert("标题不支持特殊字符()[],空格");
             return;
         }
     }

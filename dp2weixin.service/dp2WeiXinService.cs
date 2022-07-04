@@ -11115,7 +11115,10 @@ REDO1:
             if (record.subjects != null && record.subjects.Length > 0)
             {
                 item.subject = record.subjects[0];
-                item.subject = StringUtil.UnescapeString(item.subject);
+                
+                // 2022.7.4注册掉，一下子不理解原来为啥要转义
+                //item.subject = StringUtil.UnescapeString(item.subject);
+                
             }
             string title = "";
             string content = "";
@@ -11449,6 +11452,12 @@ REDO1:
             records = new List<MessageRecord>();
             //return 0;
 
+            // 20220704测试删除用户数据使用
+            //subjectCondition = "2022年6月新书目(2)";
+
+            // 20220701 将()[]|符号转义
+            subjectCondition =StringUtil.EscapeString(subjectCondition, "[](),|");
+
             string wxUserName = "";
             string libName = "";
 
@@ -11644,7 +11653,9 @@ REDO1:
                 item.subject = item.subject.Trim();// 2016-8-20 jane 对栏目首尾去掉空白
             if (item.subject != null && item.subject != "")
             {
-                string tempSubject = StringUtil.EscapeString(item.subject, "[](),|");
+                // 2022.7.4 注释，一下子不理解为啥要转义存储
+                //string tempSubject = StringUtil.EscapeString(item.subject, "[](),|");
+                string tempSubject = item.subject;
                 record.subjects = new string[] { tempSubject };//2016-8-20,不管有没有逗号，只当作一条subject处理。item.subject.Split(new char[] { ',' },StringSplitOptions.RemoveEmptyEntries); // 2016-8-20，jane,对首尾去掉空白，与服务器保存一致。
             }
             else
@@ -11945,7 +11956,9 @@ REDO1:
                     continue;
 
                 string subject = subjects[0];//2016-8-20 jane 这里的栏目是从服务器上得到的，不用管首尾空白的问题，如果管了反而暴露不出来问题
-                subject = StringUtil.UnescapeString(subject);
+                
+                // 2022.7.4 注释掉，一下子理解不了原来的意思
+                //subject = StringUtil.UnescapeString(subject);
 
                 int no = 0;
                 string right = subject;
