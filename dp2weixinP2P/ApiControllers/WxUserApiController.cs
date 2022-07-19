@@ -75,6 +75,7 @@ namespace dp2weixinWeb.ApiControllers
             return result;
         }
 
+        // 根据weixinid获取帐号
         public WxUserResult Get(string weixinId)
         {
             //dp2WeiXinService.Instance.WriteLog1("WxUserController.Get(string weixinId)开始");
@@ -482,7 +483,7 @@ namespace dp2weixinWeb.ApiControllers
         }
     
 
-        // 绑定
+        // 绑定帐号
         [HttpPost]
         public WxUserResult Bind(BindItem item)
         {
@@ -612,7 +613,7 @@ namespace dp2weixinWeb.ApiControllers
 
         }
 
-        // 解绑
+        // 解绑帐号
         [HttpDelete]
         public ApiResult Delete(string id)
         {

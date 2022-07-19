@@ -19,6 +19,14 @@ namespace dp2weixinWeb
                 routeTemplate: "api/{controller}/{id}",
                 defaults: new { id = RouteParameter.Optional }
             );
+
+            //2.自定义路由一：匹配到action
+            config.Routes.MapHttpRoute(
+                name: "ActionApi",
+                routeTemplate: "api2/{controller}/{action}/{id}",
+                defaults: new { id = RouteParameter.Optional }
+            );
+
         }
     }
 }

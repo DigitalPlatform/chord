@@ -977,20 +977,30 @@ namespace dp2weixin.service
 
 
     /// <summary>
+    /// 绑定帐户
     /// 2016-8-26 为了不混乱使用字段，绑定时参数不再借用WxUserItem，新增bindItem,用于绑定接口
     /// </summary>
     public class BindItem
     {
-        // 2016-11-16 appId统一放在weixinId里
-        //公众号 appid 2016-11-14 
-        //public string appId { get; set; }   
-
+        // 用户来源唯一号，格式如下：
+        // web浏览器来源的，~~开头
+        // 微信公众号来源的，weixinId@公众号appid
+        // 小程序来源的：!!用户id
         public string weixinId { get; set; }   
+
+        // 图书馆id
         public string libId { get; set; }
+
+        // 馆代码，传选择的图书馆的馆代码
         public string bindLibraryCode { get; set; }     
 
+        // 绑定途径
         public string prefix { get; set; }  //必须设为属性，才能在前端传值。
+
+        // 关键词，根据绑定途径输入的实际信息
         public string word { get; set; }
+
+        // 密码
         public string password { get; set; }
 
     }

@@ -8,23 +8,25 @@ using System.Web.Http;
 
 namespace dp2weixinWeb.ApiControllers
 {
+    
     public class LibrarySettingApiController : ApiController
     {
 
-        // GET api/<controller>
+
+        // 获取所有的图书馆 api/LibrarySettingApi
         public IEnumerable<LibEntity> Get()
         {
             List<LibEntity> list = LibDatabase.Current.GetLibsInternal();//"*", 0, -1).Result;
             return list;
         }
 
-        // GET api/<controller>/5
+        // 根据id获取指定图书馆 api/LibrarySettingApi/xxx
         public LibEntity Get(string id)
         {
             return dp2WeiXinService.Instance.GetLibById(id);
         }
 
-        // POST api/<controller>
+        // 新建一个图书馆 api/LibrarySettingApi
         public LibSetResult Post(LibEntity item)
         {
             LibSetResult result = new LibSetResult();
@@ -48,7 +50,7 @@ namespace dp2weixinWeb.ApiControllers
 
         }
 
-        // PUT api/<controller>/5
+        // 编辑一个图书馆 api/LibrarySettingApi/xxx
         public long Put(string id, LibEntity item)
         {
 
@@ -113,7 +115,7 @@ namespace dp2weixinWeb.ApiControllers
             return ret;
         }
 
-        // DELETE api/<controller>/5
+        //删除指定的图书馆 api/LibrarySettingApi/xxx
         [HttpDelete]
         public ApiResult Delete(string id)
         {
@@ -129,6 +131,7 @@ namespace dp2weixinWeb.ApiControllers
             return result;
         }
 
+        // 检查mserver帐号是否存在
         [HttpPost]
         public WxUserResult DetectUser(string username, string password)
         {
@@ -145,6 +148,7 @@ namespace dp2weixinWeb.ApiControllers
             return result;
         }
 
+        // 新建一个mserver帐号
         [HttpPost]
         public WxUserResult CreateUser(string username,
             string password,
@@ -169,7 +173,7 @@ namespace dp2weixinWeb.ApiControllers
             return result;
         }
 
-
+        // 根据capo_xxx帐户得到图书馆名称
         [HttpPost]
         public ApiResult GetLibName(string capoUserName)
         {

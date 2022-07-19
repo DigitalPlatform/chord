@@ -212,7 +212,7 @@ namespace dp2weixinWeb.ApiControllers
         }
 
         /// <summary>
-        /// 发送验证码
+        /// 注册读者时，发送手机验证码
         /// </summary>
         /// <param name="libId">图书馆id</param>
         /// <param name="tel">手机号</param>
@@ -242,7 +242,7 @@ namespace dp2weixinWeb.ApiControllers
 
 
         /// <summary>
-        /// 自动生成一个增量的证条码号
+        /// 登记读者时，自动生成一个增量的证条码号
         /// </summary>
         /// <param name="libId"></param>
         /// <param name="libraryCode"></param>
