@@ -58,7 +58,7 @@ namespace dp2weixin.service
         public const string C_Right_GetWarning = "_wx_getWarning";
 
         // 2021/8/2 调试态权限
-        public const string C_Right_Debug= "_wx_debug";
+        public const string C_Right_Debug = "_wx_debug";
 
         // 超级管理员标志
         public const string C_Supervisor = "_supervisor_";
@@ -1116,25 +1116,25 @@ namespace dp2weixin.service
                 libraryCode = DomUtil.GetNodeText(node);
 
             // 如果当馆图书馆配置了第三方接口，则把消息转发给第三方
-            LibModel libCfg= this._areaMgr.GetLibCfg(lib.id, libraryCode);
-            if (libCfg !=null &&　string.IsNullOrEmpty(libCfg.noticedll) == false)
+            LibModel libCfg = this._areaMgr.GetLibCfg(lib.id, libraryCode);
+            if (libCfg != null && string.IsNullOrEmpty(libCfg.noticedll) == false)
             {
                 string tempInfo = "";
 
-                nRet = this.TransNotice(strBody, libCfg.noticedll, out  tempInfo,
+                nRet = this.TransNotice(strBody, libCfg.noticedll, out tempInfo,
                     out strError);
                 if (nRet == -1)
                 {
-                    WriteErrorLog("向"+libCfg.noticedll+ "转发'"+strType+"'通知出错:" + strError+"["+tempInfo+"]");
+                    WriteErrorLog("向" + libCfg.noticedll + "转发'" + strType + "'通知出错:" + strError + "[" + tempInfo + "]");
                 }
                 else
                 {
-                    WriteDebug("向" + libCfg.noticedll + "转发'" + strType + "'通知成功。["+tempInfo+"]");
+                    WriteDebug("向" + libCfg.noticedll + "转发'" + strType + "'通知成功。[" + tempInfo + "]");
                     //WriteDebug(strBody);
                 }
             }
 
-            
+
 
             // 从微信本地库获取有多少用户绑定这个读者，给绑定这位读者的用户都要发通知
             List<WxUserItem> bindPatronList = WxUserDatabase.Current.Get("",
@@ -1153,7 +1153,7 @@ namespace dp2weixin.service
                 {
                     temp += "weixinid=[" + u.weixinId + "],id=[" + u.id + "],readerBarcode=[" + u.readerBarcode + "],readerName=[" + u.readerName + "]\r\n";
                 }
-                this.WriteDebug("根据patronBarcode=["+ patronBarcode + "]从本地库找到[" + bindPatronList.Count + "]条绑定了该读者帐号，详情如下：\r\n" + temp);
+                this.WriteDebug("根据patronBarcode=[" + patronBarcode + "]从本地库找到[" + bindPatronList.Count + "]条绑定了该读者帐号，详情如下：\r\n" + temp);
             }
             else
             {
@@ -1162,11 +1162,11 @@ namespace dp2weixin.service
 
             // 2021/8/3 屏蔽读者信息,配置在libcfg中
             bool send2PatronIsMask = false;
-            string maskDef = this.GetMaskDef(libId, libraryCode,out send2PatronIsMask);
+            string maskDef = this.GetMaskDef(libId, libraryCode, out send2PatronIsMask);
 
             // patronInfo = "";  //姓名 证条码号（图书馆/分馆）
-            string fullPatronName = this.GetFullPatronName(patronName, patronBarcode, libName, libraryCode, false,maskDef);
-            string markFullPatronName = this.GetFullPatronName(patronName, patronBarcode, libName, libraryCode, true,maskDef);
+            string fullPatronName = this.GetFullPatronName(patronName, patronBarcode, libName, libraryCode, false, maskDef);
+            string markFullPatronName = this.GetFullPatronName(patronName, patronBarcode, libName, libraryCode, true, maskDef);
 
 
             // 得到这个馆绑定的工作人员，且工作人员打开tracing功能
@@ -1196,8 +1196,8 @@ namespace dp2weixin.service
 
 
 
-                // 根据类型发送不同的模板消息
-                if (strType == "预约到书通知")
+            // 根据类型发送不同的模板消息
+            if (strType == "预约到书通知")
             {
                 nRet = this.SendArrived(bodyDom,
                     lib,//libName,
@@ -1218,7 +1218,7 @@ namespace dp2weixin.service
                     workerList,
                     send2PatronIsMask,
                     out strError);
-            }           
+            }
             else if (strType == "召回通知")  //召回通知 20220622加
             {
                 nRet = this.SendCallMsg(bodyDom,
@@ -1316,7 +1316,7 @@ namespace dp2weixin.service
         /// <param name="libraryCode"></param>
         /// <param name="send2PatronIsMask">如果专门配置了给读者发送才发送</param>
         /// <returns></returns>
-        public string GetMaskDef(string libId, string libraryCode,out bool send2PatronIsMask)
+        public string GetMaskDef(string libId, string libraryCode, out bool send2PatronIsMask)
         {
             send2PatronIsMask = false;
             // 2021/8/3 屏蔽读者信息,配置在libcfg中
@@ -1462,8 +1462,8 @@ namespace dp2weixin.service
                     else
                         this.WriteDebug("即将给工作人员发通知：weixin=[" + u.weixinId + "],图书馆为[" + u.libName + "]的工作人员[" + u.userName + "]" + "发送[" + msgType + "]通知");
 
-                    // 写到本地库的就不写日志了，节省一点日志空间
-                    if (WxUserDatabase.CheckIsFromWeb(u.weixinId) == false)
+                    // 只有微信公众号来源的，才写日志，web和小程序来源的会写到本地库，就不写日志了，节省一点日志空间
+                    if (WxUserDatabase.CheckFrom(u.weixinId) == WxUserDatabase.C_from_weixin)//.CheckIsFromWeb(u.weixinId) == false)
                         this.WriteDebug(messageXml);
                 }
 
@@ -1509,8 +1509,8 @@ namespace dp2weixin.service
                     //myMsg.createTime = GetNowTime();
                     //UserMessageDb.Current.Add(myMsg);
 
-                    // 发微信通知
-                    if (WxUserDatabase.CheckIsFromWeb(u.weixinId) == false) //weixinId.Length > 2 && weixinId.Substring(0, 2) == "~~")
+                    // 只有微信公众号入口，才发微信通知
+                    if (WxUserDatabase.CheckFrom(u.weixinId) == WxUserDatabase.C_from_weixin) //.CheckIsFromWeb(u.weixinId) == false) //weixinId.Length > 2 && weixinId.Substring(0, 2) == "~~")
                     {
                         // 调微信接口发送消息
                         string appId = gzh.appId;
@@ -1893,7 +1893,7 @@ namespace dp2weixin.service
 
 
             // 备注
-            string remark =  this._msgRemark;
+            string remark = this._msgRemark;
 
             string first_text = "☀☀☀☀☀☀☀☀☀☀";
             string first_color = "#9400D3";
@@ -2366,7 +2366,7 @@ namespace dp2weixin.service
 
             //mask
             //证条码号处
-            string tempFullPatronBarcode = this.GetFullPatronName("", patronBarcode, libName, patronLibraryCode, 
+            string tempFullPatronBarcode = this.GetFullPatronName("", patronBarcode, libName, patronLibraryCode,
                 true,
                 maskDef);
             //备注姓名
@@ -3501,7 +3501,7 @@ namespace dp2weixin.service
             return null;
         }
 
-  
+
 
         #endregion
 
@@ -3923,7 +3923,7 @@ namespace dp2weixin.service
                         continue;
 
                     // 从web页面绑定的
-                    if (WxUserDatabase.CheckIsFromWeb(user.weixinId) == true) //user.weixinId.Substring(0, 2) == "~~")
+                    if (WxUserDatabase.CheckFrom(user.weixinId) == WxUserDatabase.C_from_web)  //.CheckIsFromWeb(user.weixinId) == true) //user.weixinId.Substring(0, 2) == "~~")
                     {
                         this.WriteDebug("工作人员" + user.userName + "的weixinId为" + user.weixinId + ",非微信入口，不发通知。");
                         continue;
@@ -4370,7 +4370,7 @@ ErrorInfo成员里可能会有报错信息。
             bool checkNull,
              bool bWorker,
              bool bReviewPass,   // 2020/12/23 增加是否是审核通过，如果是的话，设置办证日期
-            out string patronXml,   
+            out string patronXml,
             out string timestamp,
             out string strError)
         {
@@ -4864,7 +4864,9 @@ ErrorInfo成员里可能会有报错信息。
                     foreach (WxUserItem one in tempWorkers)
                     {
                         // 2020-3-11 还要加上public帐户
-                        if (WxUserDatabase.CheckIsFromWeb(one.weixinId) == true
+                        // web来源，小程序来源，public帐户不需要发微信通知
+                        if (WxUserDatabase.CheckFrom(one.weixinId) == WxUserDatabase.C_from_web
+                            || WxUserDatabase.CheckFrom(one.weixinId) == WxUserDatabase.C_from_mina
                             || one.userName == WxUserDatabase.C_Public)
                             continue;
 
@@ -4984,7 +4986,9 @@ ErrorInfo成员里可能会有报错信息。
                     foreach (WxUserItem one in tempWorkers)
                     {
                         // 2020-3-11 还要加上public帐户
-                        if (WxUserDatabase.CheckIsFromWeb(one.weixinId) == true
+                        // 2022/07/20 web入口、小程序入口，public帐户，均不发微信通知
+                        if (WxUserDatabase.CheckFrom(one.weixinId) == WxUserDatabase.C_from_web
+                            || WxUserDatabase.CheckFrom(one.weixinId) == WxUserDatabase.C_from_mina
                             || one.userName == WxUserDatabase.C_Public)
                             continue;
 
@@ -5083,16 +5087,16 @@ ErrorInfo成员里可能会有报错信息。
                         // 不加mask的通知数据
                         string thisTime = dp2WeiXinService.GetNowTime();
                         string first_color = "#000000";
-                        ReviewResultTemplateData msgData = new ReviewResultTemplateData(strFirst, 
+                        ReviewResultTemplateData msgData = new ReviewResultTemplateData(strFirst,
                             first_color,
-                            user.readerName, 
+                            user.readerName,
                             user.phone,
                             result,
                             strRemark);
 
 
                         // mask 2021/8/3
-                        string maskdef = this.GetMaskDef(user.libId, user.libraryCode,out bool send2PatronIsMask);
+                        string maskdef = this.GetMaskDef(user.libId, user.libraryCode, out bool send2PatronIsMask);
                         string maskReaderName = dp2WeiXinService.Mask(maskdef, user.readerName, "name");
                         string maskPhone = dp2WeiXinService.Mask(maskdef, user.phone, "barcode");
                         ReviewResultTemplateData maskMsgData = new ReviewResultTemplateData(strFirst,
@@ -5107,7 +5111,7 @@ ErrorInfo成员里可能会有报错信息。
                            bindPatronList,
                            workers,
                            msgData,
-                           maskMsgData, 
+                           maskMsgData,
                            linkUrl,
                            "",
                            send2PatronIsMask,
@@ -5172,8 +5176,10 @@ ErrorInfo成员里可能会有报错信息。
                         foreach (WxUserItem worker in tempWorkers)
                         {
                             // 2020-3-11 非微信入口和public不发通知
-                            if (WxUserDatabase.CheckIsFromWeb(worker.weixinId) == true
-                                || worker.userName == WxUserDatabase.C_Public)
+                            // 2022/07/20 web入口、小程序入口，public帐户，均不发微信通知
+                            if (WxUserDatabase.CheckFrom(worker.weixinId) == WxUserDatabase.C_from_web
+                                || WxUserDatabase.CheckFrom(worker.weixinId) == WxUserDatabase.C_from_mina
+                                    || worker.userName == WxUserDatabase.C_Public)
                                 continue;
 
                             workers.Add(worker);
@@ -5379,7 +5385,7 @@ ErrorInfo成员里可能会有报错信息。
 
 
 
-                    if ( patron.libraryCode == libraryCode && patron.state != WxUserDatabase.C_PatronState_TodoReview)
+                    if (patron.libraryCode == libraryCode && patron.state != WxUserDatabase.C_PatronState_TodoReview)
                     {
                         string strWarningText = "";
                         string maxBorrowCountString = "";
@@ -5638,7 +5644,7 @@ ErrorInfo成员里可能会有报错信息。
             int num5 = rNum.Next(0, 9);
             int num6 = rNum.Next(0, 9);
 
-            int[] nums = new int[6] { num1, num2, num3, num4,num5,num6 };
+            int[] nums = new int[6] { num1, num2, num3, num4, num5, num6 };
             for (int i = 0; i < nums.Length; i++)//循环添加四个随机生成数
             {
                 vc += nums[i].ToString();
@@ -5832,7 +5838,7 @@ ErrorInfo成员里可能会有报错信息。
                     && libCfg.bindStyle != "single"
                     && libCfg.bindStyle != "singlestrict")
                 {
-                    strError = lib.libName+ "配置的bindStyle参数值["+libCfg.bindStyle+"]不合法。";
+                    strError = lib.libName + "配置的bindStyle参数值[" + libCfg.bindStyle + "]不合法。";
                     return -1;
                 }
 
@@ -5926,7 +5932,7 @@ ErrorInfo成员里可能会有报错信息。
 
                         strError = "用户状态值不支持绑定，请联系管理员。";
                         return -1;
-                    }                  
+                    }
                 }
 
 
@@ -5985,14 +5991,14 @@ ErrorInfo成员里可能会有报错信息。
 
 
                 // 微信入口才需要发通知
-                if (WxUserDatabase.CheckIsFromWeb(weixinId) == false)
+                if (WxUserDatabase.CheckFrom(weixinId) == WxUserDatabase.C_from_weixin) //CheckIsFromWeb(weixinId) == false)
                 {
-                    string maskDef = this.GetMaskDef(libId, bindLibraryCode,out bool send2PatronIsMask);
+                    string maskDef = this.GetMaskDef(libId, bindLibraryCode, out bool send2PatronIsMask);
 
 
-                        // 发送绑定成功的客服消息    
-                        string strFirst = "☀恭喜您！您已成功绑定图书馆读者账号。";
-                    string strAccount = this.GetFullPatronName(userItem.readerName, userItem.readerBarcode, "", "", false,maskDef);//这里不需要mask
+                    // 发送绑定成功的客服消息    
+                    string strFirst = "☀恭喜您！您已成功绑定图书馆读者账号。";
+                    string strAccount = this.GetFullPatronName(userItem.readerName, userItem.readerBarcode, "", "", false, maskDef);//这里不需要mask
                     string strRemark = "您可以直接通过微信公众号访问图书馆，进行信息查询，预约续借等功能。如需解绑，请点击“绑定账号”菜单操作。";
                     if (type == 1)
                     {
@@ -6264,12 +6270,12 @@ ErrorInfo成员里可能会有报错信息。
             userItem.refID = refID;
             userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
             userItem.updateTime = userItem.createTime;
-            userItem.isActive = 1; // isActive只针对读者，后面会激活读者，工作人员时均为0
+            userItem.isActive = 1; // isActive是否为当前状态，读者和馆员都用这一个字段
 
             userItem.libraryCode = libraryCode;
             userItem.type = type;
             userItem.userName = userName;
-            userItem.isActiveWorker = 0;//是否是激活的工作人员账户，读者时均为0
+            userItem.isActiveWorker = 0;//20220720该字段已作废。//是否是激活的工作人员账户，读者时均为0
             userItem.tracing = "off";//默认是关闭监控
 
             // 2017-2-14新增馆藏地
@@ -6326,15 +6332,18 @@ ErrorInfo成员里可能会有报错信息。
             this.WriteDebug(lable + "[" + weixinId + "]有" + l.Count + "个帐户。" + info);
         }
 
-
+        // 解绑
+        // isPublic是否是public帐户，20220720-ryh，整理接口时，对public帐户支持解绑删除，同时告诉上级，把actionuser设为null
         /// <returns>
         /// -1 出错
         /// 0   成功
         /// </returns>
         public int Unbind(string userId,
             out WxUserItem newActiveUser,
-             out string strError)
+             out string strError,
+             out bool isPublic)
         {
+            isPublic = false;
             strError = "";
             newActiveUser = null;
 
@@ -6346,19 +6355,21 @@ ErrorInfo成员里可能会有报错信息。
             }
             string weixinId = userItem.weixinId;
 
+            // 2022/07/20 在整理接口时，觉得还是把这个限制放开，不需要卡帐号，所以绑定的都可以从本地库删除，
+            // 但public不需要给调dp2library解绑接口
             if (userItem.type == WxUserDatabase.C_Type_Worker
                 && userItem.userName == WxUserDatabase.C_Public)
             {
-                strError = "public帐户是系统临时绑定帐号，不需要解绑";
-                return -1;
-            }
+                // 2022/07/20 改为删除本地库中的记录，不返回出错了，这样也能删除public帐户
+                // 删除mongodb库的记录
+                WxUserDatabase.Current.Delete1(userId, out newActiveUser);
+                isPublic = true;  // 2022/07/20 对public特殊处理
+                return 0;
 
-            //string weixinId = "~~" + guid +"@" + gzh.appId; //2018/3/8
-            //bool isWeb = false;
-            //if (weixinId.Length > 2 && weixinId.Substring(0, 2) == "~~")
-            //{
-            //    isWeb = true;
-            //}
+                // 2022/07/20 注释掉
+                //strError = "public帐户是系统临时绑定帐号，不需要解绑";
+                //return -1;
+            }
 
 
             LibEntity lib = this.GetLibById(userItem.libId);
@@ -6424,12 +6435,13 @@ ErrorInfo成员里可能会有报错信息。
                 // 删除mongodb库的记录
                 WxUserDatabase.Current.Delete1(userId, out newActiveUser);
 
-                if (WxUserDatabase.CheckIsFromWeb(weixinId) == false)
+                // 2022/7/20 检查来源函数增加了小程序来源，只有微信入口才发通知
+                if (WxUserDatabase.CheckFrom(weixinId) == WxUserDatabase.C_from_weixin) //CheckIsFromWeb(weixinId) == false)
                 {
-                    string maskDef = this.GetMaskDef(lib.id, userItem.libraryCode,out bool send2PatronIsMask);
+                    string maskDef = this.GetMaskDef(lib.id, userItem.libraryCode, out bool send2PatronIsMask);
                     // 发送解绑消息    
                     string strFirst = "☀您已成功对图书馆读者账号解除绑定。";
-                    string strAccount = this.GetFullPatronName(userItem.readerName, userItem.readerBarcode, "", "", false,maskDef);
+                    string strAccount = this.GetFullPatronName(userItem.readerName, userItem.readerBarcode, "", "", false, maskDef);
                     string strRemark = "\n您现在不能查看您在该图书馆的个人信息了，如需访问，请重新绑定。";
                     if (userItem.type == WxUserDatabase.C_Type_Worker)
                     {
@@ -6460,7 +6472,7 @@ ErrorInfo成员里可能会有报错信息。
                         strRemark);
 
                     //mask
-                    strAccount = this.GetFullPatronName(userItem.readerName, userItem.readerBarcode, "", "", true,maskDef);
+                    strAccount = this.GetFullPatronName(userItem.readerName, userItem.readerBarcode, "", "", true, maskDef);
                     if (userItem.type == WxUserDatabase.C_Type_Worker)
                     {
                         strAccount = dp2WeiXinService.Mask(maskDef, userItem.userName, "name");// this.markString(userItem.userName);
@@ -6603,9 +6615,9 @@ ErrorInfo成员里可能会有报错信息。
                 searchRet.apiResult.errorCode = (int)lRet;
 
                 string maskLoginName = loginInfo.UserName;
-                if (loginInfo.UserName!=null &&loginInfo.UserName.Length>=1)
-                    maskLoginName= loginInfo.UserName.Substring(0, 1).PadRight( loginInfo.UserName.Length,'*');
-                searchRet.apiResult.errorInfo = strError + "[图书馆为" + libName + ",帐户为" +maskLoginName + "]";
+                if (loginInfo.UserName != null && loginInfo.UserName.Length >= 1)
+                    maskLoginName = loginInfo.UserName.Substring(0, 1).PadRight(loginInfo.UserName.Length, '*');
+                searchRet.apiResult.errorInfo = strError + "[图书馆为" + libName + ",帐户为" + maskLoginName + "]";
                 return searchRet;
             }
 
@@ -8147,7 +8159,7 @@ ErrorInfo成员里可能会有报错信息。
 
 
 
-        public int SetItem(string loginUserName, 
+        public int SetItem(string loginUserName,
             string libId,
             string biblioPath,
             string action,
@@ -8165,7 +8177,7 @@ ErrorInfo成员里可能会有报错信息。
             // 2020/10/10 新增册、删除册都用工作人员帐号
             LoginInfo loginInfo = new LoginInfo(loginUserName, false);
 
-            
+
 
             // 根据id找到图书馆对象
             LibEntity lib = this.GetLibById(libId);
@@ -8261,7 +8273,7 @@ ErrorInfo成员里可能会有报错信息。
             {
                 Record oldRecord = new Record();
                 oldRecord.RecPath = item.recPath;
-        
+
                 //oldRecord.Timestamp = timestamp;
                 entity.OldRecord = oldRecord;
             }
@@ -9862,7 +9874,7 @@ ErrorInfo成员里可能会有报错信息。
                     this._dp2MServerUrl,
                     lib.capoUserName).Result;
 
-REDO1:
+            REDO1:
 
                 SearchResult result = connection.SearchTaskAsync(
                     lib.capoUserName,
@@ -10325,7 +10337,7 @@ REDO1:
                 }
 
                 string strRecPath = "";
-                nRet = GetBiblioSummary(loginInfo,lib, items, "", out summary, out strRecPath, out strError);
+                nRet = GetBiblioSummary(loginInfo, lib, items, "", out summary, out strRecPath, out strError);
                 if (nRet == -1)
                     return -1;
                 summary = this.GetShortSummary(summary);
@@ -10411,7 +10423,7 @@ REDO1:
                         }
 
                         // 2021/8/3 增加屏蔽读者信息
-                        string maskDef = this.GetMaskDef(user.libId, user.libraryCode,out bool send2PatronIsMask);
+                        string maskDef = this.GetMaskDef(user.libId, user.libraryCode, out bool send2PatronIsMask);
 
                         string operTime = DateTimeUtil.DateTimeToString(DateTime.Now);
                         //string fullPatronName = this.GetFullPatronName(user.readerName, user.readerBarcode, lib.libName, user.libraryCode, false);
@@ -10440,7 +10452,7 @@ REDO1:
                         //取消日期：2017-10-03
                         //证条码号：P000005
                         //张三，您取消图书预约成功，该书将不再为您保留。
-                        string fullPatronBarcode = this.GetFullPatronName("", patron, lib.libName, user.libraryCode, false,maskDef);
+                        string fullPatronBarcode = this.GetFullPatronName("", patron, lib.libName, user.libraryCode, false, maskDef);
 
                         CancelReserveTemplateData mData = new CancelReserveTemplateData(first,
                             first_color,
@@ -10467,7 +10479,7 @@ REDO1:
                         //    remark);
 
                         //证条码号处
-                        string markFullPatronBarcode = this.GetFullPatronName("", patron, lib.libName, user.libraryCode, true,maskDef);
+                        string markFullPatronBarcode = this.GetFullPatronName("", patron, lib.libName, user.libraryCode, true, maskDef);
                         //备注姓名
                         string markPatronName = dp2WeiXinService.Mask(maskDef, user.readerName, "name");//this.markString(user.readerName);
                         string tempRemark = remark.Replace(user.readerName, markPatronName);// +theOperator; ;
@@ -10578,7 +10590,7 @@ REDO1:
 
         #endregion
 
-        public static LoginInfo GetLoginInfo(string loginUserName,string loginUserType)
+        public static LoginInfo GetLoginInfo(string loginUserName, string loginUserType)
         {
             bool isPatron = false;
             if (loginUserType == "patron")
@@ -11115,10 +11127,10 @@ REDO1:
             if (record.subjects != null && record.subjects.Length > 0)
             {
                 item.subject = record.subjects[0];
-                
+
                 // 2022.7.4注册掉，一下子不理解原来为啥要转义
                 //item.subject = StringUtil.UnescapeString(item.subject);
-                
+
             }
             string title = "";
             string content = "";
@@ -11282,8 +11294,13 @@ REDO1:
             {
 
                 List<WxUserItem> wxPatronList = new List<WxUserItem>();
+
+                // 2022/7/20 webPatronList也包括小程序来源
                 List<WxUserItem> webPatronList = new List<WxUserItem>();
+
                 List<WxUserItem> wxWorkerList = new List<WxUserItem>();
+
+                // 2022/7/20 webWorkerList也包括小程序来源
                 List<WxUserItem> webWorkerList = new List<WxUserItem>();
 
                 this.GetBind(libId,
@@ -11326,15 +11343,21 @@ REDO1:
             out List<WxUserItem> webWorkerList)
         {
             wxPatronList = new List<WxUserItem>();
+
+            // 2022/7/20 webPatronList也包括小程序来源
             webPatronList = new List<WxUserItem>();
+
             wxWorkerList = new List<WxUserItem>();
+
+            // 2022/7/20 webWorkerList也包括小程序来源
             webWorkerList = new List<WxUserItem>();
 
             // 获取绑定的读者数量
             List<WxUserItem> patrons = WxUserDatabase.Current.Get("", libId, libraryCode, WxUserDatabase.C_Type_Patron, null, null, true);
             foreach (WxUserItem user in patrons)
             {
-                if (WxUserDatabase.CheckIsFromWeb(user.weixinId) == true)//user.weixinId.Length > 2 && user.weixinId.Substring(0, 2) == "~~")
+                if (WxUserDatabase.CheckFrom(user.weixinId) == WxUserDatabase.C_from_web //CheckIsFromWeb(user.weixinId) == true)//user.weixinId.Length > 2 && user.weixinId.Substring(0, 2) == "~~")
+                || WxUserDatabase.CheckFrom(user.weixinId) == WxUserDatabase.C_from_mina)
                 {
                     webPatronList.Add(user);
                 }
@@ -11353,7 +11376,8 @@ REDO1:
                     continue;
                 }
 
-                if (WxUserDatabase.CheckIsFromWeb(user.weixinId) == true)//user.weixinId.Length > 2 && user.weixinId.Substring(0, 2) == "~~")
+                if (WxUserDatabase.CheckFrom(user.weixinId) == WxUserDatabase.C_from_web
+                    || WxUserDatabase.CheckFrom(user.weixinId) == WxUserDatabase.C_from_mina) //.CheckIsFromWeb(user.weixinId) == true)//user.weixinId.Length > 2 && user.weixinId.Substring(0, 2) == "~~")
                 {
                     webWorkerList.Add(user);
                 }
@@ -11456,7 +11480,7 @@ REDO1:
             //subjectCondition = "2022年6月新书目(2)";
 
             // 20220701 将()[]|符号转义
-            subjectCondition =StringUtil.EscapeString(subjectCondition, "[](),|");
+            subjectCondition = StringUtil.EscapeString(subjectCondition, "[](),|");
 
             string wxUserName = "";
             string libName = "";
@@ -11956,7 +11980,7 @@ REDO1:
                     continue;
 
                 string subject = subjects[0];//2016-8-20 jane 这里的栏目是从服务器上得到的，不用管首尾空白的问题，如果管了反而暴露不出来问题
-                
+
                 // 2022.7.4 注释掉，一下子理解不了原来的意思
                 //subject = StringUtil.UnescapeString(subject);
 
@@ -12510,12 +12534,12 @@ REDO1:
             userItem.refID = patronInfo.refID;
             userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
             userItem.updateTime = userItem.createTime;
-            userItem.isActive = 0; // isActive只针对读者，后面会激活读者，工作人员时均为0
+            userItem.isActive = 0;  // 是否为活动状态
 
             userItem.libraryCode = patronInfo.libraryCode;
             userItem.type = WxUserDatabase.C_Type_Patron;
             userItem.userName = "";
-            userItem.isActiveWorker = 0;//是否是激活的工作人员账户，读者时均为0
+            userItem.isActiveWorker = 0;//20220720该字段已作废。//是否是激活的工作人员账户，读者时均为0
             userItem.tracing = "off";//无意义，设为关闭状态
 
 
@@ -12568,12 +12592,12 @@ REDO1:
             userItem.refID = "";
             userItem.createTime = DateTimeUtil.DateTimeToString(DateTime.Now);
             userItem.updateTime = userItem.createTime;
-            userItem.isActive = 0; // isActive只针对读者，后面会激活读者，工作人员时均为0
+            userItem.isActive = 0;   //是否为活动状态
 
             userItem.libraryCode = libraryCode; //实际分馆
             userItem.type = WxUserDatabase.C_Type_Worker;
             userItem.userName = name;
-            userItem.isActiveWorker = 0;//是否是激活的工作人员账户，读者时均为0
+            userItem.isActiveWorker = 0;//20220720该字段已作废。//是否是激活的工作人员账户，读者时均为0
             userItem.tracing = "off";//默认是关闭状态
 
             userItem.state = WxUserDatabase.C_State_Available;
@@ -12800,7 +12824,8 @@ REDO1:
                 gzh = dp2WeiXinService.Instance._gzhContainer.GetDefault();
 
             // 2020-3-7 注意这里还是检查web来源的绑定，~~开头但没有@，web来源不需要加@公众号appid
-            if (WxUserDatabase.CheckIsFromWeb(weixinId) == true)//weixinId.Length >= 0 && weixinId.Substring(0, 2) == "~~")
+            if (WxUserDatabase.CheckFrom(weixinId) == WxUserDatabase.C_from_web
+                || WxUserDatabase.CheckFrom(weixinId)==WxUserDatabase.C_from_mina)
                 return weixinId;
 
             // 很久之前的版本，weixinid没有带公众号后缀，所以这里自动处理一下

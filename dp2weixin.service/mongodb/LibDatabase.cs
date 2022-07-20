@@ -249,7 +249,6 @@ namespace dp2weixin.service
         [BsonRepresentation(BsonType.ObjectId)]
         public string id { get;  set; }
 
-        //public string libCode { get; set; }
         public string libName { get; set; }
         public string capoUserName { get; set; }
         public string capoContactPhone { get; set; } // 图书馆联系人电话 jane 2016-6-17

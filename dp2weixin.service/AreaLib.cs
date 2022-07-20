@@ -133,8 +133,8 @@ namespace dp2weixin.service
                     lib.bindStyle = oldLib.bindStyle;
                     lib.patronMaskValue = oldLib.patronMaskValue; //2021/8/3 增加屏蔽通知中的读者信息
 
-                    lib.capoUser = oldLib.capoUser;
-                    lib.visible = oldLib.visible;
+                    //lib.capoUser = oldLib.capoUser; // 20220720-ryh 发现这个字段没有使用到
+                    //lib.visible = oldLib.visible;   // 20220720-ryh 发现这个字段没有使用到
                     lib.Checked = oldLib.Checked;
                     lib.bindFlag = oldLib.bindFlag;
                 }
@@ -289,12 +289,20 @@ namespace dp2weixin.service
         }
     }
 
+    // 地区结构
     public class Area
     {
+        // 地区名称
         public string name = "";
-        public List<LibModel> libs = new List<LibModel>();
+
+        // 2022/07/20-ryh，在整理接口的过程中，发现未使用这个字段。
+        // 是否显示
         public bool visible = true;
 
+        // 下级图书馆
+        public List<LibModel> libs = new List<LibModel>();
+
+        // 根据图书馆id和名称获取下级图书馆
         public LibModel GetLib(string id, string name)
         {
             foreach (LibModel lib in this.libs)
@@ -304,18 +312,24 @@ namespace dp2weixin.service
             }
             return null;
         }
-
-
     }
 
+    // 图书馆配置信息结构
+    // 由于总分馆是一套系统，在我爱图书馆后台配置图书馆时，图书馆的基本信息是存储在mongodb中，一个图书馆实例一条记录
+    // 同时还将一些信息存储在libcfg文件，在libcfg才能配置分馆信息，因为多个分馆对应的是一个图书馆实例，通过libid与mongodb对应。
+    // 这个libMode的数据是从libcfg配置文件来的。
     public class LibModel
     {
-        // 这3个属性是配置文件定义的
+        // 图书馆id
         public string libId = "";
+
+        // 图书馆名称
         public string name = "";
+
+        // 图书馆 馆代码，针对分馆有意义
         public string libraryCode = "";
 
-        // 2020-2-29任延华
+        // 2020-2-29 renyh
         // 读者自助注册读者帐户时，对应的读者库
         // 这个配置还只能放在libcfg配置文件中，因为每个分馆的读者库不同，不能定义在图书馆实例的mongodb表中
         public string patronDbName = "";
@@ -326,24 +340,26 @@ namespace dp2weixin.service
         // 2020/8/24 增加第三方dll
         public string noticedll = "";
 
-        // 2021/7/21 指定是否绑定单一的手机
+        // 2021/7/21 指定是否只能绑定单一的手机
         public string bindStyle = "";
 
         // 2021/8/3 屏幕通知中的读者信息
         public string patronMaskValue = "";
 
-
+        // 2022/07/20 在整理接口过程中发现capoUser这个字段没有使用到，所以注释掉
         // 对应的capo帐户
-        public string capoUser = "";
+        //public string capoUser = "";
 
-        // 是否显示出来
+        // 是否显示出来，20220720整理接口时，发现这个字段未使用。
         public bool visible = true;
 
+        // 下面这两个字段是根据当前用户的绑定信息来的，不是存储在配置文件和图书馆mongodb库
         // 勾选标记
         public string Checked = "";
+        // 绑定标记
         public string bindFlag = "";
 
-        // 完整名称
+        // 图书馆完整名称，图书馆id~馆代码
         public string FullLibId
         {
             get
@@ -355,4 +371,7 @@ namespace dp2weixin.service
             }
         }
     }
+
+
+
 }

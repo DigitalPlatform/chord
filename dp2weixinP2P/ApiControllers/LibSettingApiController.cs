@@ -13,31 +13,11 @@ namespace dp2weixinWeb.ApiControllers
     public class LibSettingApiController : ApiController
     {
 
+        // 获取全部图书馆，按地区分类，用于终端用户选择图书馆
+        // 返回Area集合，第一级Area表示地区，第二级Libs/LibModel表示下级的图书馆，是一个集合
         public IEnumerable<Area> GetAreaLib()
         {
-            /*
-            List<Area> list = new List<Area>();
-
-            Area area1 = new Area();
-            area1.name = "测试1";
-            List<LibModel> libs = new List<LibModel>();
-            libs.Add(new LibModel() { name="a"});
-            libs.Add(new LibModel() { name = "b" });
-            libs.Add(new LibModel() { name = "c" });
-            area1.libs = libs;
-            list.Add(area1);
-
-            Area area2 = new Area();
-            area2.name = "测试2";
-            List<LibModel> libs2 = new List<LibModel>();
-            libs2.Add(new LibModel() { name = "d" });
-            libs2.Add(new LibModel() { name = "e" });
-            libs2.Add(new LibModel() { name = "f" });
-            area2.libs = libs2;
-            list.Add(area2);
-
-            return list;
-            */
+            
             SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
             //if (sessionInfo.ActiveUser == null)
             //{

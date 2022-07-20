@@ -14,30 +14,362 @@ namespace dp2weixinWeb.ApiControllers
 {
     public class WxUserApiController : ApiController
     {
+        // 绑定帐户mongodb数据库
         private WxUserDatabase wxUserDb = WxUserDatabase.Current;
 
-        // 获取全部绑定账户，包括读者与工作人员
-        [HttpGet]
-        public WxUserResult Get()
+        // 绑定帐号
+        // 该接口用来为三种来源的用户（微信用户、浏览器用户、小程序用户）绑定对应的图书馆系统的帐户，包括馆户帐户和读者读者。
+        [HttpPost]
+        public WxUserResult Bind(BindItem item)
         {
-            //dp2WeiXinService.Instance.WriteLog1("WxUserController.Get()开始");
+            string error = "";
 
+            dp2WeiXinService.Instance.WriteDebug("走进bind API");
+
+            if (item.bindLibraryCode == null)
+                item.bindLibraryCode = "";
+
+            // 返回对象
             WxUserResult result = new WxUserResult();
-            List<WxUserItem> list = wxUserDb.Get(null,null,null,-1,null,null,false);//.GetUsers();
 
-            // 在绑定的时候已经设置好了，
-            //foreach (WxUserItem user in list)
-            //{
-            //    if (String.IsNullOrEmpty(user.libraryCode) == false)
-            //        user.libName = user.libraryCode;
-            //}
-            //dp2WeiXinService.Instance.WriteLog1("WxUserController.Get()返回");
+            // 前端有时传上来是这个值
+            if (item.prefix == "null")
+                item.prefix = "";
+
+
+
+
+
+            WxUserItem userItem = null;
+
+            int nRet = dp2WeiXinService.Instance.Bind(item.libId,
+                item.bindLibraryCode,
+                item.prefix,
+                item.word,
+                item.password,
+                item.weixinId,
+                out userItem,
+                out error);
+            if (nRet == -1)
+            {
+                result.errorCode = -1;
+                result.errorInfo = error;
+                return result;
+            }
+            result.users = new List<WxUserItem>();
+            result.users.Add(userItem);
+
+            // 将绑定的帐户设为当前帐户
+            nRet = ApiHelper.ActiveUser(userItem, out error);
+            if (nRet == -1)
+            {
+                result.errorCode = -1;
+                result.errorInfo = error;
+                return result;
+            }
+
+            return result;
+        }
+
+        // 根据前端用户的id获取绑定的图书馆帐号，可能一个前端用户绑定了多个图书馆帐号
+        // weixinId：前端用户的id，用户来源唯一号，格式如下：
+        // web浏览器来源的，~~开头
+        // 微信公众号来源的，weixinId@公众号appid
+        // 小程序来源的：!!用户id
+        public WxUserResult Get(string weixinId)
+        {
+            WxUserResult result = new WxUserResult();
+            List<WxUserItem> list = wxUserDb.Get(weixinId, null, -1);
+            foreach (WxUserItem user in list)
+            {
+                // 把读者xml删除，否则多个帐户时传输数据量大
+                user.xml = "";
+            }
+
             result.users = list;
             return result;
         }
 
+        // 解绑帐户
+        // bindUserId：该参数传绑定接口返回结果中绑定对象的id，
+        // 这是我爱图书馆服务器端mongodb存储的绑定对象的唯一id，即mongodb记录中的id，
+        // 不是从前端角度来看的用户的id，因为一个前端用户可以绑定多个帐户，
+        // 该接口是删除其中一个绑定帐户。
+        [HttpDelete]
+        public ApiResult Delete(string bindUserId)
+        {
+            ApiResult result = new ApiResult();
+            string error = "";
+            bool isPublic = false;
+            WxUserItem newActiveUser = null;
+            int nRet = dp2WeiXinService.Instance.Unbind(bindUserId,
+                out newActiveUser,
+                out error,
+                out isPublic);
+            if (nRet == -1)
+            {
+                result.errorCode = -1;
+                result.errorInfo = error;
+                return result;
+            }
+
+            // 由于有错误信息的话，把错误信息输出
+            if (String.IsNullOrEmpty(error) == false)
+                result.errorInfo = error;
+
+
+            // 设置当前活动帐户，更新session信息
+            if (newActiveUser != null)  //如果当前删除不是活动帐户，则返回的newActiveUser为null
+            {
+                nRet = ApiHelper.ActiveUser(newActiveUser, out error);
+                if (nRet == -1)
+                {
+                    result.errorCode = -1;
+                    result.errorInfo = error;
+                    return result;
+                }
+            }
+            // 2022/7/20 支持解绑public帐户，同时当删除public帐户时，则session中存的当前帐户置为null
+            else if (newActiveUser == null && isPublic == true)
+            {
+                SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
+                if (sessionInfo != null && sessionInfo.ActiveUser!=null
+                    && sessionInfo.ActiveUser.userName=="public")
+                {
+                    sessionInfo.ActiveUser = null;
+                }
+            }
+
+
+            return result;
+
+        }
+
+        // 设为当前活动账户
+        // weixinId:前端用户的唯一id
+        // bindUserId:绑定帐户的记录id
+        [HttpPost]
+        public ApiResult ActivePatron(string weixinId, string bindUserId)
+        {
+            ApiResult result = new ApiResult();
+            string error = "";
+
+            if (HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo] == null)
+            {
+                error = "session失效。";
+                goto ERROR1;
+            }
+            SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
+            if (sessionInfo == null)
+            {
+                error = "session失效2。";
+                goto ERROR1;
+            }
+
+            if (weixinId == "null")
+                weixinId = "";
+
+            if (bindUserId == "null")
+                bindUserId = "";
+
+            WxUserItem user = wxUserDb.GetById(bindUserId);
+            if (user == null)
+            {
+                error = "未找到" + bindUserId + "对应的绑定用户";
+                goto ERROR1;
+            }
+
+            //设为活动账户
+            WxUserDatabase.Current.SetActivePatron1(user.weixinId, user.id);
+
+            //更新session
+            int nRet = sessionInfo.GetActiveUser(weixinId, out error);
+            if (nRet == -1)
+                goto ERROR1;
+
+
+            return result;// repo.Add(item);
+
+
+        ERROR1:
+            result.errorCode = -1;
+            result.errorInfo = error;
+            return result;
+
+        }
+
+        // 设置前端用户的当前图书馆，
+        // 如果从来没有绑定过该馆帐户，则以public身份;
+        // 如果绑定过该馆帐户，则以绑定的第1个帐户为活动帐号
+        // 参数：
+        // weixinId:前端用户的唯一id
+        // libId:图书馆id，如果是分馆，格式为:图书馆id~分馆代码
+        [HttpPost]
+        public ApiResult SetLibId(string weixinId, string libId)
+        {
+            ApiResult result = new ApiResult();
+            string error = "";
+
+            string temp = libId;
+            string bindLibraryCode = "";
+            int nIndex = libId.IndexOf("~");
+            if (nIndex > 0)
+            {
+                libId = temp.Substring(0, nIndex);
+                bindLibraryCode = temp.Substring(nIndex + 1);
+            }
+
+            if (HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo] == null)
+            {
+                error = "session失效。";
+                goto ERROR1;
+            }
+            SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
+            if (sessionInfo == null)
+            {
+                error = "session失效2。";
+                goto ERROR1;
+            }
+
+            //2022 / 7 / 20 把一段注释掉，不论session中是否有当前帐户，都设置一下
+            //如果选择的图书馆就是是当前活动帐户对应的图书馆，则不用处理
+            if (sessionInfo.ActiveUser != null
+                && sessionInfo.ActiveUser.libId == libId
+                && sessionInfo.ActiveUser.bindLibraryCode == bindLibraryCode)
+            {
+                return result;
+            }
+
+
+            // 先看看有没有public的,有的话，先删除
+            //注意这里不过滤图书馆，就是说临时选择的图书馆，如果未绑定正式帐户，则会在选择下一个图书馆时被清除
+            List<WxUserItem> publicList = WxUserDatabase.Current.GetWorkers(weixinId, "", WxUserDatabase.C_Public);
+            if (publicList.Count > 0)
+            {
+                //dp2WeiXinService.Instance.WriteDebug("删除了" + publicList.Count + "个临时public帐户");
+                for (int i = 0; i < publicList.Count; i++)
+                {
+                    WxUserDatabase.Current.SimpleDelete(publicList[i].id);
+                }
+            }
+
+
+            // 如果微信用户已经绑定了该图书馆的帐户，则设这个馆第一个帐户为活动帐户
+            WxUserItem user = null;
+            List<WxUserItem> list = WxUserDatabase.Current.Get(weixinId, libId, -1); //注意这里不区分分馆,在下面还是要看分馆
+            if (list.Count > 0)
+            {
+                List<WxUserItem> foundList = new List<WxUserItem>();
+                foreach (WxUserItem u in list)
+                {
+                    if (u.bindLibraryCode == bindLibraryCode)
+                    {
+                        user = u;
+                        break;
+                    }
+                }
+            }
+
+            // 如果微信用户针对这个选择的图书馆没有绑定过帐号，则自动创建一个临时public帐户
+            if (user == null)
+            {
+                // 创建一个public帐号
+                user = WxUserDatabase.Current.CreatePublic(weixinId, libId, bindLibraryCode);
+            }
+
+            // 设为当前帐户
+            WxUserDatabase.Current.SetActivePatron1(user.weixinId, user.id);
+
+            // 初始化sesson
+            int nRet = sessionInfo.GetActiveUser(user.weixinId, out error);
+            if (nRet == -1)
+                goto ERROR1;
+
+            //===================
+
+            return result;
+
+        ERROR1:
+            result.errorCode = -1;
+            result.errorInfo = error;
+            return result;
+        }
+
+
+
+
+
+
+        /// <summary>
+        /// 找回密码
+        /// </summary>
+        /// <param name="weixinId"></param>
+        /// <param name="libId"></param>
+        /// <param name="name"></param>
+        /// <param name="tel"></param>
+        /// <returns></returns>
+        /// 
+
+        // 找回密码
+        // weixinId:前端用户唯一id
+        // libId:图书馆id
+        // name:姓名
+        // tel:手机号
+        [HttpPost]
+        public ApiResult ResetPassword(string weixinId,
+            string libId,
+            string libraryCode,
+            string name, 
+            string tel)
+        {
+            ApiResult result = new ApiResult();
+
+            string strError = "";
+            string patronBarcode = "";
+            int nRet = dp2WeiXinService.Instance.ResetPassword(weixinId,
+                libId,
+                libraryCode,
+                name,
+                tel,
+                out patronBarcode,
+                out strError);
+            result.errorCode = nRet;
+            result.errorInfo = strError;
+            result.info = patronBarcode;
+
+            return result;
+        }
+
+        // 修改密码
+        [HttpPost]
+        public ApiResult ChangePassword(string libId,
+            string patron,
+            string oldPassword,
+            string newPassword)
+        {
+            ApiResult result = new ApiResult();
+
+            string strError = "";
+            int nRet = dp2WeiXinService.Instance.ChangePassword(libId,
+                patron,
+                oldPassword,
+                newPassword,
+                out strError);
+            result.errorCode = nRet;
+            result.errorInfo = strError;
+
+            return result;
+        }
+
+        // 获取指定图书馆绑定的帐户，后台管理使用
+        // libId:图书馆id
+        // type:类型筛选
+        // -1 表示不限，包括馆员和读者
+        // 0 仅读者
+        // 1 仅馆员
+        // public  仅public帐户
         [HttpGet]
-        public WxUserResult GetByLibId(string libId,string type)
+        public WxUserResult GetByLibId(string libId, string type)
         {
             WxUserResult result = new WxUserResult();
             // 获取绑定的读者数量
@@ -68,95 +400,11 @@ namespace dp2weixinWeb.ApiControllers
                     }
                 }
             }
-
-
             result.users = users;
-
             return result;
         }
 
-        // 根据weixinid获取帐号
-        public WxUserResult Get(string weixinId)
-        {
-            //dp2WeiXinService.Instance.WriteLog1("WxUserController.Get(string weixinId)开始");
-
-            WxUserResult result = new WxUserResult();
-            List<WxUserItem> list = wxUserDb.Get(weixinId, null, -1);
-            foreach (WxUserItem user in list)
-            {
-                user.xml = "";
-            }
-
-            result.users = list;
-
-
-            //// 测试，只返回第一个
-            //if (list.Count > 0)
-            //{
-            //    result.users = new List<WxUserItem>();
-            //    result.users.Add(list[0]);
-            //    dp2WeiXinService.Instance.WriteLog1("第一个对象 "+list[0].Dump());
-            //}
-
-
-
-            //dp2WeiXinService.Instance.WriteLog1("WxUserController.Get(string weixinId)结束");
-
-            return result;
-        }
-
-        [HttpPost]
-        public WxUserResult DoThing_HF(string actionType)
-        {
-            // 恢复用户
-            if (actionType == "recover")
-            {
-                return dp2WeiXinService.Instance.RecoverUsers_HF();
-            }
-
-            if (actionType == "addAppId")
-            {
-                return dp2WeiXinService.Instance.AddAppId_HF();
-            }
-
-            WxUserResult result = new WxUserResult();
-            return result;
-        }
-
-        /// <summary>
-        /// 找回密码
-        /// </summary>
-        /// <param name="weixinId"></param>
-        /// <param name="libId"></param>
-        /// <param name="name"></param>
-        /// <param name="tel"></param>
-        /// <returns></returns>
-        [HttpPost]
-        public ApiResult ResetPassword(string weixinId,
-            string libId,
-            string libraryCode,
-            string name, 
-            string tel)
-        {
-            ApiResult result = new ApiResult();
-
-            string strError = "";
-            string patronBarcode = "";
-            int nRet = dp2WeiXinService.Instance.ResetPassword(weixinId,
-                libId,
-                libraryCode,
-                name,
-                tel,
-                out patronBarcode,
-                out strError);
-            result.errorCode = nRet;
-            result.errorInfo = strError;
-            result.info = patronBarcode;
-
-            return result;
-        }
-
-        //监控开关
+        //设置监控图书馆消息
         [HttpPost]        
         public ApiResult UpdateTracing(string workerId,
                     string tracing)
@@ -315,7 +563,6 @@ namespace dp2weixinWeb.ApiControllers
             return result;
         }
 
-
         // 更新用户信息
         [HttpPost]
         public ApiResult UpdateUserInfo(string userId, string infoType)
@@ -391,267 +638,56 @@ namespace dp2weixinWeb.ApiControllers
 
 
 
-        // 设置微信用户当前图书馆
+
+        #region 暂时关闭的一些接口
+
+
+        // 根据dp2library数据恢复本地绑定库
+        // 20220720注：未严格测试，暂时关闭此接口
+        /*
         [HttpPost]
-        public ApiResult SetLibId(string weixinId, string libId)
+        public WxUserResult DoThing_HF(string actionType)
         {
-            ApiResult result = new ApiResult();
-            string error = "";
-
-            string temp = libId;
-            string bindLibraryCode = "";
-            int nIndex = libId.IndexOf("~");
-            if (nIndex > 0)
+            // 恢复用户
+            if (actionType == "recover")
             {
-                libId = temp.Substring(0, nIndex);
-                bindLibraryCode = temp.Substring(nIndex + 1);
+                return dp2WeiXinService.Instance.RecoverUsers_HF();
             }
 
-            if (HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo] == null)
+            if (actionType == "addAppId")
             {
-                error = "session失效。";
-                goto ERROR1;
-            }
-            SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
-            if (sessionInfo == null)
-            {
-                error = "session失效2。";
-                goto ERROR1;
+                return dp2WeiXinService.Instance.AddAppId_HF();
             }
 
-            //如果选择的图书馆就是是当前活动帐户对应的图书馆，则不用处理
-            if (sessionInfo.ActiveUser != null
-                && sessionInfo.ActiveUser.libId == libId
-                && sessionInfo.ActiveUser.bindLibraryCode == bindLibraryCode)
-            {
-                return result;
-            }
-
-
-            // 先看看有没有public的,有的话，先删除
-            //注意这里不过滤图书馆，就是说临时选择的图书馆，如果未绑定正式帐户，则会在选择下一个图书馆时被清除
-            List<WxUserItem> publicList = WxUserDatabase.Current.GetWorkers(weixinId, "", WxUserDatabase.C_Public);
-            if (publicList.Count > 0)
-            {
-                //dp2WeiXinService.Instance.WriteDebug("删除了" + publicList.Count + "个临时public帐户");
-                for (int i = 0; i < publicList.Count; i++)
-                {
-                    WxUserDatabase.Current.SimpleDelete(publicList[i].id);
-                }
-            }
-
-
-            // 如果微信用户已经绑定了该图书馆的帐户，则设这个馆第一个帐户为活动帐户
-            WxUserItem user = null;
-            List<WxUserItem> list = WxUserDatabase.Current.Get(weixinId, libId, -1); //注意这里不区分分馆,在下面还是要看分馆
-            if (list.Count > 0)
-            {
-                List<WxUserItem> foundList = new List<WxUserItem>();
-                foreach (WxUserItem u in list)
-                {
-                    if (u.bindLibraryCode == bindLibraryCode)
-                    {
-                        user = u;
-                        break;
-                    }
-                }
-            }
-
-            // 如果微信用户针对这个选择的图书馆没有绑定过帐号，则自动创建一个临时public帐户
-            if (user == null)
-            {
-                // 创建一个public帐号
-                user = WxUserDatabase.Current.CreatePublic(weixinId, libId, bindLibraryCode);
-            }
-
-            // 设为当前帐户
-            WxUserDatabase.Current.SetActivePatron1(user.weixinId, user.id);
-
-            // 初始化sesson
-            int nRet = sessionInfo.GetActiveUser(user.weixinId, out error);
-            if (nRet == -1)
-                goto ERROR1;
-
-            //===================
-
-            return result;
-
-        ERROR1:
-            result.errorCode = -1;
-            result.errorInfo = error;
-            return result;
-        }
-    
-
-        // 绑定帐号
-        [HttpPost]
-        public WxUserResult Bind(BindItem item)
-        {
-            string error = "";
-
-            dp2WeiXinService.Instance.WriteDebug("走进bind API");
-
-            if (item.bindLibraryCode == null)
-                item.bindLibraryCode = "";
-
-            // 返回对象
             WxUserResult result = new WxUserResult();
-
-            // 前端有时传上来是这个值
-            if (item.prefix == "null")
-                item.prefix = "";
-
-
-
-
-
-            WxUserItem userItem = null;
-
-            int nRet = dp2WeiXinService.Instance.Bind(item.libId,
-                item.bindLibraryCode,
-                item.prefix,
-                item.word,
-                item.password,
-                item.weixinId,
-                out userItem,
-                out error);
-            if (nRet == -1)
-            {
-                result.errorCode = -1;
-                result.errorInfo = error;
-                return result;
-            }
-            result.users = new List<WxUserItem>();
-            result.users.Add(userItem);
-
-            // 将绑定的帐户设为当前帐户
-            nRet = ApiHelper.ActiveUser(userItem, out error);
-            if (nRet == -1)
-            {
-                result.errorCode = -1;
-                result.errorInfo = error;
-                return result;
-            }
-
-
-
-
             return result;
         }
+        */
 
 
-        // 修改密码
-        [HttpPost]
-        public ApiResult ChangePassword(string libId,
-            string patron,
-            string oldPassword,
-            string newPassword)
+        // 2022/07/20 出于安全性，先关闭此接口
+        /*
+        // 获取全部绑定账户，包括读者与工作人员
+        [HttpGet]
+        public WxUserResult Get()
         {
-            ApiResult result = new ApiResult();
+            //dp2WeiXinService.Instance.WriteLog1("WxUserController.Get()开始");
 
-            string strError = "";
-            int nRet = dp2WeiXinService.Instance.ChangePassword(libId,
-                patron,
-                oldPassword,
-                newPassword,
-                out strError);
-            result.errorCode = nRet;
-            result.errorInfo = strError;
+            WxUserResult result = new WxUserResult();
+            List<WxUserItem> list = wxUserDb.Get(null,null,null,-1,null,null,false);//.GetUsers();
 
+            // 在绑定的时候已经设置好了，
+            //foreach (WxUserItem user in list)
+            //{
+            //    if (String.IsNullOrEmpty(user.libraryCode) == false)
+            //        user.libName = user.libraryCode;
+            //}
+            //dp2WeiXinService.Instance.WriteLog1("WxUserController.Get()返回");
+            result.users = list;
             return result;
         }
+        */
 
-
-        // 设为活动账户
-        [HttpPost]
-        public ApiResult ActivePatron(string weixinId, string id)
-        {
-            ApiResult result = new ApiResult();
-            string error = "";
-
-            if (HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo] == null)
-            {
-                error = "session失效。";
-                goto ERROR1;
-            }
-            SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
-            if (sessionInfo == null)
-            {
-                error = "session失效2。";
-                goto ERROR1;
-            }
-
-            if (weixinId == "null")
-                weixinId = "";
-
-            if (id == "null")
-                id = "";
-
-            WxUserItem user = wxUserDb.GetById(id);
-            if (user == null)
-            {
-                error = "未找到" + id + "对应的绑定用户";
-                goto ERROR1;
-            }
-
-            //设为活动账户
-            WxUserDatabase.Current.SetActivePatron1(user.weixinId, user.id);
-
-            //更新session
-            int nRet = sessionInfo.GetActiveUser(weixinId,out error);
-            if (nRet == -1)
-                goto ERROR1;
-
-
-            return result;// repo.Add(item);
-
-
-            ERROR1:
-            result.errorCode = -1;
-            result.errorInfo = error;
-            return result;
-
-        }
-
-        // 解绑帐号
-        [HttpDelete]
-        public ApiResult Delete(string id)
-        {
-
-            ApiResult result = new ApiResult();
-            string error = "";
-            WxUserItem newActiveUser = null;
-            int nRet = dp2WeiXinService.Instance.Unbind(id, 
-                out newActiveUser,
-                out error);
-            if (nRet == -1)
-            {
-                result.errorCode = -1;
-                result.errorInfo = error;
-                return result;
-            }
-
-            // 由于有错误信息的话，把错误信息输出
-            if (String.IsNullOrEmpty(error) == false)
-                result.errorInfo = error;
-
-
-            // 设置当前活动帐户，更新session信息
-            if (newActiveUser != null)  //如果当前删除不是活动帐户，则返回的newActiveUser为null
-            {
-                nRet = ApiHelper.ActiveUser(newActiveUser, out error);
-                if (nRet == -1)
-                {
-                    result.errorCode = -1;
-                    result.errorInfo = error;
-                    return result;
-                }
-            }
-
-
-            return result;
-            
-        }
-
+        #endregion
     }
 }

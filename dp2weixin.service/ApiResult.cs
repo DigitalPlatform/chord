@@ -9,14 +9,15 @@ namespace dp2weixin.service
     // API返回结果
     public class ApiResult
     {
-        public string errorInfo = "";
-
-        /// <summary>
-        /// -1:表示出错
-        /// </summary>
+        // 错误码
+        // 0:表示成功
+        // -1:表示出错
         public long errorCode = 0;
 
-        // 信息
+        // 错误信息
+        public string errorInfo = "";
+
+        // 普通提示信息
         public string info = "";
 
         // 返回的对象
@@ -45,8 +46,10 @@ namespace dp2weixin.service
         public LibEntity lib { get; set; }
     }
 
+    // 绑定帐户返回结果结构
     public class WxUserResult:ApiResult
     {
+        // 对应的绑定帐户集合
         public List<WxUserItem> users { get; set; }
     }
 
