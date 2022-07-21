@@ -19,12 +19,20 @@ namespace dp2weixinWeb.ApiControllers
 
 
         /// <summary>
-        /// 获取读者信息
+        /// 
         /// </summary>
-        /// <param name="libId">图书馆id</param>
+        /// <param name="libId"></param>
         /// <param name="userName">用户名</param>
         /// <param name="patronBarcode">读者证条码</param>
         /// <returns></returns>
+        /// 
+
+        // 获取读者信息
+        // libId：图书馆id
+        // userName：馆员帐户名，
+        // 如果传了馆员帐号，则用馆员身份获取读者信息。
+        // 如果未传馆员帐户，则用读者自己身份获取信息。
+        // patronBarcode：读者证条码号
         public SetReaderInfoResult GetPatron(string libId,
            string userName,
            string patronBarcode)
@@ -35,7 +43,8 @@ namespace dp2weixinWeb.ApiControllers
             string recPath = "";
             string timestamp = "";
 
-            // 2022/07/21 整理接口时改进，根据传入的信息，如果参数中传了馆员帐号，则用馆员帐户。
+            // 2022/07/21 整理接口时改进，
+            // 如果参数中传了馆员帐号，则用馆员帐户。
             // 如果参数中没有传递馆员帐户，则用读者帐号。
             LoginInfo loginInfo = null;
             if(string.IsNullOrEmpty(userName)==false)

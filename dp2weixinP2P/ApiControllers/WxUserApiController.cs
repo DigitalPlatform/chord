@@ -296,20 +296,6 @@ namespace dp2weixinWeb.ApiControllers
         }
 
 
-
-
-
-
-        /// <summary>
-        /// 找回密码
-        /// </summary>
-        /// <param name="weixinId"></param>
-        /// <param name="libId"></param>
-        /// <param name="name"></param>
-        /// <param name="tel"></param>
-        /// <returns></returns>
-        /// 
-
         // 找回密码
         // weixinId:前端用户唯一id
         // libId:图书馆id
@@ -318,7 +304,7 @@ namespace dp2weixinWeb.ApiControllers
         [HttpPost]
         public ApiResult ResetPassword(string weixinId,
             string libId,
-            string libraryCode,
+            //string libraryCode,
             string name, 
             string tel)
         {
@@ -328,7 +314,7 @@ namespace dp2weixinWeb.ApiControllers
             string patronBarcode = "";
             int nRet = dp2WeiXinService.Instance.ResetPassword(weixinId,
                 libId,
-                libraryCode,
+                //libraryCode,
                 name,
                 tel,
                 out patronBarcode,
@@ -341,6 +327,10 @@ namespace dp2weixinWeb.ApiControllers
         }
 
         // 修改密码
+        // libId:图书馆id
+        // patron:读者证条码号
+        // oldPassword:旧密码
+        // newPassword:新密码
         [HttpPost]
         public ApiResult ChangePassword(string libId,
             string patron,
@@ -403,6 +393,7 @@ namespace dp2weixinWeb.ApiControllers
             result.users = users;
             return result;
         }
+
 
         //设置监控图书馆消息
         [HttpPost]        

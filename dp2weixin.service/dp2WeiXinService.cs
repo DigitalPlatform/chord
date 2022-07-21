@@ -5429,7 +5429,7 @@ ErrorInfo成员里可能会有报错信息。
         /// <returns></returns>
         public int ResetPassword(string weixinId,
             string libId,
-            string libraryCode,
+            //string libraryCode,
             string name,
             string tel,
             out string patronBarcode,

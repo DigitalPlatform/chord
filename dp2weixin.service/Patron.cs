@@ -72,8 +72,10 @@ namespace dp2weixin.service
     /// </summary>
     public class Patron:SimplePatron
     {
+        // 读者记录路径，是dp2library读者的路径
         public string recPath { get; set; }
 
+        // 参考id
         public string refID { get; set; }
 
         // 显示名
@@ -94,10 +96,8 @@ namespace dp2weixin.service
         // 地址
         public string address { get; set; }
 
-
         // email 
         public string email { get; set; }
-
 
         // 证状态
        // public string state { get; set; }
@@ -118,7 +118,6 @@ namespace dp2weixin.service
 
         //二维码
         public string qrcodeUrl { get; set; }
-
 
         //违约交费数量
         public int OverdueCount { get; set; }
