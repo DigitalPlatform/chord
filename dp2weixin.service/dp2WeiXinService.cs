@@ -9371,6 +9371,11 @@ ErrorInfo成员里可能会有报错信息。
             patron.OverdueCount = nodes.Count;
             patron.OverdueCountHtml = ConvertToString(patron.OverdueCount);
 
+            string strWarningText = "";
+            List<OverdueInfo> overdueList = dp2WeiXinService.Instance.GetOverdueInfo(strPatronXml,
+                out strWarningText);
+            patron.overdueList = overdueList;
+
             // 在借
             nodes = dom.DocumentElement.SelectNodes("borrows/borrow");
             patron.BorrowCount = nodes.Count;
@@ -9387,6 +9392,17 @@ ErrorInfo成员里可能会有报错信息。
             }
             patron.CaoQiCount = caoQiCount;
 
+            //string strWarningText = "";
+            string maxBorrowCountString = "";
+            string curBorrowCountString = "";
+            List<BorrowInfo2> borrowList = dp2WeiXinService.Instance.GetBorrowInfo(strPatronXml,
+                out strWarningText,
+                out maxBorrowCountString,
+                out curBorrowCountString);
+            patron.borrowList = borrowList;
+            patron.maxBorrowCount = maxBorrowCountString;
+            patron.curBorrowCount = curBorrowCountString;
+
             // 预约
             nodes = dom.DocumentElement.SelectNodes("reservations/request");
             patron.ReservationCount = nodes.Count;
@@ -9402,6 +9418,11 @@ ErrorInfo成员里可能会有报错信息。
                 }
             }
             patron.ArrivedCount = arrivedCount;
+
+            string strReservationWarningText = "";
+            List<ReservationInfo> reservations = dp2WeiXinService.Instance.GetReservations(strPatronXml,
+                out strReservationWarningText);
+            patron.reservations = reservations;
 
             return patron;
         }

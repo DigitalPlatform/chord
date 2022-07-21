@@ -158,12 +158,10 @@ else
                     <div style="padding-left:10px" id="area-@area.name">
                         @foreach (dp2weixin.service.LibModel lib in area.libs)
                         {
-
                             <div class="mui-input-row mui-radio mui-left">
                                 <label>@lib.name <span style="color:red">@lib.bindFlag</span></label>
                                 <input id='rdLib' name="rdLib" type="radio" @lib.Checked onchange='saveLib()' value='@lib.FullLibId'>
                             </div>
-
                         }
                     </div>
                 </div>

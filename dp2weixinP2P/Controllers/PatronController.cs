@@ -1199,7 +1199,7 @@ namespace dp2weixinWeb.Controllers
             string strWarningText = "";
             string maxBorrowCountString = "";
             string curBorrowCountString = "";
-            List<BorrowInfo2> overdueList = dp2WeiXinService.Instance.GetBorrowInfo(patronXml,
+            List<BorrowInfo2> borrowList = dp2WeiXinService.Instance.GetBorrowInfo(patronXml,
                 out strWarningText,
                 out maxBorrowCountString,
                 out curBorrowCountString);
@@ -1207,7 +1207,7 @@ namespace dp2weixinWeb.Controllers
             ViewBag.curBorrowCount = curBorrowCountString;
 
 
-            return View(overdueList);
+            return View(borrowList);
 
 
         }

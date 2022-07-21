@@ -18,15 +18,6 @@ namespace dp2weixinWeb.ApiControllers
         public const string C_format_verifyBarcode = "verifyBarcode";
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="libId"></param>
-        /// <param name="userName">用户名</param>
-        /// <param name="patronBarcode">读者证条码</param>
-        /// <returns></returns>
-        /// 
-
         // 获取读者信息
         // libId：图书馆id
         // userName：馆员帐户名，
@@ -56,7 +47,7 @@ namespace dp2weixinWeb.ApiControllers
             int nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
                 loginInfo,
                 patronBarcode,
-                "xml,timestamp",
+                "advancexml,timestamp",
                 out recPath,
                 out timestamp,
                 out strXml,
