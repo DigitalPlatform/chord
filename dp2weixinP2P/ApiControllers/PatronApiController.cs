@@ -35,7 +35,13 @@ namespace dp2weixinWeb.ApiControllers
             string recPath = "";
             string timestamp = "";
 
-            LoginInfo loginInfo = new LoginInfo(userName,false);
+            // 2022/07/21 整理接口时改进，根据传入的信息，如果参数中传了馆员帐号，则用馆员帐户。
+            // 如果参数中没有传递馆员帐户，则用读者帐号。
+            LoginInfo loginInfo = null;
+            if(string.IsNullOrEmpty(userName)==false)
+                loginInfo = new LoginInfo(userName,false);
+            else
+                loginInfo = new LoginInfo(patronBarcode,true);
 
             string strXml = "";
             int nRet = dp2WeiXinService.Instance.GetPatronXml(libId,
