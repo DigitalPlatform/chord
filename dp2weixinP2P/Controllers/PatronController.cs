@@ -383,7 +383,7 @@ namespace dp2weixinWeb.Controllers
 
             LoginInfo loginInfo = dp2WeiXinService.Instance.GetLoginInfo(sessionInfo.ActiveUser);
 
-            List<PatronInfo> patronList = new List<PatronInfo>();
+            List<Patron> patronList = new List<Patron>();
             nRet = dp2WeiXinService.Instance.GetPatronsByName(loginInfo,
                 sessionInfo.ActiveUser.libId,
                 sessionInfo.ActiveUser.bindLibraryCode,

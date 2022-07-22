@@ -1,4 +1,4 @@
-﻿@model List<dp2weixin.service.PatronInfo>
+﻿@model List<dp2weixin.service.Patron>
 @{
     ViewBag.Title = "PatronSearch";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -103,11 +103,11 @@ else
             </div>
         }
 
-        foreach (dp2weixin.service.PatronInfo patronInfo in Model)
+        foreach (dp2weixin.service.Patron patronInfo in Model)
         {
             <div style="padding-left:10px">
-                姓名：@patronInfo.patron.name &nbsp; &nbsp;电话：@patronInfo.patron.phone  &nbsp; &nbsp;部门：@patronInfo.patron.department<br />
-                目前在借[@patronInfo.patron.BorrowCount]册
+                姓名：@patronInfo.name &nbsp; &nbsp;电话：@patronInfo.phone  &nbsp; &nbsp;部门：@patronInfo.department<br />
+                目前在借[@patronInfo.BorrowCount]册
             </div>
 
             foreach (dp2weixin.service.BorrowInfo2 item in patronInfo.borrowList)

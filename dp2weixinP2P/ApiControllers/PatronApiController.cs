@@ -120,7 +120,7 @@ namespace dp2weixinWeb.ApiControllers
             if (opeType == "reviewPass")
             {
                 dp2WeiXinService.Instance.WriteErrorLog("***1***");
-                List<PatronInfo> patronList = new List<PatronInfo>();
+                List<Patron> patronList = new List<Patron>();
                 nRet = dp2WeiXinService.Instance.GetPatronsByName(loginInfo,
                     libId,
                     patron.libraryCode,
@@ -137,11 +137,11 @@ namespace dp2weixinWeb.ApiControllers
                 {
                     dp2WeiXinService.Instance.WriteErrorLog("***3***"+patronList.Count);
                     string names = "";
-                    foreach (PatronInfo temp in patronList)
+                    foreach (Patron temp in patronList)
                     {
                         if (names != "")
                             names += ",";
-                        names += temp.patron.barcode;
+                        names += temp.barcode;
                     }
                     result.errorCode = -2;
                     result.info = patronList.Count.ToString();

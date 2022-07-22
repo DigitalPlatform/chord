@@ -5319,11 +5319,11 @@ ErrorInfo成员里可能会有报错信息。
             string libId,
             string libraryCode,
             string patronName,
-            out List<PatronInfo> patronList,
+            out List<Patron> patronList,
             out string strError)
         {
             strError = "";
-            patronList = new List<PatronInfo>();
+            patronList = new List<Patron>();
             if (libraryCode == null)
                 libraryCode = "";
 
@@ -5383,9 +5383,10 @@ ErrorInfo成员里可能会有报错信息。
                          0,
                          false);
 
-
-
-                    if (patron.libraryCode == libraryCode && patron.state != WxUserDatabase.C_PatronState_TodoReview)
+                    // 2022/7/22  改进在patron结构里增加了在借集合，ParsePatronXml()函数会赋值好，这里就不需要处理了。
+                    /*
+                    if (patron.libraryCode == libraryCode 
+                        && patron.state != WxUserDatabase.C_PatronState_TodoReview)
                     {
                         string strWarningText = "";
                         string maxBorrowCountString = "";
@@ -5395,11 +5396,12 @@ ErrorInfo成员里可能会有报错信息。
                             out maxBorrowCountString,
                             out curBorrowCountString);
 
-                        PatronInfo patronInfo = new PatronInfo();
+                        Patron patronInfo = new PatronInfo();
                         patronInfo.patron = patron;
                         patronInfo.borrowList = borrowList;
                         patronList.Add(patronInfo);
                     }
+                    */
                 }
 
 
