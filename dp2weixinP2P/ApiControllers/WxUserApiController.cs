@@ -17,6 +17,12 @@ namespace dp2weixinWeb.ApiControllers
         // 绑定帐户mongodb数据库
         private WxUserDatabase wxUserDb = WxUserDatabase.Current;
 
+        [HttpGet]
+        public string GetGuid()
+        {
+            return Guid.NewGuid().ToString();
+        }
+
         // 绑定帐号
         // 该接口用来为三种来源的用户（微信用户、浏览器用户、小程序用户）绑定对应的图书馆系统的帐户，包括馆户帐户和读者读者。
         [HttpPost]
