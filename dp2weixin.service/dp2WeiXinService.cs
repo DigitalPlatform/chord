@@ -4678,12 +4678,19 @@ ErrorInfo成员里可能会有报错信息。
                     email = "weixinid:" + weixinId;//传入的weixinId带着后缀 + "@" + wxAppId;
                 }
 
+                // 如果是馆员登记的读者，状态不设为 待审核
+                string patronState = "";
+                if (opeType != C_OpeType_newByWorker)
+                {
+                    patronState = WxUserDatabase.C_PatronState_TodoReview;
+                }
+
                 // 将读者提交的备注，转换成完整表达，例如 2020/6/3 14:02 读者备注:我是办公室的。
                 // 备注字段一般是累积增加的。
                 string thisComment = this.GetFullComment(patron.comment, bWorker);
                 patronXml = "<root>"
                        + "<barcode>" + patron.barcode + "</barcode>"
-                       + "<state>" + WxUserDatabase.C_PatronState_TodoReview + "</state> "
+                       + "<state>" + patronState + "</state> "
                        + "<readerType>" + patron.readerType + "</readerType>"
                        + "<name>" + patron.name + "</name>"
                        + "<gender>" + patron.gender + "</gender>"
@@ -8596,7 +8603,7 @@ ErrorInfo成员里可能会有报错信息。
                     else // 册记录中存在借阅者，被借出的情况
                     {
                         // 当前帐户就是借阅者本人
-                        if (patronBarcode == item.borrower)
+                        if (patronBarcode == item.borrower) 
                         {
                             // 2016-8-16 无册条码的情况，用refid:id代替，但在前端界面要写为refID-，否则js没法续约
                             string tempBarcode = item.barcode;
@@ -8620,9 +8627,10 @@ ErrorInfo成员里可能会有报错信息。
                             //reservationInfo = "<div class='remark'>该册目前是您在借中，不能预约。</div>";
                             //bCanReservation = false;
                         }
-                        else
+                        else 
                         {
-                            strBorrowInfo = "借阅者：***<br/>"
+                            //2022/8/5改进，接口返回的信息自然会脱敏，我爱图书馆这边原样显示返回的值即可
+                            strBorrowInfo = "借阅者："+ item.borrower + "<br/>" //"借阅者：***<br/>"
                                 + "借阅时间：" + item.borrowDate + "<br/>"
                                 + "借期：" + item.borrowPeriod;
 

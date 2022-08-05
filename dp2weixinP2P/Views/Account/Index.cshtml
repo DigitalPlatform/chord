@@ -103,7 +103,8 @@
             showMaskLayer();
 
             //alert("remove-"+item.libId);
-            var url = "/api/wxuserApi/" + item.id;
+            // 2022/8/5 发现更新接口后，原来的/api/wxuserApi/id，这样调接口不支持了，改为api2接口地址
+            var url = "/api2/wxuserApi/Delete?bindUserId=" + item.id;
             sendAjaxRequest(url, "DELETE", function (result) {
 
                 // 关闭等待层

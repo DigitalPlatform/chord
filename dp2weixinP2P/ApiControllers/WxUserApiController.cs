@@ -85,6 +85,16 @@ namespace dp2weixinWeb.ApiControllers
         public WxUserResult Get(string weixinId)
         {
             WxUserResult result = new WxUserResult();
+
+            // 2022/07/25 必须给weixinId传参数，否则导致获取全部帐号。
+            if (string.IsNullOrEmpty(weixinId) == true)
+            { 
+                result.errorCode= -1;
+                result.errorInfo = "参数weixinId不能为空";
+                return result;
+            }
+
+
             List<WxUserItem> list = wxUserDb.Get(weixinId, null, -1);
             foreach (WxUserItem user in list)
             {

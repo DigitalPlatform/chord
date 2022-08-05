@@ -13,27 +13,25 @@ namespace dp2weixinWeb.ApiControllers
 {
     public class BiblioApiController : ApiController
     {
-
-        /// <summary>
-        /// 检索书目
-        /// </summary>
-        /// <param name="loginUserName">登录帐号</param>
-        /// <param name="loginUserType">"patron"表示读者</param>
-        /// <param name="weixinId">用户微信ID，当图书馆配置了不支持外部检索时，用weixinId检查该微信用户是否绑定了图书馆账户，如果未绑定，则不能检索。另外还用于获取该微信绑定帐户的分馆代码。
-        /// <param name="libId">本地库图书馆id</param>
-        /// <param name="from">检索途径，简单检索时传的是：title,ISBN,contributor,subject,clc,_class,publishtime,publisher
-        ///  _N表示下一页，此时word传是开始序号
-        ///  _ReView表示重新获取数据，此时word传是要获取多少条记录
-        /// </param>
-        /// <param name="word">检索词</param>
-        /// <param name="match">匹配方式，简单检索时传的left</param>
-        /// <param name="resultSet">结果集</param>
-        /// <returns>
-        /// searchRet.records = records;  //返回的记录集合
-        /// searchRet.resultCount = records.Count; // 本次返回的记录数 
-        /// searchRet.isCanNext = bNext;  //是否有下页
-        /// searchRet.apiResult.errorCode = lRet;  //-1表示出错，0未命中，其它表示命中总数。
-        /// </returns>
+        // 检索书目
+        //loginUserName：检索使用的dp2library帐号，即前端当前绑定的帐户，如果是读者则传读者证条码；如果是馆员帐户，传馆员用户名
+        //loginUserType：空表示馆员，如果是读者传"patron"
+        //weixinId：前端用户唯一id
+        //作用：当图书馆配置了不支持外部检索时，用weixinId检查该微信用户是否绑定了图书馆账户，如果未绑定，则不能检索。另外还用于获取该微信绑定帐户的分馆代码。
+        //libId：图书馆id
+        //from：检索途径，如果前端指定了一个特定的途径，由传指定的途径。
+        //如果前端只有一个关键词输入框，是一种简单检索界面，则传以逗号分隔的多个途径，例如：title,ISBN,contributor,subject,clc,_class,publishtime,publisher
+        //另外途径还可以传一个特殊含义的功能
+        // _N表示下一页，此时word传是这次要获取记录的开始序号，结果集参数传前面检索返回的结果集。
+        // _ReView表示重新获取数据，此时word传是要获取多少条记录
+        //word：检索词
+        //match:匹配方式，简单检索时传的left
+        //resultSet:前端指定的一个结果集名称，用于分批获取。
+        //返回值：
+        //searchRet.records = records;  //返回的记录集合
+        //searchRet.resultCount = records.Count; // 本次返回的记录数 
+        //searchRet.isCanNext = bNext;  //是否有下页
+        //searchRet.apiResult.errorCode = lRet;  //-1表示出错，0未命中，其它表示命中总数。
         [HttpGet]
         public SearchBiblioResult Search(string loginUserName,
             string loginUserType,
@@ -60,6 +58,14 @@ namespace dp2weixinWeb.ApiControllers
                     searchRet.apiResult = new ApiResult();
                     searchRet.apiResult.errorCode = -1;
                     searchRet.apiResult.errorInfo = "当review检索结果时，结果集名称不能为空。";
+                    return searchRet;
+                }
+
+                if (from == "_N")
+                {
+                    searchRet.apiResult = new ApiResult();
+                    searchRet.apiResult.errorCode = -1;
+                    searchRet.apiResult.errorInfo = "当from参数为_N时，结果集名称不能为空。";
                     return searchRet;
                 }
 
@@ -149,6 +155,39 @@ namespace dp2weixinWeb.ApiControllers
             return searchRet;
         }
 
+
+
+        //获取书目详细信息
+        //loginUserName:使用的dp2library帐号，即前端当前绑定的帐户，如果是读者则传读者证条码；如果是馆员帐户，传馆员用户名
+        //loginUserType：空表示馆员，如果是读者传"patron"
+        //weixinId：前端用户唯一id
+        //作用：当图书馆配置了不支持外部检索时，用weixinId检查该微信用户是否绑定了图书馆账户，如果未绑定，则不能检索。另外还用于获取该微信绑定帐户的分馆代码。
+        //libId：图书馆id
+        //biblioPath:书目路径
+        //format：风格，summary表示摘要和封面，table表示表格显示和封面
+        //from：此字段作废，获取详情来源，表示是从index过来的，还是detail过来的，主要用于好书推荐的返回，后来没用注释掉了。
+        [HttpGet]
+        public BiblioDetailResult GetBiblioDetail(string loginUserName,
+            string loginUserType,
+            string weixinId,
+            string libId,
+            string biblioPath,
+            string format,
+            string from)
+        {
+
+            // 2021/8/2 根据前端传的帐户创建LoginInfo
+            LoginInfo loginInfo = dp2WeiXinService.GetLoginInfo(loginUserName, loginUserType);
+
+            BiblioDetailResult result = dp2WeiXinService.Instance.GetBiblioDetail(loginInfo,
+                weixinId,
+                libId,
+                biblioPath,
+                format,
+                from);
+            return result;
+        }
+
         /// <summary>
         /// 获取摘要信息
         /// </summary>
@@ -203,38 +242,7 @@ namespace dp2weixinWeb.ApiControllers
         }
 
 
-        /// <summary>
-        /// 获取书目详细信息
-        /// </summary>
-        /// <param name="loginUserName">登录帐号</param>
-        /// <param name="loginUserType">帐号类型，"patron"表示读者</param>
-        /// <param name="weixinId">用户微信ID，用于获取绑定帐户对应的分馆代码</param>
-        /// <param name="libId">本地库图书馆id</param>
-        /// <param name="biblioPath">书目路径</param>
-        /// <param name="format">风格，summary表示摘要和封面，table表示表格显示和封面</param>
-        /// <param name="from">获取详情来源，表示是从index过来的，还是detail过来的，主要用于好书推荐的返回，后来没用注释掉了。</param>
-        /// <returns></returns>
-        [HttpGet]
-        public BiblioDetailResult GetBiblioDetail(string loginUserName,
-            string loginUserType,
-            string weixinId,
-            string libId, 
-            string biblioPath,
-            string format,
-            string from)
-        {
-
-            // 2021/8/2 根据前端传的帐户创建LoginInfo
-            LoginInfo loginInfo = dp2WeiXinService.GetLoginInfo(loginUserName, loginUserType);
-
-            BiblioDetailResult result = dp2WeiXinService.Instance.GetBiblioDetail(loginInfo,
-                weixinId,
-                libId,
-                biblioPath,
-                format,
-                from);
-            return result;
-        }
+        
 
 
         // 册登记

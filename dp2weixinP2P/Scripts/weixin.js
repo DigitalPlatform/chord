@@ -1711,6 +1711,12 @@ function cancelEdit(msgId) {
             $(divId).html(html);
         }
 
+        // 2022/8/5 刷新书目摘要
+        if (group == "gn:_lib_book") {
+            //加载书目summary
+            window.setTimeout("fillPending()", 1);
+        }
+
     }, function (xhq, textStatus, errorThrown) {
         // 关闭等待层
         //layer.close(index);

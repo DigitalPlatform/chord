@@ -6,27 +6,38 @@ using System.Threading.Tasks;
 
 namespace dp2weixin.service
 {
+    //书目检索返回结果
     public class SearchBiblioResult
     {
+        // 当检索成功时，errorcode成员返回命中总数。
         public ApiResult apiResult { get; set; }
 
-        // 书目记录
-        public List<BiblioRecord> records { get; set; }
-
-        // 命中条数
+        // 本次返回记录数量
         public long resultCount = 0;
 
+        // 是否有下次
         public bool isCanNext { get; set; }
 
+        // 返回的结果集名称
         public string resultSetName { get; set; }
+
+        // 本次返回的书目记录集合
+        public List<BiblioRecord> records { get; set; }
+
+
     }
 
+    // 书目记录
     public class BiblioRecord
     {
+        //序号
         public string no = "";
+
+        // 书目路径
         public string recPath = "";
+
+        // 图书名称
         public string name = "";
-        //public string libId = "";
     }
 
     public class BiblioDetailResult : ApiResult
