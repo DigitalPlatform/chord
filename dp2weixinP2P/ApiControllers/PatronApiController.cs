@@ -52,10 +52,11 @@ namespace dp2weixinWeb.ApiControllers
                 out timestamp,
                 out strXml,
                 out strError);
-            if (nRet == -1 || nRet == 0)
+            if (nRet == -1 || nRet == 0)  // 出错或不存在的情况
             {
                 result.errorCode = -1;
                 result.errorInfo = strError;
+                return result;  // 2022/8/9 原来少了这条代码，导致后面报未将对象引用到对象实例上。
             }
 
             result.recPath = recPath;

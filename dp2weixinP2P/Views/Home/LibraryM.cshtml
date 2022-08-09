@@ -310,39 +310,58 @@
 
             //alert("test");
 
-            var libName = model.editor.libName().trim();
+            var libName = model.editor.libName();
+            if (libName != null)
+                libName = libName.trim();
             if (libName == "") {
                 alert("尚未输入图书馆名称。");
                 return;
             }
-            var capoUserName = model.editor.capoUserName().trim();
+            
+
+            var capoUserName = model.editor.capoUserName();
+            if (capoUserName != null)
+                capoUserName = capoUserName.trim();
             if (capoUserName == "") {
                 alert("尚未输入图书馆dp2capo账号名。");
                 return;
             }
 
             // 图书馆联系人员手机
-            var capoContactPhone = model.editor.capoContactPhone().trim();
+            var capoContactPhone = model.editor.capoContactPhone();
+            if (capoContactPhone != null)
+                capoContactPhone = capoContactPhone.trim();
 
-            var area = model.editor.area().trim();
+            // 地区
+            var area = model.editor.area();
+            if (area != null)
+                area = area.trim();
             if (area == "") {
                 alert("尚未输入地区。");
                 return;
             }
 
             // 微信端本方账户
-            var wxUserName = model.editor.wxUserName().trim();
+            var wxUserName = model.editor.wxUserName();
+            if (wxUserName != null)
+                wxUserName = wxUserName.trim();
             if (wxUserName == "") {
                 alert("尚未输入图书馆微信本方账号名。");
                 return;
             }
-            var wxPassword = model.editor.wxPassword().trim();
+
+            var wxPassword = model.editor.wxPassword();
+            if (wxPassword != null)
+                wxPassword = wxPassword.trim();
             if (wxPassword == "") {
                 alert("尚未输入图书馆微信本方密码。");
                 return;
             }
+
             //微信本方联系人
-            var wxContactPhone = model.editor.wxContactPhone().trim();
+            var wxContactPhone = model.editor.wxContactPhone();
+            if (wxContactPhone != null)
+                wxContactPhone = wxContactPhone.trim();
 
             // 备注
             var comment = model.editor.comment();

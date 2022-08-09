@@ -88,6 +88,7 @@ namespace dp2weixin.service
         public string borrower { get; set; }
         public string borrowDate { get; set; }
         public string borrowPeriod { get; set; }
+        public string returningDate { get; set; } // 2022/8/9 增加一个还书日期
 
         public string reservationInfo { get; set; }
 

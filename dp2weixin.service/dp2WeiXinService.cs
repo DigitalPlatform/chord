@@ -8418,6 +8418,12 @@ ErrorInfo成员里可能会有报错信息。
             // 获取册的format
             string formatList = "opac";
             string otherformat = "";
+
+            // 2022/8/9-ryh注：我爱图书馆这边主要使用群体是读者，为了避免读者看到很多其它馆数据，而又不能实际借阅，导致生气。所以限制了本馆帐户仅能看到本分馆的册。
+            // 目前针对分馆用户（包括馆员和读者）仅看到本分馆的册，是一个为了开发简单一刀切的做法，
+            // 更灵活的做法是在界面做个配置选项，比如用户自己可以在参数设置里勾选一下，是仅看本馆还是也看其它馆。但这样也给维护带来负担，所以目前先不加这个选项，
+            // 后面如果有实际用户确实需要看到其它馆的册，再增加此选项。
+            // 目前如果想看到书目下全部分馆的册，可以不绑定分馆帐户，用匿名方式（即public)检索书目，则能看到全部分馆的册。
             if (String.IsNullOrEmpty(libraryCode) == false)
             {
                 otherformat = "librarycode:" + libraryCode;
@@ -8426,6 +8432,7 @@ ErrorInfo成员里可能会有报错信息。
             {
                 otherformat = "getotherlibraryitem";
             }
+
             if (String.IsNullOrEmpty(otherformat) == false)
                 formatList += "," + otherformat;
 
@@ -8565,10 +8572,18 @@ ErrorInfo成员里可能会有报错信息。
                 string borrowDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement,
 "borrowDate"), "yyyy/MM/dd");
                 string borrowPeriod = DomUtil.GetElementText(dom.DocumentElement, "borrowPeriod");
+
+
                 borrowPeriod = GetDisplayTimePeriodStringEx(borrowPeriod);
                 item.borrower = strBorrower1;
                 item.borrowDate = borrowDate;
                 item.borrowPeriod = borrowPeriod;
+
+                // 2022/8/9 增加一个还书日期
+                string returningDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement,
+"returningDate"), "yyyy/MM/dd"); //DomUtil.GetElementText(dom.DocumentElement, "returningDate");
+                item.returningDate = returningDate;
+
 
 
                 if (string.IsNullOrEmpty(cmdType) == false)//(isPatron1 == false)
@@ -8614,8 +8629,9 @@ ErrorInfo成员里可能会有报错信息。
                                 "<table style='width:100%;border:0px'>"
                                 + "<tr>"
                                 + "<td class='info' style='border:0px'>借阅者：" + item.borrower + "<br/>"
-                                + "借阅时间：" + item.borrowDate + "<br/>"
-                                + "借期：" + item.borrowPeriod
+                                + "借阅日期：" + item.borrowDate + "<br/>"
+                                + "借期：" + item.borrowPeriod + "<br/>"
+                                + "还书日期：" + item.returningDate 
                                 + "</td>"
                                 + "<td class='btn' style='border:0px'>"
                                 + "<button class='mui-btn  mui-btn-default'  onclick=\"renew('" + tempBarcode + "')\">续借</button>"
@@ -8630,9 +8646,10 @@ ErrorInfo成员里可能会有报错信息。
                         else 
                         {
                             //2022/8/5改进，接口返回的信息自然会脱敏，我爱图书馆这边原样显示返回的值即可
-                            strBorrowInfo = "借阅者："+ item.borrower + "<br/>" //"借阅者：***<br/>"
-                                + "借阅时间：" + item.borrowDate + "<br/>"
-                                + "借期：" + item.borrowPeriod;
+                            strBorrowInfo = "借阅者：" + item.borrower + "<br/>" //"借阅者：***<br/>"
+                                + "借阅日期：" + item.borrowDate + "<br/>"
+                                + "借期：" + item.borrowPeriod + "<br/>"
+                                + "还书日期：" + item.returningDate;
 
                             //bCanReservation = true;
                         }

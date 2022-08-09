@@ -89,7 +89,7 @@
         // 删除一项
         function removeUser(item) {
 
-            var name = item.readerName;
+            var name = item.displayReaderName;
             if (name == "")
                 name = item.userName;
 
@@ -141,7 +141,7 @@
         // 设为活动账户
         function activeUser(item) {
 
-            var name = item.readerName;
+            var name = item.displayReaderName;
             if (item.type == 1)
                 name = item.userName;
 
