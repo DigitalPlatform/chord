@@ -8314,19 +8314,21 @@ ErrorInfo成员里可能会有报错信息。
                     return -1;
                 }
 
-                // 取出读者信息
+                // 取出册信息，错误信息是放在具体的册对象里
                 if (result.Entities.Count > 0)
                 {
-                    //Entity e = result.Entities[0];
-                    //if (string.IsNullOrEmpty(e.ErrorInfo) == false)
-                    //{
-                    //    strError = "图书馆 " + lib.libName + " 的保存册信息时出错2:" + e.ErrorInfo;
-                    //    return -1;
-                    //}
+                    Entity e = result.Entities[0];
+                    if (string.IsNullOrEmpty(e.ErrorInfo) == false)
+                    {
+                        strError = e.ErrorInfo;
+                        return -1;
+                    }
                     //outputRecPath = result.Entities[0].NewRecord.RecPath;
                     //outputTimestamp = result.Entities[0].NewRecord.Timestamp;
                     outputXml = result.Entities[0].NewRecord.Data;
                 }
+
+                return (int)result.Value;
 
             }
             catch (AggregateException ex)
@@ -8343,7 +8345,6 @@ ErrorInfo成员里可能会有报错信息。
 
 
 
-            return 0;
         }
 
         //
@@ -8404,20 +8405,32 @@ ErrorInfo成员里可能会有报错信息。
                 goto ERROR1;
             }
 
-
-            // 得到分馆代码
-            string libraryCode = "";
+            // 当前帐户
             WxUserItem activeItem = WxUserDatabase.Current.GetActive(weixinId);
-            if (activeItem != null)
-            {
-                libraryCode = activeItem.libraryCode; //todo 这里用实际还是绑定
-                if (libraryCode == null)
-                    libraryCode = "";
-            }
+
 
             // 获取册的format
             string formatList = "opac";
+
+            //2022/8/18-ryh 将这一段统一注释掉，因为了解到接口本身，针对总馆和分馆帐户不传参数时，默认按管辖范围做了过滤，已经满足要求，不需要这里再做处理。
+            //总馆帐户：
+            //1）不特意指定参数，获得总馆和分馆全部册记录
+            //2) 指定了librarycode:xxx，仅获得指定分馆的册
+            //分馆帐户：
+            //1）不特意指定参数，仅获得管辖分馆的册
+            //2）指定了librarycode:xxx，仅获取指定分馆的册
+            //3）指定了getotherlibraryitem，获取总馆和分馆全部册记录
+            /*
             string otherformat = "";
+
+            // 得到分馆代码
+            string libraryCode = "";
+            if (activeItem != null)
+            {
+                libraryCode = activeItem.bindLibraryCode;//2022/8/18 应该用绑定的绑定 .libraryCode; //todo 这里用实际还是绑定
+                if (libraryCode == null)
+                    libraryCode = "";
+            }
 
             // 2022/8/9-ryh注：我爱图书馆这边主要使用群体是读者，为了避免读者看到很多其它馆数据，而又不能实际借阅，导致生气。所以限制了本馆帐户仅能看到本分馆的册。
             // 目前针对分馆用户（包括馆员和读者）仅看到本分馆的册，是一个为了开发简单一刀切的做法，
@@ -8435,6 +8448,8 @@ ErrorInfo成员里可能会有报错信息。
 
             if (String.IsNullOrEmpty(otherformat) == false)
                 formatList += "," + otherformat;
+            */
+
 
             //获取下级册信息
             List<Record> recordList = null;

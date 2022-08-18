@@ -62,7 +62,7 @@
             //alert("word[" + word + "]");
 
             //密码
-            var password = model.password().trim();
+            var password = model.password();//.trim(); 2022/8/17根据同事王的建议，密码保持输入原样，不做去空格处理了。
             if (password == "") {
                 alert("您尚未输入密码。");
                 return;
