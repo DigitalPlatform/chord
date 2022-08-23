@@ -8318,7 +8318,7 @@ ErrorInfo成员里可能会有报错信息。
                 if (result.Entities.Count > 0)
                 {
                     Entity e = result.Entities[0];
-                    if (string.IsNullOrEmpty(e.ErrorInfo) == false)
+                    if (e.ErrorCode!= "NoError" &&  string.IsNullOrEmpty(e.ErrorInfo) == false)
                     {
                         strError = e.ErrorInfo;
                         return -1;
