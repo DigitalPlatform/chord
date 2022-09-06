@@ -13461,6 +13461,7 @@ ErrorInfo成员里可能会有报错信息。
             LibDatabase.Current.Delete(id);
             this.LibManager.DeleteLib(id);
 
+            // 从地区清单中删除
             this._areaMgr.DelLib(id, lib.libName);
             this._areaMgr.Save2Xml();
 

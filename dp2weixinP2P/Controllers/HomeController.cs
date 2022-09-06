@@ -22,7 +22,7 @@ namespace dp2weixinWeb.Controllers
                 + "&weixinId=" + weixinId);
         }
 
-        // 超级管理员登录
+        // 超级管理员登录界面
         public ActionResult Login(string returnUrl)
         {
             if (returnUrl == null)
@@ -35,6 +35,7 @@ namespace dp2weixinWeb.Controllers
             return View();
         }
 
+        // 登录提交
         [HttpPost]
         public ActionResult Login(LoginModel model,string returnUrl)
         {

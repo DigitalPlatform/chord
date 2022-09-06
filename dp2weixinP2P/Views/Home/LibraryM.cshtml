@@ -120,7 +120,7 @@
             showMaskLayer();
 
             //alert("remove-"+item.libId);
-            var url = "/api/LibrarySettingApi/" + item.id;
+            var url = "/api2/LibrarySettingApi/Delete?userName=&password=&id=" + item.id;
             sendAjaxRequest(url, "DELETE", function (result) {
                 //getAllLib();
 
@@ -191,7 +191,8 @@
             //var index = loadLayer();
             showMaskLayer();
 
-            var url = "/api/LibrarySettingApi?username=" + wxUserName
+            //alert("1");
+            var url = "/api2/LibrarySettingApi/DetectUser?username=" + wxUserName
                 +"&password="+wxPassword;
             sendAjaxRequest(url, "POST", function (result) {
                 // 关闭等待层
@@ -414,11 +415,12 @@
             var id = model.editor.id();
             if (id == null || id == "") {
                 actionType = "POST";
-                url = "/api/LibrarySettingApi";
+                url = "/api2/LibrarySettingApi/CreateLib?userName=&password=";
             }
             else {
-                actionType = "PUT";
-                url = "/api/LibrarySettingApi?id=" + id;
+                actionType = "POST";
+                url = "/api2/LibrarySettingApi/ChangeLib?userName=&password=&id=" + id;
+                //alert(url);
             }
             //alert("id=["+id+"]");
 
