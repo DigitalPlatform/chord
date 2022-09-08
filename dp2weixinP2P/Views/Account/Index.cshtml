@@ -23,7 +23,7 @@
             //alert("2");
 
             // 调web api
-            var url = "/api/wxuserApi?weixinId=" + weixinId;
+            var url = "/api2/wxuserApi/GetBindUsersByClientId?clientId=" + weixinId;
             sendAjaxRequest(url, "GET", function (result) {
 
                //alert("3");
@@ -104,7 +104,7 @@
 
             //alert("remove-"+item.libId);
             // 2022/8/5 发现更新接口后，原来的/api/wxuserApi/id，这样调接口不支持了，改为api2接口地址
-            var url = "/api2/wxuserApi/Delete?bindUserId=" + item.id;
+            var url = "/api2/wxuserApi/Unbind?bindUserId=" + item.id;
             sendAjaxRequest(url, "DELETE", function (result) {
 
                 // 关闭等待层
@@ -145,8 +145,8 @@
             if (item.type == 1)
                 name = item.userName;
 
-            // 调ActivePatron api
-            var url = "/api/wxuserApi?weixinId=" + item.weixinId + "&bindUserId=" + item.id;
+            // 调ActiveUser api
+            var url = "/api2/wxuserApi/ActiveUser?clientId=" + item.weixinId + "&bindUserId=" + item.id;
             sendAjaxRequest(url, "POST", function () {
 
                 // 因为有可能更新当前图书馆，所以reload保险，todo

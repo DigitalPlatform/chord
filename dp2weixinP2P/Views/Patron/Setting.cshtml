@@ -11,9 +11,9 @@
 
 
         // 绑定账号
-        function save() {
+        function savePhoto(userInfoType) {
 
-            //alert("save");
+            //alert(userInfoType);
 
             // 图书馆
             var libId = $("#libId").text();//$("#selLib").val();  // 2016-8-13 jane加入选择图书馆项，而不是从设置来 getLibId();//
@@ -28,10 +28,10 @@
 
             //alert(libId);
 
-            // 微信id
-            var weixinId = $("#weixinId").text();
-            if (weixinId == "") {
-                alert("weixinId不能为空。");
+            // 绑定帐户id
+            var bindUserId = $("#bindUserId").text();
+            if (bindUserId == "") {
+                alert("bindUserId不能为空。");
                 return;
             }
 
@@ -46,7 +46,10 @@
             showMaskLayer();
 
             // setting()
-            var url = "/api/wxuserApi?weixinId=" + weixinId;
+            var url = "/api2/wxuserApi/UpdateUserInfo?bindUserId=" + bindUserId
+                + "&userInfoType=" + userInfoType;
+
+            //alert(url);
             sendAjaxRequest(url, "POST",
                 function (result) {
 
@@ -75,9 +78,9 @@
 
                 },
                 {
-                    weixinId: weixinId,
-                    libId: libId,
-                    libraryCode: libraryCode,
+                    //weixinId: weixinId,
+                    //libId: libId,
+                    //libraryCode: libraryCode,
                     showPhoto: showPhoto,
                     showCover: showCover
                 }
@@ -105,12 +108,12 @@
         function updateTracing() {
 
             // 工作人员 在微信用户表的id
-            var workerId = $("#workerId").text();
-            if (workerId == "") {
-                alert("workerId不能为空。");
+            var bindUserId = $("#bindUserId").text();
+            if (bindUserId == "") {
+                alert("bindUserId不能为空。");
                 return;
             }
-            //alert(workerId);
+            //alert(bindUserId);
 
             var tracing = getTracing();
             if (tracing == "on") {
@@ -129,8 +132,10 @@
             showMaskLayer();
 
             // setting()
-            var url = "/api/wxuserApi?workerId=" + workerId
-                + "&tracing=" + tracing;
+            var url = "/api2/wxuserApi/UpdateUserInfo?bindUserId=" + bindUserId
+                + "&userInfoType=tracing";
+            
+                //+ "&tracing=" + tracing;
 
 
             //alert(url);
@@ -154,7 +159,11 @@
 
                     alert(errorThrown);
 
-                });
+                },
+                {
+                    tracing: tracing
+                }
+            );
 
 
         }
@@ -291,9 +300,9 @@
         function saveLoc() {
 
             // 工作人员 在微信用户表的id
-            var userId = $("#userId").text();
-            if (userId == "") {
-                alert("userId。");
+            var bindUserId = $("#bindUserId").text();
+            if (bindUserId == "") {
+                alert("bindUserId为空");
                 return;
             }
             var locations = getLocation();
@@ -305,8 +314,9 @@
             showMaskLayer();
 
             //window.setTimeout("hideMaskLayer()", 5000);
-            var url = "/api/wxuserApi?userId=" + userId
-                + "&locations=" + encodeURIComponent(locations)
+            var url = "/api2/wxuserApi/UpdateUserInfo?bindUserId=" + bindUserId
+                +"&userInfoType=selLocation"
+                //+ "&locations=" + encodeURIComponent(locations)
             sendAjaxRequest(url, "POST",
                 function (result) {
 
@@ -324,7 +334,11 @@
                     // 关闭等待层
                     hideMaskLayer();
                     alert(errorThrown);
-                });
+                },
+                {
+                    selLocation: locations
+                }
+            );
 
         }
 
@@ -340,11 +354,12 @@
         function saveVerifyBarcode() {
 
             // 工作人员 在微信用户表的id
-            var userId = $("#userId").text();
-            if (userId == "") {
-                alert("userId不能为空");
+            var bindUserId = $("#bindUserId").text();
+            if (bindUserId == "") {
+                alert("bindUserId不能为空");
                 return;
             }
+
             var verifyBarcode = getVerifyBarcode();
             //alert("[" + verifyBarcode + "]");
 
@@ -353,8 +368,9 @@
             showMaskLayer();
 
             //window.setTimeout("hideMaskLayer()", 5000);
-            var url = "/api/wxuserApi?userId=" + userId
-                + "&verifyBarcode=" + encodeURIComponent(verifyBarcode)
+            var url = "/api2/wxuserApi/UpdateUserInfo?bindUserId=" + bindUserId
+                +"&userInfoType=verifyBarcode"
+                //+ "&verifyBarcode=" + encodeURIComponent(verifyBarcode)
             sendAjaxRequest(url, "POST",
                 function (result) {
 
@@ -372,15 +388,18 @@
                     // 关闭等待层
                     hideMaskLayer();
                     alert(errorThrown);
+                },
+                {
+                    verifyBarcode: verifyBarcode
                 });
 
         }
 
         function saveAudioType() {
             // 工作人员 在微信用户表的id
-            var userId = $("#userId").text();
-            if (userId == "") {
-                alert("userId不能为空");
+            var bindUserId = $("#bindUserId").text();
+            if (bindUserId == "") {
+                alert("bindUserId不能为空");
                 return;
             }
             var audioType = getAudioType();
@@ -390,8 +409,9 @@
             showMaskLayer();
 
             //window.setTimeout("hideMaskLayer()", 5000);
-            var url = "/api/wxuserApi?userId=" + userId
-                + "&audioType=" + encodeURIComponent(audioType)
+            var url = "/api2/wxuserApi/UpdateUserInfo?bindUserId=" + bindUserId
+                + "&userInfoType=audioType";
+                //+ "&audioType=" + encodeURIComponent(audioType)
             sendAjaxRequest(url, "POST",
                 function (result) {
 
@@ -409,6 +429,9 @@
                     // 关闭等待层
                     hideMaskLayer();
                     alert(errorThrown);
+                },
+                {
+                    audioType: audioType
                 });
         }
 
@@ -429,13 +452,16 @@
 @section header {
     <h1 class="mui-title">设置</h1>
 }
-<span id="weixinId" style="display:none">@ViewBag.weixinId</span>
+<span id="bindUserId" style="display:none">@ViewBag.bindUserId</span>
 <span id="libId" style="display:none">@ViewBag.LibId</span>
 <span id="libraryCode" style="display:none">@ViewBag.LibraryCode</span>
 
 <span id="returnUrl" style="display:none">@ViewBag.returnUrl</span>
+
+<!--
 <span id="workerId" style="display:none">@ViewBag.workerId</span>
 <span id="userId" style="display:none">@ViewBag.userId</span>
+ -->
 
 <span id="_audioType" style="display:none">@ViewBag.audioType</span>
 
@@ -475,13 +501,13 @@ else
             {
                 <div class='mui-input-row mui-checkbox mui-left'>
                     <label>显示头像</label>
-                    <input id='ckbPhoto' onchange="save()" type='checkbox' @ViewBag.photoChecked />
+                    <input id='ckbPhoto' onchange="savePhoto('showPhoto')" type='checkbox' @ViewBag.photoChecked />
                 </div>
             }
 
             <div class='mui-input-row mui-checkbox mui-left'>
                 <label>显示图书封面</label>
-                <input id='ckbCover' onchange="save()" type='checkbox' @ViewBag.coverChecked />
+                <input id='ckbCover' onchange="savePhoto('showCover')" type='checkbox' @ViewBag.coverChecked />
             </div>
         </div>
 

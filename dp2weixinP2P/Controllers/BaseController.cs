@@ -500,7 +500,7 @@ namespace dp2weixinWeb.Controllers
             }
             ViewBag.userName = userName;
             ViewBag.userNameInfo = userNameInfo;
-            ViewBag.userId = sessionInfo.ActiveUser.id;
+            ViewBag.bindUserId = sessionInfo.ActiveUser.id;
 
             
 

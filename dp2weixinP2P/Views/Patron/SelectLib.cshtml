@@ -73,7 +73,7 @@
             showMaskLayer();
 
             //window.setTimeout("hideMaskLayer()", 5000);
-            var url = "/api/WxUserApi?weixinId=" + weixinId
+            var url = "/api2/WxUserApi/SetLibId?clientId=" + weixinId
                 + "&libId=" + encodeURIComponent(lib);
             //alert(url);
             sendAjaxRequest(url, "POST",

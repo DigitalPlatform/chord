@@ -5436,7 +5436,7 @@ ErrorInfo成员里可能会有报错信息。
         /// <param name="tel"></param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public int ResetPassword(string weixinId,
+        public int ResetPassword(//string weixinId,
             string libId,
             //string libraryCode,
             string name,

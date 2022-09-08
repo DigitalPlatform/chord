@@ -17,6 +17,7 @@ namespace dp2weixinWeb.ApiControllers
         // 绑定帐户mongodb数据库
         private WxUserDatabase wxUserDb = WxUserDatabase.Current;
 
+        // 获取一个唯一的guid
         [HttpGet]
         public string GetGuid()
         {
@@ -82,20 +83,20 @@ namespace dp2weixinWeb.ApiControllers
         // web浏览器来源的，~~开头
         // 微信公众号来源的，weixinId@公众号appid
         // 小程序来源的：!!用户id
-        public WxUserResult Get(string weixinId)
+        public WxUserResult GetBindUsersByClientId(string clientId)
         {
             WxUserResult result = new WxUserResult();
 
             // 2022/07/25 必须给weixinId传参数，否则导致获取全部帐号。
-            if (string.IsNullOrEmpty(weixinId) == true)
+            if (string.IsNullOrEmpty(clientId) == true)
             { 
                 result.errorCode= -1;
-                result.errorInfo = "参数weixinId不能为空";
+                result.errorInfo = "参数clientId不能为空";
                 return result;
             }
 
 
-            List<WxUserItem> list = wxUserDb.Get(weixinId, null, -1);
+            List<WxUserItem> list = wxUserDb.Get(clientId, null, -1);
             foreach (WxUserItem user in list)
             {
                 // 把读者xml删除，否则多个帐户时传输数据量大
@@ -112,7 +113,7 @@ namespace dp2weixinWeb.ApiControllers
         // 不是从前端角度来看的用户的id，因为一个前端用户可以绑定多个帐户，
         // 该接口是删除其中一个绑定帐户。
         [HttpDelete]
-        public ApiResult Delete(string bindUserId)
+        public ApiResult Unbind(string bindUserId)
         {
             ApiResult result = new ApiResult();
             string error = "";
@@ -162,10 +163,10 @@ namespace dp2weixinWeb.ApiControllers
         }
 
         // 设为当前活动账户
-        // weixinId:前端用户的唯一id
+        // clientId:前端用户的唯一id
         // bindUserId:绑定帐户的记录id
         [HttpPost]
-        public ApiResult ActivePatron(string weixinId, string bindUserId)
+        public ApiResult ActiveUser(string clientId, string bindUserId)
         {
             ApiResult result = new ApiResult();
             string error = "";
@@ -182,8 +183,8 @@ namespace dp2weixinWeb.ApiControllers
                 goto ERROR1;
             }
 
-            if (weixinId == "null")
-                weixinId = "";
+            if (clientId == "null")
+                clientId = "";
 
             if (bindUserId == "null")
                 bindUserId = "";
@@ -199,7 +200,7 @@ namespace dp2weixinWeb.ApiControllers
             WxUserDatabase.Current.SetActivePatron1(user.weixinId, user.id);
 
             //更新session
-            int nRet = sessionInfo.GetActiveUser(weixinId, out error);
+            int nRet = sessionInfo.GetActiveUser(clientId, out error);
             if (nRet == -1)
                 goto ERROR1;
 
@@ -221,7 +222,7 @@ namespace dp2weixinWeb.ApiControllers
         // weixinId:前端用户的唯一id
         // libId:图书馆id，如果是分馆，格式为:图书馆id~分馆代码
         [HttpPost]
-        public ApiResult SetLibId(string weixinId, string libId)
+        public ApiResult SetLibId(string clientId, string libId)
         {
             ApiResult result = new ApiResult();
             string error = "";
@@ -259,7 +260,7 @@ namespace dp2weixinWeb.ApiControllers
 
             // 先看看有没有public的,有的话，先删除
             //注意这里不过滤图书馆，就是说临时选择的图书馆，如果未绑定正式帐户，则会在选择下一个图书馆时被清除
-            List<WxUserItem> publicList = WxUserDatabase.Current.GetWorkers(weixinId, "", WxUserDatabase.C_Public);
+            List<WxUserItem> publicList = WxUserDatabase.Current.GetWorkers(clientId, "", WxUserDatabase.C_Public);
             if (publicList.Count > 0)
             {
                 //dp2WeiXinService.Instance.WriteDebug("删除了" + publicList.Count + "个临时public帐户");
@@ -272,7 +273,7 @@ namespace dp2weixinWeb.ApiControllers
 
             // 如果微信用户已经绑定了该图书馆的帐户，则设这个馆第一个帐户为活动帐户
             WxUserItem user = null;
-            List<WxUserItem> list = WxUserDatabase.Current.Get(weixinId, libId, -1); //注意这里不区分分馆,在下面还是要看分馆
+            List<WxUserItem> list = WxUserDatabase.Current.Get(clientId, libId, -1); //注意这里不区分分馆,在下面还是要看分馆
             if (list.Count > 0)
             {
                 List<WxUserItem> foundList = new List<WxUserItem>();
@@ -290,7 +291,7 @@ namespace dp2weixinWeb.ApiControllers
             if (user == null)
             {
                 // 创建一个public帐号
-                user = WxUserDatabase.Current.CreatePublic(weixinId, libId, bindLibraryCode);
+                user = WxUserDatabase.Current.CreatePublic(clientId, libId, bindLibraryCode);
             }
 
             // 设为当前帐户
@@ -313,12 +314,12 @@ namespace dp2weixinWeb.ApiControllers
 
 
         // 找回密码
-        // weixinId:前端用户唯一id
+        // weixinId:前端用户唯一id,目前没有实际使用到
         // libId:图书馆id
         // name:姓名
         // tel:手机号
         [HttpPost]
-        public ApiResult ResetPassword(string weixinId,
+        public ApiResult ResetPassword(string clientId,
             string libId,
             //string libraryCode,
             string name, 
@@ -328,7 +329,7 @@ namespace dp2weixinWeb.ApiControllers
 
             string strError = "";
             string patronBarcode = "";
-            int nRet = dp2WeiXinService.Instance.ResetPassword(weixinId,
+            int nRet = dp2WeiXinService.Instance.ResetPassword(//clientId,
                 libId,
                 //libraryCode,
                 name,
@@ -367,6 +368,7 @@ namespace dp2weixinWeb.ApiControllers
             return result;
         }
 
+        // todo 需增强安全性
         // 获取指定图书馆绑定的帐户，后台管理使用
         // libId:图书馆id
         // type:类型筛选
@@ -375,7 +377,7 @@ namespace dp2weixinWeb.ApiControllers
         // 1 仅馆员
         // public  仅public帐户
         [HttpGet]
-        public WxUserResult GetByLibId(string libId, string type)
+        public WxUserResult GetBindUsersByLibId(string libId, string type)
         {
             WxUserResult result = new WxUserResult();
             // 获取绑定的读者数量
@@ -411,9 +413,129 @@ namespace dp2weixinWeb.ApiControllers
         }
 
 
+        public const string C_UserInfoType_showCover = "showCover";  // 图书封面
+        public const string C_UserInfoType_showPhoto = "showPhoto";  // 头像
+        public const string C_UserInfoType_audioType = "audioType";  // 语音方案类型
+        public const string C_UserInfoType_verifyBarcode = "verifyBarcode"; //借书时是否校验条码
+        public const string C_UserInfoType_selLocation = "selLocation"; //当ISBN借书时，关注的馆藏地，些功能不常用
+        public const string C_UserInfoType_tracing = "tracing"; //设置监控图书馆消息
+
+
+        // 更新用户信息，只根据上次某名称图书馆名称变化，做了更新图书馆名称
+        [HttpPost]
+        public ApiResult UpdateUserInfo(string bindUserId, 
+            string userInfoType, 
+            WxUserItem input)
+        {
+
+            ApiResult result = new ApiResult();
+            string error = "";
+            int nRet = 0;
+
+            // 修改用户的libName是用于维护中，图书馆的名称改为，但已绑定的帐户还是旧名称的情况。
+            // 所以不需要校验传入的bindUserId是否与当前帐户一致，传哪个帐户改哪个帐户。
+            if (userInfoType == "libName")
+            {
+                // 根据绑定id获取到绑定用户对象
+                WxUserItem user = WxUserDatabase.Current.GetById(bindUserId);
+
+                // 获取到对应的图书馆
+                LibEntity lib = LibDatabase.Current.GetLibById1(user.libId);
+
+                // 更新用户的图书馆名称
+                user.libName = lib.libName;
+                user.libraryCode = "";
+                user.bindLibraryCode = "";
+                WxUserDatabase.Current.Update(user);
+
+                return result;  //直接返回
+            }
+
+            // 检查传入的帐户id是否与当前帐户一致。
+            // 检查session中的当前帐户是否存在
+            if (HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo] == null)
+            {
+                error = "session失效。";
+                goto ERROR1;
+            }
+            SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
+            if (sessionInfo == null)
+            {
+                error = "session失效2。";
+                goto ERROR1;
+            }
+
+            if (sessionInfo.ActiveUser == null)
+            {
+                error = "session中没有活动帐号，不可能的情况";
+                goto ERROR1;
+            }
+
+            if (sessionInfo.ActiveUser.id != bindUserId)
+            {
+                error = "传来的user对象id与当前活动对象的id不一致。";
+                goto ERROR1;
+            }
+
+
+            // 修改各种信息
+            if (userInfoType == C_UserInfoType_showCover)  //设置是否显示封面
+            {
+                sessionInfo.ActiveUser.showCover = input.showCover;
+                nRet = (int)WxUserDatabase.Current.Update(sessionInfo.ActiveUser);
+            }
+            else if (userInfoType == C_UserInfoType_showPhoto)  // 是否显示头像
+            {
+                sessionInfo.ActiveUser.showPhoto = input.showPhoto;
+                nRet = (int)WxUserDatabase.Current.Update(sessionInfo.ActiveUser);
+            }
+            else if (userInfoType == C_UserInfoType_audioType)  // 语音方案类型
+            {
+                sessionInfo.ActiveUser.audioType = input.audioType;
+                nRet = (int)WxUserDatabase.Current.Update(sessionInfo.ActiveUser);
+            }
+            else if (userInfoType == C_UserInfoType_verifyBarcode)  //借书时是否校验条码
+            {
+                sessionInfo.ActiveUser.verifyBarcode = input.verifyBarcode;
+                nRet = (int)WxUserDatabase.Current.Update(sessionInfo.ActiveUser);
+            }
+            else if (userInfoType == C_UserInfoType_selLocation)  //当ISBN借书时，关注的馆藏地，些功能不常用
+            {
+                sessionInfo.ActiveUser.selLocation = input.selLocation;
+                nRet = (int)WxUserDatabase.Current.Update(sessionInfo.ActiveUser);
+            }
+            else if (userInfoType == C_UserInfoType_tracing)
+            {
+                sessionInfo.ActiveUser.tracing = input.tracing;
+                nRet = (int)WxUserDatabase.Current.Update(sessionInfo.ActiveUser);
+
+                // 更新内存
+                dp2WeiXinService.Instance.UpdateTracingUser(sessionInfo.ActiveUser);
+            }
+            else
+            {
+                error = "不能识别的用户信息类型[" + userInfoType + "]";
+                goto ERROR1;
+            }
+
+            // 返回
+            result.errorCode = nRet;
+            return result;
+
+
+
+        ERROR1:  // 出错返回
+            result.errorCode = -1;
+            result.errorInfo = error;
+            return result;
+        }
+
+        #region 被替代的代码 2022/9/8
+        /*
+        
         //设置监控图书馆消息
         [HttpPost]        
-        public ApiResult UpdateTracing(string workerId,
+        public ApiResult UpdateTracing(string bindUserId,
                     string tracing)
         {
             ApiResult result = new ApiResult();
@@ -434,7 +556,7 @@ namespace dp2weixinWeb.ApiControllers
                 goto ERROR1;
             }
 
-            if (sessionInfo.ActiveUser.id != workerId)
+            if (sessionInfo.ActiveUser.id != bindUserId)
             {
                 error = "传来的user对象id与当前活动对象的id不一致。";
                 goto ERROR1;
@@ -442,13 +564,9 @@ namespace dp2weixinWeb.ApiControllers
 
             // 更新数据库设置
             sessionInfo.ActiveUser.tracing = tracing;
-            int nRet = (int)WxUserDatabase.Current.Update(sessionInfo.ActiveUser);//.UpdateTracing(workerId, tracing);
-
-
+            int nRet = (int)WxUserDatabase.Current.Update(sessionInfo.ActiveUser);
             // 更新内存
-            dp2WeiXinService.Instance.UpdateTracingUser(sessionInfo.ActiveUser);//.UpdateMemoryTracingUser(sessionInfo.Active.weixinId, 
-                //sessionInfo.Active.libId,
-                //tracing);
+            dp2WeiXinService.Instance.UpdateTracingUser(sessionInfo.ActiveUser);
 
             result.errorCode = nRet;
             result.errorInfo = error;
@@ -459,10 +577,10 @@ namespace dp2weixinWeb.ApiControllers
             result.errorInfo = error;
             return result;
         }
-
+        
         // 保存选择的馆藏地
         [HttpPost]
-        public ApiResult SaveLocation(string userId, string locations)
+        public ApiResult SaveLocation(string bindUserId, string locations)
         {
             ApiResult result = new ApiResult();
 
@@ -482,6 +600,12 @@ namespace dp2weixinWeb.ApiControllers
                 goto ERROR1;
             }
 
+            if (sessionInfo.ActiveUser.id != bindUserId)
+            {
+                error = "传来的user对象id与当前活动对象的id不一致。";
+                goto ERROR1;
+            }
+
             sessionInfo.ActiveUser.selLocation = locations;
             WxUserDatabase.Current.Update(sessionInfo.ActiveUser);
 
@@ -493,9 +617,11 @@ namespace dp2weixinWeb.ApiControllers
             return result;
         }
 
+
+
         // 保存是否校验条码
         [HttpPost]
-        public ApiResult SaveVerifyBarcode(string userId, int verifyBarcode)
+        public ApiResult SaveVerifyBarcode(string bindUserId, int verifyBarcode)
         {
             ApiResult result = new ApiResult();
             string error = "";
@@ -519,13 +645,19 @@ namespace dp2weixinWeb.ApiControllers
                 goto ERROR1;
             }
 
+            if (sessionInfo.ActiveUser.id != bindUserId)
+            {
+                error = "传来的user对象id与当前活动对象的id不一致。";
+                goto ERROR1;
+            }
+
             sessionInfo.ActiveUser.verifyBarcode = verifyBarcode;
 
             WxUserDatabase.Current.Update(sessionInfo.ActiveUser);
 
             return result;
 
-            ERROR1:
+        ERROR1:
             result.errorCode = -1;
             result.errorInfo = error;
             return result;
@@ -533,7 +665,7 @@ namespace dp2weixinWeb.ApiControllers
 
         // 保存语音方案
         [HttpPost]
-        public ApiResult SaveAudioType(string userId, int audioType)
+        public ApiResult SaveAudioType(string bindUserId, int audioType)
         {
             
             ApiResult result = new ApiResult();
@@ -558,8 +690,13 @@ namespace dp2weixinWeb.ApiControllers
                 goto ERROR1;
             }
 
-            sessionInfo.ActiveUser.audioType = audioType;
+            if (sessionInfo.ActiveUser.id != bindUserId)
+            {
+                error = "传来的user对象id与当前活动对象的id不一致。";
+                goto ERROR1;
+            }
 
+            sessionInfo.ActiveUser.audioType = audioType;
             WxUserDatabase.Current.Update(sessionInfo.ActiveUser);
 
             return result;
@@ -570,30 +707,7 @@ namespace dp2weixinWeb.ApiControllers
             return result;
         }
 
-        // 更新用户信息
-        [HttpPost]
-        public ApiResult UpdateUserInfo(string userId, string infoType)
-        {
 
-            ApiResult result = new ApiResult();
-            string error = "";
-
-            if (infoType == "libName")
-            {
-                WxUserItem user = WxUserDatabase.Current.GetById(userId);
-
-                LibEntity lib = LibDatabase.Current.GetLibById1(user.libId);
-                user.libName = lib.libName;
-                user.libraryCode = "";
-                user.bindLibraryCode = "";
-
-                WxUserDatabase.Current.Update(user);
-            }
-
-            return result;
-
-
-        }
 
         /// <summary>
         /// 设置
@@ -602,12 +716,13 @@ namespace dp2weixinWeb.ApiControllers
         /// <param name="item"></param>
         /// <returns></returns>
         [HttpPost]
-        public ApiResult Setting(string weixinId, WxUserItem input)
+        public ApiResult Setting(string clientId, WxUserItem input)
         {
+            
             ApiResult result = new ApiResult();
             string error = "";
 
-            // 更新session信息???
+            // 检查session中的当前帐户是否存在
             if (HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo] == null)
             {
                 error = "session失效。";
@@ -627,10 +742,11 @@ namespace dp2weixinWeb.ApiControllers
             }
 
 
-            //sessionInfo.Active.libraryCode = input.libraryCode;
+            // 是否显示图书封面
             sessionInfo.ActiveUser.showCover = input.showCover;
+            // 是否显示头像
             sessionInfo.ActiveUser.showPhoto = input.showPhoto;
-
+            // 更新到数据库
             WxUserDatabase.Current.Update(sessionInfo.ActiveUser);
 
 
@@ -642,9 +758,8 @@ namespace dp2weixinWeb.ApiControllers
             result.errorInfo = error;
             return result;
         }
-
-
-
+        */
+        #endregion
 
         #region 暂时关闭的一些接口
 
@@ -672,11 +787,10 @@ namespace dp2weixinWeb.ApiControllers
         */
 
 
-        // 2022/07/20 出于安全性，先关闭此接口
-        /*
+        // todo 必须先登录，或者传了管理员帐号和密码
         // 获取全部绑定账户，包括读者与工作人员
         [HttpGet]
-        public WxUserResult Get()
+        public WxUserResult GetAll()
         {
             //dp2WeiXinService.Instance.WriteLog1("WxUserController.Get()开始");
 
@@ -693,7 +807,7 @@ namespace dp2weixinWeb.ApiControllers
             result.users = list;
             return result;
         }
-        */
+
 
         #endregion
     }
