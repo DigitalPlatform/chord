@@ -278,7 +278,6 @@
     <Compile Include="ApiControllers\LibMessageApiController.cs" />
     <Compile Include="ApiControllers\BiblioApiController.cs" />
     <Compile Include="ApiControllers\BorrowInfoApiController.cs" />
-    <Compile Include="ApiControllers\LibSettingApiController.cs" />
     <Compile Include="ApiControllers\LibrarySettingApiController.cs" />
     <Compile Include="ApiControllers\PatronApiController.cs" />
     <Compile Include="ApiControllers\ReservationApiController.cs" />
