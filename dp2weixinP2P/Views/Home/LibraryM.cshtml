@@ -88,7 +88,7 @@
             model.librarys.removeAll();
 
             // 调web api
-            var url = "/api/LibrarySettingApi";
+            var url = "/api2/LibrarySettingApi/GetAll";
             sendAjaxRequest(url, "GET", function (data) {
 
                 for (var i = 0; i < data.length; i++) {
@@ -120,7 +120,7 @@
             showMaskLayer();
 
             //alert("remove-"+item.libId);
-            var url = "/api2/LibrarySettingApi/Delete?userName=&password=&id=" + item.id;
+            var url = "/api2/LibrarySettingApi/DeleteLib?userName=&password=&libId=" + item.id;
             sendAjaxRequest(url, "DELETE", function (result) {
                 //getAllLib();
 
@@ -160,10 +160,10 @@
         }
 
 
-
-        function detectUser()
+        // 检查mserver帐户是否存在
+        function CheckMserverUser()
         {
-            //alert("detectUser 1");
+            //alert("CheckMserverUser 1");
             // 微信端本方账户
             var wxUserName = model.editor.wxUserName().trim();
             if (wxUserName == "") {
@@ -192,7 +192,7 @@
             showMaskLayer();
 
             //alert("1");
-            var url = "/api2/LibrarySettingApi/DetectUser?username=" + wxUserName
+            var url = "/api2/LibrarySettingApi/CheckMserverUser?userName=" + wxUserName
                 +"&password="+wxPassword;
             sendAjaxRequest(url, "POST", function (result) {
                 // 关闭等待层
@@ -273,11 +273,11 @@
             //var index = loadLayer();
             showMaskLayer();
 
-            var url = "/api/LibrarySettingApi?username=" + encodeURIComponent(wxUserName)
+            var url = "/api2/LibrarySettingApi/CreateMserverUser?userName=" + encodeURIComponent(wxUserName)
                 + "&password=" + encodeURIComponent(wxPassword)
             + "&department=" + encodeURIComponent(libName)
-            + "&mUsername=" +encodeURIComponent(mUsername) 
-            + "&mPassword=" + encodeURIComponent(mPassword);
+                + "&supervisorUsername=" +encodeURIComponent(mUsername)
+                + "&supervisorPassword=" + encodeURIComponent(mPassword);
 
             sendAjaxRequest(url, "POST", function (result) {
                 // 关闭等待层
@@ -419,7 +419,7 @@
             }
             else {
                 actionType = "POST";
-                url = "/api2/LibrarySettingApi/ChangeLib?userName=&password=&id=" + id;
+                url = "/api2/LibrarySettingApi/ChangeLib?userName=&password=&libId=" + id;
                 //alert(url);
             }
             //alert("id=["+id+"]");
@@ -607,6 +607,7 @@
         })
 
 
+        // 根据capo_xxx获取图书馆名称
         function getLibName()
         {
             
@@ -622,7 +623,7 @@
                 showMaskLayer();
 
                 //GetLibName api
-                var url = "/api/LibrarySettingApi?capoUserName=" + capo
+                var url = "/api2/LibrarySettingApi/GetLibNameByMserverUser?capoUserName=" + capo
                 sendAjaxRequest(url, "POST", function (result) {
                     // 关闭等待层
                     //layer.close(index);
@@ -822,7 +823,7 @@
             </div>
         </div>
         <div class="mui-button-row">
-            <button type="button" class="mui-btn mui-btn-primary" onclick="detectUser()">检测</button>&nbsp;&nbsp;
+            <button type="button" class="mui-btn mui-btn-primary" onclick="CheckMserverUser()">检测</button>&nbsp;&nbsp;
             <button type="button" class="mui-btn mui-btn-primary" onclick="createUser()">创建</button>&nbsp;&nbsp;
 
         </div>

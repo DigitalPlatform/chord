@@ -13462,8 +13462,11 @@ ErrorInfo成员里可能会有报错信息。
             this.LibManager.DeleteLib(id);
 
             // 从地区清单中删除
-            this._areaMgr.DelLib(id, lib.libName);
-            this._areaMgr.Save2Xml();
+            if (lib != null)
+            {
+                this._areaMgr.DelLib(id, lib.libName);
+                this._areaMgr.Save2Xml();
+            }
 
             return result;
 
@@ -13676,14 +13679,14 @@ ErrorInfo成员里可能会有报错信息。
         public bool CreateMserverUser(string username,
             string password,
             string strDepartment,
-            string mUsername,
-            string mPassword,
+            string supervisorUsername,
+            string supervisorPassword,
             out string strError)
         {
             strError = "";
 
-            this.ManagerUserName = mUsername;
-            this.ManagerPassword = mPassword;
+            this.ManagerUserName = supervisorUsername;
+            this.ManagerPassword = supervisorPassword;
 
             MessageConnectionCollection channels = null;
             try

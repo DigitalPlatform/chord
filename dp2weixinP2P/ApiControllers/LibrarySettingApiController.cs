@@ -12,23 +12,115 @@ namespace dp2weixinWeb.ApiControllers
     
     public class LibrarySettingApiController : ApiController
     {
+        #region 获取图书馆配置信息
 
-
-        // 获取所有的图书馆 api/LibrarySettingApi
-        public IEnumerable<LibEntity> Get()
+        // 获取所有的图书馆,不区分区域，平级列举 
+        public IEnumerable<LibEntity> GetAll()
         {
             List<LibEntity> list = LibDatabase.Current.GetLibsInternal();//"*", 0, -1).Result;
             return list;
         }
 
-        // 根据id获取指定图书馆 api/LibrarySettingApi/xxx
-        public LibEntity Get(string id)
+        // 根据id获取指定图书馆
+        public LibEntity GetByLibId(string libId)
         {
-            return dp2WeiXinService.Instance.GetLibById(id);
+            return dp2WeiXinService.Instance.GetLibById(libId);
         }
 
+        // 获取全部图书馆，按地区分类，用于终端用户选择图书馆
+        // 返回Area集合，第一级Area表示地区，第二级Libs/LibModel表示下级的图书馆，是一个集合
+        public IEnumerable<Area> GetAreaLib()
+        {
 
-        // 新建一个图书馆 api/LibrarySettingApi
+            SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
+            //if (sessionInfo.ActiveUser == null)
+            //{
+            //    dp2WeiXinService.Instance.WriteDebug("提交流通API时，发现session失效了。");
+            //}
+
+
+
+            // 获取可访问的图书馆
+            //List<Library> avaiblelibList = dp2WeiXinService.Instance.LibManager.GetLibraryByIds(sessionInfo.libIds);
+
+
+            // 获取该微信帐户绑定了哪些图书馆帐户
+            List<WxUserItem> list = WxUserDatabase.Current.Get(sessionInfo.WeixinId, null, -1);
+
+            // 可显示的区域
+            List<Area> areaList = new List<Area>();
+            // 从所有区域中查找
+            foreach (Area area in dp2WeiXinService.Instance._areaMgr._areas)
+            {
+                List<LibModel> libList = new List<LibModel>();
+                foreach (LibModel lib in area.libs)
+                {
+                    lib.Checked = "";
+                    lib.bindFlag = "";
+
+                    // 如果是到期的图书馆，不显示出来
+                    Library thisLib = dp2WeiXinService.Instance.LibManager.GetLibrary(lib.libId);//.GetLibById(lib.libId);
+                    if (thisLib != null && thisLib.Entity.state == "到期")
+                    {
+                        continue;
+                    }
+
+                    ////如果不在可访问范围，不显示
+                    //if (thisLib != null && avaiblelibList.IndexOf(thisLib) == -1)
+                    //{
+                    //    continue;
+                    //}
+
+                    // 如果从mongodb库没有找到图书馆，不显示
+                    // 有可能是mongodb库删除，但配置文件还没有删除
+                    if (thisLib == null)
+                    {
+                        dp2WeiXinService.Instance.WriteDebug("选择图书馆时，根据[" + lib.libId + "]未找到对应的图书馆");
+                        continue;
+                    }
+
+                    // 加到显示列表
+                    libList.Add(lib);
+
+                    // 检查微信用户是否绑定了这个图书馆
+                    WxUserItem tempUser = null;
+                    //if (this.CheckIsBind(list, lib, out tempUser) == true)  //libs.Contains(lib.libId)
+                    //{
+                    //    if (tempUser.userName != WxUserDatabase.C_Public)
+                    //        lib.bindFlag = " * ";
+                    //}
+
+                    // 当前绑定帐户的图书馆显示为勾中状态
+                    if (sessionInfo.ActiveUser != null)
+                    {
+                        if (lib.libId == sessionInfo.ActiveUser.libId
+                            && lib.libraryCode == sessionInfo.ActiveUser.bindLibraryCode)
+                        {
+                            lib.Checked = " checked ";
+                        }
+                    }
+                }
+
+                // 只有当有下级图书馆时，才显示地区
+                if (libList.Count > 0)
+                {
+                    Area newArea = new Area();
+                    newArea.name = area.name;
+                    newArea.libs = libList;
+                    areaList.Add(newArea);
+                }
+
+            }
+
+            return areaList;
+        }
+
+        #endregion
+
+
+        #region 增，删，改 图书馆
+
+        // 新建一个图书馆
         [HttpPost]
         public LibSetResult CreateLib(string userName, string password, LibEntity item)
         {
@@ -64,9 +156,9 @@ namespace dp2weixinWeb.ApiControllers
 
         }
 
-        // 编辑一个图书馆 api/LibrarySettingApi/xxx
+        // 修改一个图书馆
         [HttpPost]
-        public ApiResult ChangeLib(string userName, string password,string id, LibEntity item)
+        public ApiResult ChangeLib(string userName, string password,string libId, LibEntity item)
         {
             ApiResult result = new ApiResult();
 
@@ -79,12 +171,12 @@ namespace dp2weixinWeb.ApiControllers
                 return result;
             }
 
-            long ret = LibDatabase.Current.Update(id, item);
+            long ret = LibDatabase.Current.Update(libId, item);
 
             if (ret > 0)
             {
                 // 更新内存 2016-9-13 jane
-                dp2WeiXinService.Instance.LibManager.UpdateLib(id);
+                dp2WeiXinService.Instance.LibManager.UpdateLib(libId);
             }
 
             dp2WeiXinService.Instance._areaMgr.SaveLib(item);
@@ -93,9 +185,9 @@ namespace dp2weixinWeb.ApiControllers
             return result;
         }
 
-        //删除指定的图书馆 api/LibrarySettingApi/xxx
+        //删除指定的图书馆 
         [HttpDelete]
-        public ApiResult Delete(string userName, string password, string id)
+        public ApiResult DeleteLib(string userName, string password, string libId)
         {
             ApiResult result = new ApiResult();
 
@@ -108,18 +200,15 @@ namespace dp2weixinWeb.ApiControllers
                 return result;
             }
 
-
-
             // 实际删除图书馆
-             result= dp2WeiXinService.Instance.deleteLib(id);
+             result= dp2WeiXinService.Instance.deleteLib(libId);
 
             
-
             return result;
         }
 
-        // 检查是否已登录
-        public bool CheckIsLogin(string userName, string password,out string error)
+        // 内部函数，检查是否已登录
+        private bool CheckIsLogin(string userName, string password,out string error)
         {
             error = "";
             // 如果参数中传了用户名，优先用用户名和密码进行登录。
@@ -139,40 +228,32 @@ namespace dp2weixinWeb.ApiControllers
             {
 
                 // 检查session中是否有登录标志，主要适用于我爱图书馆后台删除图书馆，没有再输入用户名和密码的地方。
-                // 我们是进入管理界面，先要登录，才能进入。
-                if (CheckLoginBySession() == false)
+                // 我们后台是进入管理界面前，先要登录，才能进入。登录后将登录信息存在了session里，再创建图书馆时，就不需要帐号密码信息了。
+                if (HttpContext.Current.Session[dp2WeiXinService.C_Session_Supervisor] == null
+                    || (bool)HttpContext.Current.Session[dp2WeiXinService.C_Session_Supervisor] == false)
                 {
                     error = "尚未登录";
                     return false;
                 }
+
             }
 
             return true;
         }
 
-        /// <summary>
-        /// 是否是supervisor登录
-        /// </summary>
-        /// <returns></returns>
-        public  bool CheckLoginBySession()
-        {
-            if (HttpContext.Current.Session[dp2WeiXinService.C_Session_Supervisor] != null
-              && (bool)HttpContext.Current.Session[dp2WeiXinService.C_Session_Supervisor] == true)
-            {
-                return true;
-            }
-            return false;
-        }
+        #endregion
 
+
+        #region mserver帐号相关
 
         // 检查mserver帐号是否存在
         [HttpPost]
-        public WxUserResult DetectUser(string username, string password)
+        public WxUserResult CheckMserverUser(string userName, string password)
         {
             WxUserResult result = new WxUserResult();
 
             string strError = "";
-            bool bRet = dp2WeiXinService.Instance.DetectMserverUser(username, password, out strError);
+            bool bRet = dp2WeiXinService.Instance.DetectMserverUser(userName, password, out strError);
             if (bRet == false)
             {
                 result.errorCode = -1;
@@ -184,19 +265,19 @@ namespace dp2weixinWeb.ApiControllers
 
         // 新建一个mserver帐号
         [HttpPost]
-        public WxUserResult CreateUser(string username,
+        public WxUserResult CreateMserverUser(string userName,
             string password,
             string department,
-            string mUsername,
-            string mPassword)
+            string supervisorUsername,
+            string supervisorPassword)
         {
             WxUserResult result = new WxUserResult();
 
             string strError = "";
-            bool bRet = dp2WeiXinService.Instance.CreateMserverUser(username, password,
+            bool bRet = dp2WeiXinService.Instance.CreateMserverUser(userName, password,
                 department,
-                mUsername,
-                mPassword,
+                supervisorUsername,
+                supervisorPassword,
                 out strError);
             if (bRet == false)
             {
@@ -209,7 +290,7 @@ namespace dp2weixinWeb.ApiControllers
 
         // 根据capo_xxx帐户得到图书馆名称
         [HttpPost]
-        public ApiResult GetLibName(string capoUserName)
+        public ApiResult GetLibNameByMserverUser(string capoUserName)
         {
             WxUserResult result = new WxUserResult();
 
@@ -226,5 +307,7 @@ namespace dp2weixinWeb.ApiControllers
 
             return result;
         }
+
+        #endregion
     }
 }
