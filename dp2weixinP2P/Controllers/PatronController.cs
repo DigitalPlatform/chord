@@ -1396,7 +1396,7 @@ namespace dp2weixinWeb.Controllers
                 accountInfo = "(" + accountInfo + ")";
             }
             ViewBag.accountInfo = accountInfo;
-            ViewBag.userId = sessionInfo.ActiveUser.id;
+            //ViewBag.userId = sessionInfo.ActiveUser.id;  在基类中已存在
 
             // 如果location为空，从服务器获取馆藏地信息
             string locationXml = sessionInfo.ActiveUser.location;

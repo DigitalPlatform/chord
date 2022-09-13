@@ -288,7 +288,7 @@ namespace dp2weixinWeb.ApiControllers
         // 删除消息
         // DELETE api/<controller>/5
         [HttpDelete]
-        public WxMessageResult Delete(string weixinId, 
+        public WxMessageResult DeleteMsg(string weixinId, 
             string group, string libId, string msgId, string userName)
         {
             WxMessageResult result = null;

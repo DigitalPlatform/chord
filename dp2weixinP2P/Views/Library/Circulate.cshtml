@@ -470,10 +470,10 @@
                 }
             }
 
-            // userId参数
-            var userId = $("#userId").text();
-            if (userId == null || userId == "") {
-                warnInfo1("userId操作人不能不空。");//, "");
+            // bindUserId参数
+            var bindUserId = $("#bindUserId").text();
+            if (bindUserId == null || bindUserId == "") {
+                warnInfo1("bindUserId操作人不能不空。");//, "");
                 return;
             }
 
@@ -487,7 +487,7 @@
             // 调校验条码web api
             var url = "/api2/ChargeCommandApi/VerifyBarcode?libId=" + libId
                 + "&libraryCode=" + encodeURIComponent(libraryCode)
-                + "&userId=" + userId
+                + "&bindUserId=" + bindUserId
                 + "&barcode=" + encodeURIComponent(barcode)
                 + "&needTransform=0";
             sendAjaxRequest(url, "POST", function (result) {
@@ -604,10 +604,10 @@
 
             var isPatron = $("#isPatron").text();
 
-            // userId参数
-            var userId = $("#userId").text();
-            if (userId == null || userId == "") {
-                alert("userId操作人不能不空。");//, "");
+            // bindUserId参数
+            var bindUserId = $("#bindUserId").text();
+            if (bindUserId == null || bindUserId == "") {
+                alert("bindUserId操作人不能不空。");//, "");
                 return;
             }
 
@@ -625,7 +625,7 @@
                 itemInput: item,
                 userName: userName,
                 isPatron: isPatron,
-                userId: userId
+                bindUserId: bindUserId
             };
 
             sendAjaxRequest(url, "POST", function (cmd) {
@@ -991,7 +991,7 @@
 <span id="isPatron" style="display:none">@ViewBag.isPatron</span>
 <span id="verifyBarcode" style="display:none">@ViewBag.verifyBarcode</span>
 <span id="audioType" style="display:none">@ViewBag.audioType</span>
-<span id="userId" style="display:none">@ViewBag.userId</span>
+<span id="bindUserId" style="display:none">@ViewBag.bindUserId</span>
 
 <input id="_charge_operation" type="hidden" value="@ViewBag.operation">
 <input id="_charge_inputType" type="hidden" value="@ViewBag.inputType">

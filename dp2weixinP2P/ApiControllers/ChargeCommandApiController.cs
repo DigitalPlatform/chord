@@ -62,7 +62,7 @@ namespace dp2weixinWeb.ApiControllers
         // 校验册条码
         public ApiResult VerifyBarcode(string libId,
             string libraryCode,
-            string userId,
+            string bindUserId,
             string barcode,
             int needTransform)
         {
@@ -72,7 +72,7 @@ namespace dp2weixinWeb.ApiControllers
             string resultBarcode="";
             int nRet = dp2WeiXinService.Instance.VerifyBarcode(libId,
                 libraryCode,
-                userId,
+                bindUserId,
                 barcode,
                 needTransform,
                 out resultBarcode,

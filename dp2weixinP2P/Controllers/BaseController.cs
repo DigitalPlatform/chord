@@ -500,9 +500,9 @@ namespace dp2weixinWeb.Controllers
             }
             ViewBag.userName = userName;
             ViewBag.userNameInfo = userNameInfo;
-            ViewBag.bindUserId = sessionInfo.ActiveUser.id;
+            ViewBag.bindUserId = sessionInfo.ActiveUser.id;  //ViewBag.userId
 
-            
+
 
             // 2020-2-29 在配置文件中增加读者库配置
             string patronDbName = "";

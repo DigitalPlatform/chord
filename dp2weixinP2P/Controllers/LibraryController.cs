@@ -100,7 +100,7 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
 
-            ViewBag.userId = sessionInfo.ActiveUser.id;
+            //ViewBag.userId = sessionInfo.ActiveUser.id; 在base页面中已有
 
             // 获取消息
             List<UserMessageItem> list =  UserMessageDb.Current.GetByUserId(sessionInfo.ActiveUser.id);
@@ -177,7 +177,7 @@ namespace dp2weixinWeb.Controllers
             }
 
             ViewBag.userName = userName;
-            ViewBag.userId = sessionInfo.ActiveUser.id;
+            //ViewBag.userId = sessionInfo.ActiveUser.id;  //在基类中已存在
             ViewBag.Location = SubLib.ParseToView(sessionInfo.ActiveUser.selLocation);
             ViewBag.verifyBarcode = sessionInfo.ActiveUser.verifyBarcode;
             ViewBag.audioType = sessionInfo.ActiveUser.audioType;

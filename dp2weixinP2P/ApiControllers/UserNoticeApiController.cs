@@ -42,11 +42,11 @@ namespace dp2weixinWeb.ApiControllers
 
         // 删除消息
         [HttpPost]
-        public ApiResult DeleteNotice(string userId,string id)
+        public ApiResult DeleteNotice(string bindUserId, string id)
         {
             ApiResult result = new ApiResult();
 
-            this.userMessageDb.Delete(userId, id);
+            this.userMessageDb.Delete(bindUserId, id);
 
             return result;
         }

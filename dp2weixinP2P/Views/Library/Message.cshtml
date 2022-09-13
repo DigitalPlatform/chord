@@ -18,21 +18,22 @@
                 return false;
             }
 
-            var userId = $("#_userId").text();
-            if (userId == "") {
-                alert("异常情况：userId为空");
+            var bindUserId = $("#bindUserId").text();
+            if (bindUserId == "") {
+                alert("异常情况：bindUserId为空");
                 return;
             }
 
+            //???
             if (id != "" && id != null)
-                userId = "";
+                bindUserId = "";
 
             //显示等待图层
             //var index = loadLayer();
             showMaskLayer();
 
             //调接口删除消息
-            var url = "/api2/UserNoticeApi/?userId=" + userId + "&id=" + id;
+            var url = "/api2/UserNoticeApi/?bindUserId=" + bindUserId + "&id=" + id;
             sendAjaxRequest(url, "POST", function (result) { 
 
                                     // 关闭等待层
@@ -76,7 +77,7 @@
 
 
 
-<span id="_userId" style="display:none">@ViewBag.userId</span>
+<span id="bindUserId" style="display:none">@ViewBag.bindUserId</span>
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {
     <div class="mui-content-padded">
