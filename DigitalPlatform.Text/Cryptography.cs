@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace DigitalPlatform.Text
 {
+#if REMOVED
     /// <summary>
     /// 和加密有关的函数
     /// </summary>
@@ -93,4 +94,5 @@ namespace DigitalPlatform.Text
         }
     }
 
+#endif
 }
