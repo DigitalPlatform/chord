@@ -33,7 +33,7 @@ namespace dp2weixinWeb.ApiControllers
         //searchRet.isCanNext = bNext;  //是否有下页
         //searchRet.apiResult.errorCode = lRet;  //-1表示出错，0未命中，其它表示命中总数。
         [HttpGet]
-        public SearchBiblioResult Search(string loginUserName,
+        public SearchBiblioResult SearchBiblio(string loginUserName,
             string loginUserType,
             string weixinId,
             string libId, 

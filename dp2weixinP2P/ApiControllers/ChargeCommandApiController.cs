@@ -59,6 +59,7 @@ namespace dp2weixinWeb.ApiControllers
             }
         }
 
+        // 校验册条码
         public ApiResult VerifyBarcode(string libId,
             string libraryCode,
             string userId,

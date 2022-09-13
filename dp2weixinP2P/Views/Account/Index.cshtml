@@ -23,7 +23,7 @@
             //alert("2");
 
             // 调web api
-            var url = "/api2/wxuserApi/GetBindUsersByClientId?clientId=" + weixinId;
+            var url = "/api2/wxuserApi/GetBindUsers?weixinId=" + weixinId;
             sendAjaxRequest(url, "GET", function (result) {
 
                //alert("3");
@@ -146,7 +146,7 @@
                 name = item.userName;
 
             // 调ActiveUser api
-            var url = "/api2/wxuserApi/ActiveUser?clientId=" + item.weixinId + "&bindUserId=" + item.id;
+            var url = "/api2/wxuserApi/ActiveUser?weixinId=" + item.weixinId + "&bindUserId=" + item.id;
             sendAjaxRequest(url, "POST", function () {
 
                 // 因为有可能更新当前图书馆，所以reload保险，todo

@@ -35,7 +35,7 @@
             showLoading();
 
             // 调patron发送验证码接口
-            var url = "/api/patronapi?libId=" + encodeURIComponent(libId)
+            var url = "/api2/patronapi/GetVerifyCode?libId=" + encodeURIComponent(libId)
                 + "&phone=" + encodeURIComponent(phone)
 
             //alert(url);
@@ -102,7 +102,7 @@
             }, 1000);
         }
 
-        // 保存读者信息
+        // 修改读者手机号
         function changePhone() {
             //alert("1");
 
@@ -121,9 +121,6 @@
                 return;
             }
             //alert(recPath);
-
-
-
 
             // 手机号
             var phone = $("#txtPhone").val();
@@ -158,15 +155,11 @@
                 phone = phone + "," + tel;
             }
 
-
-
-
-
             //显示等待图层
             showMaskLayer();
 
             // 调Patron的SetPatron()
-            var url = "/api/PatronApi?libId=" + libId
+            var url = "/api2/PatronApi/SetPatron?libId=" + libId
                 + "&userName=" //+ encodeURIComponent(userName)
                 + "&opeType=changeByPatron"
                 + "&recPath=" + encodeURIComponent(recPath)

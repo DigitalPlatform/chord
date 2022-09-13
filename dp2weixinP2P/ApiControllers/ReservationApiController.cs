@@ -11,9 +11,10 @@ namespace dp2weixinWeb.ApiControllers
     public class ReservationApiController : ApiController
     {
 
+        // 预约
         // POST api/<controller>
         [HttpPost]
-        public ItemReservationResult Post(string weixinId,
+        public ItemReservationResult Reserve(string weixinId,
             string libId,
             string patron,
             string items,

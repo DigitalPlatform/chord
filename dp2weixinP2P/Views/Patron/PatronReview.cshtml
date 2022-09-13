@@ -67,7 +67,7 @@
             showLoading();
 
             // 自动生成一个增量的证条码号 IncrementPatronBarcode
-            var url = "/api/patronapi?libId=" + encodeURIComponent(libId)
+            var url = "/api2/patronapi/IncrementPatronBarcode?libId=" + encodeURIComponent(libId)
                 + "&libraryCode=" + encodeURIComponent(libraryCode)
 
             //alert(url);
@@ -220,7 +220,7 @@
 
             var bMergeInfo = true;
             // 调Patron的SetPatron()
-            var url = "/api/PatronApi?libId=" + libId
+            var url = "/api2/PatronApi/SetPatron?libId=" + libId
                 + "&userName=" + encodeURIComponent(userName)
                 + "&opeType=" + encodeURIComponent(opeType)
                 + "&recPath=" + encodeURIComponent(recPath)

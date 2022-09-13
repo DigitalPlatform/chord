@@ -50,7 +50,7 @@
             showLoading();
 
             // 调patron发送验证码接口
-            var url = "/api/patronapi?libId=" + encodeURIComponent(libId)
+            var url = "/api2/patronapi/GetVerifyCode?libId=" + encodeURIComponent(libId)
                 + "&phone=" + encodeURIComponent(phone)
 
             //alert(url);
@@ -228,7 +228,7 @@
             showMaskLayer();
 
             // 调Patron的SetPatron()
-            var url = "/api/PatronApi?libId=" + libId
+            var url = "/api2/PatronApi/SetPatron?libId=" + libId
                 + "&userName=" //+ encodeURIComponent(userName)
                 + "&opeType=" + encodeURIComponent(opeType)  // 2020/6/2增加了编辑的功能，审核不通过时，读者可以编辑重新提交。
                 + "&recPath=" + encodeURIComponent(recPath)

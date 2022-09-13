@@ -6117,6 +6117,11 @@ ErrorInfo成员里可能会有报错信息。
                 strError = "未找到id为[" + libId + "]的图书馆定义。";
                 return -1;
             }
+            if (string.IsNullOrEmpty(weixinId) == true)
+            {
+                strError = "weixinId参数不能为空";
+                return -1;
+            }
 
             // 保存到mongodb表中的图书馆名称，
             // 如果绑定时选择的分馆，则存储分馆名称，用于显示和发通知提醒

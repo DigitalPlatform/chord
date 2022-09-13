@@ -251,7 +251,7 @@ function loadJs(sid, jsurl, callback) {
             showMaskLayer();
 
             // 调SetItem api
-            var url = "/api/BiblioApi?&loginUserName=" + encodeURIComponent(worker)
+            var url = "/api2/BiblioApi/SetItem?&loginUserName=" + encodeURIComponent(worker)
                 + "&libId=" + libId
                 + "&biblioPath=" + encodeURIComponent(biblioPath)
                 + "&action=new";

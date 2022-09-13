@@ -70,8 +70,9 @@
             //var index = loadLayer();
             showMaskLayer();
 
-            var url = "/api/BorrowInfoApi?libId=" + encodeURIComponent(libId)
-                + "&action=renew"
+            var url = "/api2/BorrowInfoApi/Renew?weixinId=" //目前没用到weixinId，传空即可
+                + "&libId=" + encodeURIComponent(libId)
+                //+ "&action=renew"
                 + "&patron=" + encodeURIComponent(patronBarcode)
                 + "&item=" + encodeURIComponent(itemBarcode)
             // 调api

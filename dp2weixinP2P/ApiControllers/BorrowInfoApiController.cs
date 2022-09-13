@@ -11,26 +11,15 @@ namespace dp2weixinWeb.ApiControllers
     public class BorrowInfoApiController : ApiController
     {
 
-        //// GET api/<controller>
-        //public BorrowInfoResult GetBorrowInfos(string libId,
-        //    string patronBarcode)
-        //{
-
-        //    return  dp2WeiXinService.Instance.GetPatronBorrowInfos1(libId,
-        //         patronBarcode);
-        //}
-
-        // POST api/<controller>
+        // 续借
         [HttpPost]
-        public ApiResult Post(string libId,
-            string action,
+        public ApiResult Renew(string weixinId,   //前端id，目前没用到
+            string libId,
             string patron,
             string item)
         {
             ApiResult result = new ApiResult();
 
-            if (action == "renew")
-            { 
             string strError = "";
             int nRet = dp2WeiXinService.Instance.Renew1(libId,
                 patron,
@@ -38,7 +27,7 @@ namespace dp2weixinWeb.ApiControllers
                 out strError);
             result.errorCode = nRet;
             result.errorInfo = strError;
-        }
+
 
             return result;
         }

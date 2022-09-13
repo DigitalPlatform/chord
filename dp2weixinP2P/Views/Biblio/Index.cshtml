@@ -394,7 +394,7 @@ function loadJs(sid, jsurl, callback) {
             //alert(loginUserType);
 
             // 调书目Search web api
-            var url = "/api/biblioapi?loginUserName=" + encodeURIComponent(loginUserName)
+            var url = "/api2/biblioapi/SearchBiblio?loginUserName=" + encodeURIComponent(loginUserName)
                 + "&loginUserType=" + encodeURIComponent(loginUserType)
                 + "&weixinId=" + encodeURIComponent(weixinId)
                 + "&libId=" + encodeURIComponent(libId)

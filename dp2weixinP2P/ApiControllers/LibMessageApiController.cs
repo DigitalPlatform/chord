@@ -14,6 +14,7 @@ namespace dp2weixinWeb.ApiControllers
 {
     public class LibMessageApiController : ApiController
     {
+        // 获取模板
         public ApiResult GetTemplate(string group,
             string libId,
             string subject)
@@ -78,7 +79,7 @@ namespace dp2weixinWeb.ApiControllers
         }
 
         /// <summary>
-        /// 
+        /// 获取栏目
         /// </summary>
         /// <param name="weixinId"></param>
         /// <param name="libId"></param>
@@ -124,7 +125,7 @@ namespace dp2weixinWeb.ApiControllers
 
 
         /// <summary>
-        /// 
+        /// 获取消息
         /// </summary>
         /// <param name="weixinId"></param>
         /// <param name="libId"></param>
@@ -230,7 +231,8 @@ namespace dp2weixinWeb.ApiControllers
         }
 
         // 新增消息
-        public WxMessageResult Post(string weixinId, 
+        [HttpPost]
+        public WxMessageResult CreateMsg(string weixinId, 
             string group, 
             string libId, 
             string parameters, 
@@ -258,56 +260,9 @@ namespace dp2weixinWeb.ApiControllers
                 parameters );
         }
 
-        public WxMessageResult CoverMessage(string weixinId,
-            string group,
-            string libId,
-            MessageItem item,
-            string style,
-            string parameters)
-                {
-
-                    WxMessageResult result = new WxMessageResult();
-                    string strError = "";
-
-                    if (HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo] == null)
-                    {
-                        result.errorInfo = "session失效。";
-                        result.errorCode = -1;
-                        return result;
-                    }
-                    SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
-                    if (sessionInfo == null)
-                    {
-                        result.errorInfo = "session失效2。";
-                        result.errorCode = -1;
-                        return result;
-                    }
-
-                    MessageItem returnItem = null;
-                    int nRet = dp2WeiXinService.Instance.CoverMessage(sessionInfo.ActiveUser,
-                        weixinId,
-                        group,
-                        libId,
-                        item,
-                        style,
-                        parameters,
-                        out returnItem,
-                        out strError);
-                    if (nRet == -1)
-                    {
-                        result.errorCode = -1;
-                        result.errorInfo = strError;
-                        return result;
-                    }
-
-                    List<MessageItem> list = new List<MessageItem>();
-                    list.Add(returnItem);
-                    result.items = list;
-                    return result;
-                }
-
         // 修改消息
-        public WxMessageResult Put(string weixinId,
+        [HttpPost]
+        public WxMessageResult ChangeMsg(string weixinId,
             string group,
             string libId,
             MessageItem item)
@@ -326,6 +281,11 @@ namespace dp2weixinWeb.ApiControllers
                 group, libId, item, "change", "");
         }
 
+
+
+
+
+        // 删除消息
         // DELETE api/<controller>/5
         [HttpDelete]
         public WxMessageResult Delete(string weixinId, 
@@ -345,5 +305,57 @@ namespace dp2weixinWeb.ApiControllers
             }
             return result;
         }
+
+
+        // 处理消息内部函数，不分开为接口。
+        private WxMessageResult CoverMessage(string weixinId,
+            string group,
+            string libId,
+            MessageItem item,
+            string style,
+            string parameters)
+        {
+
+            WxMessageResult result = new WxMessageResult();
+            string strError = "";
+
+            if (HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo] == null)
+            {
+                result.errorInfo = "session失效。";
+                result.errorCode = -1;
+                return result;
+            }
+            SessionInfo sessionInfo = (SessionInfo)HttpContext.Current.Session[WeiXinConst.C_Session_sessioninfo];
+            if (sessionInfo == null)
+            {
+                result.errorInfo = "session失效2。";
+                result.errorCode = -1;
+                return result;
+            }
+
+            MessageItem returnItem = null;
+            int nRet = dp2WeiXinService.Instance.CoverMessage(sessionInfo.ActiveUser,
+                weixinId,
+                group,
+                libId,
+                item,
+                style,
+                parameters,
+                out returnItem,
+                out strError);
+            if (nRet == -1)
+            {
+                result.errorCode = -1;
+                result.errorInfo = strError;
+                return result;
+            }
+
+            List<MessageItem> list = new List<MessageItem>();
+            list.Add(returnItem);
+            result.items = list;
+            return result;
+        }
     }
+
+    
 }

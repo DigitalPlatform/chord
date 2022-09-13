@@ -83,20 +83,20 @@ namespace dp2weixinWeb.ApiControllers
         // web浏览器来源的，~~开头
         // 微信公众号来源的，weixinId@公众号appid
         // 小程序来源的：!!用户id
-        public WxUserResult GetBindUsersByClientId(string clientId)
+        public WxUserResult GetBindUsers(string weixinId)
         {
             WxUserResult result = new WxUserResult();
 
             // 2022/07/25 必须给weixinId传参数，否则导致获取全部帐号。
-            if (string.IsNullOrEmpty(clientId) == true)
+            if (string.IsNullOrEmpty(weixinId) == true)
             { 
                 result.errorCode= -1;
-                result.errorInfo = "参数clientId不能为空";
+                result.errorInfo = "参数weixinId不能为空";
                 return result;
             }
 
 
-            List<WxUserItem> list = wxUserDb.Get(clientId, null, -1);
+            List<WxUserItem> list = wxUserDb.Get(weixinId, null, -1);
             foreach (WxUserItem user in list)
             {
                 // 把读者xml删除，否则多个帐户时传输数据量大
@@ -163,10 +163,10 @@ namespace dp2weixinWeb.ApiControllers
         }
 
         // 设为当前活动账户
-        // clientId:前端用户的唯一id
+        // weixinId:前端用户的唯一id
         // bindUserId:绑定帐户的记录id
         [HttpPost]
-        public ApiResult ActiveUser(string clientId, string bindUserId)
+        public ApiResult ActiveUser(string weixinId, string bindUserId)
         {
             ApiResult result = new ApiResult();
             string error = "";
@@ -183,8 +183,8 @@ namespace dp2weixinWeb.ApiControllers
                 goto ERROR1;
             }
 
-            if (clientId == "null")
-                clientId = "";
+            if (weixinId == "null")
+                weixinId = "";
 
             if (bindUserId == "null")
                 bindUserId = "";
@@ -200,7 +200,7 @@ namespace dp2weixinWeb.ApiControllers
             WxUserDatabase.Current.SetActivePatron1(user.weixinId, user.id);
 
             //更新session
-            int nRet = sessionInfo.GetActiveUser(clientId, out error);
+            int nRet = sessionInfo.GetActiveUser(weixinId, out error);
             if (nRet == -1)
                 goto ERROR1;
 
@@ -222,7 +222,7 @@ namespace dp2weixinWeb.ApiControllers
         // weixinId:前端用户的唯一id
         // libId:图书馆id，如果是分馆，格式为:图书馆id~分馆代码
         [HttpPost]
-        public ApiResult SetLibId(string clientId, string libId)
+        public ApiResult SetLibId(string weixinId, string libId)
         {
             ApiResult result = new ApiResult();
             string error = "";
@@ -260,7 +260,7 @@ namespace dp2weixinWeb.ApiControllers
 
             // 先看看有没有public的,有的话，先删除
             //注意这里不过滤图书馆，就是说临时选择的图书馆，如果未绑定正式帐户，则会在选择下一个图书馆时被清除
-            List<WxUserItem> publicList = WxUserDatabase.Current.GetWorkers(clientId, "", WxUserDatabase.C_Public);
+            List<WxUserItem> publicList = WxUserDatabase.Current.GetWorkers(weixinId, "", WxUserDatabase.C_Public);
             if (publicList.Count > 0)
             {
                 //dp2WeiXinService.Instance.WriteDebug("删除了" + publicList.Count + "个临时public帐户");
@@ -273,7 +273,7 @@ namespace dp2weixinWeb.ApiControllers
 
             // 如果微信用户已经绑定了该图书馆的帐户，则设这个馆第一个帐户为活动帐户
             WxUserItem user = null;
-            List<WxUserItem> list = WxUserDatabase.Current.Get(clientId, libId, -1); //注意这里不区分分馆,在下面还是要看分馆
+            List<WxUserItem> list = WxUserDatabase.Current.Get(weixinId, libId, -1); //注意这里不区分分馆,在下面还是要看分馆
             if (list.Count > 0)
             {
                 List<WxUserItem> foundList = new List<WxUserItem>();
@@ -291,7 +291,7 @@ namespace dp2weixinWeb.ApiControllers
             if (user == null)
             {
                 // 创建一个public帐号
-                user = WxUserDatabase.Current.CreatePublic(clientId, libId, bindLibraryCode);
+                user = WxUserDatabase.Current.CreatePublic(weixinId, libId, bindLibraryCode);
             }
 
             // 设为当前帐户
@@ -319,7 +319,7 @@ namespace dp2weixinWeb.ApiControllers
         // name:姓名
         // tel:手机号
         [HttpPost]
-        public ApiResult ResetPassword(string clientId,
+        public ApiResult ResetPassword(string weixinId,
             string libId,
             //string libraryCode,
             string name, 
@@ -329,7 +329,7 @@ namespace dp2weixinWeb.ApiControllers
 
             string strError = "";
             string patronBarcode = "";
-            int nRet = dp2WeiXinService.Instance.ResetPassword(//clientId,
+            int nRet = dp2WeiXinService.Instance.ResetPassword(//weixinId,
                 libId,
                 //libraryCode,
                 name,
@@ -716,7 +716,7 @@ namespace dp2weixinWeb.ApiControllers
         /// <param name="item"></param>
         /// <returns></returns>
         [HttpPost]
-        public ApiResult Setting(string clientId, WxUserItem input)
+        public ApiResult Setting(string weixinId, WxUserItem input)
         {
             
             ApiResult result = new ApiResult();

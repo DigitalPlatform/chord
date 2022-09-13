@@ -73,7 +73,7 @@
             showLoading();
 
             // 调GetPatron
-            var url = "/api/patronapi?libId=" + encodeURIComponent(libId)
+            var url = "/api2/patronapi/GetPatron?libId=" + encodeURIComponent(libId)
                 + "&userName=" + encodeURIComponent(userName)
                 + "&patronBarcode=" + encodeURIComponent(patronBarcode)
             //alert(url);
@@ -216,7 +216,7 @@
             showMaskLayer();
 
             // 调Patron的SetPatron()
-            var url = "/api/PatronApi?libId=" + libId
+            var url = "/api2/PatronApi/SetPatron?libId=" + libId
                 + "&userName=" + encodeURIComponent(userName)
                 + "&opeType=" + encodeURIComponent(opeType)
                 + "&recPath=" + encodeURIComponent(recPath)

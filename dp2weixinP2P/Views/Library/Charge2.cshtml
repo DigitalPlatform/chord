@@ -525,7 +525,7 @@
             //显示等待图层
             showLoading();
             // 调校验条码web api
-            var url = "/api/ChargeCommandApi?libId=" + libId
+            var url = "/api2/ChargeCommandApi/VerifyBarcode?libId=" + libId
             + "&libraryCode=" + encodeURIComponent(libraryCode)
             + "&userId=" + userId
             + "&barcode=" + encodeURIComponent(barcode)
@@ -640,8 +640,8 @@
             //显示等待图层
             showLoading();
 
-            //调 web api
-            var url = "/api/ChargeCommandApi?weixinId=" + weixinId
+            //调 web api进行借还
+            var url = "/api2/ChargeCommandApi/CreateCmd?weixinId=" + weixinId
                 + "&libId=" + libId
                 + "&libraryCode=" + encodeURIComponent(libraryCode)
                 + "&needTransfrom=" + needTransfrom
@@ -931,8 +931,8 @@
 
             // 先删除老数据
 
-            // 调web api
-            var url = "/api/ChargeCommandApi?libId=" + libId;
+            // 调web api，获取前面执行过的借还操作历史
+            var url = "/api2/ChargeCommandApi/GetCommands?libId=" + libId;
             sendAjaxRequest(url, "GET", function (result) {
 
                 // 关闭等待层

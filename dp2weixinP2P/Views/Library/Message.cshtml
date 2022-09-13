@@ -31,9 +31,9 @@
             //var index = loadLayer();
             showMaskLayer();
 
-            //alert("remove-"+item.libId);
-            var url = "/api/UserMessageApi?userId=" + userId + "&id=" + id;
-            sendAjaxRequest(url, "GET", function (result) {
+            //调接口删除消息
+            var url = "/api2/UserNoticeApi/?userId=" + userId + "&id=" + id;
+            sendAjaxRequest(url, "POST", function (result) { 
 
                                     // 关闭等待层
                 hideMaskLayer();

@@ -168,6 +168,14 @@ namespace dp2weixinWeb.ApiControllers
             {
                 // 使用约定的wx_registerByPatron
                 loginInfo = new LoginInfo("wx_registerByPatron", false);
+
+                // 新增读者时，要传入weixinid
+                if (string.IsNullOrEmpty(weixinId) == true)
+                {
+                    result.errorCode = -1;
+                    result.errorInfo = "缺少前端id参数（weixinId)";
+                    return result;
+                }
             }
             else if (opeType == dp2WeiXinService.C_OpeType_changeByPatron)
             {

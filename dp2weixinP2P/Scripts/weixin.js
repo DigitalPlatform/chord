@@ -132,7 +132,7 @@ function deleteItem(worker,libId,biblioPath,itemPath,barcode) {
     showMaskLayer();
 
     // 调 SetItem api
-    var url = "/api/BiblioApi?loginUserName=" + encodeURIComponent(worker)
+    var url = "/api2/BiblioApi/SetItem?loginUserName=" + encodeURIComponent(worker)
         + "&libId=" + libId
         + "&biblioPath=" + encodeURIComponent(biblioPath)
         + "&action=delete"
@@ -201,7 +201,7 @@ function getDetail(libId, recPath, obj, from,biblioName) {
 
     // 2021/8/2 改为从前端传登录帐号
     // 调GetBiblioDetail  api
-    var url = "/api/biblioApi?loginUserName=" + encodeURIComponent(loginUserName)
+    var url = "/api2/biblioApi/GetBiblioDetail?loginUserName=" + encodeURIComponent(loginUserName)
         + "&loginUserType=" + encodeURIComponent(loginUserType)
         + "&weixinId=" + encodeURIComponent(weixinId)
         + "&libId=" + encodeURIComponent(libId)
@@ -464,7 +464,7 @@ function reservation(obj, barcode, style) {
     //showMaskLayer();
     
 
-    var url = "/api/ReservationApi?weixinId=" + weixinId
+    var url = "/api2/ReservationApi/Reserve?weixinId=" + weixinId
         + "&libId=" + encodeURIComponent(libId)
         + "&patron=" + encodeURIComponent(patron)
         + "&items=" + encodeURIComponent(paramBarcord)
@@ -574,8 +574,8 @@ function renew(itemBarcode) {
     //var index = loadLayer();
     showLoading();
 
-    var url = "/api/BorrowInfoApi?libId=" + encodeURIComponent(libId)
-        + "&action=renew"
+    var url = "/api2/BorrowInfoApi/Renew?weixinId=" //目前没用到weixinId，传空即可
+        +"&libId = " + encodeURIComponent(libId)
         + "&patron=" + encodeURIComponent(patronBarcode)
         + "&item=" + encodeURIComponent(paramItemBarcord)
     // 调api
@@ -694,7 +694,7 @@ function fillPending() {
         var libId = o.children("span").text();
 
         // 调GetBiblioSummary api
-        var url = "/api/biblioApi?loginUserName=" + encodeURIComponent(loginUserName)
+        var url = "/api2/biblioApi/GetBiblioSummary?loginUserName=" + encodeURIComponent(loginUserName)
             + "&loginUserType=" + encodeURIComponent(loginUserType)
             + "&id=" + encodeURIComponent(myvalue)
             + "&format=summary"
@@ -727,7 +727,7 @@ function fillPending() {
         var libId = o.children("span").text();
 
         // 调GetBiblioSummary api
-        var url = "/api/biblioApi?loginUserName=" + encodeURIComponent(loginUserName)
+        var url = "/api2/biblioApi/GetBiblioSummary?loginUserName=" + encodeURIComponent(loginUserName)
             + "&loginUserType=" + encodeURIComponent(loginUserType)
             + "&id=" + encodeURIComponent(myvalue)
             + "&format=more-summary"
@@ -759,8 +759,8 @@ function fillPending() {
             return;
         }
 
-        // 调web api
-        var url = "/api/LibMessageApi?weixinId=" //+ weixinId
+        // 调web api获取消息
+        var url = "/api2/LibMessageApi/GetMessage?weixinId=" //+ weixinId
                     + "&group=" + group //gn:_lib_homePage"
                     + "&libId=" + libId
                     + "&msgId="
@@ -972,7 +972,7 @@ function deleteMsg(msgId) {
     //var index = loadLayer();
     showLoading();
 
-    var url = "/api/LibMessageApi?weixinId="+weixinId
+    var url = "/api2/LibMessageApi/DeleteMsg?weixinId="+weixinId
         + "&libId=" +  encodeURIComponent(libId)
         + "&group=" + encodeURIComponent(group)
         + "&msgId=" + msgId
@@ -1270,17 +1270,19 @@ function save(msgId) {
     }
     //alert(subject);
 
-
-    var action = "";
+    var url = "";///api2/LibMessageApi";
+    var action = "POST"; //2022/09/13 new和change都改为post
     var parameters = "";
     if (msgId == "new") {
-        action = "POST";
+        url = "/api2/LibMessageApi/CreateMsg";
+        //action = "POST";
         if (group == "gn:_lib_homePage" || group == "gn:_dp_home") {
             parameters = "checkSubjectIndex,";
         }
     }
     else {
-        action = "PUT";
+       // action = "PUT";
+        url = "/api2/LibMessageApi/ChangeMsg";
     }
 
 
@@ -1338,7 +1340,7 @@ function save(msgId) {
         return;
     }
 
-    var url = "/api/LibMessageApi?weixinId="+weixinId
+    var url = url+ "?weixinId=" + weixinId
         + "&group=" + group
         + "&libId=" + libId
         + "&parameters=" + parameters;
@@ -1550,8 +1552,8 @@ function getSubjectHtml(msgId) {
     if (selSubject == null)
         selSubject = "";
 
-    // 调web api
-    var url = "/api/LibMessageApi?weixinId=" + weixinId
+    // 调web api 获取栏目
+    var url = "/api2/LibMessageApi/GetSubject?weixinId=" + weixinId
         + "&group=" + encodeURIComponent(group)
         + "&libId=" + libId
     + "&selSubject=" + encodeURIComponent(selSubject)
@@ -1687,7 +1689,7 @@ function cancelEdit(msgId) {
     string style)
     */
     // 调web api
-    var url = "/api/LibMessageApi?weixinId=" + weixinId
+    var url = "/api2/LibMessageApi/GetMessage?weixinId=" + weixinId
                 + "&group=" + group
                 + "&libId=" + libId
                 + "&msgId=" + msgId
@@ -1814,7 +1816,7 @@ function gotoEdit(msgId) {
     */
     // 调web api
     // alert("gotoEdit 1");
-    var url = "/api/LibMessageApi?weixinId=" + weixinId
+    var url = "/api2/LibMessageApi/GetMessage?weixinId=" + weixinId
                 + "&group=" + group
                 + "&libId=" + libId
                 + "&msgId=" + msgId
@@ -1926,8 +1928,8 @@ function getTemplate(subject) {
     //var index = loadLayer();
     showMaskLayer();
 
-    // 调web api
-    var url = "/api/LibMessageApi?group=" + encodeURIComponent(group)
+    // 调web api 获取模板
+    var url = "/api2/LibMessageApi/GetTemplate?group=" + encodeURIComponent(group)
         + "&libId=" + libId
     + "&subject=" + encodeURIComponent(subject);
     //alert(url);

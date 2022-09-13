@@ -12,13 +12,14 @@ using System.Net.Http.Headers;
 
 namespace dp2weixinWeb.ApiControllers
 {
-    public class UserMessageApiController : ApiController
+    // 用户通知
+    public class UserNoticeApiController : ApiController
     {
         private UserMessageDb userMessageDb = UserMessageDb.Current;
 
-        // 获取全部绑定账户，包括读者与工作人员
+        // 获取全部消息
         [HttpGet]
-        public UserMessageResult Get(string userId)
+        public UserMessageResult GetNotices(string userId)
         {
             //dp2WeiXinService.Instance.WriteLog1("WxUserController.Get()开始");
 
@@ -40,8 +41,8 @@ namespace dp2weixinWeb.ApiControllers
 
 
         // 删除消息
-        [HttpGet]
-        public ApiResult Delete(string userId,string id)
+        [HttpPost]
+        public ApiResult DeleteNotice(string userId,string id)
         {
             ApiResult result = new ApiResult();
 
