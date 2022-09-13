@@ -5867,7 +5867,7 @@ ErrorInfo成员里可能会有报错信息。
 
             // 二维码绑定
             if (strPrefix == "PQR")
-                strPassword = Cryptography.GetSHA1(strFullWord);
+                strPassword = DigitalPlatform.Text.Cryptography.GetSHA1(strFullWord);
 
             //string partonXml = "";
 
