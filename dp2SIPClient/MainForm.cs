@@ -567,27 +567,37 @@ namespace dp2SIPClient
                 return;
             }
 
-            string requestText = this.txtMsg.Text.Trim() + new string((char)13, 1);   // 2018/7/28
-            string responseText = "";
-            string error = "";
-
-            this.Print("send:" + requestText);
-            LogManager.Logger.Info("send:" + requestText);
-            BaseMessage response = null;
-            int nRet = SCHelper.Instance.SendAndRecvMessage(requestText,
-                out response,
-                out responseText,
-                out error);
-            if (nRet == -1)
+            try
             {
-                MessageBox.Show(error);
-                this.Print("error:" + error);
-                LogManager.Logger.Error("error:" + error);
+
+                string requestText = this.txtMsg.Text.Trim() + new string((char)13, 1);   // 2018/7/28
+                string responseText = "";
+                string error = "";
+
+                this.Print("send:" + requestText);
+                LogManager.Logger.Info("send:" + requestText);
+                BaseMessage response = null;
+                int nRet = SCHelper.Instance.SendAndRecvMessage(requestText,
+                    out response,
+                    out responseText,
+                    out error);
+                if (nRet == -1)
+                {
+                    MessageBox.Show(error);
+                    this.Print("error:" + error);
+                    LogManager.Logger.Error("error:" + error);
+                    return;
+                }
+
+                this.Print("recv:" + responseText);
+                LogManager.Logger.Info("recv:" + responseText);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this,ex.Message);
                 return;
             }
 
-            this.Print("recv:" + responseText);
-            LogManager.Logger.Info("recv:" + responseText);
 
         }
 
@@ -1205,20 +1215,28 @@ namespace dp2SIPClient
 
         public void SendMessage()
         {
-            string cmdText = this.textBox_message.Text.Trim();//this.textBox_barcodes.Text.Trim();
-            this.Print("send:" + cmdText);
-            BaseMessage response = null;
-            int nRet = SCHelper.Instance.SendAndRecvMessage(cmdText,
-                out response,
-                out string responseText,
-                out string error);
-            if (nRet == -1)
+            try
             {
-                MessageBox.Show(error);
-                this.Print("error:" + error);
-            }
+                string cmdText = this.textBox_message.Text.Trim();//this.textBox_barcodes.Text.Trim();
+                this.Print("send:" + cmdText);
+                BaseMessage response = null;
+                int nRet = SCHelper.Instance.SendAndRecvMessage(cmdText,
+                    out response,
+                    out string responseText,
+                    out string error);
+                if (nRet == -1)
+                {
+                    MessageBox.Show(error);
+                    this.Print("error:" + error);
+                }
 
-            this.Print("recv:" + responseText);
+                this.Print("recv:" + responseText);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this,ex.Message);
+                return;
+            }
         }
 
 
