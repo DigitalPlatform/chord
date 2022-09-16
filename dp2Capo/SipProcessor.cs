@@ -619,9 +619,9 @@ namespace dp2Capo
                 if (StringUtil.CompareVersion(_libraryServerVersion, _dp2library_base_version) < 0)
                 {
                     if (encoding == null)
-                        strError = $"dp2Capo requir dp2Library { _dp2library_base_version} or higher version (but currently dp2Library version is { _libraryServerVersion }. please upgrade dp2Library to newest version";
+                        strError = $"dp2Capo requir dp2Library {_dp2library_base_version} or higher version (but currently dp2Library version is {_libraryServerVersion}. please upgrade dp2Library to newest version";
                     else
-                        strError = $"dp2Capo 要求和 dp2Library { _dp2library_base_version} 或以上版本配套使用 (而当前 dp2Library 版本号为 { _libraryServerVersion }。请尽快升级 dp2Library 到最新版本";
+                        strError = $"dp2Capo 要求和 dp2Library {_dp2library_base_version} 或以上版本配套使用 (而当前 dp2Library 版本号为 {_libraryServerVersion}。请尽快升级 dp2Library 到最新版本";
                     goto ERROR1;
                 }
 
@@ -1194,9 +1194,9 @@ namespace dp2Capo
             if (info.Instance.Running == false)
             {
                 if (sip_channel.Encoding == null)
-                    strError = $"instance '{ info.Instance.Name }' is in maintenance";
+                    strError = $"instance '{info.Instance.Name}' is in maintenance";
                 else
-                    strError = $"实例 '{ info.Instance.Name }' 正在维护中，暂时不能访问";
+                    strError = $"实例 '{info.Instance.Name}' 正在维护中，暂时不能访问";
                 goto ERROR1;
             }
 
@@ -2489,7 +2489,7 @@ out strError);
                         string base_version = "3.40";
                         if (StringUtil.CompareVersion(_libraryServerVersion, base_version) < 0)
                         {
-                            strError = $"dp2Capo 要求和 dp2Library { base_version} 或以上版本配套使用 (而当前 dp2Library 版本号为 { _libraryServerVersion }。请尽快升级 dp2Library 到最新版本";
+                            strError = $"dp2Capo 要求和 dp2Library {base_version} 或以上版本配套使用 (而当前 dp2Library 版本号为 {_libraryServerVersion}。请尽快升级 dp2Library 到最新版本";
                             return 0;
                         }
                     }
@@ -2925,7 +2925,7 @@ date_format);
                 }
                 catch (Exception ex)
                 {
-                    strError = $"请求的金额字符串 '{ request.BV_FeeAmount_r }' 不合法: { ex.Message }";
+                    strError = $"请求的金额字符串 '{request.BV_FeeAmount_r}' 不合法: {ex.Message}";
                     goto ERROR1;
                 }
 
@@ -2975,7 +2975,7 @@ date_format);
                     out strError);
                 if (nRet == -1)
                 {
-                    strMessage = $"解析金额字符串 '{totalPrice}' 时出错：{ strError } ";
+                    strMessage = $"解析金额字符串 '{totalPrice}' 时出错：{strError} ";
                     response.AF_ScreenMessage_o = strMessage;
                     response.AG_PrintLine_o = strMessage;
                     return response.ToText();
@@ -3187,6 +3187,23 @@ date_format);
                     return response.ToText();
                 }
 
+                /*
+summary
+This allows the SC to request partial information only. This field usage is similar to the NISO defined PATRON STATUS field. A Y in any position indicates that detailed as well as summary information about the corresponding category of items can be sent in the response. A blank (code $20) in this position means that only summary information should be sent about the corresponding category of items. Only one category of items should be requested at a time, i.e. it would take 6 of these messages, each with a different position set to Y, to get all the detailed information about a patron’s items. All of the 6 responses, however, would contain the summary information
+Position Definition
+0 hold items 预约事项
+1 overdue items 超期事项
+2 charged items 在借事项
+3 fine items 罚款事项，一般是超期罚款
+4 recall items 召回事项
+5 unavailable holds 未到的预约事项
+6 fee items 费用事项
+                * */
+                string summary = request.Summary_10;
+
+                int start = GetValue(request.BP_StartItem_o, 1);
+                int end = GetValue(request.BQ_EndItem_o, 9999);
+
                 // 2021/3/4
                 string strResponsePatronInstitution = DomUtil.GetElementText(dom.DocumentElement, "oi");
                 response.AO_InstitutionId_r = strResponsePatronInstitution;
@@ -3224,8 +3241,9 @@ date_format);
                         }
                     }
 
-                    if (holdItems.Count > 0)
-                        response.AS_HoldItems_o = holdItems;
+                    if (IsDetail(summary, 0)
+                        && holdItems.Count > 0)
+                        response.AS_HoldItems_o = GetRange(holdItems, start, end);
                 }
 
                 // overdue items count 4 - char, fixed-length required field  -- 超期
@@ -3283,12 +3301,14 @@ date_format);
                         }
                     }
 
-                    if (chargedItems.Count > 0)
-                        response.AU_ChargedItems_o = chargedItems;
-                    if (overdueItems.Count > 0)
+                    if (IsDetail(summary, 2)
+                        && chargedItems.Count > 0)
+                        response.AU_ChargedItems_o = GetRange(chargedItems, start, end);
+                    if (IsDetail(summary, 1)
+                        && overdueItems.Count > 0)
                     {
                         patronStatus[6] = 'Y';
-                        response.AT_OverdueItems_o = overdueItems;
+                        response.AT_OverdueItems_o = GetRange(overdueItems, start, end);
                     }
                 }
 
@@ -3296,7 +3316,7 @@ date_format);
                 XmlNodeList overdues = dom.DocumentElement.SelectNodes("overdues/overdue");
                 if (overdues != null && overdues.Count > 0)
                 {
-                    // List<VariableLengthField> fineItems = new List<VariableLengthField>();
+                    List<VariableLengthField> fineItems = new List<VariableLengthField>();
 
                     List<string> prices = new List<string>();
 
@@ -3339,11 +3359,10 @@ date_format);
                     response.BV_feeAmount_o = "-" + currItem.Value.ToString(); //设为负值
                     response.BH_CurrencyType_3 = currItem.Prefix;
 
-                    /*
                     // 2022/5/26
-                    if (fineItems.Count > 0)
-                        response.AV_FineItems_o = fineItems;
-                    */
+                    if (IsDetail(summary, 3)
+                        && fineItems.Count > 0)
+                        response.AV_FineItems_o = GetRange(fineItems, start, end);
                 }
 
                 string strBarcode = DomUtil.GetElementText(dom.DocumentElement, "barcode");
@@ -3400,6 +3419,39 @@ date_format);
             response.AF_ScreenMessage_o = strError;
             response.AG_PrintLine_o = strError;
             return response.ToText();
+        }
+
+        // 判断一个位置是否为 'Y'
+        static bool IsDetail(string summary, int index)
+        {
+            if (string.IsNullOrEmpty(summary))
+                return false;
+            if (index >= summary.Length)
+                return false;
+            return summary[index] == 'Y';
+        }
+
+        static int GetValue(string text, int default_value)
+        {
+            if (string.IsNullOrEmpty(text))
+                return default_value;
+            return Convert.ToInt32(text);
+        }
+
+        static List<VariableLengthField> GetRange(List<VariableLengthField> list,
+            int start,
+            int end)
+        {
+            List<VariableLengthField> results = new List<VariableLengthField>();
+            int i = 1;
+            foreach (var item in list)
+            {
+                if (i >= start && i <= end)
+                    results.Add(item);
+                i++;
+            }
+
+            return results;
         }
 
         // 根据纯净的册条码号获得一个册的 UII。UII 就是 OI.PII
@@ -4200,7 +4252,7 @@ date_format);
 
                 if (StringUtil.CompareVersion(_libraryServerVersion, _dp2library_base_version) < 0)
                 {
-                    strError = $"dp2Capo 要求和 dp2Library { _dp2library_base_version} 或以上版本配套使用 (而当前 dp2Library 版本号为 { _libraryServerVersion }。请尽快升级 dp2Library 到最新版本";
+                    strError = $"dp2Capo 要求和 dp2Library {_dp2library_base_version} 或以上版本配套使用 (而当前 dp2Library 版本号为 {_libraryServerVersion}。请尽快升级 dp2Library 到最新版本";
                     goto ERROR1;
                 }
 

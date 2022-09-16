@@ -977,6 +977,62 @@ namespace dp2Capo
                         }
                         errorinfos = errors.ToArray();
                     }
+                    else if (param.Operation == "setBiblioInfo")
+                    {
+                        List<EntityInfo> errors = new List<EntityInfo>();
+                        int i = 0;
+                        foreach (EntityInfo info in entities)
+                        {
+                            // 额外的信息
+                            var ext = param.Entities[i];
+                            /*
+                            string strSavedRecPath = "";
+                            string strSavedXml = "";
+                            string strExistingXml = "";
+                            byte[] baNewTimestamp = null;
+                            ErrorCodeValue kernel_errorcode;
+                            */
+                            /*
+                            // 注意，biblioType: 和 comment: 后面的参数值要用 StringUtil.EscapeString(text, ":,") 转义后放入
+                            string biblio_type = StringUtil.GetParameterByPrefix(info.Style, "biblioType");
+                            if (biblio_type != null)
+                                biblio_type = StringUtil.UnescapeString(biblio_type);
+                            */
+                            string comment = StringUtil.GetParameterByPrefix(info.Style, "comment");
+                            if (comment != null)
+                                comment = StringUtil.UnescapeString(comment);
+                            // parameters:
+                            //      strAction   动作。为"new" "change" "delete" "onlydeletebiblio" "onlydeletesubrecord"之一。"delete"在删除书目记录的同时，会自动删除下属的实体记录。不过要求实体均未被借出才能删除。
+                            //      strBiblioType   xml 或 iso2709。iso2709 格式可以包含编码方式，例如 iso2709:utf-8
+                            //      baTimestamp 时间戳。如果为新创建记录，可以为null 
+                            //      strOutputBiblioRecPath 输出的书目记录路径。当strBiblioRecPath中末级为问号，表示追加保存书目记录的时候，本参数返回实际保存的书目记录路径
+                            //                      此参数也用于，当保存前查重时发现了重复的书目记录，这里返回这些书目记录的路径
+                            //      baOutputTimestamp   操作完成后，新的时间戳
+                            // Result.Value -1出错 0成功 >0 表示查重发现了重复的书目记录，保存被拒绝
+                            lRet = channel.SetBiblioInfo(info.Action,
+                                info.NewRecPath,
+                                ext.NewRecord.Format,
+                                info.NewRecord,
+                                info.OldTimestamp,
+                                comment,
+                                info.Style,
+                                out string strSavedRecPath,
+                                out byte[] baNewTimestamp,
+                                out strError);
+                            EntityInfo error = new EntityInfo();
+                            error.NewTimestamp = baNewTimestamp;
+                            error.NewRecPath = strSavedRecPath;
+                            // error.OldRecord = strExistingXml;
+                            // error.NewRecord = strSavedXml;
+                            // error.ErrorCode = ;
+                            // TODO: ErrorCode 应该允许存储 dp2library 错误码
+                            if (lRet == -1)
+                                error.ErrorInfo = strError;
+                            errors.Add(error);
+                            i++;
+                        }
+                        errorinfos = errors.ToArray();
+                    }
                     else
                     {
                         strError = "无法识别的 param.Operation 值 '" + param.Operation + "'";
@@ -990,7 +1046,7 @@ namespace dp2Capo
                             results.Add(BuildEntity(error));
                         }
                     }
-                    ResponseSetInfo(param.TaskID,
+                    _ = ResponseSetInfo(param.TaskID,
         lRet,
         results,
         strError);
