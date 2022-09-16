@@ -3442,6 +3442,8 @@ Position Definition
             int start,
             int end)
         {
+            if (start > end)
+                throw new ArgumentException($"GetRange() 的 start({start}) 不应大于 end({end})");
             List<VariableLengthField> results = new List<VariableLengthField>();
             int i = 1;
             foreach (var item in list)
@@ -3449,6 +3451,9 @@ Position Definition
                 if (i >= start && i <= end)
                     results.Add(item);
                 i++;
+                // 优化
+                if (i > end)
+                    break;
             }
 
             return results;
