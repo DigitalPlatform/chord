@@ -971,6 +971,12 @@ namespace dp2SIPClient
 
         private void button_getPatronInfo_Click(object sender, EventArgs e)
         {
+            if (this.textBox_readerBarcode.Text.Trim() == "")
+            {
+                MessageBox.Show(this, "尚未输入读者证条码");
+                return;
+            }
+
             try
             {
                 PatronInformation_63 request = new PatronInformation_63()
