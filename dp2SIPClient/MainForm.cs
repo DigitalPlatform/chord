@@ -971,46 +971,54 @@ namespace dp2SIPClient
 
         private void button_getPatronInfo_Click(object sender, EventArgs e)
         {
-            PatronInformation_63 request = new PatronInformation_63()
+            try
             {
-                Language_3 = "019",
-                TransactionDate_18 = this.TransactionDate,
-                Summary_10 = "  Y       ",
-                AO_InstitutionId_r = this.AO,//"",// dp2Library",
-                BP_StartItem_o=this.textBox_BP.Text.Trim(),//"1",
-                BQ_EndItem_o=this.textBox_BQ.Text.Trim(),//"5",
-            };
-            Button button = sender as Button;
-            string responseText = "";
-            string error = "";
-            string[] barcodes = this.textBox_readerBarcode.Text.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            int i = 0;
-            foreach(string barcode in barcodes)
-            {
-                this.Update();
-                Application.DoEvents();
-                Thread.Sleep(100);
-
-                request.AA_PatronIdentifier_r = barcode;
-                string cmdText = request.ToText();
-
-                this.Print("send:" + cmdText);
-                BaseMessage response = null;
-                int nRet = SCHelper.Instance.SendAndRecvMessage(cmdText,
-                    out response,
-                    out responseText,
-                    out error);
-                if (nRet == -1)
+                PatronInformation_63 request = new PatronInformation_63()
                 {
-                    MessageBox.Show(error);
-                    this.Print("error:" + error);
-                    return;
+                    Language_3 = "019",
+                    TransactionDate_18 = this.TransactionDate,
+                    Summary_10 = this.textBox_patron_summary.Text,//"  Y       ",
+                    AO_InstitutionId_r = this.AO,//"",// dp2Library",
+                    BP_StartItem_o = this.textBox_BP.Text.Trim(),//"1",
+                    BQ_EndItem_o = this.textBox_BQ.Text.Trim(),//"5",
+                };
+                Button button = sender as Button;
+                string responseText = "";
+                string error = "";
+                string[] barcodes = this.textBox_readerBarcode.Text.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                int i = 0;
+                foreach (string barcode in barcodes)
+                {
+                    this.Update();
+                    Application.DoEvents();
+                    Thread.Sleep(100);
+
+                    request.AA_PatronIdentifier_r = barcode;
+                    string cmdText = request.ToText();
+
+                    this.Print("send:" + cmdText);
+                    BaseMessage response = null;
+                    int nRet = SCHelper.Instance.SendAndRecvMessage(cmdText,
+                        out response,
+                        out responseText,
+                        out error);
+                    if (nRet == -1)
+                    {
+                        MessageBox.Show(error);
+                        this.Print("error:" + error);
+                        return;
+                    }
+
+                    this.Print("recv:" + responseText);
+
+                    //button.Text = "获取(" + (i + 1).ToString() + ")";
+                    i++;
                 }
-
-                this.Print("recv:" + responseText);
-
-                button.Text = "获取(" + (i + 1).ToString() + ")";
-                i++;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ex.Message);
+                return;
             }
         }
 
