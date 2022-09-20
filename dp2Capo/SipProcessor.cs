@@ -3438,6 +3438,8 @@ Position Definition
             return Convert.ToInt32(text);
         }
 
+        static int _rangeLimit = 10;
+
         static List<VariableLengthField> GetRange(List<VariableLengthField> list,
             int start,
             int end)
@@ -3449,7 +3451,12 @@ Position Definition
             foreach (var item in list)
             {
                 if (i >= start && i <= end)
+                {
                     results.Add(item);
+                    // 限制集合元素总数
+                    if (results.Count >= _rangeLimit)
+                        break;
+                }
                 i++;
                 // 优化
                 if (i > end)
