@@ -3216,8 +3216,6 @@ Position Definition
                 XmlNodeList holdItemNodes = dom.DocumentElement.SelectNodes("reservations/request");
                 if (holdItemNodes != null)
                 {
-                    response.HoldItemsCount_4 = holdItemNodes.Count.ToString().PadLeft(4, '0');
-
                     List<VariableLengthField> holdItems = new List<VariableLengthField>();
                     foreach (XmlNode node in holdItemNodes)
                     {
@@ -3241,6 +3239,8 @@ Position Definition
                         }
                     }
 
+                    response.HoldItemsCount_4 = holdItems.Count.ToString().PadLeft(4, '0');
+
                     if (IsDetail(summary, 0)
                         && holdItems.Count > 0)
                         response.AS_HoldItems_o = GetRange(holdItems, start, end);
@@ -3251,8 +3251,6 @@ Position Definition
                 XmlNodeList chargedItemNodes = dom.DocumentElement.SelectNodes("borrows/borrow");
                 if (chargedItemNodes != null)
                 {
-                    response.ChargedItemsCount_4 = chargedItemNodes.Count.ToString().PadLeft(4, '0');
-
                     List<VariableLengthField> chargedItems = new List<VariableLengthField>();
                     List<VariableLengthField> overdueItems = new List<VariableLengthField>();
                     int nOverdueItemsCount = 0;
@@ -3301,9 +3299,14 @@ Position Definition
                         }
                     }
 
+                    response.ChargedItemsCount_4 = chargedItems.Count.ToString().PadLeft(4, '0');
+
                     if (IsDetail(summary, 2)
                         && chargedItems.Count > 0)
                         response.AU_ChargedItems_o = GetRange(chargedItems, start, end);
+
+                    response.OverdueItemsCount_4 = overdueItems.Count.ToString().PadLeft(4, '0');
+
                     if (IsDetail(summary, 1)
                         && overdueItems.Count > 0)
                     {
@@ -3342,13 +3345,13 @@ Position Definition
                         string price = DomUtil.GetAttr(node, "price");
                         prices.Add(price);
 
-                        // fineItems.Add(new VariableLengthField(SIPConst.F_AV_FineItems, false, $"{id}:{price}"));
+                        fineItems.Add(new VariableLengthField(SIPConst.F_AV_FineItems, false, $"{id}:{price}"));
                     }
 
                     // 累计欠款金额
                     string totlePrice = PriceUtil.TotalPrice(prices);
-                    CurrencyItem currItem = null;
-                    nRet = PriceUtil.ParseSinglePrice(totlePrice, out currItem, out strError);
+                    nRet = PriceUtil.ParseSinglePrice(totlePrice,
+                        out CurrencyItem currItem, out strError);
                     if (nRet == -1)
                     {
                         strMessage = "计算读者违约金额时出错：" + strError;
@@ -3358,6 +3361,8 @@ Position Definition
                     }
                     response.BV_feeAmount_o = "-" + currItem.Value.ToString(); //设为负值
                     response.BH_CurrencyType_3 = currItem.Prefix;
+
+                    response.FineItemsCount_4 = fineItems.Count.ToString().PadLeft(4, '0');
 
                     // 2022/5/26
                     if (IsDetail(summary, 3)
@@ -3438,7 +3443,7 @@ Position Definition
             return Convert.ToInt32(text);
         }
 
-        static int _rangeLimit = 10;
+        static int _rangeLimit = 100;
 
         static List<VariableLengthField> GetRange(List<VariableLengthField> list,
             int start,
