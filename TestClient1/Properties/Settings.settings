@@ -159,7 +159,7 @@
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="setInfoRequest" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+      <Value Profile="(Default)">{}</Value>
     </Setting>
     <Setting Name="search_filter" Type="System.String" Scope="User">
       <Value Profile="(Default)" />

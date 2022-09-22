@@ -1304,7 +1304,7 @@ string strHtml)
 
             IDataObject iData = Clipboard.GetDataObject();
             if (iData == null
-                || iData.GetDataPresent("xml") == false)
+                || iData.GetDataPresent( "xml") == false)
             {
                 strError = "剪贴板中尚不存在 xml 类型数据";
                 goto ERROR1;

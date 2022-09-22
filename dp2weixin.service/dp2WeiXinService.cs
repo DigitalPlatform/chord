@@ -102,8 +102,11 @@ namespace dp2weixin.service
         // 密码钥匙
         public string EncryptKey = "dp2weixinPassword";
 
-        // 微信信息
+        // 微信公众号信息
         public GzhContainer _gzhContainer = null;
+
+        public string AppletAppId = "";
+        public string AppletAppSecret = "";
 
 
         // dp2消息处理类
@@ -480,6 +483,8 @@ namespace dp2weixin.service
             dom.Load(this._cfgFile);
             XmlNode root = dom.DocumentElement;
 
+
+
             // 取出mserver服务器配置信息
             XmlNode nodeDp2mserver = root.SelectSingleNode("//dp2mserver");
             this._dp2MServerUrl = DomUtil.GetAttr(nodeDp2mserver, "url");// WebConfigurationManager.AppSettings["dp2MServerUrl"];
@@ -494,8 +499,14 @@ namespace dp2weixin.service
             if (trace.ToLower() == "true")
                 this._bTrace = true;
 
-            // 取出微信配置信息
+            // 取出微信公众号配置信息
             this._gzhContainer = new GzhContainer(dom);
+
+            // 2022/9/20 获取小程序配置信息
+            this.AppletAppId =DomUtil.GetAttr(root, "applet", "appId");
+            this.AppletAppSecret= DomUtil.GetAttr(root, "applet", "appSecret");
+
+
 
             // mongo配置
             XmlNode nodeMongoDB = root.SelectSingleNode("mongoDB");
@@ -4873,7 +4884,7 @@ ErrorInfo成员里可能会有报错信息。
                         // 2020-3-11 还要加上public帐户
                         // web来源，小程序来源，public帐户不需要发微信通知
                         if (WxUserDatabase.CheckFrom(one.weixinId) == WxUserDatabase.C_from_web
-                            || WxUserDatabase.CheckFrom(one.weixinId) == WxUserDatabase.C_from_mina
+                            || WxUserDatabase.CheckFrom(one.weixinId) == WxUserDatabase.C_from_applet
                             || one.userName == WxUserDatabase.C_Public)
                             continue;
 
@@ -4995,7 +5006,7 @@ ErrorInfo成员里可能会有报错信息。
                         // 2020-3-11 还要加上public帐户
                         // 2022/07/20 web入口、小程序入口，public帐户，均不发微信通知
                         if (WxUserDatabase.CheckFrom(one.weixinId) == WxUserDatabase.C_from_web
-                            || WxUserDatabase.CheckFrom(one.weixinId) == WxUserDatabase.C_from_mina
+                            || WxUserDatabase.CheckFrom(one.weixinId) == WxUserDatabase.C_from_applet
                             || one.userName == WxUserDatabase.C_Public)
                             continue;
 
@@ -5185,7 +5196,7 @@ ErrorInfo成员里可能会有报错信息。
                             // 2020-3-11 非微信入口和public不发通知
                             // 2022/07/20 web入口、小程序入口，public帐户，均不发微信通知
                             if (WxUserDatabase.CheckFrom(worker.weixinId) == WxUserDatabase.C_from_web
-                                || WxUserDatabase.CheckFrom(worker.weixinId) == WxUserDatabase.C_from_mina
+                                || WxUserDatabase.CheckFrom(worker.weixinId) == WxUserDatabase.C_from_applet
                                     || worker.userName == WxUserDatabase.C_Public)
                                 continue;
 
@@ -11425,7 +11436,7 @@ ErrorInfo成员里可能会有报错信息。
             foreach (WxUserItem user in patrons)
             {
                 if (WxUserDatabase.CheckFrom(user.weixinId) == WxUserDatabase.C_from_web //CheckIsFromWeb(user.weixinId) == true)//user.weixinId.Length > 2 && user.weixinId.Substring(0, 2) == "~~")
-                || WxUserDatabase.CheckFrom(user.weixinId) == WxUserDatabase.C_from_mina)
+                || WxUserDatabase.CheckFrom(user.weixinId) == WxUserDatabase.C_from_applet)
                 {
                     webPatronList.Add(user);
                 }
@@ -11445,7 +11456,7 @@ ErrorInfo成员里可能会有报错信息。
                 }
 
                 if (WxUserDatabase.CheckFrom(user.weixinId) == WxUserDatabase.C_from_web
-                    || WxUserDatabase.CheckFrom(user.weixinId) == WxUserDatabase.C_from_mina) //.CheckIsFromWeb(user.weixinId) == true)//user.weixinId.Length > 2 && user.weixinId.Substring(0, 2) == "~~")
+                    || WxUserDatabase.CheckFrom(user.weixinId) == WxUserDatabase.C_from_applet) //.CheckIsFromWeb(user.weixinId) == true)//user.weixinId.Length > 2 && user.weixinId.Substring(0, 2) == "~~")
                 {
                     webWorkerList.Add(user);
                 }
@@ -12893,7 +12904,7 @@ ErrorInfo成员里可能会有报错信息。
 
             // 2020-3-7 注意这里还是检查web来源的绑定，~~开头但没有@，web来源不需要加@公众号appid
             if (WxUserDatabase.CheckFrom(weixinId) == WxUserDatabase.C_from_web
-                || WxUserDatabase.CheckFrom(weixinId)==WxUserDatabase.C_from_mina)
+                || WxUserDatabase.CheckFrom(weixinId)==WxUserDatabase.C_from_applet)
                 return weixinId;
 
             // 很久之前的版本，weixinid没有带公众号后缀，所以这里自动处理一下

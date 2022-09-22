@@ -23,24 +23,29 @@ namespace dp2weixinWeb.ApiControllers
         public GetWxAppletSessionResult GetAppletOpenId(string code)
         {
             GetWxAppletSessionResult apiResult = new GetWxAppletSessionResult();
-
             try
             {
-                string appId = "wxa5ef9c3d959a9bb1";
-            string appSecret = "51b77025dd60906669e273ee69d6daf7";
 
-            WebClient client = new WebClient();
-            string url = "https://api.weixin.qq.com/sns/jscode2session"
-                + "?appid=" + appId
-                +"&secret=" +appSecret
-                + "&js_code="+code
-                + "&grant_type=authorization_code";
-            string ret = client.DownloadString(url);
+                WebClient client = new WebClient();
+                string url = "https://api.weixin.qq.com/sns/jscode2session"
+                    + "?appid=" + dp2WeiXinService.Instance.AppletAppId
+                    + "&secret=" + dp2WeiXinService.Instance.AppletAppSecret
+                    + "&js_code=" + code
+                    + "&grant_type=authorization_code";
+                string ret = client.DownloadString(url);
+
                 //{"session_key":"+N29u4Yg\/CdP671SrVNcWQ==","openid":"oE1uG5YgZYacvbi-hbVxVA-jzTiE"}
                 //{"errcode":40163,"errmsg":"code been used, rid: 6328170e-6abf1fad-5d44644f"}
-                 apiResult = JsonConvert.DeserializeObject<GetWxAppletSessionResult>(ret);
+                apiResult = JsonConvert.DeserializeObject<GetWxAppletSessionResult>(ret);
 
-            return apiResult;
+
+                // 给openid前面增加**
+                if (string.IsNullOrEmpty(apiResult.openid) == false)
+                {
+                    apiResult.openid = "**" + apiResult.openid;//加一个前缀
+                }
+
+                return apiResult;
 
             }
             catch (Exception ex)
@@ -51,39 +56,6 @@ namespace dp2weixinWeb.ApiControllers
                 return apiResult;
             }
 
-            /*
-            try
-            {
-                //用code换取access_token
-                var result = OAuthApi.GetAccessToken(appId, appSecret, code);//this.weiXinAppId, this.weiXinSecret, code);
-                if (result == null)
-                {
-                    apiResult.errorInfo = "GetAccessToken()返回的result为null。";
-                    apiResult.errorCode = -1;
-                    return apiResult;
-                }
-
-                if (result.errcode != ReturnCode.请求成功)
-                {
-                    apiResult.errorInfo = "获取openid出错：" + result.errmsg;
-                    apiResult.errorCode = -1;
-                    return apiResult;
-                }
-
-                // 取出openid
-                apiResult.info = "!!"+result.openid ;
-                apiResult.errorCode = 0;
-                return apiResult;
-
-            }
-            catch (Exception ex)
-            {
-
-                apiResult.errorInfo = "获取openid抛出异常：" + ex.Message;
-                apiResult.errorCode = -1;
-                return apiResult;
-            }
-            */
         }
 
 
@@ -155,7 +127,7 @@ namespace dp2weixinWeb.ApiControllers
         // weixinId：前端用户的id，用户来源唯一号，格式如下：
         // web浏览器来源的，~~开头
         // 微信公众号来源的，weixinId@公众号appid
-        // 小程序来源的：!!用户id
+        // 小程序来源的：**用户id
         public WxUserResult GetBindUsers(string weixinId)
         {
             WxUserResult result = new WxUserResult();

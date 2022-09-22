@@ -28,10 +28,10 @@ namespace dp2weixin.service
         // 比如dp2读者信息发生变化，传过来的消息，从本地mongodb库检索时就只能用refid检索，因为读者证条码号可能变化了。
         public const string C_Prefix_RefId = "@refid:";
         public const string C_Prefix_fromWeb = "~~";  // 浏览器来源的前缀
-        public const string C_Prefix_fromMina = "!!";  //小程序来源的前缀
+        public const string C_Prefix_fromMina = "**";  //小程序来源的前缀
         public const int C_from_weixin = 1; // 微信公众号
         public const int C_from_web = 2;    // 浏览器入口
-        public const int C_from_mina = 3;   // 小程序入口
+        public const int C_from_applet = 3;   // 小程序入口
 
         // 读者状态
         public const string C_PatronState_TodoReview = "待审核";
@@ -792,7 +792,7 @@ namespace dp2weixin.service
         // 用户来源唯一号，格式如下：
         // web浏览器来源的，~~开头
         // 微信公众号来源的，weixinId@公众号appid
-        // 小程序来源的：!!用户id
+        // 小程序来源的：**用户id
         public string weixinId { get; set; }
 
         // 图书馆id，是我爱图书馆这边存储在mongodb库的libid，不是dp2library端的libId
@@ -1032,7 +1032,7 @@ namespace dp2weixin.service
         // 用户来源唯一号，格式如下：
         // web浏览器来源的，~~开头
         // 微信公众号来源的，weixinId@公众号appid
-        // 小程序来源的：!!用户id
+        // 小程序来源的：**用户id
         public string weixinId { get; set; }
 
         // 图书馆id
