@@ -1011,7 +1011,7 @@ namespace dp2Capo
                             // Result.Value -1出错 0成功 >0 表示查重发现了重复的书目记录，保存被拒绝
                             lRet = channel.SetBiblioInfo(info.Action,
                                 info.NewRecPath,
-                                ext.NewRecord.Format,
+                                ext.NewRecord == null ? "" : ext.NewRecord.Format,
                                 info.NewRecord,
                                 info.OldTimestamp,
                                 comment,

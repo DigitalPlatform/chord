@@ -144,6 +144,8 @@ namespace dp2Capo
                         strResponse = ItemStatusUpdate(sip_channel, strRequest);
                         break;
                     }
+                // TODO: case "23": // patron status request
+
                 case "29":
                     {
                         strResponse = Renew(sip_channel, strRequest);
@@ -3228,13 +3230,13 @@ Position Definition
                             string[] barcodes = strItemBarcode.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
                             foreach (string barcode in barcodes)
                             {
-                                GetItemUII(info.LibraryChannel, barcode, out string uii, out strError);
+                                GetItemUII(info.LibraryChannel, null, barcode, out string uii, out strError);
                                 holdItems.Add(new VariableLengthField(SIPConst.F_AS_HoldItems, false, uii));
                             }
                         }
                         else
                         {
-                            GetItemUII(info.LibraryChannel, strItemBarcode, out string uii, out strError);
+                            GetItemUII(info.LibraryChannel, null, strItemBarcode, out string uii, out strError);
                             holdItems.Add(new VariableLengthField(SIPConst.F_AS_HoldItems, false, uii));
                         }
                     }
@@ -3254,7 +3256,7 @@ Position Definition
                     List<VariableLengthField> chargedItems = new List<VariableLengthField>();
                     List<VariableLengthField> overdueItems = new List<VariableLengthField>();
                     int nOverdueItemsCount = 0;
-                    foreach (XmlNode node in chargedItemNodes)
+                    foreach (XmlElement node in chargedItemNodes)
                     {
                         string strItemBarcode = DomUtil.GetAttr(node, "barcode");
                         if (string.IsNullOrEmpty(strItemBarcode))
@@ -3282,8 +3284,10 @@ Position Definition
                             }
                         }
 
+                        string location = node.GetAttribute("location");
+
                         {
-                            GetItemUII(info.LibraryChannel, strItemBarcode, out string uii, out strError);
+                            GetItemUII(info.LibraryChannel, location, strItemBarcode, out string uii, out strError);
                             chargedItems.Add(new VariableLengthField(SIPConst.F_AU_ChargedItems, false, uii));
                         }
 
@@ -3294,7 +3298,7 @@ Position Definition
                         if (returningDate < DateTime.Now)
                         {
                             nOverdueItemsCount++;
-                            GetItemUII(info.LibraryChannel, strItemBarcode, out string uii, out strError);
+                            GetItemUII(info.LibraryChannel, null, strItemBarcode, out string uii, out strError);
                             overdueItems.Add(new VariableLengthField(SIPConst.F_AT_OverdueItems, false, uii));
                         }
                     }
@@ -3307,10 +3311,12 @@ Position Definition
 
                     response.OverdueItemsCount_4 = overdueItems.Count.ToString().PadLeft(4, '0');
 
+                    if (overdueItems.Count > 0)
+                        patronStatus[6] = 'Y';  // too many items overdue 只要有一册以上超期未还，就禁止该读者继续借书
+
                     if (IsDetail(summary, 1)
                         && overdueItems.Count > 0)
                     {
-                        patronStatus[6] = 'Y';
                         response.AT_OverdueItems_o = GetRange(overdueItems, start, end);
                     }
                 }
@@ -3332,13 +3338,13 @@ Position Definition
                         string strPart = "";
                         if (strReason.Length > 2)
                             strPart = strReason.Substring(0, 2);
-                        if (StringUtil.IsInList(strPart, strWords) && patronStatus[11] != 'Y')
+                        if (StringUtil.IsInList(strPart, strWords) /*&& patronStatus[11] != 'Y'*/)
                         {
-                            patronStatus[11] = 'Y';
+                            patronStatus[11] = 'Y'; // excessive outstanding fees
                         }
-                        else if (StringUtil.IsInList(strPart, strWords2) && patronStatus[10] != 'Y')
+                        else if (StringUtil.IsInList(strPart, strWords2) /*&& patronStatus[10] != 'Y'*/)
                         {
-                            patronStatus[10] = 'Y';
+                            patronStatus[10] = 'Y'; // excessive outstanding fines
                         }
 
                         // 计算金额
@@ -3388,7 +3394,10 @@ Position Definition
                         if (!string.IsNullOrEmpty(strBorrowsCount) && strBorrowsCount != "0")
                             strMessage = "您在本馆最多可借【" + strTotal + "】册，还可以再借【" + strBorrowsCount + "】册。";
                         else
+                        {
+                            patronStatus[5] = 'Y';  // too many items charged
                             strMessage = "您在本馆借书数已达最多可借数【" + strTotal + "】，不能继续借了!";
+                        }
                     }
                     if (!string.IsNullOrEmpty(strMessage))
                     {
@@ -3398,7 +3407,12 @@ Position Definition
                 }
                 else
                 {
-                    patronStatus[4] = 'Y';
+                    patronStatus[0] = 'Y';  // charge privileges denied
+                    patronStatus[1] = 'Y';  // renewal privileges denied
+                    patronStatus[3] = 'Y';  // hold privileges denied
+
+                    if (StringUtil.IsInList("挂失,丢失", strState))
+                        patronStatus[4] = 'Y';  // card reported lost
 
                     string strName = DomUtil.GetElementText(dom.DocumentElement, "name");
                     strMessage = "读者证[" + strBarcode + ":" + strName + "]已被[" + strState + "]";
@@ -3472,8 +3486,11 @@ Position Definition
         }
 
         // 根据纯净的册条码号获得一个册的 UII。UII 就是 OI.PII
+        // parameters:
+        //      location    馆藏地。用于加速获得机构代码的运算
         static int GetItemUII(LibraryChannel channel,
             string barcode,
+            string location,
             out string uii,
             out string strError)
         {
@@ -3483,8 +3500,34 @@ Position Definition
             if (uii.Contains("."))
                 return 0;
 
+            string strClientXml = "";
+            // 前端模拟出一条册记录。这样请求速度快，dp2library 不用再检索册记录了
+            if (string.IsNullOrEmpty(location) == false)
+            {
+                XmlDocument client_dom = new XmlDocument();
+                client_dom.LoadXml("<root />");
+                DomUtil.SetElementText(client_dom.DocumentElement,
+                    "barcode", barcode);
+                DomUtil.SetElementText(client_dom.DocumentElement,
+                    "location", location);
+                strClientXml = client_dom.DocumentElement.OuterXml;
+            }
+
             int nRedoCount = 0;
         REDO:
+            long lRet =channel.GetItemInfo(
+    "item",
+    barcode,
+    strClientXml,
+    "uii",
+    out string strItemXml,
+    out _,
+    out _,
+    "",
+    out string strBiblio,
+    out _,
+    out strError);
+            /*
             long lRet = channel.GetItemInfo(
                 barcode,
                 "uii",
@@ -3492,6 +3535,7 @@ Position Definition
                 "",
                 out string strBiblio,
                 out strError);
+            */
             if (lRet == -1)
             {
                 if (channel.ErrorCode == ErrorCode.ChannelReleased
