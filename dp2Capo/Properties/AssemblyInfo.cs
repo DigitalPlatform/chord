@@ -32,8 +32,8 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“生成号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”: 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.47.*")]
-[assembly: AssemblyFileVersion("1.47.0.0")]
+[assembly: AssemblyVersion("1.48.*")]
+[assembly: AssemblyFileVersion("1.48.0.0")]
 
 // 1.1 (2016/6/26) 首次使用了版本号
 // 1.2 (2016/9/14) 管理线程中会不断重试连接 dp2mserver，并将此情况写入日志
@@ -86,3 +86,4 @@ using System.Runtime.InteropServices;
 // 1.45 (2022/6/20) SIP Server 增加了 LoginCache 机制，避免高密度的 Login() 请求引起 dp2library CPU 耗用居高不下
 // 1.46 (2022/9/16) SetInfo() API 中增加了 setBiblioInfo 子功能
 // 1.47 (2022/9/20) SIP Server PatronInformation() API 兑现了 summary 参数，并限制了每次获得 AU 等字段的总个数为 10 (这是一个实验性的数字，后面会再调整)
+// 1.48 (2022/9/23) SIP Server PatronInformation() API 中优化了为在借册获得机构代码的速度。要求最新版 3.129 dp2library 配合

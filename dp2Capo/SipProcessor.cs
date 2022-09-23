@@ -376,7 +376,7 @@ namespace dp2Capo
         }
 
         // 所连接的 dp2library 的最低版本要求
-        static string _dp2library_base_version = "3.49";
+        static string _dp2library_base_version = "3.129";   // "3.49";
 
         // 用来控制同一个用户名登录时候并发的 记录锁
         public static RecordLockCollection _userNameLocks = new RecordLockCollection();
@@ -3218,7 +3218,7 @@ Position Definition
                 XmlNodeList holdItemNodes = dom.DocumentElement.SelectNodes("reservations/request");
                 if (holdItemNodes != null)
                 {
-                    List<VariableLengthField> holdItems = new List<VariableLengthField>();
+                    List<BarcodeItem> holdItems = new List<BarcodeItem>();
                     foreach (XmlNode node in holdItemNodes)
                     {
                         string strItemBarcode = DomUtil.GetAttr(node, "items");
@@ -3230,14 +3230,16 @@ Position Definition
                             string[] barcodes = strItemBarcode.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
                             foreach (string barcode in barcodes)
                             {
-                                GetItemUII(info.LibraryChannel, null, barcode, out string uii, out strError);
-                                holdItems.Add(new VariableLengthField(SIPConst.F_AS_HoldItems, false, uii));
+                                // GetItemUII(info.LibraryChannel, barcode, null, out string uii, out strError);
+                                // holdItems.Add(new VariableLengthField(SIPConst.F_AS_HoldItems, false, uii));
+                                holdItems.Add(new BarcodeItem { Barcode = barcode });
                             }
                         }
                         else
                         {
-                            GetItemUII(info.LibraryChannel, null, strItemBarcode, out string uii, out strError);
-                            holdItems.Add(new VariableLengthField(SIPConst.F_AS_HoldItems, false, uii));
+                            // GetItemUII(info.LibraryChannel, strItemBarcode, null, out string uii, out strError);
+                            // holdItems.Add(new VariableLengthField(SIPConst.F_AS_HoldItems, false, uii));
+                            holdItems.Add(new BarcodeItem { Barcode = strItemBarcode });
                         }
                     }
 
@@ -3245,7 +3247,13 @@ Position Definition
 
                     if (IsDetail(summary, 0)
                         && holdItems.Count > 0)
-                        response.AS_HoldItems_o = GetRange(holdItems, start, end);
+                        response.AS_HoldItems_o = GetRange(holdItems,
+                            (o) =>
+                            {
+                                GetItemUII(info.LibraryChannel, o.Barcode, o.Location, out string uii, out strError);
+                                return new VariableLengthField(SIPConst.F_AS_HoldItems, false, uii);
+                            },
+                            start, end);
                 }
 
                 // overdue items count 4 - char, fixed-length required field  -- 超期
@@ -3253,8 +3261,8 @@ Position Definition
                 XmlNodeList chargedItemNodes = dom.DocumentElement.SelectNodes("borrows/borrow");
                 if (chargedItemNodes != null)
                 {
-                    List<VariableLengthField> chargedItems = new List<VariableLengthField>();
-                    List<VariableLengthField> overdueItems = new List<VariableLengthField>();
+                    List<BarcodeItem> chargedItems = new List<BarcodeItem>();
+                    List<BarcodeItem> overdueItems = new List<BarcodeItem>();
                     int nOverdueItemsCount = 0;
                     foreach (XmlElement node in chargedItemNodes)
                     {
@@ -3287,8 +3295,9 @@ Position Definition
                         string location = node.GetAttribute("location");
 
                         {
-                            GetItemUII(info.LibraryChannel, location, strItemBarcode, out string uii, out strError);
-                            chargedItems.Add(new VariableLengthField(SIPConst.F_AU_ChargedItems, false, uii));
+                            // GetItemUII(info.LibraryChannel, strItemBarcode, location, out string uii, out strError);
+                            // chargedItems.Add(new VariableLengthField(SIPConst.F_AU_ChargedItems, false, uii));
+                            chargedItems.Add(new BarcodeItem { Barcode = strItemBarcode, Location = location });
                         }
 
                         string strReturningDate = DomUtil.GetAttr(node, "returningDate");
@@ -3298,8 +3307,9 @@ Position Definition
                         if (returningDate < DateTime.Now)
                         {
                             nOverdueItemsCount++;
-                            GetItemUII(info.LibraryChannel, null, strItemBarcode, out string uii, out strError);
-                            overdueItems.Add(new VariableLengthField(SIPConst.F_AT_OverdueItems, false, uii));
+                            // GetItemUII(info.LibraryChannel, strItemBarcode, location, out string uii, out strError);
+                            // overdueItems.Add(new VariableLengthField(SIPConst.F_AT_OverdueItems, false, uii));
+                            overdueItems.Add(new BarcodeItem { Barcode = strItemBarcode, Location = location });
                         }
                     }
 
@@ -3307,7 +3317,13 @@ Position Definition
 
                     if (IsDetail(summary, 2)
                         && chargedItems.Count > 0)
-                        response.AU_ChargedItems_o = GetRange(chargedItems, start, end);
+                        response.AU_ChargedItems_o = GetRange(chargedItems,
+                            (o) =>
+                            {
+                                GetItemUII(info.LibraryChannel, o.Barcode, o.Location, out string uii, out strError);
+                                return new VariableLengthField(SIPConst.F_AU_ChargedItems, false, uii);
+                            },
+                            start, end);
 
                     response.OverdueItemsCount_4 = overdueItems.Count.ToString().PadLeft(4, '0');
 
@@ -3317,7 +3333,14 @@ Position Definition
                     if (IsDetail(summary, 1)
                         && overdueItems.Count > 0)
                     {
-                        response.AT_OverdueItems_o = GetRange(overdueItems, start, end);
+                        // TODO: 添加 oi. 部分是否可以延迟到 GetRange() 之后进行
+                        response.AT_OverdueItems_o = GetRange(overdueItems,
+                            (o) =>
+                            {
+                                GetItemUII(info.LibraryChannel, o.Barcode, o.Location, out string uii, out strError);
+                                return new VariableLengthField(SIPConst.F_AT_OverdueItems, false, uii);
+                            },
+                            start, end);
                     }
                 }
 
@@ -3325,7 +3348,7 @@ Position Definition
                 XmlNodeList overdues = dom.DocumentElement.SelectNodes("overdues/overdue");
                 if (overdues != null && overdues.Count > 0)
                 {
-                    List<VariableLengthField> fineItems = new List<VariableLengthField>();
+                    List<BarcodeItem> fineItems = new List<BarcodeItem>();
 
                     List<string> prices = new List<string>();
 
@@ -3351,7 +3374,8 @@ Position Definition
                         string price = DomUtil.GetAttr(node, "price");
                         prices.Add(price);
 
-                        fineItems.Add(new VariableLengthField(SIPConst.F_AV_FineItems, false, $"{id}:{price}"));
+                        // fineItems.Add(new VariableLengthField(SIPConst.F_AV_FineItems, false, $"{id}:{price}"));
+                        fineItems.Add(new BarcodeItem { Barcode = $"{id}:{price}" });
                     }
 
                     // 累计欠款金额
@@ -3373,7 +3397,12 @@ Position Definition
                     // 2022/5/26
                     if (IsDetail(summary, 3)
                         && fineItems.Count > 0)
-                        response.AV_FineItems_o = GetRange(fineItems, start, end);
+                        response.AV_FineItems_o = GetRange(fineItems,
+                            (o) =>
+                            {
+                                return new VariableLengthField(SIPConst.F_AV_FineItems, false, o.Barcode);
+                            },
+                            start, end);
                 }
 
                 string strBarcode = DomUtil.GetElementText(dom.DocumentElement, "barcode");
@@ -3459,6 +3488,42 @@ Position Definition
 
         static int _rangeLimit = 100;
 
+        class BarcodeItem
+        {
+            public string Location { get; set; }
+            public string Barcode { get; set; }
+        }
+
+        delegate VariableLengthField delegate_createItem(BarcodeItem item);
+
+        static List<VariableLengthField> GetRange(List<BarcodeItem> list,
+            delegate_createItem proc,
+    int start,
+    int end)
+        {
+            if (start > end)
+                throw new ArgumentException($"GetRange() 的 start({start}) 不应大于 end({end})");
+            List<VariableLengthField> results = new List<VariableLengthField>();
+            int i = 1;
+            foreach (var item in list)
+            {
+                if (i >= start && i <= end)
+                {
+                    results.Add(proc(item));
+                    // 限制集合元素总数
+                    if (results.Count >= _rangeLimit)
+                        break;
+                }
+                i++;
+                // 优化
+                if (i > end)
+                    break;
+            }
+
+            return results;
+        }
+
+#if OLD
         static List<VariableLengthField> GetRange(List<VariableLengthField> list,
             int start,
             int end)
@@ -3484,6 +3549,7 @@ Position Definition
 
             return results;
         }
+#endif
 
         // 根据纯净的册条码号获得一个册的 UII。UII 就是 OI.PII
         // parameters:
@@ -3507,6 +3573,9 @@ Position Definition
                 XmlDocument client_dom = new XmlDocument();
                 client_dom.LoadXml("<root />");
                 DomUtil.SetElementText(client_dom.DocumentElement,
+                    "parent",
+                    "[none]");
+                DomUtil.SetElementText(client_dom.DocumentElement,
                     "barcode", barcode);
                 DomUtil.SetElementText(client_dom.DocumentElement,
                     "location", location);
@@ -3515,7 +3584,7 @@ Position Definition
 
             int nRedoCount = 0;
         REDO:
-            long lRet =channel.GetItemInfo(
+            long lRet = channel.GetItemInfo(
     "item",
     barcode,
     strClientXml,

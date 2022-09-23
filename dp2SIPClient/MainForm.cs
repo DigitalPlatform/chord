@@ -977,13 +977,22 @@ namespace dp2SIPClient
                 return;
             }
 
+            // 规整 summary 字符数
+            string summary = this.textBox_patron_summary.Text;
+            if (summary.Length > 10)
+                summary = summary.Substring(0, 10);
+            else if (summary.Length < 10)
+                summary = summary.PadRight(10, ' ');
+
+            this.textBox_patron_summary.Text = summary;
+
             try
             {
                 PatronInformation_63 request = new PatronInformation_63()
                 {
                     Language_3 = "019",
                     TransactionDate_18 = this.TransactionDate,
-                    Summary_10 = this.textBox_patron_summary.Text,//"  Y       ",
+                    Summary_10 = summary,//"  Y       ",
                     AO_InstitutionId_r = this.AO,//"",// dp2Library",
                     BP_StartItem_o = this.textBox_BP.Text.Trim(),//"1",
                     BQ_EndItem_o = this.textBox_BQ.Text.Trim(),//"5",
