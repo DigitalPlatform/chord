@@ -3221,6 +3221,14 @@ Position Definition
                     List<BarcodeItem> holdItems = new List<BarcodeItem>();
                     foreach (XmlNode node in holdItemNodes)
                     {
+                        // 2022/9/26
+                        // 敏捷放弃。假如前端已经 Close TCP 连接，则服务器应该尽快停止高耗能操作
+                        if (sip_channel.TcpClient.Connected == false)
+                        {
+                            strError = "前端已经切断 TCP 连接";
+                            goto ERROR1;
+                        }
+
                         string strItemBarcode = DomUtil.GetAttr(node, "items");
                         if (string.IsNullOrEmpty(strItemBarcode))
                             continue;
@@ -3250,11 +3258,30 @@ Position Definition
                         response.AS_HoldItems_o = GetRange(holdItems,
                             (o) =>
                             {
+                                // 2022/9/26
+                                // 敏捷放弃。假如前端已经 Close TCP 连接，则服务器应该尽快停止高耗能操作
+                                if (sip_channel.TcpClient.Connected == false)
+                                    throw new Exception($"前端已经切断 TCP 连接");
+                                
                                 GetItemUII(info.LibraryChannel, o.Barcode, o.Location, out string uii, out strError);
                                 return new VariableLengthField(SIPConst.F_AS_HoldItems, false, uii);
                             },
                             start, end);
                 }
+
+                /*
+                // testing
+                while(true)
+                {
+                    // 2022/9/26
+                    // 敏捷放弃。假如前端已经 Close TCP 连接，则服务器应该尽快停止高耗能操作
+                    if (sip_channel.TcpClient.Connected == false)
+                    {
+                        strError = "前端已经切断 TCP 连接";
+                        goto ERROR1;
+                    }
+                }
+                */
 
                 // overdue items count 4 - char, fixed-length required field  -- 超期
                 // charged items count 4 - char, fixed-length required field -- 在借
@@ -3266,6 +3293,14 @@ Position Definition
                     int nOverdueItemsCount = 0;
                     foreach (XmlElement node in chargedItemNodes)
                     {
+                        // 2022/9/26
+                        // 敏捷放弃。假如前端已经 Close TCP 连接，则服务器应该尽快停止高耗能操作
+                        if (sip_channel.TcpClient.Connected == false)
+                        {
+                            strError = "前端已经切断 TCP 连接";
+                            goto ERROR1;
+                        }
+
                         string strItemBarcode = DomUtil.GetAttr(node, "barcode");
                         if (string.IsNullOrEmpty(strItemBarcode))
                             continue;
@@ -3320,6 +3355,11 @@ Position Definition
                         response.AU_ChargedItems_o = GetRange(chargedItems,
                             (o) =>
                             {
+                                // 2022/9/26
+                                // 敏捷放弃。假如前端已经 Close TCP 连接，则服务器应该尽快停止高耗能操作
+                                if (sip_channel.TcpClient.Connected == false)
+                                    throw new Exception($"前端已经切断 TCP 连接");
+
                                 GetItemUII(info.LibraryChannel, o.Barcode, o.Location, out string uii, out strError);
                                 return new VariableLengthField(SIPConst.F_AU_ChargedItems, false, uii);
                             },
@@ -3337,6 +3377,11 @@ Position Definition
                         response.AT_OverdueItems_o = GetRange(overdueItems,
                             (o) =>
                             {
+                                // 2022/9/26
+                                // 敏捷放弃。假如前端已经 Close TCP 连接，则服务器应该尽快停止高耗能操作
+                                if (sip_channel.TcpClient.Connected == false)
+                                    throw new Exception($"前端已经切断 TCP 连接");
+
                                 GetItemUII(info.LibraryChannel, o.Barcode, o.Location, out string uii, out strError);
                                 return new VariableLengthField(SIPConst.F_AT_OverdueItems, false, uii);
                             },
@@ -3356,6 +3401,14 @@ Position Definition
                     string strWords2 = "超期,丢失";
                     foreach (XmlElement node in overdues)
                     {
+                        // 2022/9/26
+                        // 敏捷放弃。假如前端已经 Close TCP 连接，则服务器应该尽快停止高耗能操作
+                        if (sip_channel.TcpClient.Connected == false)
+                        {
+                            strError = "前端已经切断 TCP 连接";
+                            goto ERROR1;
+                        }
+
                         string id = node.GetAttribute("id");
                         string strReason = DomUtil.GetAttr(node, "reason");
                         string strPart = "";
