@@ -3222,6 +3222,7 @@ Position Definition
                     List<BarcodeItem> holdItems = new List<BarcodeItem>();
                     foreach (XmlNode node in holdItemNodes)
                     {
+                        /*
                         // 2022/9/26
                         // 敏捷放弃。假如前端已经 Close TCP 连接，则服务器应该尽快停止高耗能操作
                         if (IsConnected(sip_channel) == false)
@@ -3229,6 +3230,7 @@ Position Definition
                             strError = "前端已经切断 TCP 连接";
                             goto ERROR1;
                         }
+                        */
 
                         string strItemBarcode = DomUtil.GetAttr(node, "items");
                         if (string.IsNullOrEmpty(strItemBarcode))
@@ -3295,6 +3297,7 @@ Position Definition
                     int nOverdueItemsCount = 0;
                     foreach (XmlElement node in chargedItemNodes)
                     {
+                        /*
                         // 2022/9/26
                         // 敏捷放弃。假如前端已经 Close TCP 连接，则服务器应该尽快停止高耗能操作
                         if (IsConnected(sip_channel) == false)
@@ -3302,6 +3305,7 @@ Position Definition
                             strError = "前端已经切断 TCP 连接";
                             goto ERROR1;
                         }
+                        */
 
                         string strItemBarcode = DomUtil.GetAttr(node, "barcode");
                         if (string.IsNullOrEmpty(strItemBarcode))
@@ -3403,6 +3407,7 @@ Position Definition
                     string strWords2 = "超期,丢失";
                     foreach (XmlElement node in overdues)
                     {
+                        /*
                         // 2022/9/26
                         // 敏捷放弃。假如前端已经 Close TCP 连接，则服务器应该尽快停止高耗能操作
                         if (IsConnected(sip_channel) == false)
@@ -3410,6 +3415,7 @@ Position Definition
                             strError = "前端已经切断 TCP 连接";
                             goto ERROR1;
                         }
+                        */
 
                         string id = node.GetAttribute("id");
                         string strReason = DomUtil.GetAttr(node, "reason");
@@ -3530,7 +3536,7 @@ Position Definition
             var tcpClient = channel.TcpClient;
             if (tcpClient.Connected)
             {
-                return !tcpClient.Client.Poll(01, SelectMode.SelectError) ? true : false;
+                return !tcpClient.Client.Poll(0, SelectMode.SelectError) ? true : false;
             }
 
             return false;
