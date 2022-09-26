@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -3223,7 +3224,7 @@ Position Definition
                     {
                         // 2022/9/26
                         // 敏捷放弃。假如前端已经 Close TCP 连接，则服务器应该尽快停止高耗能操作
-                        if (sip_channel.TcpClient.Connected == false)
+                        if (IsConnected(sip_channel) == false)
                         {
                             strError = "前端已经切断 TCP 连接";
                             goto ERROR1;
@@ -3260,28 +3261,29 @@ Position Definition
                             {
                                 // 2022/9/26
                                 // 敏捷放弃。假如前端已经 Close TCP 连接，则服务器应该尽快停止高耗能操作
-                                if (sip_channel.TcpClient.Connected == false)
+                                if (IsConnected(sip_channel) == false)
                                     throw new Exception($"前端已经切断 TCP 连接");
-                                
+
                                 GetItemUII(info.LibraryChannel, o.Barcode, o.Location, out string uii, out strError);
                                 return new VariableLengthField(SIPConst.F_AS_HoldItems, false, uii);
                             },
                             start, end);
                 }
 
-                /*
-                // testing
-                while(true)
+                if (request.AC_TerminalPassword_o == "!testing")
                 {
-                    // 2022/9/26
-                    // 敏捷放弃。假如前端已经 Close TCP 连接，则服务器应该尽快停止高耗能操作
-                    if (sip_channel.TcpClient.Connected == false)
+                    // testing
+                    while (true)
                     {
-                        strError = "前端已经切断 TCP 连接";
-                        goto ERROR1;
+                        // 2022/9/26
+                        // 敏捷放弃。假如前端已经 Close TCP 连接，则服务器应该尽快停止高耗能操作
+                        if (IsConnected(sip_channel) == false)
+                        {
+                            strError = "前端已经切断 TCP 连接";
+                            goto ERROR1;
+                        }
                     }
                 }
-                */
 
                 // overdue items count 4 - char, fixed-length required field  -- 超期
                 // charged items count 4 - char, fixed-length required field -- 在借
@@ -3295,7 +3297,7 @@ Position Definition
                     {
                         // 2022/9/26
                         // 敏捷放弃。假如前端已经 Close TCP 连接，则服务器应该尽快停止高耗能操作
-                        if (sip_channel.TcpClient.Connected == false)
+                        if (IsConnected(sip_channel) == false)
                         {
                             strError = "前端已经切断 TCP 连接";
                             goto ERROR1;
@@ -3357,7 +3359,7 @@ Position Definition
                             {
                                 // 2022/9/26
                                 // 敏捷放弃。假如前端已经 Close TCP 连接，则服务器应该尽快停止高耗能操作
-                                if (sip_channel.TcpClient.Connected == false)
+                                if (IsConnected(sip_channel) == false)
                                     throw new Exception($"前端已经切断 TCP 连接");
 
                                 GetItemUII(info.LibraryChannel, o.Barcode, o.Location, out string uii, out strError);
@@ -3379,7 +3381,7 @@ Position Definition
                             {
                                 // 2022/9/26
                                 // 敏捷放弃。假如前端已经 Close TCP 连接，则服务器应该尽快停止高耗能操作
-                                if (sip_channel.TcpClient.Connected == false)
+                                if (IsConnected(sip_channel) == false)
                                     throw new Exception($"前端已经切断 TCP 连接");
 
                                 GetItemUII(info.LibraryChannel, o.Barcode, o.Location, out string uii, out strError);
@@ -3403,7 +3405,7 @@ Position Definition
                     {
                         // 2022/9/26
                         // 敏捷放弃。假如前端已经 Close TCP 连接，则服务器应该尽快停止高耗能操作
-                        if (sip_channel.TcpClient.Connected == false)
+                        if (IsConnected(sip_channel) == false)
                         {
                             strError = "前端已经切断 TCP 连接";
                             goto ERROR1;
@@ -3520,6 +3522,18 @@ Position Definition
             response.AF_ScreenMessage_o = strError;
             response.AG_PrintLine_o = strError;
             return response.ToText();
+        }
+
+        // https://social.msdn.microsoft.com/Forums/en-US/c857cad5-2eb6-4b6c-b0b5-7f4ce320c5cd/c-how-to-determine-if-a-tcpclient-has-been-disconnected?forum=netfxnetcom#:~:text=%2F%2F%20Detect%20if%20client%20disconnected%20if%20%28tcp.Client.Poll%20%280%2C,Client%20disconnected%20bClosed%20%3D%20true%20%3B%20%7D%20%7D
+        static bool IsConnected(SipChannel channel)
+        {
+            var tcpClient = channel.TcpClient;
+            if (tcpClient.Connected)
+            {
+                return !tcpClient.Client.Poll(01, SelectMode.SelectError) ? true : false;
+            }
+
+            return false;
         }
 
         // 判断一个位置是否为 'Y'

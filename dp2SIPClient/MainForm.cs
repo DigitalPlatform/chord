@@ -13,13 +13,16 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using System.Xml;
+using System.Threading.Tasks;
+using System.Web;
 
 using DigitalPlatform.Text;
-using System.Web;
 using DigitalPlatform.SIP2;
 using DigitalPlatform.SIP2.Request;
 using DigitalPlatform.SIP2.Response;
-using System.Xml;
+
+// using static System.Net.Mime.MediaTypeNames;
 
 namespace dp2SIPClient
 {
@@ -57,8 +60,8 @@ namespace dp2SIPClient
             ClearHtml();
 
             // 给界面设置值
-            this.textBox_addr.Text =this.SIPServerUrl;
-            this.textBox_port.Text =this.SIPServerPort.ToString();
+            this.textBox_addr.Text = this.SIPServerUrl;
+            this.textBox_port.Text = this.SIPServerPort.ToString();
             this.comboBox_encoding.Text = Properties.Settings.Default.SIPEncoding;
             this.textBox_username.Text = Properties.Settings.Default.SIPAccount;
             this.textBox_locationCode.Text = Properties.Settings.Default.SipLoginCP;
@@ -108,7 +111,7 @@ namespace dp2SIPClient
             }
 
 
-            bool bRet = SCHelper.Instance.Connection(this.SIPServerUrl,nPort , out info);
+            bool bRet = SCHelper.Instance.Connection(this.SIPServerUrl, nPort, out info);
             if (bRet == false) // 出错
             {
                 this.toolStripStatusLabel_info.Text = info;
@@ -540,7 +543,7 @@ namespace dp2SIPClient
             }
             return;
 
-            ERROR1:
+        ERROR1:
             this.Print("error:" + error);
 
 
@@ -594,7 +597,7 @@ namespace dp2SIPClient
             }
             catch (Exception ex)
             {
-                MessageBox.Show(this,ex.Message);
+                MessageBox.Show(this, ex.Message);
                 return;
             }
 
@@ -614,10 +617,13 @@ namespace dp2SIPClient
 
         private void Print(string strHtml)
         {
-            strHtml=HttpUtility.HtmlEncode(strHtml);
-            strHtml = String.Format("{0}  {1}<br />", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), strHtml);
-            WriteHtml(this.webBrowser1,
-                strHtml);
+            this.Invoke((Action)(() =>
+            {
+                strHtml = HttpUtility.HtmlEncode(strHtml);
+                strHtml = String.Format("{0}  {1}<br />", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), strHtml);
+                WriteHtml(this.webBrowser1,
+                    strHtml);
+            }));
         }
 
         // 不支持异步调用
@@ -773,7 +779,7 @@ namespace dp2SIPClient
         {
             get
             {
-                return this.textBox_locationCode.Text.Trim(); 
+                return this.textBox_locationCode.Text.Trim();
             }
         }
 
@@ -832,34 +838,34 @@ namespace dp2SIPClient
 
             //for (int i = 0; i < int.Parse(this.textBox_login_copies.Text); i++)
             //{
-                Login_93 request = new Login_93()
-                {
-                    UIDAlgorithm_1 = " ",
-                    PWDAlgorithm_1 = " ",
+            Login_93 request = new Login_93()
+            {
+                UIDAlgorithm_1 = " ",
+                PWDAlgorithm_1 = " ",
 
-                    CN_LoginUserId_r = SipAccount,
-                    CO_LoginPassword_r = password,
-                    CP_LocationCode_o = SipCP
-                };
-                string cmdText = request.ToText();
+                CN_LoginUserId_r = SipAccount,
+                CO_LoginPassword_r = password,
+                CP_LocationCode_o = SipCP
+            };
+            string cmdText = request.ToText();
 
-                this.Print("send:" + cmdText);
-                BaseMessage response = null;
-                int nRet = SCHelper.Instance.SendAndRecvMessage(cmdText,
-                    out response,
-                    out responseText,
-                    out error);
-                if (nRet == -1)
-                {
-                    MessageBox.Show(error);
-                    this.Print("error:" + error);
-                    return;
-                }
+            this.Print("send:" + cmdText);
+            BaseMessage response = null;
+            int nRet = SCHelper.Instance.SendAndRecvMessage(cmdText,
+                out response,
+                out responseText,
+                out error);
+            if (nRet == -1)
+            {
+                MessageBox.Show(error);
+                this.Print("error:" + error);
+                return;
+            }
 
-                this.Print("recv:" + responseText);
+            this.Print("recv:" + responseText);
 
-                //this.button_login.Text = "登录(" + (i + 1).ToString() + ")";
-                //this.button_login.Update();
+            //this.button_login.Text = "登录(" + (i + 1).ToString() + ")";
+            //this.button_login.Update();
             //}
         }
 
@@ -969,7 +975,7 @@ namespace dp2SIPClient
             }
         }
 
-        private void button_getPatronInfo_Click(object sender, EventArgs e)
+        private async void button_getPatronInfo_Click(object sender, EventArgs e)
         {
             if (this.textBox_readerBarcode.Text.Trim() == "")
             {
@@ -986,55 +992,61 @@ namespace dp2SIPClient
 
             this.textBox_patron_summary.Text = summary;
 
-            try
+            await Task.Factory.StartNew(() =>
             {
-                PatronInformation_63 request = new PatronInformation_63()
+                try
                 {
-                    Language_3 = "019",
-                    TransactionDate_18 = this.TransactionDate,
-                    Summary_10 = summary,//"  Y       ",
-                    AO_InstitutionId_r = this.AO,//"",// dp2Library",
-                    BP_StartItem_o = this.textBox_BP.Text.Trim(),//"1",
-                    BQ_EndItem_o = this.textBox_BQ.Text.Trim(),//"5",
-                };
-                Button button = sender as Button;
-                string responseText = "";
-                string error = "";
-                string[] barcodes = this.textBox_readerBarcode.Text.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                int i = 0;
-                foreach (string barcode in barcodes)
-                {
-                    this.Update();
-                    Application.DoEvents();
-                    Thread.Sleep(100);
-
-                    request.AA_PatronIdentifier_r = barcode;
-                    string cmdText = request.ToText();
-
-                    this.Print("send:" + cmdText);
-                    BaseMessage response = null;
-                    int nRet = SCHelper.Instance.SendAndRecvMessage(cmdText,
-                        out response,
-                        out responseText,
-                        out error);
-                    if (nRet == -1)
+                    PatronInformation_63 request = new PatronInformation_63()
                     {
-                        MessageBox.Show(error);
-                        this.Print("error:" + error);
-                        return;
+                        Language_3 = "019",
+                        TransactionDate_18 = this.TransactionDate,
+                        Summary_10 = summary,//"  Y       ",
+                        AO_InstitutionId_r = this.AO,//"",// dp2Library",
+                        BP_StartItem_o = this.textBox_BP.Text.Trim(),//"1",
+                        BQ_EndItem_o = this.textBox_BQ.Text.Trim(),//"5",
+                    };
+                    Button button = sender as Button;
+                    string responseText = "";
+                    string error = "";
+                    string[] barcodes = this.textBox_readerBarcode.Text.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                    int i = 0;
+                    foreach (string barcode in barcodes)
+                    {
+                        //this.Update();
+                        //Application.DoEvents();
+                        Thread.Sleep(100);
+
+                        request.AA_PatronIdentifier_r = barcode;
+                        string cmdText = request.ToText();
+
+                        this.Print("send:" + cmdText);
+                        BaseMessage response = null;
+                        int nRet = SCHelper.Instance.SendAndRecvMessage(cmdText,
+                            out response,
+                            out responseText,
+                            out error);
+                        if (nRet == -1)
+                        {
+                            MessageBoxShow(error);
+                            this.Print("error:" + error);
+                            return;
+                        }
+
+                        this.Print("recv:" + responseText);
+
+                        //button.Text = "获取(" + (i + 1).ToString() + ")";
+                        i++;
                     }
-
-                    this.Print("recv:" + responseText);
-
-                    //button.Text = "获取(" + (i + 1).ToString() + ")";
-                    i++;
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(this, ex.Message);
-                return;
-            }
+                catch (Exception ex)
+                {
+                    MessageBoxShow(ex.Message);
+                    return;
+                }
+            },
+    default,
+    TaskCreationOptions.LongRunning,
+    TaskScheduler.Default);
         }
 
         private void button_checkIn_Click(object sender, EventArgs e)
@@ -1081,8 +1093,8 @@ namespace dp2SIPClient
                 if (string.IsNullOrEmpty(responseText) == false
                     && responseText.Length >= 6
                     && responseText.Substring(5, 1) == "Y")
-                    {
-                    this.Print("<span style='background-color:yellow'>recv:" + responseText +"</span>");
+                {
+                    this.Print("<span style='background-color:yellow'>recv:" + responseText + "</span>");
 
                 }
                 else
@@ -1101,14 +1113,14 @@ namespace dp2SIPClient
             {
                 this.textBox_username.Text = HttpUtility.UrlEncode(this.textBox_username.Text);
             }
-            else if(this.checkBox_UrlEncode.Checked == false)
+            else if (this.checkBox_UrlEncode.Checked == false)
             {
                 this.textBox_username.Text = HttpUtility.UrlDecode(this.textBox_username.Text);
             }
         }
 
 
-        static int[] iSign =   
+        static int[] iSign =
         {
             65306,
             8220,
@@ -1170,7 +1182,7 @@ namespace dp2SIPClient
 
             string AQ = this.textBox_19_AQ.Text.Trim();  // 永久馆藏地
             string AP = this.textBox_19_AP.Text.Trim();  // 当前馆藏地
-            string KQ=this.textBox_19_KQ.Text.Trim();  // 永久架位
+            string KQ = this.textBox_19_KQ.Text.Trim();  // 永久架位
             string KP = this.textBox_19_KP.Text.Trim();// 当前架位
             string HS = this.textBox_19_HS.Text.Trim();// 状态
 
@@ -1231,38 +1243,50 @@ namespace dp2SIPClient
             }
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private async void button1_Click(object sender, EventArgs e)
         {
-            this.SendMessage();
+            await this.SendMessageAsync();
         }
 
-        public void SendMessage()
+        public Task SendMessageAsync()
         {
-            try
+            return Task.Factory.StartNew(() =>
             {
-                string cmdText = this.textBox_message.Text.Trim();//this.textBox_barcodes.Text.Trim();
-                this.Print("send:" + cmdText);
-                BaseMessage response = null;
-                int nRet = SCHelper.Instance.SendAndRecvMessage(cmdText,
-                    out response,
-                    out string responseText,
-                    out string error);
-                if (nRet == -1)
+                try
                 {
-                    MessageBox.Show(error);
-                    this.Print("error:" + error);
-                }
+                    string cmdText = this.textBox_message.Text.Trim();//this.textBox_barcodes.Text.Trim();
+                    this.Print("send:" + cmdText);
+                    BaseMessage response = null;
+                    int nRet = SCHelper.Instance.SendAndRecvMessage(cmdText,
+                        out response,
+                        out string responseText,
+                        out string error);
+                    if (nRet == -1)
+                    {
+                        MessageBox.Show(error);
+                        this.Print("error:" + error);
+                    }
 
-                this.Print("recv:" + responseText);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(this,ex.Message);
-                return;
-            }
+                    this.Print("recv:" + responseText);
+                }
+                catch (Exception ex)
+                {
+                    MessageBoxShow(ex.Message);
+                    return;
+                }
+            },
+    default,
+    TaskCreationOptions.LongRunning,
+    TaskScheduler.Default);
         }
 
-
+        public void MessageBoxShow(string text)
+        {
+            this.Invoke((Action)(() =>
+            {
+                MessageBox.Show(this, text);
+            }));
+        }
 
 
         private void button_renew_Click(object sender, EventArgs e)
@@ -1305,10 +1329,10 @@ namespace dp2SIPClient
 
         }
 
-        private void button_send98_Click(object sender, EventArgs e)
+        private async void button_send98_Click(object sender, EventArgs e)
         {
             this.textBox_message.Text = "9900302.00";
-            this.SendMessage();
+            await this.SendMessageAsync();
         }
 
         /// <summary>
@@ -1322,7 +1346,7 @@ namespace dp2SIPClient
             {
                 TransactionDate_18 = this.TransactionDate,
                 FeeType_2 = "01",
-                PaymentType_2= "00",
+                PaymentType_2 = "00",
             };
 
             Button button = sender as Button;
@@ -1373,7 +1397,7 @@ namespace dp2SIPClient
         {
             string word = this.textBox_ZW.Text.Trim();
             string format = this.textBox_ZF.Text.Trim();
-            string maxCount= this.textBox_ZC.Text.Trim();
+            string maxCount = this.textBox_ZC.Text.Trim();
 
             // 将start转成数值
             int nStart = 0;
@@ -1421,9 +1445,9 @@ namespace dp2SIPClient
         }
 
 
-        public int GetChannel(string word, int nStart, int perCount, string format, 
+        public int GetChannel(string word, int nStart, int perCount, string format,
             out int nTotalCount,
-            out string tv_value, 
+            out string tv_value,
             out string error)
         {
             tv_value = "";
@@ -1465,7 +1489,7 @@ namespace dp2SIPClient
 
                 string returnCount = r1.ZR_ReturnCount_r;
                 this.Print("return count=" + returnCount);
-                int nReturnCount=Convert.ToInt32(r1.ZR_ReturnCount_r);
+                int nReturnCount = Convert.ToInt32(r1.ZR_ReturnCount_r);
 
                 string value = r1.ZV_Value_r;
                 /*
@@ -1518,8 +1542,15 @@ namespace dp2SIPClient
 
         private void button_close_Click(object sender, EventArgs e)
         {
-            SCHelper.Instance.Close();
-            this.Print("手动断开连接");
+            _ = Task.Factory.StartNew(() =>
+                {
+                    SCHelper.Instance.Close();
+                    this.Print("手动断开连接");
+                },
+                default,
+                TaskCreationOptions.LongRunning,
+                TaskScheduler.Default);
+
         }
     }
 }
