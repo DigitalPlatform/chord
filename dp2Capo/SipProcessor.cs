@@ -465,10 +465,12 @@ namespace dp2Capo
 
         static LoginCache _loginCache = new LoginCache();
 
-        // 清除 LoginCache 中衰老的事项
+        // 清除 LoginCache 中衰老的事项，和 dp2library 版本号缓存
         public static void ClearLoginCache()
         {
             _loginCache.CleanOld(TimeSpan.FromMinutes(5));
+            // 2022/9/27
+            _libraryServerVersion = "";
         }
 
         static int DoLogin(

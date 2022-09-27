@@ -32,8 +32,8 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“生成号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”: 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.49.*")]
-[assembly: AssemblyFileVersion("1.49.0.0")]
+[assembly: AssemblyVersion("1.50.*")]
+[assembly: AssemblyFileVersion("1.50.0.0")]
 
 // 1.1 (2016/6/26) 首次使用了版本号
 // 1.2 (2016/9/14) 管理线程中会不断重试连接 dp2mserver，并将此情况写入日志
@@ -89,3 +89,4 @@ using System.Runtime.InteropServices;
 // 1.48 (2022/9/23) SIP Server PatronInformation() API 中优化了为在借册获得机构代码的速度。要求最新版 3.129 dp2library 配合
 // 1.49 (2022/9/26) SIP Server PatronInformation() API 执行中途会检测 TCP 连接是否被前端 Close，如果被 Close 的话会尽快中断高耗能的处理
 //                  PatronInformation() API 可以用 AC!testing 字段内容来模拟测试长时操作，便于前端验证 Close
+// 1.50 (2022/9/27) SIP Server 大约每一分钟清理一次 dp2library version 缓存
