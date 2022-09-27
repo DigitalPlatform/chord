@@ -44,7 +44,6 @@ namespace dp2weixin.service
     {
         public string biblioPath { get; set; }
 
-        public string info { get; set; }
         public List<BiblioItem> itemList { get; set; }
 
         //public string biblioName { get; set; }

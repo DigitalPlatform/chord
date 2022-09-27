@@ -19,13 +19,12 @@ namespace dp2weixinWeb.ApiControllers
     public class WxUserApiController : ApiController
     {
 
-        // 获取小程序id
+        // 根据小程序前端传的code，获取小程序用户的openid
         public GetWxAppletSessionResult GetAppletOpenId(string code)
         {
             GetWxAppletSessionResult apiResult = new GetWxAppletSessionResult();
             try
             {
-
                 WebClient client = new WebClient();
                 string url = "https://api.weixin.qq.com/sns/jscode2session"
                     + "?appid=" + dp2WeiXinService.Instance.AppletAppId
@@ -57,6 +56,34 @@ namespace dp2weixinWeb.ApiControllers
             }
 
         }
+
+        // 获取读者的二维码特殊码 2022/9/27
+        [HttpGet]
+        public ApiResult GetPatronQRcode(string weixinId,
+            string libId,
+            string patronBarcode)
+        {
+            ApiResult apiResult = new ApiResult();
+
+            // 获得读者证号二维码字符串
+            string strError = "";
+            string strCode = "";
+            int nRet = dp2WeiXinService.Instance.GetQRcode(libId,
+                patronBarcode,
+                out strCode,
+                out strError);
+            if (nRet == -1 || nRet == 0)
+            {
+                apiResult.errorInfo = strError;
+                apiResult.errorCode = nRet;
+                return apiResult;
+            }
+
+            apiResult.errorCode = 1;
+            apiResult.info = strCode;
+            return apiResult;
+        }
+
 
 
         // 绑定帐户mongodb数据库

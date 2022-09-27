@@ -281,7 +281,7 @@ function getDetail(libId, recPath, obj, from,biblioName) {
             // 册条码
                 itemTables += "<tr>"
                 + "<td class='label'>册条码</td>"
-                + "<td class='title' " + addStyle + ">" + record.pureBarcode + "</td>"  //record.barcode
+                + "<td class='value' " + addStyle + ">" + record.pureBarcode + "</td>"  //record.barcode
                 + "</tr>";
 
             if (record.state != null && record.state != "") {
@@ -298,9 +298,14 @@ function getDetail(libId, recPath, obj, from,biblioName) {
                 + "</tr>";
             }
 
+            var locationStyle = "title";
+            if (record.currentLocation != null && record.currentLocation != "") {
+                locationStyle = "value";
+            }
+
             itemTables += "<tr>"
                 + "<td class='label'>馆藏地</td>"
-                + "<td class='value' " + addStyle + ">" + record.location + "</td>"
+                + "<td class='" + locationStyle + "' " + addStyle + ">" + record.location + "</td>"
                 + "</tr>";
 
             // 2021/4/6 增加架号
@@ -313,11 +318,11 @@ function getDetail(libId, recPath, obj, from,biblioName) {
 
             itemTables +=  "<tr>"
             + "<td class='label'>当前位置</td>"
-            + "<td class='value' " + addStyle + ">" + record.currentLocation + "</td>"
+            + "<td class='title' " + addStyle + ">" + record.currentLocation + "</td>"
             + "</tr>"
             + "<tr>"
             + "<td class='label'>索取号</td>"
-            + "<td class='value' " + addStyle + ">" + record.accessNo + "</td>"
+            + "<td class='title' " + addStyle + ">" + record.accessNo + "</td>"
             + "</tr>"
             + "<tr>"
             + "<td class='label'>价格</td>"
@@ -466,8 +471,8 @@ function reservation(obj, barcode, style) {
 
     var url = "/api2/ReservationApi/Reserve?weixinId=" + weixinId
         + "&libId=" + encodeURIComponent(libId)
-        + "&patron=" + encodeURIComponent(patron)
-        + "&items=" + encodeURIComponent(paramBarcord)
+        + "&patronBarcode=" + encodeURIComponent(patron)
+        + "&itemBarcodes=" + encodeURIComponent(paramBarcord)
         + "&style=" + style;//new 创建一个预约请求,delete删除
 
      //alert(url);
@@ -576,8 +581,8 @@ function renew(itemBarcode) {
 
     var url = "/api2/BorrowInfoApi/Renew?weixinId=" //目前没用到weixinId，传空即可
         +"&libId = " + encodeURIComponent(libId)
-        + "&patron=" + encodeURIComponent(patronBarcode)
-        + "&item=" + encodeURIComponent(paramItemBarcord)
+        + "&patronBarcode=" + encodeURIComponent(patronBarcode)
+        + "&itemBarcode=" + encodeURIComponent(paramItemBarcord)
     // 调api
     sendAjaxRequest(url, "POST", function (result) {
 

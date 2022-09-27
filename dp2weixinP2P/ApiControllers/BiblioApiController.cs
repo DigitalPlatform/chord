@@ -36,9 +36,9 @@ namespace dp2weixinWeb.ApiControllers
         public SearchBiblioResult SearchBiblio(string loginUserName,
             string loginUserType,
             string weixinId,
-            string libId, 
+            string libId,
             string from,
-            string word, 
+            string word,
             string match,
             string resultSet)
         {
@@ -73,7 +73,7 @@ namespace dp2weixinWeb.ApiControllers
             }
 
             // 测试加的日志
-           //dp2WeiXinService.Instance.WriteErrorLog1("search-2-"+resultSet);
+            //dp2WeiXinService.Instance.WriteErrorLog1("search-2-"+resultSet);
 
 
             // 取下一页的情况
@@ -106,9 +106,9 @@ namespace dp2weixinWeb.ApiControllers
                     //word值表示起始位置
                     searchRet = dp2WeiXinService.Instance.getFromResultSet(loginInfo,
                         weixinId,
-                        libId, 
+                        libId,
                         resultSet,
-                        num, 
+                        num,
                         WeiXinConst.C_OnePage_Count);
                     goto END1;
                 }
@@ -121,8 +121,8 @@ namespace dp2weixinWeb.ApiControllers
                     searchRet = dp2WeiXinService.Instance.getFromResultSet(loginInfo,
                         weixinId,
                         libId,
-                        resultSet, 
-                        0, 
+                        resultSet,
+                        0,
                         num);
                     goto END1;
 
@@ -188,6 +188,41 @@ namespace dp2weixinWeb.ApiControllers
             return result;
         }
 
+        // 获取书目详情
+        [HttpGet]
+        public BiblioDetailResult GetBiblio(string loginUserName,
+            string loginUserType,
+            string weixinId,
+            string libId,
+            string biblioPath)
+        {
+            LoginInfo loginInfo = dp2WeiXinService.GetLoginInfo(loginUserName, loginUserType);
+
+            BiblioDetailResult result = dp2WeiXinService.Instance.GetBiblio(loginInfo,
+                weixinId,
+                libId,
+                biblioPath);
+            return result;
+        }
+
+        // 获取册记录
+        [HttpGet]
+        public BiblioDetailResult GetItems(string loginUserName,
+    string loginUserType,
+    string weixinId,
+    string libId,
+    string biblioPath)
+        {
+            LoginInfo loginInfo = dp2WeiXinService.GetLoginInfo(loginUserName, loginUserType);
+
+            BiblioDetailResult result = dp2WeiXinService.Instance.GetItems(loginInfo,
+                weixinId,
+                libId,
+                biblioPath);
+            return result;
+        }
+
+
         /// <summary>
         /// 获取摘要信息
         /// </summary>
@@ -225,7 +260,7 @@ namespace dp2weixinWeb.ApiControllers
                 string strRecPath = "";
                 string strError = "";
                 int nRet = dp2WeiXinService.Instance.GetBiblioSummary(loginInfo,
-                    lib, 
+                    lib,
                     id,
                     "",
                     out strSummary,
@@ -236,18 +271,18 @@ namespace dp2weixinWeb.ApiControllers
 
                 return strSummary;
             }
-            
+
 
             return "未实现的风格:" + format;
         }
 
 
-        
+
 
 
         // 册登记
         [HttpPost]
-        public ApiResult SetItem(string loginUserName, 
+        public ApiResult SetItem(string loginUserName,
             string libId,
             string biblioPath,
             string action,

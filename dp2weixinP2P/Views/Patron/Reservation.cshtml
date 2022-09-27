@@ -35,8 +35,8 @@
 
             var url = "/api2/ReservationApi/Reserve?weixinId=" + weixinId
                 + "&libId=" + encodeURIComponent(libId)
-                + "&patron=" + encodeURIComponent(patronBarcode)
-                + "&items=" + encodeURIComponent(items)
+                + "&patronBarcode=" + encodeURIComponent(patronBarcode)
+                + "&itemBarcodes=" + encodeURIComponent(items)
                 + "&style=" + style;//创建一个预约请求
             // 调api
             sendAjaxRequest(url, "POST", function (result) {

@@ -7429,6 +7429,205 @@ ErrorInfo成员里可能会有报错信息。
 
         #endregion
 
+        // 为小程序做的获取册记录接口，仅返回纯净的书目信息
+        public BiblioDetailResult GetItems(LoginInfo loginInfo,
+    string weixinId,
+    string libId,
+    string biblioPath)
+        {
+            BiblioDetailResult result = new BiblioDetailResult();
+            result.errorCode = 0;
+            result.biblioPath = biblioPath;
+
+
+            LibEntity lib = this.GetLibById(libId);
+            if (lib == null)
+            {
+                result.errorInfo = "未找到id为[" + libId + "]的图书馆定义。";
+                result.errorCode = -1;
+                return result;
+            }
+
+            try
+            {
+
+                // 得到读者证条码号
+                string patronBarcode = "";
+                WxUserItem activeUser = WxUserDatabase.Current.GetActive(weixinId);
+                if (activeUser != null && activeUser.type == WxUserDatabase.C_Type_Patron)
+                {
+                    patronBarcode = activeUser.readerBarcode;
+                }
+
+                // 取item
+                string strError = "";
+                this.WriteDebug2("开始获取items");
+                List<BiblioItem> itemList = null;
+                long nRet = (int)this.GetItemInfo(weixinId,
+                    lib,
+                    loginInfo,
+                    patronBarcode,
+                    biblioPath,
+                    "",
+                    out itemList,
+                    out strError);
+                if (nRet == -1) //0的情况表示没有册，不是错误
+                {
+                    result.errorCode = -1;
+                    result.errorInfo = strError;
+                    return result;
+                }
+
+
+
+                result.itemList = itemList;
+                result.errorCode = 1;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.errorCode = -1;
+                result.errorInfo = ex.Message;
+                return result;
+            }
+
+
+        }
+
+        // 为小程序做的获取书目详细接口，仅返回纯净的书目信息
+        public BiblioDetailResult GetBiblio(LoginInfo loginInfo,
+    string weixinId,
+    string libId,
+    string biblioPath)
+        {
+            BiblioDetailResult result = new BiblioDetailResult();
+            result.errorCode = 0;
+            result.biblioPath = biblioPath;
+
+
+            LibEntity lib = this.GetLibById(libId);
+            if (lib == null)
+            {
+                result.errorInfo = "未找到id为[" + libId + "]的图书馆定义。";
+                result.errorCode = -1;
+                return result;
+            }
+
+            //DateTime start_time = DateTime.Now;
+
+            try
+            {
+
+                string strError = "";
+
+                List<string> dataList = null;
+                int nRet = this.GetBiblioInfo(lib,
+                    loginInfo,
+                    biblioPath,
+                   "table:*|object_template",
+                    out dataList,
+                    out strError);
+                if (nRet == -1 || nRet == 0)
+                {
+                    result.errorCode = nRet;
+                    result.errorInfo = strError;
+                    return result;
+                }
+
+                string xml = dataList[0];
+                XmlDocument dom = new XmlDocument();
+                try
+                {
+                    dom.LoadXml(xml);
+                }
+                catch (Exception ex)
+                {
+                    result.errorCode = -1;
+                    result.errorInfo = ex.Message;
+                    return result;
+                }
+
+                string json = Newtonsoft.Json.JsonConvert.SerializeXmlNode(dom);
+                result.info = json;
+
+
+                //<root>
+                //  <line name="_coverImage" value="http://www.hongniba.com.cn/bookclub/images/books/book_20005451_b.jpg" />
+                //  <line name="题名与责任说明拼音" value="dang wo xiang shui de shi hou" type="titlepinyin" />
+                //  <line name="题名与责任说明" value="当我想睡的时候 [专著]  / (美)简·R. 霍华德文 ; (美)琳内·彻丽图 ; 林芳萍翻译" type="title" />
+                //  <line name="责任者" value="霍华德; 林芳萍; 彻丽" />
+                //  <line name="出版发行" value="石家庄 : 河北教育出版社, 2010" />
+                //  <line name="载体形态" value="1册 ; 26cm" />
+                //  <line name="主题分析" value="图画故事-美国-现代" />
+                //  <line name="分类号" value="中图法分类号: I712.85" />
+                //  <line name="附注" value="启发精选世界优秀畅销绘本版权页英文题名：When I'm sleepy" />
+                //  <line name="获得方式" value="ISBN 978-7-5434-7754-4 (精装 ) : CNY27.80" />
+                //  <line name="提要文摘" value="临睡前，带着孩子一起环游世界，看看他可不可以像长颈鹿一样站着睡，和蝙蝠一起倒挂着睡，或者像企鹅一样睡在好冷好冷的地方。" />
+                //<line name="数字资源" type="object">
+                //        <table>
+                //            <line type="" urlLabel="this is link txt" uri="1" mime="image/pjpeg" bytes="20121" />
+                //        </table>
+                //    </line>
+                //</root>
+
+
+
+
+                //    // 是否显示封面
+                //    bool showCover = false;
+                //    WxUserItem activeUser = WxUserDatabase.Current.GetActive(weixinId);
+                //    if (activeUser != null && activeUser.showCover == 1)
+                //    {
+                //        showCover = true;
+                //    }
+
+
+                //    string strBiblioInfo = "";
+                //    string imgHtml = "";// 封面图像
+                //    string biblioInfo = "";
+
+                //        nRet = this.GetTableAndImgHtml(lib,
+                //            loginInfo,
+                //            biblioPath,
+                //            showCover,
+                //            out strBiblioInfo,
+                //            out imgHtml,
+                //            out strError);
+                //        if (nRet == -1 || nRet == 0)
+                //        {
+                //            result.errorCode = -1;
+                //            result.errorInfo = strError;
+                //            return result;
+                //        }
+
+                //        biblioInfo = "<table class='info'>"
+                //                            + "<tr>"
+                //                                + "<td class='biblio_info'>" + strBiblioInfo + "</td>" //image放在里面了 2016.8.8
+                //                            + "</tr>"
+                //                        + "</table>";
+
+                //        /*
+                //         * XmlDocument doc = new XmlDocument();
+                //doc.LoadXml(xml);
+                //string json = Newtonsoft.Json.JsonConvert.SerializeXmlNode(doc);
+
+                //         */
+
+
+                //result.itemList = itemList;
+                result.errorCode = 1;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.errorCode = -1;
+                result.errorInfo = ex.Message;
+                return result;
+            }
+
+
+        }
+
         // from来源，表示是从index过来的，还是detail过来的，主要用于好书推荐的返回，后来没用注释掉了。
         // 20170116 修改使用绑定的账户，如未绑定用public
         public BiblioDetailResult GetBiblioDetail(LoginInfo loginInfo,
@@ -7523,6 +7722,13 @@ ErrorInfo成员里可能会有报错信息。
                                             + "<td class='biblio_info'>" + strBiblioInfo + "</td>" //image放在里面了 2016.8.8
                                         + "</tr>"
                                     + "</table>";
+
+                    /*
+                     * XmlDocument doc = new XmlDocument();
+            doc.LoadXml(xml);
+            string json = Newtonsoft.Json.JsonConvert.SerializeXmlNode(doc);
+
+                     */
                 }
                 else
                 {
@@ -7532,7 +7738,8 @@ ErrorInfo成员里可能会有报错信息。
                 // 如果当前是工作人员帐户，出现好书推荐按钮
                 string workerUserName = "";
                 string recommendBtn = "";
-                if (activeUser.type == WxUserDatabase.C_Type_Worker
+                if (activeUser != null
+                    && activeUser.type == WxUserDatabase.C_Type_Worker
                     && activeUser.userName != WxUserDatabase.C_Public)
                 {
                     // 检索是否有好书推荐权限 
@@ -7577,7 +7784,7 @@ ErrorInfo成员里可能会有报错信息。
 
                 // 得到读者证条码号
                 string patronBarcode = "";
-                if (activeUser.type == WxUserDatabase.C_Type_Patron)
+                if (activeUser!=null &&  activeUser.type == WxUserDatabase.C_Type_Patron)
                 {
                     patronBarcode = activeUser.readerBarcode;
                 }
@@ -7622,6 +7829,9 @@ ErrorInfo成员里可能会有报错信息。
             //    return result;
 
         }
+
+
+
 
         //得到table风格的书目信息
         private int GetTableAndImgHtml(LibEntity lib,
@@ -8778,6 +8988,7 @@ ErrorInfo成员里可能会有报错信息。
                     }
                     // 设置预约信息
                     item.reservationInfo = reservationInfo;
+                    
                 }
 
 

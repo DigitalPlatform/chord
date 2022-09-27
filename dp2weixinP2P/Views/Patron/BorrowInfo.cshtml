@@ -73,8 +73,8 @@
             var url = "/api2/BorrowInfoApi/Renew?weixinId=" //目前没用到weixinId，传空即可
                 + "&libId=" + encodeURIComponent(libId)
                 //+ "&action=renew"
-                + "&patron=" + encodeURIComponent(patronBarcode)
-                + "&item=" + encodeURIComponent(itemBarcode)
+                + "&patronBarcode=" + encodeURIComponent(patronBarcode)
+                + "&itemBarcode=" + encodeURIComponent(itemBarcode)
             // 调api
             sendAjaxRequest(url, "POST", function (result) {
 
