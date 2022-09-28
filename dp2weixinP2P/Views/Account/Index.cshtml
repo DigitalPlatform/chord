@@ -23,7 +23,7 @@
             //alert("2");
 
             // 调web api
-            var url = "/api2/wxuserApi/GetBindUsers?weixinId=" + weixinId;
+            var url = "/api2/wxuserApi/GetBindUsers?weixinId=" + weixinId +"&containPublic=false";
             sendAjaxRequest(url, "GET", function (result) {
 
                //alert("3");

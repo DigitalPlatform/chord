@@ -155,7 +155,8 @@ namespace dp2weixinWeb.ApiControllers
         // web浏览器来源的，~~开头
         // 微信公众号来源的，weixinId@公众号appid
         // 小程序来源的：**用户id
-        public WxUserResult GetBindUsers(string weixinId)
+        // 
+        public WxUserResult GetBindUsers(string weixinId,bool containPublic)
         {
             WxUserResult result = new WxUserResult();
 
@@ -167,15 +168,27 @@ namespace dp2weixinWeb.ApiControllers
                 return result;
             }
 
+            // 返回的用户数组
+            List<WxUserItem> returnList = new List<WxUserItem>();
 
             List<WxUserItem> list = wxUserDb.Get(weixinId, null, -1);
             foreach (WxUserItem user in list)
             {
                 // 把读者xml删除，否则多个帐户时传输数据量大
                 user.xml = "";
+
+                // 过滤掉public帐号 2022/9/28
+                if (containPublic == false)
+                {
+                    if (user.userName != "public")
+                        returnList.Add(user);
+                }
             }
 
-            result.users = list;
+
+
+
+            result.users = returnList; //list;
             return result;
         }
 
