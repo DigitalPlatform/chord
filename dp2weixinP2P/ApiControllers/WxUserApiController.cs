@@ -183,6 +183,10 @@ namespace dp2weixinWeb.ApiControllers
                     if (user.userName != "public")
                         returnList.Add(user);
                 }
+                else
+                {
+                    returnList.Add(user);
+                }
             }
 
 
@@ -247,11 +251,35 @@ namespace dp2weixinWeb.ApiControllers
 
         }
 
+
+        // 获取当前活动帐户
+        // weixinId:前端id
+        public WxUserResult GetActiveUser(string weixinId)
+        {
+            WxUserResult result = new WxUserResult();
+
+           WxUserItem user= WxUserDatabase.Current.GetActive(weixinId);
+
+            if (user == null)
+            {
+                result.errorCode = 0;
+                result.errorInfo = "尚未选择图书馆";
+                return result;
+            }
+
+            result.errorCode = 1;
+            result.users = new List<WxUserItem>();
+            result.users.Add(user);
+
+            return result;
+        }
+
+
         // 设为当前活动账户
         // weixinId:前端用户的唯一id
         // bindUserId:绑定帐户的记录id
-        [HttpPost]
-        public ApiResult ActiveUser(string weixinId, string bindUserId)
+[HttpPost]
+        public ApiResult SetActiveUser(string weixinId, string bindUserId)
         {
             ApiResult result = new ApiResult();
             string error = "";
@@ -300,6 +328,9 @@ namespace dp2weixinWeb.ApiControllers
 
         }
 
+
+
+
         // 设置前端用户的当前图书馆，
         // 如果从来没有绑定过该馆帐户，则以public身份;
         // 如果绑定过该馆帐户，则以绑定的第1个帐户为活动帐号
@@ -307,7 +338,7 @@ namespace dp2weixinWeb.ApiControllers
         // weixinId:前端用户的唯一id
         // libId:图书馆id，如果是分馆，格式为:图书馆id~分馆代码
         [HttpPost]
-        public ApiResult SetLibId(string weixinId, string libId)
+        public ApiResult SetCurrentLib(string weixinId, string libId)
         {
             ApiResult result = new ApiResult();
             string error = "";

@@ -146,7 +146,7 @@
                 name = item.userName;
 
             // 调ActiveUser api
-            var url = "/api2/wxuserApi/ActiveUser?weixinId=" + item.weixinId + "&bindUserId=" + item.id;
+            var url = "/api2/wxuserApi/SetActiveUser?weixinId=" + item.weixinId + "&bindUserId=" + item.id;
             sendAjaxRequest(url, "POST", function () {
 
                 // 因为有可能更新当前图书馆，所以reload保险，todo

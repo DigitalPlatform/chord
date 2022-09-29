@@ -348,12 +348,12 @@ namespace dp2weixin.service
                 }
             }
 
-            // 活动帐号大于，异常，自动将其它几条设为非活动。
+            
             if (activeList.Count > 0)
             {
                 // 认第一条为活动帐户
                 activeUser = activeList[0];
-                if (activeList.Count > 1)
+                if (activeList.Count > 1)  // 活动帐号大于1异常，自动将其它几条设为非活动。
                 {
                     string strError = "发现微信号活动读者帐户有" + list.Count + "个,程序自动将除第1个外的其余帐户没为非活动态";
                     dp2WeiXinService.Instance.WriteDebug(strError);
