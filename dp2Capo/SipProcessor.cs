@@ -377,7 +377,7 @@ namespace dp2Capo
         }
 
         // 所连接的 dp2library 的最低版本要求
-        static string _dp2library_base_version = "3.129";   // "3.49";
+        static string _dp2library_base_version = "3.130";   // "3.49";
 
         // 用来控制同一个用户名登录时候并发的 记录锁
         public static RecordLockCollection _userNameLocks = new RecordLockCollection();
@@ -1723,7 +1723,7 @@ out strError);
                         null, //strConfirmItemRecPath,
                         false,
                         null,   // this.OneReaderItemBarcodes,
-                        "auto_renew,biblio,item,reader", // strStyle, // auto_renew,biblio,item  //  "reader,item,biblio", // strStyle,
+                        "auto_renew,biblio,item,reader,chargedLimit:50", // strStyle, // auto_renew,biblio,item  //  "reader,item,biblio", // strStyle,
                         "xml:noborrowhistory",  // strItemReturnFormats,
                         out item_records,
                         "", // "summary",    // strReaderFormatList
@@ -2665,7 +2665,7 @@ out strError);
                     null, //strConfirmItemRecPath,
                     false,
                     null,   // this.OneReaderItemBarcodes,
-                    "auto_renew,biblio,item,reader", // strStyle, // auto_renew,biblio,item                   //  "reader,item,biblio", // strStyle,
+                    "auto_renew,biblio,item,reader,chargedLimit:50", // strStyle, // auto_renew,biblio,item                   //  "reader,item,biblio", // strStyle,
                     "xml:noborrowhistory",  // strItemReturnFormats,
                     out item_records,
                     "", // "summary",    // strReaderFormatList
