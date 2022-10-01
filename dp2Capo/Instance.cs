@@ -1964,6 +1964,9 @@ namespace dp2Capo
         // 2022/3/22
         public int MaxChannels { get; set; }
 
+        // 2022/10/1
+        public int ChargedLimit { get; set; }
+
         // parameters:
         //      neutralLanguage 是否采用中立语言抛出异常?
         // exception:
@@ -2020,11 +2023,22 @@ namespace dp2Capo
             param.Style = user.GetAttribute("style");
 
             // 2022/3/22
-            string maxChannels = user.GetAttribute("maxChannels");
-            if (Int32.TryParse(maxChannels, out int value))
-                param.MaxChannels = value;
-            else
-                param.MaxChannels = SipServer.DEFAULT_MAXCHANNELS;
+            {
+                string maxChannels = user.GetAttribute("maxChannels");
+                if (Int32.TryParse(maxChannels, out int value))
+                    param.MaxChannels = value;
+                else
+                    param.MaxChannels = SipServer.DEFAULT_MAXCHANNELS;
+            }
+
+            // 2022/10/1
+            {
+                string chargedLimit = user.GetAttribute("chargedLimit");
+                if (Int32.TryParse(chargedLimit, out int value))
+                    param.ChargedLimit = value;
+                else
+                    param.ChargedLimit = SipServer.DEFAULT_CHARGEDLIMIT;
+            }
 
             return param;
         }
