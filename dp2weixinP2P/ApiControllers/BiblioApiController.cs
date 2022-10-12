@@ -156,7 +156,7 @@ namespace dp2weixinWeb.ApiControllers
         }
 
 
-
+        // 这个接口只给我爱图书馆自己使用，因为里面有一些专用的样式。
         //获取书目详细信息
         //loginUserName:使用的dp2library帐号，即前端当前绑定的帐户，如果是读者则传读者证条码；如果是馆员帐户，传馆员用户名
         //loginUserType：空表示馆员，如果是读者传"patron"
@@ -188,7 +188,13 @@ namespace dp2weixinWeb.ApiControllers
             return result;
         }
 
-        // 获取书目详情
+
+        // 获取书目详情，不包括册记录
+        //loginUserName:使用的dp2library帐号，即前端当前绑定的帐户，如果是读者则传读者证条码；如果是馆员帐户，传馆员用户名
+        //loginUserType：空表示馆员，如果是读者传"patron"
+        //weixinId：前端用户唯一id,作用：当图书馆配置了不支持外部检索时，用weixinId检查该微信用户是否绑定了图书馆账户，如果未绑定，则不能检索。另外还用于获取该微信绑定帐户的分馆代码。
+        //libId：图书馆id
+        //biblioPath:书目路径
         [HttpGet]
         public BiblioDetailResult GetBiblio(string loginUserName,
             string loginUserType,
@@ -205,13 +211,18 @@ namespace dp2weixinWeb.ApiControllers
             return result;
         }
 
-        // 获取册记录
+        // 获取书目下的册记录
+        //loginUserName:使用的dp2library帐号，即前端当前绑定的帐户，如果是读者则传读者证条码；如果是馆员帐户，传馆员用户名
+        //loginUserType：空表示馆员，如果是读者传"patron"
+        //weixinId：前端用户唯一id
+        //libId：图书馆id
+        //biblioPath:书目路径
         [HttpGet]
         public BiblioDetailResult GetItems(string loginUserName,
-    string loginUserType,
-    string weixinId,
-    string libId,
-    string biblioPath)
+            string loginUserType,
+            string weixinId,
+            string libId,
+            string biblioPath)
         {
             LoginInfo loginInfo = dp2WeiXinService.GetLoginInfo(loginUserName, loginUserType);
 

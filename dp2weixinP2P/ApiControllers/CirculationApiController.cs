@@ -8,8 +8,34 @@ using System.Web.Http;
 
 namespace dp2weixinWeb.ApiControllers
 {
-    public class ReservationApiController : ApiController
+    public class CirculationApiController : ApiController
     {
+
+        // 续借
+        // weixinId:前端id
+        // libId:图书馆id
+        // patronBarcode:读者证条码号
+        // itemBarcode:册条码号
+        [HttpPost]
+        public ApiResult Renew(string weixinId,   //前端id,目前没用到
+            string libId,
+            string patronBarcode,
+            string itemBarcode)
+        {
+            ApiResult result = new ApiResult();
+
+            string strError = "";
+            int nRet = dp2WeiXinService.Instance.Renew1(libId,
+                patronBarcode,
+                itemBarcode,
+                out strError);
+            result.errorCode = nRet;
+            result.errorInfo = strError;
+
+
+            return result;
+        }
+
 
         // 读者预约图书
         // weixinid:前端id
@@ -45,6 +71,7 @@ namespace dp2weixinWeb.ApiControllers
 
             return result;
         }
-        
+
+
     }
 }

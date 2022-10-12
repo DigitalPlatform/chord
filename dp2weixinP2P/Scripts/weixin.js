@@ -469,7 +469,7 @@ function reservation(obj, barcode, style) {
     //showMaskLayer();
     
 
-    var url = "/api2/ReservationApi/Reserve?weixinId=" + weixinId
+    var url = "/api2/CirculationApi/Reserve?weixinId=" + weixinId
         + "&libId=" + encodeURIComponent(libId)
         + "&patronBarcode=" + encodeURIComponent(patron)
         + "&itemBarcodes=" + encodeURIComponent(paramBarcord)
@@ -579,7 +579,7 @@ function renew(itemBarcode) {
     //var index = loadLayer();
     showLoading();
 
-    var url = "/api2/BorrowInfoApi/Renew?weixinId=" //目前没用到weixinId，传空即可
+    var url = "/api2/CirculationApi/Renew?weixinId=" //目前没用到weixinId，传空即可
         +"&libId = " + encodeURIComponent(libId)
         + "&patronBarcode=" + encodeURIComponent(patronBarcode)
         + "&itemBarcode=" + encodeURIComponent(paramItemBarcord)
