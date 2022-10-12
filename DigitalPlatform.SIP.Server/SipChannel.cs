@@ -75,6 +75,21 @@ namespace DigitalPlatform.SIP.Server
             }
         }
 
+        // 2022/10/1
+        // 一个读者能借阅的最大册数
+        int _chargedLimit = SipServer.DEFAULT_CHARGEDLIMIT;
+        public int ChargedLimit
+        {
+            get
+            {
+                return _chargedLimit;
+            }
+            set
+            {
+                _chargedLimit = value;
+            }
+        }
+
         // 最近的一条响应消息
         public string LastMsg { get; set; }
 

@@ -23,6 +23,7 @@ namespace DigitalPlatform.SIP.Server
         public const bool DEFAULT_BOOKUIISTRICT = false;
         public const int DEFAULT_MAXCHANNELS = 2;
         public const bool DEFAULT_ISMANAGER = false;
+        public const int DEFAULT_CHARGEDLIMIT = -1; // -1 表示不限制
 
         int _maxPackageLength = 4096;
         public int MaxPackageLength

@@ -377,7 +377,7 @@ namespace dp2Capo
         }
 
         // 所连接的 dp2library 的最低版本要求
-        static string _dp2library_base_version = "3.129";   // "3.49";
+        static string _dp2library_base_version = "3.130";   // "3.49";
 
         // 用来控制同一个用户名登录时候并发的 记录锁
         public static RecordLockCollection _userNameLocks = new RecordLockCollection();
@@ -522,6 +522,8 @@ namespace dp2Capo
 
             var encoding = sip_param.Encoding;
             sip_channel.Encoding = encoding;    // 确保最后打包 respons 时编码方式正确
+            // 2022/10/1
+            sip_channel.ChargedLimit = sip_param.ChargedLimit;
 
             var strInstanceName = instance.Name;
 
@@ -1709,6 +1711,10 @@ out strError);
                         }
                     }
 
+                    string style = "auto_renew,biblio,item,reader";
+                    if (sip_channel.ChargedLimit != -1)
+                        style += $",chargedLimit:{sip_channel.ChargedLimit}";
+
                     string[] aDupPath = null;
                     string[] item_records = null;
                     string[] reader_records = null;
@@ -1723,7 +1729,7 @@ out strError);
                         null, //strConfirmItemRecPath,
                         false,
                         null,   // this.OneReaderItemBarcodes,
-                        "auto_renew,biblio,item,reader", // strStyle, // auto_renew,biblio,item  //  "reader,item,biblio", // strStyle,
+                        style, // strStyle, // auto_renew,biblio,item  //  "reader,item,biblio", // strStyle,
                         "xml:noborrowhistory",  // strItemReturnFormats,
                         out item_records,
                         "", // "summary",    // strReaderFormatList
@@ -2652,6 +2658,10 @@ out strError);
                     return response.ToText();
                 }
 
+                string style = "auto_renew,biblio,item,reader";
+                if (sip_channel.ChargedLimit != -1)
+                    style += $",chargedLimit:{sip_channel.ChargedLimit}";
+
                 string[] aDupPath = null;
                 string[] item_records = null;
                 string[] reader_records = null;
@@ -2665,7 +2675,7 @@ out strError);
                     null, //strConfirmItemRecPath,
                     false,
                     null,   // this.OneReaderItemBarcodes,
-                    "auto_renew,biblio,item,reader", // strStyle, // auto_renew,biblio,item                   //  "reader,item,biblio", // strStyle,
+                    style, // strStyle, // auto_renew,biblio,item                   //  "reader,item,biblio", // strStyle,
                     "xml:noborrowhistory",  // strItemReturnFormats,
                     out item_records,
                     "", // "summary",    // strReaderFormatList

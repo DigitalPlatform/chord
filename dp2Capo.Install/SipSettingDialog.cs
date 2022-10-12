@@ -219,14 +219,27 @@ namespace dp2Capo.Install
                 item.IsManager = StringUtil.IsInList("isManager", style);
 
                 // 2022/3/22
-                string maxChannels = user.GetAttribute("maxChannels");
-                if (string.IsNullOrEmpty(maxChannels))
-                    maxChannels = SipServer.DEFAULT_MAXCHANNELS.ToString();
-                if (Int32.TryParse(maxChannels, out int value))
-                    item.MaxChannels = value;
-                else
-                    item.MaxChannels = SipServer.DEFAULT_MAXCHANNELS;
-                
+                {
+                    string maxChannels = user.GetAttribute("maxChannels");
+                    if (string.IsNullOrEmpty(maxChannels))
+                        maxChannels = SipServer.DEFAULT_MAXCHANNELS.ToString();
+                    if (Int32.TryParse(maxChannels, out int value))
+                        item.MaxChannels = value;
+                    else
+                        item.MaxChannels = SipServer.DEFAULT_MAXCHANNELS;
+                }
+
+                // 2022/10/1
+                {
+                    string chargedLimit = user.GetAttribute("chargedLimit");
+                    if (string.IsNullOrEmpty(chargedLimit))
+                        chargedLimit = SipServer.DEFAULT_CHARGEDLIMIT.ToString();
+                    if (Int32.TryParse(chargedLimit, out int value))
+                        item.ChargedLimit = value;
+                    else
+                        item.ChargedLimit = SipServer.DEFAULT_CHARGEDLIMIT;
+                }
+
                 item.IpList = user.GetAttribute("ipList");
                 item.AutoClearSeconds = user.GetAttribute("autoClearSeconds");
                 item.PropertyChanged += Item_PropertyChanged;
@@ -289,6 +302,9 @@ namespace dp2Capo.Install
 
                 // 2022/3/22
                 user.SetAttribute("maxChannels", item.MaxChannels.ToString());
+
+                // 2022/10/1
+                user.SetAttribute("chargedLimit", item.ChargedLimit.ToString());
 
                 user.SetAttribute("encoding", item.EncodingName);
                 user.SetAttribute("ipList", item.IpList);
@@ -450,6 +466,21 @@ namespace dp2Capo.Install
                 }
             }
 
+
+            int _chargedLimit = SipServer.DEFAULT_CHARGEDLIMIT;
+
+            [DisplayName("在借册数限额"), Description("允许一个读者借阅最多的册数。这是 SIP Server 层的限制。-1 表示不限制")]
+            [DefaultValue(SipServer.DEFAULT_CHARGEDLIMIT)]
+            [Category("SIP 参数")]
+            public int ChargedLimit
+            {
+                get { return _chargedLimit; }
+                set
+                {
+                    _chargedLimit = value;
+                    OnPropertyChanged("ChargedLimit");
+                }
+            }
             public override string ToString()
             {
                 return UserName;
