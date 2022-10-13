@@ -2,6 +2,7 @@
 
 using com.google.zxing;
 using com.google.zxing.common;
+using common;
 using DigitalPlatform;
 using DigitalPlatform.Interfaces;
 using DigitalPlatform.IO;
@@ -10,6 +11,7 @@ using DigitalPlatform.Message;
 using DigitalPlatform.MessageClient;
 using DigitalPlatform.Text;
 using DigitalPlatform.Xml;
+using Newtonsoft.Json;
 using Senparc.Weixin;
 using Senparc.Weixin.MP.AdvancedAPIs;
 using Senparc.Weixin.MP.AdvancedAPIs.TemplateMessage;
@@ -379,6 +381,8 @@ namespace dp2weixin.service
             readerType = dataList[0];
             return 1;
         }
+
+
 
         /// <summary>
         /// 根据本地用户，获取loginInfo
@@ -1340,6 +1344,22 @@ namespace dp2weixin.service
             }
 
             return maskDef;
+        }
+
+        // 获取简编字段规则
+        public string GetFieldsMap(string libId, string libraryCode)
+        {
+            string fieldsMap = @"ISBN|010$a
+题名|200$a
+第一作者|200$f
+个人主要作者|701$a";
+
+            LibModel libCfg = this._areaMgr.GetLibCfg(libId, libraryCode);
+            if (libCfg != null && string.IsNullOrEmpty(libCfg.fieldsMap) == false)
+            {
+                fieldsMap = libCfg.fieldsMap;
+            }
+            return fieldsMap;
         }
 
         /// <summary>
@@ -7524,7 +7544,7 @@ ErrorInfo成员里可能会有报错信息。
                 int nRet = this.GetBiblioInfo(lib,
                     loginInfo,
                     biblioPath,
-                   "table:*|object_template",
+                   "table:*|object_template,timestamp",
                     out dataList,
                     out strError);
                 if (nRet == -1 || nRet == 0)
@@ -7850,7 +7870,7 @@ ErrorInfo成员里可能会有报错信息。
             int nRet = this.GetBiblioInfo(lib,
                 loginInfo,
                 biblioPath,
-               "table:*|object_template",
+               "table:*|object_template,timestamp",
                 out dataList,
                 out strError);
             if (nRet == -1 || nRet == 0)
@@ -8166,6 +8186,7 @@ ErrorInfo成员里可能会有报错信息。
             strError = "";
             dataList = new List<string>();
 
+            
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             SearchRequest request = new SearchRequest(id,
@@ -8570,6 +8591,206 @@ ErrorInfo成员里可能会有报错信息。
 
 
 
+
+        }
+
+        // 编辑书目
+        public int SetBiblio(string loginUserName,
+            string loginUserType,
+            string weixinId,
+            string libId,
+           BiblioFields biblio,
+            out string strError)
+        {
+            //strError = "loginUserName=" + loginUserName + ";"
+            //    + "loginUserType=" + loginUserType + ";"
+            //    + "weixinId=" + weixinId + ";"
+            //    + "libId=" + libId + "\r\n"
+            //    + JsonConvert.SerializeObject(biblio);
+
+
+            // 调点对点接口处理
+            strError = "";
+
+
+            // todo，未用type
+            LoginInfo loginInfo = new LoginInfo(loginUserName, false);
+
+
+
+            // 根据id找到图书馆对象
+            LibEntity lib = this.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为[" + libId + "]的图书馆定义。";
+                return -1;
+            }
+
+            int nRet = 0;
+
+            string biblioXml = "";
+            /*
+ <root>
+  <barcode>B002</barcode> 
+  <location>流通库</location> 
+  <bookType>普通</bookType> 
+  <accessNo>I563.85/H022</accessNo> 
+  <price>CNY28.80</price> 
+  <batchNo>20200405</batchNo>
+</root>
+             */
+            //2020-3-17统一用action来判断，原来的bMergeInfo好像没有用了
+            if (biblio.Action == C_Action_new)
+            {
+                string strMarc = @"?????nam0 22?????   45__
+100  ǂa20071012d2007    ekmy0chiy1050    ea
+1010 ǂachi
+102  ǂaCNǂb110000";
+
+                MarcRecord temp = MarcRecord.FromWorksheet(strMarc); //new MarcRecord(strMarc);
+                MarcRecord record= MarcHelper.SetFields(temp, biblio.Fields);
+                nRet = MarcUtil.Marc2Xml(record.Text,
+                    "unimarc",
+                    out biblioXml,
+                    out strError);
+                if (nRet == -1)
+                    return -1;
+            }
+            else if (biblio.Action == C_Action_change)
+            {
+                // 调接口，把数据取出来，和时间戳
+                List<string> dataList = null;
+                nRet = this.GetBiblioInfo(lib,
+                    loginInfo,
+                    biblio.BiblioPath,
+                   "xml,timestamp",
+                    out dataList,
+                    out strError);
+                if (nRet == -1 || nRet == 0)
+                    return nRet;
+
+                string oldbiblioXml = dataList[0];
+                // todo 使用前端传过来的
+                biblio.Timestamp = dataList[1];
+
+                MarcRecord temp =MarcHelper.MarcXml2MarcRecord(oldbiblioXml, out string outMarcSyntax, out strError);
+                MarcRecord record = MarcHelper.SetFields(temp, biblio.Fields);
+                 nRet = MarcUtil.Marc2Xml(record.Text,
+                    "unimarc",
+                    out biblioXml,
+                    out strError);
+                if (nRet == -1)
+                    return -1;
+
+
+
+            }
+            else if (biblio.Action == C_Action_delete)
+            {
+                // todo
+            }
+            else
+            {
+                strError = "SetBiblio()接口不能识别的action[" + biblio.Action + "]";
+                return -1;
+            }
+
+            // 点对点消息实体
+            /*
+            public class Entity
+            {
+                public string Action { get; set; }
+                public string RefID { get; set; }
+                public Record OldRecord { get; set; }
+                public Record NewRecord { get; set; }
+                public string Style { get; set; }
+                public string ErrorInfo { get; set; }
+                public string ErrorCode { get; set; }
+            }
+
+            public class Record
+            {
+                public string RecPath { get; set; }
+                public string Format { get; set; }
+                public string Data { get; set; }
+                public string Timestamp { get; set; }
+            }
+            */
+            Record newRecord = new Record();
+            newRecord.RecPath = biblio.BiblioPath; 
+            newRecord.Format = "xml";
+            newRecord.Data = biblioXml;
+
+            Entity entity = new Entity();
+            entity.Action = biblio.Action;
+            entity.NewRecord = newRecord;
+
+            List<Entity> entities = new List<Entity>();
+            entities.Add(entity);
+
+            // 删除
+            if (biblio.Action == "change" || biblio.Action == "delete")
+            {
+                Record oldRecord = new Record();
+                oldRecord.RecPath = biblio.BiblioPath;
+                oldRecord.Timestamp = biblio.Timestamp;
+                entity.OldRecord = oldRecord;
+            }
+
+            string outputXml = "";
+
+            // 调点对点接口
+            CancellationToken cancel_token = new CancellationToken();
+            string id = Guid.NewGuid().ToString();
+            SetInfoRequest request = new SetInfoRequest(id,
+                loginInfo,
+                "setBiblioInfo",
+                biblio.BiblioPath,
+                entities);
+            try
+            {
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
+                    this._dp2MServerUrl,
+                    "").Result;
+
+                SetInfoResult result = connection.SetInfoTaskAsync(
+                    lib.capoUserName,
+                    request,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token).Result;
+                if (result.Value == -1)
+                {
+                    strError = "图书馆 " + lib.libName + " 的保存书目出错:" + result.ErrorInfo;
+                    return -1;
+                }
+
+                // 取出册信息，错误信息是放在具体的册对象里
+                if (result.Entities.Count > 0)
+                {
+                    Entity e = result.Entities[0];
+                    if (e.ErrorCode != "NoError" && string.IsNullOrEmpty(e.ErrorInfo) == false)
+                    {
+                        strError = e.ErrorInfo;
+                        return -1;
+                    }
+                    //outputRecPath = result.Entities[0].NewRecord.RecPath;
+                    //outputTimestamp = result.Entities[0].NewRecord.Timestamp;
+                    outputXml = result.Entities[0].NewRecord.Data;
+                }
+
+                return (int)result.Value;
+
+            }
+            catch (AggregateException ex)
+            {
+                strError = MessageConnection.GetExceptionText(ex);
+                return -1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                return -1;
+            }
 
         }
 

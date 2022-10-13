@@ -185,6 +185,7 @@
     <Compile Include="IsbnSplitter.cs" />
     <Compile Include="LibraryManager.cs" />
     <Compile Include="ManagerThread.cs" />
+    <Compile Include="MarcHelper.cs" />
     <Compile Include="MessageItem.cs" />
     <Compile Include="ApiResult.cs" />
     <Compile Include="Command\BaseCommand.cs" />

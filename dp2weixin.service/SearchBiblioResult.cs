@@ -108,4 +108,35 @@ namespace dp2weixin.service
         public string batchNo { get; set; }
         public string bookType { get; set; }
     }
+
+    // 书目字段结构，用于简单编目
+    public class BiblioFields
+    {
+        public string BiblioPath { get; set; } //书目路径
+
+        //Action是针对这一条记录要执行的动作，
+        //一般是为"new" "change" "delete" "onlydeletebiblio" "onlydeletesubrecord"之一
+        public string Action { get; set; }
+
+        // 字段组合字符串，格式如下：
+        /*
+            ISBN|010$a|978-7-101-10528-5
+            题名|200$a|杜诗详注
+            第一作者|200$f|(唐)杜甫撰
+            个人主要作者|701$a|杜甫
+         */
+        public string Fields { get; set; }
+
+        // 时间戳，除new动作，其它动作需要提供时间戳
+        public string Timestamp { get; set; }
+
+
+        public string Dump()
+        {
+            return this.BiblioPath + "\r\n"
+                + this.Action + "\r\n"
+                + this.Timestamp + "\r\n"
+                + this.Fields;
+        }
+    }
 }

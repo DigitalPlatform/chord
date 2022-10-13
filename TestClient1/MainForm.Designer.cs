@@ -200,7 +200,7 @@
             this.testToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(1832, 53);
+            this.menuStrip1.Size = new System.Drawing.Size(1832, 47);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -296,10 +296,10 @@
             this.tabControl_main.Controls.Add(this.tabPage_markdown);
             this.tabControl_main.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl_main.Location = new System.Drawing.Point(0, 0);
-            this.tabControl_main.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.tabControl_main.Margin = new System.Windows.Forms.Padding(8);
             this.tabControl_main.Name = "tabControl_main";
             this.tabControl_main.SelectedIndex = 0;
-            this.tabControl_main.Size = new System.Drawing.Size(977, 845);
+            this.tabControl_main.Size = new System.Drawing.Size(977, 851);
             this.tabControl_main.TabIndex = 0;
             // 
             // tabPage_config
@@ -316,9 +316,9 @@
             this.tabPage_config.Controls.Add(this.textBox_config_messageServerUrl);
             this.tabPage_config.Controls.Add(this.label1);
             this.tabPage_config.Location = new System.Drawing.Point(10, 48);
-            this.tabPage_config.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.tabPage_config.Margin = new System.Windows.Forms.Padding(8);
             this.tabPage_config.Name = "tabPage_config";
-            this.tabPage_config.Size = new System.Drawing.Size(957, 787);
+            this.tabPage_config.Size = new System.Drawing.Size(957, 793);
             this.tabPage_config.TabIndex = 2;
             this.tabPage_config.Text = "Config";
             this.tabPage_config.UseVisualStyleBackColor = true;
@@ -326,7 +326,7 @@
             // textBox_config_libraryPassword
             // 
             this.textBox_config_libraryPassword.Location = new System.Drawing.Point(370, 525);
-            this.textBox_config_libraryPassword.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_config_libraryPassword.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_config_libraryPassword.Name = "textBox_config_libraryPassword";
             this.textBox_config_libraryPassword.PasswordChar = '*';
             this.textBox_config_libraryPassword.Size = new System.Drawing.Size(396, 42);
@@ -346,7 +346,7 @@
             // 
             this.checkBox_config_isPatron.AutoSize = true;
             this.checkBox_config_isPatron.Location = new System.Drawing.Point(370, 592);
-            this.checkBox_config_isPatron.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.checkBox_config_isPatron.Margin = new System.Windows.Forms.Padding(8);
             this.checkBox_config_isPatron.Name = "checkBox_config_isPatron";
             this.checkBox_config_isPatron.Size = new System.Drawing.Size(141, 34);
             this.checkBox_config_isPatron.TabIndex = 10;
@@ -356,7 +356,7 @@
             // textBox_config_libraryUserName
             // 
             this.textBox_config_libraryUserName.Location = new System.Drawing.Point(370, 458);
-            this.textBox_config_libraryUserName.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_config_libraryUserName.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_config_libraryUserName.Name = "textBox_config_libraryUserName";
             this.textBox_config_libraryUserName.Size = new System.Drawing.Size(396, 42);
             this.textBox_config_libraryUserName.TabIndex = 7;
@@ -374,7 +374,7 @@
             // textBox_config_password
             // 
             this.textBox_config_password.Location = new System.Drawing.Point(370, 292);
-            this.textBox_config_password.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_config_password.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_config_password.Name = "textBox_config_password";
             this.textBox_config_password.PasswordChar = '*';
             this.textBox_config_password.Size = new System.Drawing.Size(396, 42);
@@ -394,7 +394,7 @@
             // textBox_config_userName
             // 
             this.textBox_config_userName.Location = new System.Drawing.Point(370, 218);
-            this.textBox_config_userName.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_config_userName.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_config_userName.Name = "textBox_config_userName";
             this.textBox_config_userName.Size = new System.Drawing.Size(396, 42);
             this.textBox_config_userName.TabIndex = 3;
@@ -415,7 +415,7 @@
             this.textBox_config_messageServerUrl.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_config_messageServerUrl.Location = new System.Drawing.Point(28, 90);
-            this.textBox_config_messageServerUrl.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_config_messageServerUrl.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_config_messageServerUrl.Name = "textBox_config_messageServerUrl";
             this.textBox_config_messageServerUrl.Size = new System.Drawing.Size(873, 42);
             this.textBox_config_messageServerUrl.TabIndex = 1;
@@ -444,10 +444,10 @@
             this.tabPage_getInfo.Controls.Add(this.textBox_getInfo_remoteUserName);
             this.tabPage_getInfo.Controls.Add(this.label4);
             this.tabPage_getInfo.Location = new System.Drawing.Point(10, 48);
-            this.tabPage_getInfo.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.tabPage_getInfo.Margin = new System.Windows.Forms.Padding(8);
             this.tabPage_getInfo.Name = "tabPage_getInfo";
-            this.tabPage_getInfo.Padding = new System.Windows.Forms.Padding(8, 8, 8, 8);
-            this.tabPage_getInfo.Size = new System.Drawing.Size(958, 762);
+            this.tabPage_getInfo.Padding = new System.Windows.Forms.Padding(8);
+            this.tabPage_getInfo.Size = new System.Drawing.Size(957, 787);
             this.tabPage_getInfo.TabIndex = 0;
             this.tabPage_getInfo.Text = "GetXXXInfo";
             this.tabPage_getInfo.UseVisualStyleBackColor = true;
@@ -456,7 +456,7 @@
             // 
             this.checkBox_getInfo_getSubEntities.AutoSize = true;
             this.checkBox_getInfo_getSubEntities.Location = new System.Drawing.Point(28, 398);
-            this.checkBox_getInfo_getSubEntities.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.checkBox_getInfo_getSubEntities.Margin = new System.Windows.Forms.Padding(8);
             this.checkBox_getInfo_getSubEntities.Name = "checkBox_getInfo_getSubEntities";
             this.checkBox_getInfo_getSubEntities.Size = new System.Drawing.Size(291, 34);
             this.checkBox_getInfo_getSubEntities.TabIndex = 8;
@@ -474,7 +474,7 @@
             "getUserInfo",
             "getSystemParameter"});
             this.comboBox_getInfo_method.Location = new System.Drawing.Point(330, 25);
-            this.comboBox_getInfo_method.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.comboBox_getInfo_method.Margin = new System.Windows.Forms.Padding(8);
             this.comboBox_getInfo_method.Name = "comboBox_getInfo_method";
             this.comboBox_getInfo_method.Size = new System.Drawing.Size(396, 38);
             this.comboBox_getInfo_method.TabIndex = 1;
@@ -495,9 +495,9 @@
             this.textBox_getInfo_formatList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_getInfo_formatList.Location = new System.Drawing.Point(330, 228);
-            this.textBox_getInfo_formatList.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_getInfo_formatList.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_getInfo_formatList.Name = "textBox_getInfo_formatList";
-            this.textBox_getInfo_formatList.Size = new System.Drawing.Size(686, 42);
+            this.textBox_getInfo_formatList.Size = new System.Drawing.Size(685, 42);
             this.textBox_getInfo_formatList.TabIndex = 7;
             // 
             // label6
@@ -513,7 +513,7 @@
             // textBox_getInfo_queryWord
             // 
             this.textBox_getInfo_queryWord.Location = new System.Drawing.Point(330, 160);
-            this.textBox_getInfo_queryWord.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_getInfo_queryWord.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_getInfo_queryWord.Name = "textBox_getInfo_queryWord";
             this.textBox_getInfo_queryWord.Size = new System.Drawing.Size(396, 42);
             this.textBox_getInfo_queryWord.TabIndex = 5;
@@ -531,7 +531,7 @@
             // textBox_getInfo_remoteUserName
             // 
             this.textBox_getInfo_remoteUserName.Location = new System.Drawing.Point(330, 92);
-            this.textBox_getInfo_remoteUserName.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_getInfo_remoteUserName.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_getInfo_remoteUserName.Name = "textBox_getInfo_remoteUserName";
             this.textBox_getInfo_remoteUserName.Size = new System.Drawing.Size(396, 42);
             this.textBox_getInfo_remoteUserName.TabIndex = 3;
@@ -570,10 +570,10 @@
             this.tabPage_search.Controls.Add(this.textBox_search_remoteUserName);
             this.tabPage_search.Controls.Add(this.label11);
             this.tabPage_search.Location = new System.Drawing.Point(10, 48);
-            this.tabPage_search.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.tabPage_search.Margin = new System.Windows.Forms.Padding(8);
             this.tabPage_search.Name = "tabPage_search";
-            this.tabPage_search.Padding = new System.Windows.Forms.Padding(8, 8, 8, 8);
-            this.tabPage_search.Size = new System.Drawing.Size(958, 762);
+            this.tabPage_search.Padding = new System.Windows.Forms.Padding(8);
+            this.tabPage_search.Size = new System.Drawing.Size(957, 787);
             this.tabPage_search.TabIndex = 1;
             this.tabPage_search.Text = "SearchXXX";
             this.tabPage_search.UseVisualStyleBackColor = true;
@@ -581,7 +581,7 @@
             // textBox_search_filter
             // 
             this.textBox_search_filter.Location = new System.Drawing.Point(325, 645);
-            this.textBox_search_filter.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_search_filter.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_search_filter.Name = "textBox_search_filter";
             this.textBox_search_filter.Size = new System.Drawing.Size(454, 42);
             this.textBox_search_filter.TabIndex = 21;
@@ -599,7 +599,7 @@
             // textBox_search_position
             // 
             this.textBox_search_position.Location = new System.Drawing.Point(325, 578);
-            this.textBox_search_position.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_search_position.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_search_position.Name = "textBox_search_position";
             this.textBox_search_position.Size = new System.Drawing.Size(454, 42);
             this.textBox_search_position.TabIndex = 19;
@@ -617,7 +617,7 @@
             // textBox_search_resultSetName
             // 
             this.textBox_search_resultSetName.Location = new System.Drawing.Point(325, 510);
-            this.textBox_search_resultSetName.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_search_resultSetName.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_search_resultSetName.Name = "textBox_search_resultSetName";
             this.textBox_search_resultSetName.Size = new System.Drawing.Size(396, 42);
             this.textBox_search_resultSetName.TabIndex = 17;
@@ -647,7 +647,7 @@
             "GetConnectionInfo",
             "clearConnection"});
             this.comboBox_search_method.Location = new System.Drawing.Point(325, 15);
-            this.comboBox_search_method.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.comboBox_search_method.Margin = new System.Windows.Forms.Padding(8);
             this.comboBox_search_method.Name = "comboBox_search_method";
             this.comboBox_search_method.Size = new System.Drawing.Size(396, 38);
             this.comboBox_search_method.TabIndex = 1;
@@ -665,7 +665,7 @@
             // textBox_search_dbNameList
             // 
             this.textBox_search_dbNameList.Location = new System.Drawing.Point(325, 155);
-            this.textBox_search_dbNameList.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_search_dbNameList.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_search_dbNameList.Name = "textBox_search_dbNameList";
             this.textBox_search_dbNameList.Size = new System.Drawing.Size(396, 42);
             this.textBox_search_dbNameList.TabIndex = 5;
@@ -683,7 +683,7 @@
             // textBox_search_matchStyle
             // 
             this.textBox_search_matchStyle.Location = new System.Drawing.Point(325, 375);
-            this.textBox_search_matchStyle.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_search_matchStyle.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_search_matchStyle.Name = "textBox_search_matchStyle";
             this.textBox_search_matchStyle.Size = new System.Drawing.Size(396, 42);
             this.textBox_search_matchStyle.TabIndex = 11;
@@ -701,7 +701,7 @@
             // textBox_search_use
             // 
             this.textBox_search_use.Location = new System.Drawing.Point(325, 308);
-            this.textBox_search_use.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_search_use.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_search_use.Name = "textBox_search_use";
             this.textBox_search_use.Size = new System.Drawing.Size(396, 42);
             this.textBox_search_use.TabIndex = 9;
@@ -721,9 +721,9 @@
             this.textBox_search_formatList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_search_formatList.Location = new System.Drawing.Point(325, 442);
-            this.textBox_search_formatList.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_search_formatList.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_search_formatList.Name = "textBox_search_formatList";
-            this.textBox_search_formatList.Size = new System.Drawing.Size(557, 42);
+            this.textBox_search_formatList.Size = new System.Drawing.Size(556, 42);
             this.textBox_search_formatList.TabIndex = 13;
             // 
             // label9
@@ -739,7 +739,7 @@
             // textBox_search_queryWord
             // 
             this.textBox_search_queryWord.Location = new System.Drawing.Point(325, 240);
-            this.textBox_search_queryWord.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_search_queryWord.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_search_queryWord.Name = "textBox_search_queryWord";
             this.textBox_search_queryWord.Size = new System.Drawing.Size(396, 42);
             this.textBox_search_queryWord.TabIndex = 7;
@@ -757,7 +757,7 @@
             // textBox_search_remoteUserName
             // 
             this.textBox_search_remoteUserName.Location = new System.Drawing.Point(325, 88);
-            this.textBox_search_remoteUserName.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_search_remoteUserName.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_search_remoteUserName.Name = "textBox_search_remoteUserName";
             this.textBox_search_remoteUserName.Size = new System.Drawing.Size(396, 42);
             this.textBox_search_remoteUserName.TabIndex = 3;
@@ -789,9 +789,9 @@
             this.tabPage_bindPatron.Controls.Add(this.textBox_bindPatron_remoteUserName);
             this.tabPage_bindPatron.Controls.Add(this.label7);
             this.tabPage_bindPatron.Location = new System.Drawing.Point(10, 48);
-            this.tabPage_bindPatron.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.tabPage_bindPatron.Margin = new System.Windows.Forms.Padding(8);
             this.tabPage_bindPatron.Name = "tabPage_bindPatron";
-            this.tabPage_bindPatron.Size = new System.Drawing.Size(958, 762);
+            this.tabPage_bindPatron.Size = new System.Drawing.Size(957, 787);
             this.tabPage_bindPatron.TabIndex = 3;
             this.tabPage_bindPatron.Text = "BindPatron";
             this.tabPage_bindPatron.UseVisualStyleBackColor = true;
@@ -803,7 +803,7 @@
             "bind",
             "unbind"});
             this.comboBox_bindPatron_action.Location = new System.Drawing.Point(328, 102);
-            this.comboBox_bindPatron_action.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.comboBox_bindPatron_action.Margin = new System.Windows.Forms.Padding(8);
             this.comboBox_bindPatron_action.Name = "comboBox_bindPatron_action";
             this.comboBox_bindPatron_action.Size = new System.Drawing.Size(396, 38);
             this.comboBox_bindPatron_action.TabIndex = 36;
@@ -821,7 +821,7 @@
             // textBox_bindPatron_queryWord
             // 
             this.textBox_bindPatron_queryWord.Location = new System.Drawing.Point(328, 175);
-            this.textBox_bindPatron_queryWord.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_bindPatron_queryWord.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_bindPatron_queryWord.Name = "textBox_bindPatron_queryWord";
             this.textBox_bindPatron_queryWord.Size = new System.Drawing.Size(396, 42);
             this.textBox_bindPatron_queryWord.TabIndex = 22;
@@ -839,7 +839,7 @@
             // textBox_bindPatron_style
             // 
             this.textBox_bindPatron_style.Location = new System.Drawing.Point(328, 395);
-            this.textBox_bindPatron_style.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_bindPatron_style.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_bindPatron_style.Name = "textBox_bindPatron_style";
             this.textBox_bindPatron_style.Size = new System.Drawing.Size(396, 42);
             this.textBox_bindPatron_style.TabIndex = 28;
@@ -857,7 +857,7 @@
             // textBox_bindPatron_bindingID
             // 
             this.textBox_bindPatron_bindingID.Location = new System.Drawing.Point(328, 328);
-            this.textBox_bindPatron_bindingID.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_bindPatron_bindingID.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_bindPatron_bindingID.Name = "textBox_bindPatron_bindingID";
             this.textBox_bindPatron_bindingID.Size = new System.Drawing.Size(396, 42);
             this.textBox_bindPatron_bindingID.TabIndex = 26;
@@ -877,9 +877,9 @@
             this.textBox_bindPatron_resultTypeList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_bindPatron_resultTypeList.Location = new System.Drawing.Point(328, 462);
-            this.textBox_bindPatron_resultTypeList.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_bindPatron_resultTypeList.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_bindPatron_resultTypeList.Name = "textBox_bindPatron_resultTypeList";
-            this.textBox_bindPatron_resultTypeList.Size = new System.Drawing.Size(622, 42);
+            this.textBox_bindPatron_resultTypeList.Size = new System.Drawing.Size(621, 42);
             this.textBox_bindPatron_resultTypeList.TabIndex = 30;
             // 
             // label23
@@ -895,7 +895,7 @@
             // textBox_bindPatron_password
             // 
             this.textBox_bindPatron_password.Location = new System.Drawing.Point(328, 260);
-            this.textBox_bindPatron_password.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_bindPatron_password.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_bindPatron_password.Name = "textBox_bindPatron_password";
             this.textBox_bindPatron_password.Size = new System.Drawing.Size(396, 42);
             this.textBox_bindPatron_password.TabIndex = 24;
@@ -913,7 +913,7 @@
             // textBox_bindPatron_remoteUserName
             // 
             this.textBox_bindPatron_remoteUserName.Location = new System.Drawing.Point(328, 35);
-            this.textBox_bindPatron_remoteUserName.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_bindPatron_remoteUserName.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_bindPatron_remoteUserName.Name = "textBox_bindPatron_remoteUserName";
             this.textBox_bindPatron_remoteUserName.Size = new System.Drawing.Size(396, 42);
             this.textBox_bindPatron_remoteUserName.TabIndex = 5;
@@ -944,9 +944,9 @@
             this.tabPage_setInfo.Controls.Add(this.label27);
             this.tabPage_setInfo.Controls.Add(this.button_testPaste);
             this.tabPage_setInfo.Location = new System.Drawing.Point(10, 48);
-            this.tabPage_setInfo.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.tabPage_setInfo.Margin = new System.Windows.Forms.Padding(8);
             this.tabPage_setInfo.Name = "tabPage_setInfo";
-            this.tabPage_setInfo.Size = new System.Drawing.Size(957, 787);
+            this.tabPage_setInfo.Size = new System.Drawing.Size(957, 793);
             this.tabPage_setInfo.TabIndex = 4;
             this.tabPage_setInfo.Text = "SetXXXInfo";
             this.tabPage_setInfo.UseVisualStyleBackColor = true;
@@ -954,7 +954,7 @@
             // button_editEntities
             // 
             this.button_editEntities.Location = new System.Drawing.Point(625, 292);
-            this.button_editEntities.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.button_editEntities.Margin = new System.Windows.Forms.Padding(8);
             this.button_editEntities.Name = "button_editEntities";
             this.button_editEntities.Size = new System.Drawing.Size(325, 58);
             this.button_editEntities.TabIndex = 39;
@@ -970,7 +970,7 @@
             "delete",
             "change"});
             this.comboBox_setInfo_action.Location = new System.Drawing.Point(325, 165);
-            this.comboBox_setInfo_action.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.comboBox_setInfo_action.Margin = new System.Windows.Forms.Padding(8);
             this.comboBox_setInfo_action.Name = "comboBox_setInfo_action";
             this.comboBox_setInfo_action.Size = new System.Drawing.Size(396, 38);
             this.comboBox_setInfo_action.TabIndex = 38;
@@ -993,10 +993,10 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.webBrowser_setInfo_entities.Location = new System.Drawing.Point(22, 390);
-            this.webBrowser_setInfo_entities.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.webBrowser_setInfo_entities.Margin = new System.Windows.Forms.Padding(8);
             this.webBrowser_setInfo_entities.MinimumSize = new System.Drawing.Size(50, 250);
             this.webBrowser_setInfo_entities.Name = "webBrowser_setInfo_entities";
-            this.webBrowser_setInfo_entities.Size = new System.Drawing.Size(1455, 318);
+            this.webBrowser_setInfo_entities.Size = new System.Drawing.Size(1455, 324);
             this.webBrowser_setInfo_entities.TabIndex = 15;
             // 
             // comboBox_setInfo_method
@@ -1010,7 +1010,7 @@
             "setReaderInfo",
             "setBiblioInfo"});
             this.comboBox_setInfo_method.Location = new System.Drawing.Point(325, 32);
-            this.comboBox_setInfo_method.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.comboBox_setInfo_method.Margin = new System.Windows.Forms.Padding(8);
             this.comboBox_setInfo_method.Name = "comboBox_setInfo_method";
             this.comboBox_setInfo_method.Size = new System.Drawing.Size(396, 38);
             this.comboBox_setInfo_method.TabIndex = 9;
@@ -1038,7 +1038,7 @@
             // textBox_setInfo_biblioRecPath
             // 
             this.textBox_setInfo_biblioRecPath.Location = new System.Drawing.Point(325, 230);
-            this.textBox_setInfo_biblioRecPath.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_setInfo_biblioRecPath.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_setInfo_biblioRecPath.Name = "textBox_setInfo_biblioRecPath";
             this.textBox_setInfo_biblioRecPath.Size = new System.Drawing.Size(396, 42);
             this.textBox_setInfo_biblioRecPath.TabIndex = 13;
@@ -1056,7 +1056,7 @@
             // textBox_setInfo_remoteUserName
             // 
             this.textBox_setInfo_remoteUserName.Location = new System.Drawing.Point(325, 100);
-            this.textBox_setInfo_remoteUserName.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_setInfo_remoteUserName.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_setInfo_remoteUserName.Name = "textBox_setInfo_remoteUserName";
             this.textBox_setInfo_remoteUserName.Size = new System.Drawing.Size(396, 42);
             this.textBox_setInfo_remoteUserName.TabIndex = 11;
@@ -1074,7 +1074,7 @@
             // button_testPaste
             // 
             this.button_testPaste.Location = new System.Drawing.Point(325, 292);
-            this.button_testPaste.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.button_testPaste.Margin = new System.Windows.Forms.Padding(8);
             this.button_testPaste.Name = "button_testPaste";
             this.button_testPaste.Size = new System.Drawing.Size(285, 58);
             this.button_testPaste.TabIndex = 0;
@@ -1101,9 +1101,9 @@
             this.tabPage_circulation.Controls.Add(this.textBox_circulation_remoteUserName);
             this.tabPage_circulation.Controls.Add(this.label35);
             this.tabPage_circulation.Location = new System.Drawing.Point(10, 48);
-            this.tabPage_circulation.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.tabPage_circulation.Margin = new System.Windows.Forms.Padding(8);
             this.tabPage_circulation.Name = "tabPage_circulation";
-            this.tabPage_circulation.Size = new System.Drawing.Size(958, 762);
+            this.tabPage_circulation.Size = new System.Drawing.Size(957, 787);
             this.tabPage_circulation.TabIndex = 5;
             this.tabPage_circulation.Text = "Circulation";
             this.tabPage_circulation.UseVisualStyleBackColor = true;
@@ -1113,9 +1113,9 @@
             this.textBox_circulation_biblioFormatList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_circulation_biblioFormatList.Location = new System.Drawing.Point(325, 528);
-            this.textBox_circulation_biblioFormatList.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_circulation_biblioFormatList.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_circulation_biblioFormatList.Name = "textBox_circulation_biblioFormatList";
-            this.textBox_circulation_biblioFormatList.Size = new System.Drawing.Size(589, 42);
+            this.textBox_circulation_biblioFormatList.Size = new System.Drawing.Size(588, 42);
             this.textBox_circulation_biblioFormatList.TabIndex = 52;
             // 
             // label36
@@ -1142,7 +1142,7 @@
             "changePassword",
             "verifyPassword"});
             this.comboBox_circulation_operation.Location = new System.Drawing.Point(325, 100);
-            this.comboBox_circulation_operation.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.comboBox_circulation_operation.Margin = new System.Windows.Forms.Padding(8);
             this.comboBox_circulation_operation.Name = "comboBox_circulation_operation";
             this.comboBox_circulation_operation.Size = new System.Drawing.Size(396, 38);
             this.comboBox_circulation_operation.TabIndex = 50;
@@ -1160,7 +1160,7 @@
             // textBox_circulation_patron
             // 
             this.textBox_circulation_patron.Location = new System.Drawing.Point(325, 172);
-            this.textBox_circulation_patron.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_circulation_patron.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_circulation_patron.Name = "textBox_circulation_patron";
             this.textBox_circulation_patron.Size = new System.Drawing.Size(396, 42);
             this.textBox_circulation_patron.TabIndex = 40;
@@ -1180,9 +1180,9 @@
             this.textBox_circulation_patronFormatList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_circulation_patronFormatList.Location = new System.Drawing.Point(325, 392);
-            this.textBox_circulation_patronFormatList.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_circulation_patronFormatList.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_circulation_patronFormatList.Name = "textBox_circulation_patronFormatList";
-            this.textBox_circulation_patronFormatList.Size = new System.Drawing.Size(589, 42);
+            this.textBox_circulation_patronFormatList.Size = new System.Drawing.Size(588, 42);
             this.textBox_circulation_patronFormatList.TabIndex = 46;
             // 
             // label31
@@ -1198,7 +1198,7 @@
             // textBox_circulation_style
             // 
             this.textBox_circulation_style.Location = new System.Drawing.Point(325, 325);
-            this.textBox_circulation_style.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_circulation_style.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_circulation_style.Name = "textBox_circulation_style";
             this.textBox_circulation_style.Size = new System.Drawing.Size(396, 42);
             this.textBox_circulation_style.TabIndex = 44;
@@ -1218,9 +1218,9 @@
             this.textBox_circulation_itemFormatList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_circulation_itemFormatList.Location = new System.Drawing.Point(325, 460);
-            this.textBox_circulation_itemFormatList.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_circulation_itemFormatList.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_circulation_itemFormatList.Name = "textBox_circulation_itemFormatList";
-            this.textBox_circulation_itemFormatList.Size = new System.Drawing.Size(589, 42);
+            this.textBox_circulation_itemFormatList.Size = new System.Drawing.Size(588, 42);
             this.textBox_circulation_itemFormatList.TabIndex = 48;
             // 
             // label33
@@ -1236,7 +1236,7 @@
             // textBox_circulation_item
             // 
             this.textBox_circulation_item.Location = new System.Drawing.Point(325, 258);
-            this.textBox_circulation_item.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_circulation_item.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_circulation_item.Name = "textBox_circulation_item";
             this.textBox_circulation_item.Size = new System.Drawing.Size(396, 42);
             this.textBox_circulation_item.TabIndex = 42;
@@ -1254,7 +1254,7 @@
             // textBox_circulation_remoteUserName
             // 
             this.textBox_circulation_remoteUserName.Location = new System.Drawing.Point(325, 32);
-            this.textBox_circulation_remoteUserName.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_circulation_remoteUserName.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_circulation_remoteUserName.Name = "textBox_circulation_remoteUserName";
             this.textBox_circulation_remoteUserName.Size = new System.Drawing.Size(396, 42);
             this.textBox_circulation_remoteUserName.TabIndex = 38;
@@ -1273,9 +1273,9 @@
             // 
             this.tabPage_message.Controls.Add(this.splitContainer_message);
             this.tabPage_message.Location = new System.Drawing.Point(10, 48);
-            this.tabPage_message.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.tabPage_message.Margin = new System.Windows.Forms.Padding(8);
             this.tabPage_message.Name = "tabPage_message";
-            this.tabPage_message.Size = new System.Drawing.Size(958, 762);
+            this.tabPage_message.Size = new System.Drawing.Size(957, 787);
             this.tabPage_message.TabIndex = 6;
             this.tabPage_message.Text = "Message";
             this.tabPage_message.UseVisualStyleBackColor = true;
@@ -1284,7 +1284,7 @@
             // 
             this.splitContainer_message.Dock = System.Windows.Forms.DockStyle.Fill;
             this.splitContainer_message.Location = new System.Drawing.Point(0, 0);
-            this.splitContainer_message.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.splitContainer_message.Margin = new System.Windows.Forms.Padding(8);
             this.splitContainer_message.Name = "splitContainer_message";
             this.splitContainer_message.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
@@ -1311,8 +1311,8 @@
             // splitContainer_message.Panel2
             // 
             this.splitContainer_message.Panel2.Controls.Add(this.webBrowser_message);
-            this.splitContainer_message.Size = new System.Drawing.Size(958, 762);
-            this.splitContainer_message.SplitterDistance = 596;
+            this.splitContainer_message.Size = new System.Drawing.Size(957, 787);
+            this.splitContainer_message.SplitterDistance = 615;
             this.splitContainer_message.SplitterWidth = 20;
             this.splitContainer_message.TabIndex = 40;
             // 
@@ -1321,9 +1321,9 @@
             this.textBox_message_sortCondition.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_sortCondition.Location = new System.Drawing.Point(192, 228);
-            this.textBox_message_sortCondition.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_message_sortCondition.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_message_sortCondition.Name = "textBox_message_sortCondition";
-            this.textBox_message_sortCondition.Size = new System.Drawing.Size(1595, 42);
+            this.textBox_message_sortCondition.Size = new System.Drawing.Size(1605, 42);
             this.textBox_message_sortCondition.TabIndex = 49;
             // 
             // label46
@@ -1341,9 +1341,9 @@
             this.textBox_message_userRange.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_userRange.Location = new System.Drawing.Point(192, 95);
-            this.textBox_message_userRange.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_message_userRange.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_message_userRange.Name = "textBox_message_userRange";
-            this.textBox_message_userRange.Size = new System.Drawing.Size(1595, 42);
+            this.textBox_message_userRange.Size = new System.Drawing.Size(1605, 42);
             this.textBox_message_userRange.TabIndex = 47;
             // 
             // label41
@@ -1359,7 +1359,7 @@
             // button_message_delete
             // 
             this.button_message_delete.Location = new System.Drawing.Point(828, 462);
-            this.button_message_delete.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.button_message_delete.Margin = new System.Windows.Forms.Padding(8);
             this.button_message_delete.Name = "button_message_delete";
             this.button_message_delete.Size = new System.Drawing.Size(140, 58);
             this.button_message_delete.TabIndex = 45;
@@ -1370,7 +1370,7 @@
             // button_message_enumGroupName
             // 
             this.button_message_enumGroupName.Location = new System.Drawing.Point(708, 462);
-            this.button_message_enumGroupName.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.button_message_enumGroupName.Margin = new System.Windows.Forms.Padding(8);
             this.button_message_enumGroupName.Name = "button_message_enumGroupName";
             this.button_message_enumGroupName.Size = new System.Drawing.Size(118, 58);
             this.button_message_enumGroupName.TabIndex = 44;
@@ -1381,7 +1381,7 @@
             // button_message_getGroupNameQuick
             // 
             this.button_message_getGroupNameQuick.Location = new System.Drawing.Point(312, 462);
-            this.button_message_getGroupNameQuick.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.button_message_getGroupNameQuick.Margin = new System.Windows.Forms.Padding(8);
             this.button_message_getGroupNameQuick.Name = "button_message_getGroupNameQuick";
             this.button_message_getGroupNameQuick.Size = new System.Drawing.Size(388, 58);
             this.button_message_getGroupNameQuick.TabIndex = 43;
@@ -1392,7 +1392,7 @@
             // button_message_transGroupName
             // 
             this.button_message_transGroupName.Location = new System.Drawing.Point(0, 462);
-            this.button_message_transGroupName.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.button_message_transGroupName.Margin = new System.Windows.Forms.Padding(8);
             this.button_message_transGroupName.Name = "button_message_transGroupName";
             this.button_message_transGroupName.Size = new System.Drawing.Size(298, 58);
             this.button_message_transGroupName.TabIndex = 42;
@@ -1405,9 +1405,9 @@
             this.textBox_message_timeRange.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_timeRange.Location = new System.Drawing.Point(192, 162);
-            this.textBox_message_timeRange.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_message_timeRange.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_message_timeRange.Name = "textBox_message_timeRange";
-            this.textBox_message_timeRange.Size = new System.Drawing.Size(1595, 42);
+            this.textBox_message_timeRange.Size = new System.Drawing.Size(1605, 42);
             this.textBox_message_timeRange.TabIndex = 41;
             // 
             // label39
@@ -1425,10 +1425,10 @@
             this.textBox_message_text.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_text.Location = new System.Drawing.Point(135, 295);
-            this.textBox_message_text.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_message_text.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_message_text.Multiline = true;
             this.textBox_message_text.Name = "textBox_message_text";
-            this.textBox_message_text.Size = new System.Drawing.Size(1653, 149);
+            this.textBox_message_text.Size = new System.Drawing.Size(1663, 149);
             this.textBox_message_text.TabIndex = 3;
             // 
             // textBox_message_groupName
@@ -1436,9 +1436,9 @@
             this.textBox_message_groupName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_message_groupName.Location = new System.Drawing.Point(192, 28);
-            this.textBox_message_groupName.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_message_groupName.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_message_groupName.Name = "textBox_message_groupName";
-            this.textBox_message_groupName.Size = new System.Drawing.Size(1595, 42);
+            this.textBox_message_groupName.Size = new System.Drawing.Size(1605, 42);
             this.textBox_message_groupName.TabIndex = 39;
             // 
             // label37
@@ -1464,7 +1464,7 @@
             // button_message_send
             // 
             this.button_message_send.Location = new System.Drawing.Point(0, 390);
-            this.button_message_send.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.button_message_send.Margin = new System.Windows.Forms.Padding(8);
             this.button_message_send.Name = "button_message_send";
             this.button_message_send.Size = new System.Drawing.Size(118, 58);
             this.button_message_send.TabIndex = 4;
@@ -1475,7 +1475,7 @@
             // button_message_load
             // 
             this.button_message_load.Location = new System.Drawing.Point(0, 332);
-            this.button_message_load.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.button_message_load.Margin = new System.Windows.Forms.Padding(8);
             this.button_message_load.Name = "button_message_load";
             this.button_message_load.Size = new System.Drawing.Size(118, 58);
             this.button_message_load.TabIndex = 5;
@@ -1487,10 +1487,10 @@
             // 
             this.webBrowser_message.Dock = System.Windows.Forms.DockStyle.Fill;
             this.webBrowser_message.Location = new System.Drawing.Point(0, 0);
-            this.webBrowser_message.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.webBrowser_message.Margin = new System.Windows.Forms.Padding(8);
             this.webBrowser_message.MinimumSize = new System.Drawing.Size(50, 50);
             this.webBrowser_message.Name = "webBrowser_message";
-            this.webBrowser_message.Size = new System.Drawing.Size(958, 146);
+            this.webBrowser_message.Size = new System.Drawing.Size(957, 152);
             this.webBrowser_message.TabIndex = 1;
             // 
             // tabPage_getRes
@@ -1510,9 +1510,9 @@
             this.tabPage_getRes.Controls.Add(this.textBox_getRes_start);
             this.tabPage_getRes.Controls.Add(this.label47);
             this.tabPage_getRes.Location = new System.Drawing.Point(10, 48);
-            this.tabPage_getRes.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.tabPage_getRes.Margin = new System.Windows.Forms.Padding(8);
             this.tabPage_getRes.Name = "tabPage_getRes";
-            this.tabPage_getRes.Size = new System.Drawing.Size(958, 762);
+            this.tabPage_getRes.Size = new System.Drawing.Size(957, 787);
             this.tabPage_getRes.TabIndex = 7;
             this.tabPage_getRes.Text = "GetRes";
             this.tabPage_getRes.UseVisualStyleBackColor = true;
@@ -1522,9 +1522,9 @@
             this.textBox_getRes_outputFile.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_getRes_outputFile.Location = new System.Drawing.Point(325, 485);
-            this.textBox_getRes_outputFile.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_getRes_outputFile.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_getRes_outputFile.Name = "textBox_getRes_outputFile";
-            this.textBox_getRes_outputFile.Size = new System.Drawing.Size(589, 42);
+            this.textBox_getRes_outputFile.Size = new System.Drawing.Size(588, 42);
             this.textBox_getRes_outputFile.TabIndex = 56;
             // 
             // label40
@@ -1543,7 +1543,7 @@
             this.comboBox_getRes_operation.Items.AddRange(new object[] {
             "getRes"});
             this.comboBox_getRes_operation.Location = new System.Drawing.Point(325, 100);
-            this.comboBox_getRes_operation.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.comboBox_getRes_operation.Margin = new System.Windows.Forms.Padding(8);
             this.comboBox_getRes_operation.Name = "comboBox_getRes_operation";
             this.comboBox_getRes_operation.Size = new System.Drawing.Size(396, 38);
             this.comboBox_getRes_operation.TabIndex = 54;
@@ -1561,7 +1561,7 @@
             // textBox_getRes_remoteUserName
             // 
             this.textBox_getRes_remoteUserName.Location = new System.Drawing.Point(325, 32);
-            this.textBox_getRes_remoteUserName.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_getRes_remoteUserName.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_getRes_remoteUserName.Name = "textBox_getRes_remoteUserName";
             this.textBox_getRes_remoteUserName.Size = new System.Drawing.Size(396, 42);
             this.textBox_getRes_remoteUserName.TabIndex = 52;
@@ -1579,7 +1579,7 @@
             // textBox_getRes_path
             // 
             this.textBox_getRes_path.Location = new System.Drawing.Point(325, 165);
-            this.textBox_getRes_path.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_getRes_path.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_getRes_path.Name = "textBox_getRes_path";
             this.textBox_getRes_path.Size = new System.Drawing.Size(396, 42);
             this.textBox_getRes_path.TabIndex = 25;
@@ -1597,7 +1597,7 @@
             // textBox_getRes_style
             // 
             this.textBox_getRes_style.Location = new System.Drawing.Point(325, 385);
-            this.textBox_getRes_style.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_getRes_style.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_getRes_style.Name = "textBox_getRes_style";
             this.textBox_getRes_style.Size = new System.Drawing.Size(396, 42);
             this.textBox_getRes_style.TabIndex = 31;
@@ -1615,7 +1615,7 @@
             // textBox_getRes_length
             // 
             this.textBox_getRes_length.Location = new System.Drawing.Point(325, 318);
-            this.textBox_getRes_length.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_getRes_length.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_getRes_length.Name = "textBox_getRes_length";
             this.textBox_getRes_length.Size = new System.Drawing.Size(396, 42);
             this.textBox_getRes_length.TabIndex = 29;
@@ -1633,7 +1633,7 @@
             // textBox_getRes_start
             // 
             this.textBox_getRes_start.Location = new System.Drawing.Point(325, 250);
-            this.textBox_getRes_start.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_getRes_start.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_getRes_start.Name = "textBox_getRes_start";
             this.textBox_getRes_start.Size = new System.Drawing.Size(396, 42);
             this.textBox_getRes_start.TabIndex = 27;
@@ -1652,9 +1652,9 @@
             // 
             this.tabPage_markdown.Controls.Add(this.textBox_markdown_source);
             this.tabPage_markdown.Location = new System.Drawing.Point(10, 48);
-            this.tabPage_markdown.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.tabPage_markdown.Margin = new System.Windows.Forms.Padding(8);
             this.tabPage_markdown.Name = "tabPage_markdown";
-            this.tabPage_markdown.Size = new System.Drawing.Size(958, 762);
+            this.tabPage_markdown.Size = new System.Drawing.Size(957, 787);
             this.tabPage_markdown.TabIndex = 8;
             this.tabPage_markdown.Text = "MarkDown";
             this.tabPage_markdown.UseVisualStyleBackColor = true;
@@ -1667,11 +1667,11 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_markdown_source.Location = new System.Drawing.Point(22, 42);
-            this.textBox_markdown_source.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.textBox_markdown_source.Margin = new System.Windows.Forms.Padding(8);
             this.textBox_markdown_source.Multiline = true;
             this.textBox_markdown_source.Name = "textBox_markdown_source";
             this.textBox_markdown_source.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBox_markdown_source.Size = new System.Drawing.Size(869, 619);
+            this.textBox_markdown_source.Size = new System.Drawing.Size(868, 644);
             this.textBox_markdown_source.TabIndex = 0;
             // 
             // toolStrip1
@@ -1679,7 +1679,7 @@
             this.toolStrip1.ImageScalingSize = new System.Drawing.Size(40, 40);
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripButton_begin});
-            this.toolStrip1.Location = new System.Drawing.Point(0, 53);
+            this.toolStrip1.Location = new System.Drawing.Point(0, 47);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Padding = new System.Windows.Forms.Padding(0, 0, 5, 0);
             this.toolStrip1.Size = new System.Drawing.Size(1832, 50);
@@ -1699,8 +1699,8 @@
             // splitContainer_main
             // 
             this.splitContainer_main.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer_main.Location = new System.Drawing.Point(0, 103);
-            this.splitContainer_main.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.splitContainer_main.Location = new System.Drawing.Point(0, 97);
+            this.splitContainer_main.Margin = new System.Windows.Forms.Padding(8);
             this.splitContainer_main.Name = "splitContainer_main";
             // 
             // splitContainer_main.Panel1
@@ -1710,7 +1710,7 @@
             // splitContainer_main.Panel2
             // 
             this.splitContainer_main.Panel2.Controls.Add(this.webBrowser1);
-            this.splitContainer_main.Size = new System.Drawing.Size(1832, 845);
+            this.splitContainer_main.Size = new System.Drawing.Size(1832, 851);
             this.splitContainer_main.SplitterDistance = 977;
             this.splitContainer_main.SplitterWidth = 20;
             this.splitContainer_main.TabIndex = 3;
@@ -1719,10 +1719,10 @@
             // 
             this.webBrowser1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.webBrowser1.Location = new System.Drawing.Point(0, 0);
-            this.webBrowser1.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.webBrowser1.Margin = new System.Windows.Forms.Padding(8);
             this.webBrowser1.MinimumSize = new System.Drawing.Size(50, 50);
             this.webBrowser1.Name = "webBrowser1";
-            this.webBrowser1.Size = new System.Drawing.Size(835, 845);
+            this.webBrowser1.Size = new System.Drawing.Size(835, 851);
             this.webBrowser1.TabIndex = 0;
             // 
             // MainForm
@@ -1735,7 +1735,7 @@
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
-            this.Margin = new System.Windows.Forms.Padding(8, 8, 8, 8);
+            this.Margin = new System.Windows.Forms.Padding(8);
             this.Name = "MainForm";
             this.Text = "Form1";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);

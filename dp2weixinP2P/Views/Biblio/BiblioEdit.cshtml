@@ -1,0 +1,80 @@
+﻿
+
+@{
+    ViewBag.Title = "书目编辑";
+    Layout = "~/Views/Shared/_LayoutEmpty.cshtml";
+}
+
+@section Scripts {
+
+    <script>
+
+        //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
+        //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+            alert("test");
+        });
+
+
+        function saveField() {
+
+            //alert("1");
+            //var a=$("#_ab");
+            //alert("id="+a);
+            //alert("id="+a.attr("id"));
+
+
+            var field = "";
+
+            $("#_marcEditor").find("._field").each(function (index) {
+                //alert(index);//循环的下标值，从0开始
+
+                //取出id
+                //alert($(this).attr("id"));
+
+                // 取出值
+                var id = $(this).attr("id");
+                var value = $(this).val();
+
+                //alert(id+"|"+value);
+                field += id + "|" + value + "\r\n";
+
+            });
+
+            alert(field);
+
+
+            var dbName = $("#_selDbName").val();
+            alert(dbName);
+        }
+
+
+    </script>
+}
+
+@section style {
+    <style>
+        .block {
+            background-color: #dddddd;
+            margin-top: 10px;
+            vertical-align:middle;
+            text-align:center;
+        }
+
+        .page {
+            background-color: lightyellow;
+            
+        }
+    </style>
+}
+
+<span id="_libId" style="display:none;">@ViewBag.libId</span>
+
+<center>
+    <div id="main">
+
+        <div>@Html.Raw(ViewData["marcField"])</div>
+
+    </div>
+</center>
+

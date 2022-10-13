@@ -319,6 +319,38 @@ namespace dp2weixinWeb.ApiControllers
         }
 
 
+        // 编辑书目
+        //loginUserName:使用的dp2library帐号，即前端当前绑定的帐户，如果是读者则传读者证条码；如果是馆员帐户，传馆员用户名
+        //loginUserType：空表示馆员，如果是读者传"patron"
+        //weixinId：前端用户唯一id
+        //libId：图书馆id
+        //biblioFields:书目对象，是一个结构，里面有路径、要编辑的字段。
+        public ApiResult SetBiblio(string loginUserName,
+            string loginUserType,
+            string weixinId,
+            string libId,
+            BiblioFields biblioFields) //前段简单先传一条书目，一开始想做成集合，但考虑到会带来复杂性，例如其中一条出错是否继续处理其它条，出错信息也要单独设置，返回值也有影响。
+        { 
+
+            ApiResult result = new ApiResult ();
+
+            string strError = "";
+            int nRet = dp2WeiXinService.Instance.SetBiblio(loginUserName,
+                loginUserType,
+                weixinId,
+                libId,
+                biblioFields,
+                out strError);
+            if (nRet == -1)
+            {
+                result.errorCode = -1;
+                result.errorInfo = strError;
+            }
+
+            result.errorInfo = strError;
+            return result;
+        }
+
 
         /*
         /// <summary>
@@ -353,4 +385,6 @@ namespace dp2weixinWeb.ApiControllers
         }
         */
     }
+
+    
 }

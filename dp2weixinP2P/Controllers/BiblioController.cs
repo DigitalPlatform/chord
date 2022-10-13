@@ -1,4 +1,5 @@
-﻿using DigitalPlatform.Message;
+﻿using common;
+using DigitalPlatform.Message;
 using dp2weixin.service;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,117 @@ namespace dp2weixinWeb.Controllers
 {
     public class BiblioController : BaseController
     {
+        // 书目查询主界面
+        public ActionResult BiblioEdit(string code, string state,string biblioPath)
+        {
+
+            string fieldMap = @"ISBN|010$a
+题名|200$a
+第一作者|200$f
+个人主要作者|701$a";
+
+            List<FieldItem> fieldList = new List<FieldItem>();
+            try
+            {
+                fieldList = MarcHelper.ParseFieldMap(fieldMap);
+            }
+            catch (Exception ex)
+            {
+                @ViewData["marcField"] = "解析marc字段配置规则出错：" + ex.Message;
+                return View();
+
+            }
+
+            string html = "";
+
+
+            /*
+            foreach (FieldItem field in fieldList)
+            {
+                html += "<tr>"
+        + "<td class='label'>" + field.Caption + "</td>"
+        + "<td>"
+            + "<input  class='_field mui-input mui-input-clear'  id='" + field.Caption + "|" + field.Field + field.Subfield + "' type='text' value='" + field.Value + "'>"
+        + "</td>"
+    + "</tr>";
+            }
+
+            if (string.IsNullOrEmpty(biblioPath) == true)
+            {
+                html += "<tr>"
+    + "<td class='label'>目标数据库</td>"
+    + "<td>"
+        + "<div style='border:1px solid #cccccc;'>"
+            + "<select id='_selDbName'>"
+                + "<option value='中文图书' selected >中文图书</option>"
+                + "<option value='测试库'>测试库</option>"
+            + "</select>"
+        + "</div>"
+    + "</td>"
++ "</tr>";
+            }
+
+            // 操作按钮
+            html += "<tr>"
+    + "<td colspan='2'>"
+        + "<button class='mui-btn mui-btn-primary' onclick=\"saveField()\">保存</button>&nbsp;&nbsp;"
+        + "<button class='mui-btn mui-btn-default' onclick=\"cancelEdit()\">取消</button>"
+    + "</td>"
++ "</tr>";
+
+            html = "<table id='_marcEditor'>"
+                + html
+                + "</table>";
+            */
+
+            //
+
+            foreach (FieldItem field in fieldList)
+            {
+                string id = field.Caption + "|" + field.Field + field.Subfield;
+                html += @"<div class='mui-input-row '>"
+                +"<label  style='color:#cccccc'>"+field.Caption+"</label>"
+                +"<input id='"+id+ "' type='text' class='_field mui-input mui-input-clear'>"
+            + "</div>";
+            }
+
+            if (string.IsNullOrEmpty(biblioPath) == true)
+            {
+                html += @" <div class='mui-input-row selArrowRightContainer'>
+                <label  style='color:#cccccc'>目标数据库</label>
+                <select id='_selDbName'  class='selArrowRight'>
+                    <option value=''>请选择</option>'
+                    <option value='中文图书' selected >中文图书</option>
+                    <option value='测试中文图书1'>测试中文图书1</option>
+                </select>
+            </div>";
+            }
+
+            // 操作按钮
+            html += @"        <div class='mui-content-padded'>
+            <table style='width:100%'>
+                <tr>
+                    <td>
+                        <button id='btnAdd' class='mui-btn mui-btn-block mui-btn-default' onclick='saveField()'>保存</button>
+                    </td>
+                    <td width='10px'>&nbsp;</td>
+                    <td>
+                        <button id='btnSave' disabled class='mui-btn mui-btn-block mui-btn-default' onclick='cancelEdit()'>取消</button>
+                    </td>
+                </tr>
+            </table>
+        </div>";
+
+            html = "<div class='mui-input-group' id='_marcEditor'>"
+                + html
+                + "</div>";
+
+
+            @ViewData["marcField"] = html;
+
+            return View();
+        }
+
         /// <summary>
         /// 查看PDF
         /// </summary>

@@ -63,6 +63,9 @@ namespace dp2weixin.service
                         // 2021-8-3 针对收到的通知中的读者姓名和证条码号mask
                         string patronMaskValue = DomUtil.GetAttr(libNode, "patronMaskValue");
 
+                        // 2022/10/13 简编字段规则
+                        string fieldsMap= DomUtil.GetAttr(libNode, "fieldsMap");
+
                         LibModel lib = new LibModel();
                         lib.libId = id;
                         lib.name = name;
@@ -73,6 +76,7 @@ namespace dp2weixin.service
                         lib.noticedll = noticedll;
                         lib.bindStyle = bindStyle;
                         lib.patronMaskValue = patronMaskValue; //2021/8/3增加
+                        lib.fieldsMap = fieldsMap;//2022/10/13加
 
                         area.libs.Add(lib);
                     }
@@ -132,6 +136,7 @@ namespace dp2weixin.service
                     lib.noticedll = oldLib.noticedll;
                     lib.bindStyle = oldLib.bindStyle;
                     lib.patronMaskValue = oldLib.patronMaskValue; //2021/8/3 增加屏蔽通知中的读者信息
+                    lib.fieldsMap=oldLib.fieldsMap;//2022/10/13加
 
                     //lib.capoUser = oldLib.capoUser; // 20220720-ryh 发现这个字段没有使用到
                     //lib.visible = oldLib.visible;   // 20220720-ryh 发现这个字段没有使用到
@@ -162,6 +167,7 @@ namespace dp2weixin.service
                         + " noticedll='" + lib.noticedll + "'" //2020/8/24 转发通知到第三方的接口
                         + " bindStyle='" + lib.bindStyle+"'" // 2021/7/21 增加单一绑定开关
                         + " patronMaskValue='" + lib.patronMaskValue + "'" // 2021/8/3 增加通知中屏幕读者信息
+                        + " fieldMap='"+lib.fieldsMap+"'"  // 2022/10/13 增加编目配置的字段规则
                         
 
                         + " />";
@@ -345,6 +351,9 @@ namespace dp2weixin.service
 
         // 2021/8/3 屏幕通知中的读者信息
         public string patronMaskValue = "";
+
+        // 2022/10/13 增加简编的字段规则
+        public string fieldsMap = "";
 
         // 2022/07/20 在整理接口过程中发现capoUser这个字段没有使用到，所以注释掉
         // 对应的capo帐户
