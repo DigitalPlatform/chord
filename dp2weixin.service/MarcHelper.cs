@@ -110,6 +110,9 @@ out string strError)
             string[] fields = fieldMap.Split(new char[] { '\n' });
             foreach (string one in fields)
             {
+                if (one.Trim() == "")
+                    continue;
+
                 string caption = "";
                 string field = "";
                 string subfield = "";

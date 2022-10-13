@@ -1,8 +1,6 @@
-﻿
-
-@{
+﻿@{
     ViewBag.Title = "书目编辑";
-    Layout = "~/Views/Shared/_LayoutEmpty.cshtml";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 @section Scripts {
@@ -11,18 +9,38 @@
 
         //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
         //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
-        $(document).ready(function () {
-            alert("test");
-        });
+        //$(document).ready(function () {
+        //    //alert("test");
+        //});
 
 
-        function saveField() {
+        // 保存书目
+        function saveBiblio() {
 
-            //alert("1");
-            //var a=$("#_ab");
-            //alert("id="+a);
-            //alert("id="+a.attr("id"));
+            // 图书馆
+            var libId = getLibId();//$("#selLib").val();
+            if (libId == "" || libId == null) {
+                alert("您尚未选择图书馆。");
+                return;
+            }
 
+            // 登录帐户和类型
+            var loginUserName = getLoginUserName();
+            //alert(loginUserName);
+            var loginUserType = getLoginUserType();
+            //alert(loginUserType);
+
+            var weixinId = $("#weixinId").text();
+            if (weixinId == null || weixinId == "") {
+                alert("weixinId参数为空");
+                return;
+            }
+
+            var biblioPath = $("#biblioPath").val();
+            if (biblioPath == null || biblioPath == "") {
+                alert("书目路径不能为空");
+                return;
+            }
 
             var field = "";
 
@@ -41,12 +59,71 @@
 
             });
 
-            alert(field);
+            //alert(field);
 
 
-            var dbName = $("#_selDbName").val();
-            alert(dbName);
+
+
+
+
+            //显示等待图层
+            showMaskLayer();
+
+            // web api
+            var url = "/api2/BiblioApi/SetBiblio?loginUserName=" + encodeURIComponent(loginUserName)
+                + "&loginUserType=" + loginUserType
+                + "&weixinId=" + weixinId
+                + "&libId=" + libId
+
+            //alert(url);
+            sendAjaxRequest(url, "POST",
+                function (result) {
+                    // 关闭等待层
+                    hideMaskLayer();
+
+
+                    if (result.errorCode == -1) {
+                        alert(result.errorInfo);
+                        return;
+                    }
+
+                    alert("新增书目成功");
+
+                    /*
+                    $("#_recPath").text(result.recPath);
+                    $("#_timestamp").text(result.timestamp);
+
+                    if (opeType == "newByWorker") {
+                        $("#btnSave").attr("disabled", false);
+                        $("#_bLoad").text("0");
+                        alert("新增读者成功");
+                    }
+
+                    if (opeType == "changeByWorker") {
+                        alert("保存读者成功");
+                    }
+
+                    //清空编辑界面信息,todo
+                    */
+
+                },
+                function (xhq, textStatus, errorThrown) {
+                    // 关闭等待层
+                    hideMaskLayer();
+
+                    alert(errorThrown);
+                },
+                {
+                    BiblioPath: biblioPath,
+                    Action: "new",
+                    Fields: field,
+                    Timestamp: ""
+                }
+            );
+
+
         }
+
 
 
     </script>
@@ -57,24 +134,49 @@
         .block {
             background-color: #dddddd;
             margin-top: 10px;
-            vertical-align:middle;
-            text-align:center;
+            vertical-align: middle;
+            text-align: center;
         }
 
         .page {
             background-color: lightyellow;
-            
         }
     </style>
 }
 
-<span id="_libId" style="display:none;">@ViewBag.libId</span>
 
-<center>
-    <div id="main">
+@section header {
+    <h1 class="mui-title">书目编辑</h1>
+}
+<span id="weixinId" style="display:none;">@ViewBag.weixinId</span>
+<!--当前是馆员帐户，出现册登记按钮，注意这里用_worker-->
+<span id="_worker" style="display:none">@ViewBag.Worker</span>
+
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
+}
+else
+{
+
+    if (String.IsNullOrEmpty(ViewBag.Error) == false)
+    {
+        <div class="mui-content-padded">
+            <span class="errorinfo">
+                @Html.Raw(ViewBag.Error)
+            </span>
+        </div>
+    }
+    else
+    {
+
+
 
         <div>@Html.Raw(ViewData["marcField"])</div>
+    }
 
-    </div>
-</center>
-
+}

@@ -629,7 +629,21 @@ function loadJs(sid, jsurl, callback) {
             }
         }
 
+            // 跳转到图书馆柜台绑定
+            function gotoBiblioEdit() {
 
+
+                var myUrl = getRootPath()
+                    + '/Biblio/BiblioEdit';//?libId=' + encodeURIComponent(lib);
+
+                //alert(myUrl);
+                //mui.openWindow({
+                //    url: myUrl,
+                //    id: 'info'
+                //});
+                window.location = myUrl;//"/account/bind";
+
+            }
         </script>
     }
 
@@ -725,7 +739,8 @@ function loadJs(sid, jsurl, callback) {
                 </table>
             </div>
             <div style="padding:10px">
-                （简单检索默认以"前方一致"匹配）&nbsp;<a id="searchType" href="javascript:void(0)" onclick="changeType()">高级检索</a>
+                （简单检索默认以"前方一致"匹配）&nbsp;<a id="searchType" href="javascript:void(0)" onclick="changeType()">高级检索</a> 
+                &nbsp;<a id="" href="javascript:void(0)" onclick="gotoBiblioEdit()">新增书目</a>
 
             </div>
             <div id="divResult">

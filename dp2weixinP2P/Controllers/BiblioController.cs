@@ -11,15 +11,43 @@ namespace dp2weixinWeb.Controllers
 {
     public class BiblioController : BaseController
     {
-        // 书目查询主界面
-        public ActionResult BiblioEdit(string code, string state,string biblioPath)
+        // 简编界面
+        public ActionResult BiblioEdit(string code, string state, string biblioPath)
         {
+            string strError = "";
+            int nRet = 0;
 
-            string fieldMap = @"ISBN|010$a
-题名|200$a
-第一作者|200$f
-个人主要作者|701$a";
+            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
+            // -1 出错
+            // 0 成功
+            nRet = this.GetSessionInfo(code, state,
+                out SessionInfo sessionInfo,
+                out strError);
+            if (nRet == -1)
+            {
+                ViewBag.Error = strError;
+                return View();
+            }
 
+            // 当前帐号不存在，尚未选择图书馆
+            if (sessionInfo.ActiveUser == null)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Biblio/BiblioEdit");
+                return View();
+            }
+
+            if (sessionInfo.ActiveUser != null
+                && sessionInfo.ActiveUser.type == WxUserDatabase.C_Type_Worker
+                && sessionInfo.ActiveUser.userName != WxUserDatabase.C_Public)
+            {
+                ViewBag.Worker = sessionInfo.ActiveUser.userName;
+            }
+
+            // 可编辑字段配置
+            string biblioDbName = "";
+            string fieldMap = dp2WeiXinService.Instance.GetFieldsMap(sessionInfo.ActiveUser.libId,
+                sessionInfo.ActiveUser.bindLibraryCode,
+                out biblioDbName);
             List<FieldItem> fieldList = new List<FieldItem>();
             try
             {
@@ -31,93 +59,55 @@ namespace dp2weixinWeb.Controllers
                 return View();
 
             }
+            string btnName = "保存";
+
+            // 新增时，必须要在配置文件中配置好目标数据库
+            if (string.IsNullOrEmpty(biblioPath) == true)
+            {
+                if (string.IsNullOrEmpty(biblioDbName) == true)
+                {
+                    ViewBag.Error = "尚未配置目标书目库，无法新增书目，请联系管理员。";
+                    return View();
+                }
+
+                btnName = "新增";
+                biblioPath = biblioDbName + "/?";
+            }
 
             string html = "";
 
+            // 书目路径
+            html += @"<div class='mui-input-row '>"
++ "<label  style='color:#cccccc'>书目路径</label>"
++ "<input id='biblioPath' disabled type='text' class=' mui-input mui-input-clear' style='color:#bbbbbb'  value='" + biblioPath + "'/>"
++ "</div>";
 
-            /*
+            // 字段
             foreach (FieldItem field in fieldList)
             {
-                html += "<tr>"
-        + "<td class='label'>" + field.Caption + "</td>"
-        + "<td>"
-            + "<input  class='_field mui-input mui-input-clear'  id='" + field.Caption + "|" + field.Field + field.Subfield + "' type='text' value='" + field.Value + "'>"
-        + "</td>"
-    + "</tr>";
-            }
-
-            if (string.IsNullOrEmpty(biblioPath) == true)
-            {
-                html += "<tr>"
-    + "<td class='label'>目标数据库</td>"
-    + "<td>"
-        + "<div style='border:1px solid #cccccc;'>"
-            + "<select id='_selDbName'>"
-                + "<option value='中文图书' selected >中文图书</option>"
-                + "<option value='测试库'>测试库</option>"
-            + "</select>"
-        + "</div>"
-    + "</td>"
-+ "</tr>";
-            }
-
-            // 操作按钮
-            html += "<tr>"
-    + "<td colspan='2'>"
-        + "<button class='mui-btn mui-btn-primary' onclick=\"saveField()\">保存</button>&nbsp;&nbsp;"
-        + "<button class='mui-btn mui-btn-default' onclick=\"cancelEdit()\">取消</button>"
-    + "</td>"
-+ "</tr>";
-
-            html = "<table id='_marcEditor'>"
-                + html
-                + "</table>";
-            */
-
-            //
-
-            foreach (FieldItem field in fieldList)
-            {
-                string id = field.Caption + "|" + field.Field + field.Subfield;
+                string id = field.Caption + "|" + field.Field + "$" + field.Subfield;
                 html += @"<div class='mui-input-row '>"
-                +"<label  style='color:#cccccc'>"+field.Caption+"</label>"
-                +"<input id='"+id+ "' type='text' class='_field mui-input mui-input-clear'>"
+                + "<label  style='color:#cccccc'>" + field.Caption + "</label>"
+                + "<input id='" + id + "' type='text' class='_field mui-input mui-input-clear'>"
             + "</div>";
             }
 
-            if (string.IsNullOrEmpty(biblioPath) == true)
-            {
-                html += @" <div class='mui-input-row selArrowRightContainer'>
-                <label  style='color:#cccccc'>目标数据库</label>
-                <select id='_selDbName'  class='selArrowRight'>
-                    <option value=''>请选择</option>'
-                    <option value='中文图书' selected >中文图书</option>
-                    <option value='测试中文图书1'>测试中文图书1</option>
-                </select>
-            </div>";
-            }
 
             // 操作按钮
-            html += @"        <div class='mui-content-padded'>
-            <table style='width:100%'>
-                <tr>
-                    <td>
-                        <button id='btnAdd' class='mui-btn mui-btn-block mui-btn-default' onclick='saveField()'>保存</button>
-                    </td>
-                    <td width='10px'>&nbsp;</td>
-                    <td>
-                        <button id='btnSave' disabled class='mui-btn mui-btn-block mui-btn-default' onclick='cancelEdit()'>取消</button>
-                    </td>
-                </tr>
-            </table>
-        </div>";
+            html += @"<div class='mui-content-padded'><table style='width:100%'><tr>"
+                + "<td><button class='mui-btn mui-btn-block mui-btn-default' onclick='saveBiblio()'>" + btnName + "</button></td>"
+                 + "<td width='10px'>&nbsp;</td>"
+                  + "<td><button class='mui-btn mui-btn-block mui-btn-default' onclick='cancelEdit()'>取消</button></td>"
+                  + "</tr></table></div>";
 
+            // 加外壳
             html = "<div class='mui-input-group' id='_marcEditor'>"
                 + html
                 + "</div>";
 
 
             @ViewData["marcField"] = html;
+            ViewBag.BiblioPath = biblioPath;
 
             return View();
         }
@@ -135,7 +125,7 @@ namespace dp2weixinWeb.Controllers
 
             string strError = "";
             string filename = "";
-            int totalPage = dp2WeiXinService.Instance.GetPDFCount(libId, uri, 
+            int totalPage = dp2WeiXinService.Instance.GetPDFCount(libId, uri,
                 out filename, out strError);
             ViewBag.pageCount = totalPage;
 
@@ -206,7 +196,7 @@ namespace dp2weixinWeb.Controllers
         }
 
         // 书目查询详细界面
-        public ActionResult Detail(string code, string state, string biblioPath,string biblioName)
+        public ActionResult Detail(string code, string state, string biblioPath, string biblioName)
         {
             string strError = "";
             int nRet = 0;
@@ -217,11 +207,6 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
 
-            //if (string.IsNullOrEmpty(biblioName) == true)
-            //{
-            //    ViewBag.Error = "尚未传入biblioName,请从书目查询窗进入。";
-            //    return View();
-            //}
 
             // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
             // -1 出错
@@ -268,7 +253,7 @@ namespace dp2weixinWeb.Controllers
             }
             ViewBag.BookTypeHtml = this.GetBookTypeHtml(bookType, "");
             ViewBag.BiblioName = biblioName;
-            
+
             ViewBag.PatronBarcode = sessionInfo.ActiveUser.readerBarcode;
             ViewBag.BiblioPath = biblioPath;
             return View();
@@ -313,7 +298,7 @@ namespace dp2weixinWeb.Controllers
                     }
 
                     string sel = "";
-                    if (currentLocation == temp || list.Length==1) //2020/10/10 如果只有一项，则默认选中 
+                    if (currentLocation == temp || list.Length == 1) //2020/10/10 如果只有一项，则默认选中 
                         sel = " selected ";
                     html += "<option value='" + one + "' " + sel + ">" + one + "</option>";
                 }

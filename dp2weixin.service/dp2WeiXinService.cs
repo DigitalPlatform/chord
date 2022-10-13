@@ -1347,17 +1347,20 @@ namespace dp2weixin.service
         }
 
         // 获取简编字段规则
-        public string GetFieldsMap(string libId, string libraryCode)
+        public string GetFieldsMap(string libId, string libraryCode,out string  biblioDbName)
         {
             string fieldsMap = @"ISBN|010$a
 题名|200$a
 第一作者|200$f
 个人主要作者|701$a";
 
+            biblioDbName = "";
+
             LibModel libCfg = this._areaMgr.GetLibCfg(libId, libraryCode);
             if (libCfg != null && string.IsNullOrEmpty(libCfg.fieldsMap) == false)
             {
                 fieldsMap = libCfg.fieldsMap;
+                biblioDbName = libCfg.biblioDbName;
             }
             return fieldsMap;
         }
@@ -7790,8 +7793,22 @@ ErrorInfo成员里可能会有报错信息。
                             + "&biblioPath=" + HttpUtility.UrlEncode(biblioPath)
                             + "&isNew=1";
                         // + "&returnUrl=" + HttpUtility.UrlEncode(returnUrl);
-                        recommendBtn = "<div class='btnRow'><button class='mui-btn  mui-btn-default' "
-                            + " onclick=\"gotoUrl('" + recommPath + "')\">好书推荐</button></div>";
+                        recommendBtn = "<button class='mui-btn  mui-btn-default' "
+                            + " onclick=\"gotoUrl('" + recommPath + "')\">好书推荐</button>";
+
+                        //
+
+                        // todo 修改书目跳转的url
+                        recommendBtn += "&nbsp;&nbsp;<button class='mui-btn  mui-btn-default' "
+                            + " onclick=\"gotoUrl('')\">修改书目</button>";
+
+
+                        // todo 删除书目
+                        recommendBtn += "&nbsp;&nbsp;<button class='mui-btn  mui-btn-default' "
+                            + " onclick=\"gotoUrl('')\">删除书目</button>";
+
+
+                        recommendBtn = "<div class='btnRow'>" + recommendBtn + "</div>";
                     }
                 }
 
