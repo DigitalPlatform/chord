@@ -8613,6 +8613,13 @@ ErrorInfo成员里可能会有报错信息。
         }
 
         // 编辑书目
+        // loginUserName:使用的dp2library帐号,一般为馆员帐户
+        // loginUserType：空表示馆员，如果是读者传"patron"
+        // weixinId：前端用户唯一id
+        // libId：图书馆id
+        // biblioFields:书目对象，是一个结构，里面有路径、要编辑的字段。
+        // outputBiblioPath:返回的书目路径
+        // outputTimestamp:返回的书目时间戳
         public int SetBiblio(string loginUserName,
             string loginUserType,
             string weixinId,
@@ -8622,23 +8629,20 @@ ErrorInfo成员里可能会有报错信息。
            out string outputTimestamp,
             out string strError)
         {
+            // 检查传入的参数
             //strError = "loginUserName=" + loginUserName + ";"
             //    + "loginUserType=" + loginUserType + ";"
             //    + "weixinId=" + weixinId + ";"
             //    + "libId=" + libId + "\r\n"
             //    + JsonConvert.SerializeObject(biblio);
 
-
-            // 调点对点接口处理
             strError = "";
+            int nRet = 0;
             outputBiblioPath = "";
             outputTimestamp = "";
 
-
-            // todo，未用type
-            LoginInfo loginInfo = new LoginInfo(loginUserName, false);
-
-
+            // 调dp2接口时，使用的dp2帐户
+            LoginInfo loginInfo = GetLoginInfo(loginUserName, loginUserType);// new LoginInfo(loginUserName, false);
 
             // 根据id找到图书馆对象
             LibEntity lib = this.GetLibById(libId);
@@ -8648,18 +8652,19 @@ ErrorInfo成员里可能会有报错信息。
                 return -1;
             }
 
-            int nRet = 0;
-
-            string biblioXml = "";
+            string biblioXml = "";  //书目xml
             if (biblio.Action == C_Action_new)
             {
-                // todo 新增需要改变
+                // marc工作单格式  todo 新增需要什么的初始化
                 string strMarc = @"?????nam0 22?????   45__
 100  ǂa20071012d2007    ekmy0chiy1050    ea
 1010 ǂachi
 102  ǂaCNǂb110000";
+                
+                // 工作单到MarcRecord对象，方便用MarcQuery处理。
+                MarcRecord temp = MarcRecord.FromWorksheet(strMarc); 
 
-                MarcRecord temp = MarcRecord.FromWorksheet(strMarc); //new MarcRecord(strMarc);
+                // 给marc中设置字段
                 MarcRecord record= MarcHelper.SetFields(temp, biblio.Fields);
                 nRet = MarcUtil.Marc2Xml(record.Text,
                     "unimarc",
@@ -8668,25 +8673,28 @@ ErrorInfo成员里可能会有报错信息。
                 if (nRet == -1)
                     return -1;
             }
-            else if (biblio.Action == C_Action_change)
+            else if (biblio.Action == C_Action_change)  //修改
             {
-                // 调接口，把数据取出来，和时间戳
+                // 先调接口把书目数据取出来
                 List<string> dataList = null;
                 nRet = this.GetBiblioInfo(lib,
                     loginInfo,
                     biblio.BiblioPath,
-                   "xml,timestamp",
+                   "xml,timestamp",  //xml和时间戳
                     out dataList,
                     out strError);
                 if (nRet == -1 || nRet == 0)
                     return nRet;
 
                 string oldbiblioXml = dataList[0];
-                // todo 使用前端传过来的
+
+                // 使用前端传过来的
                 //biblio.Timestamp = dataList[1];
 
+                // xml转成MarcRecord对象
                 MarcRecord temp =MarcHelper.MarcXml2MarcRecord(oldbiblioXml, out string outMarcSyntax, out strError);
                 
+                // 根据接口传入的字段组合字符串设置marc对应的字段
                 MarcRecord record = MarcHelper.SetFields(temp, biblio.Fields);
                  nRet = MarcUtil.Marc2Xml(record.Text,
                     "unimarc",
@@ -8701,6 +8709,7 @@ ErrorInfo成员里可能会有报错信息。
             }
             else
             {
+                // 目前仅支持new,change,delete。先不支持其它动作
                 strError = "SetBiblio()接口不能识别的action[" + biblio.Action + "]";
                 return -1;
             }
@@ -8717,7 +8726,6 @@ ErrorInfo成员里可能会有报错信息。
                 public string ErrorInfo { get; set; }
                 public string ErrorCode { get; set; }
             }
-
             public class Record
             {
                 public string RecPath { get; set; }
@@ -8726,30 +8734,36 @@ ErrorInfo成员里可能会有报错信息。
                 public string Timestamp { get; set; }
             }
             */
-            Record newRecord = new Record();
-            newRecord.RecPath = biblio.BiblioPath; 
-            newRecord.Format = "xml";
-            newRecord.Data = biblioXml;
 
+            //实体集合
+            List<Entity> entities = new List<Entity>();
+
+            // 本接口目前仅支持处理一条记录
             Entity entity = new Entity();
             entity.Action = biblio.Action;
+
+            //新记录
+            Record newRecord = new Record();
+            newRecord.RecPath = biblio.BiblioPath;
+            newRecord.Format = "xml";
+            newRecord.Data = biblioXml;
             entity.NewRecord = newRecord;
 
-            List<Entity> entities = new List<Entity>();
+            //加到集合里
             entities.Add(entity);
 
-            // 删除
+            // 编辑和删除时，需要设置旧记录，包括旧记录的路径和时间戳
             if (biblio.Action == "change" || biblio.Action == "delete")
             {
                 Record oldRecord = new Record();
                 oldRecord.RecPath = biblio.BiblioPath;
                 oldRecord.Timestamp = biblio.Timestamp;
+                
+                // 给entity设置上旧记录
                 entity.OldRecord = oldRecord;
             }
 
-            //string outputXml = "";
-
-            // 调点对点接口
+            // 调点对点接口，对应dp2的setBiblioInfo接口
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             SetInfoRequest request = new SetInfoRequest(id,
@@ -8759,10 +8773,11 @@ ErrorInfo成员里可能会有报错信息。
                 entities);
             try
             {
+                // 连接
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this._dp2MServerUrl,
                     "").Result;
-
+                //发起请求
                 SetInfoResult result = connection.SetInfoTaskAsync(
                     lib.capoUserName,
                     request,
@@ -8788,7 +8803,6 @@ ErrorInfo成员里可能会有报错信息。
                 }
 
                 return (int)result.Value;
-
             }
             catch (AggregateException ex)
             {
@@ -8800,7 +8814,7 @@ ErrorInfo成员里可能会有报错信息。
                 strError = ex.Message;
                 return -1;
             }
-
+            //结束
         }
 
         //

@@ -155,7 +155,7 @@ namespace dp2weixinWeb.Controllers
             html += @"<div class='mui-content-padded'>"
                 + "<button id='btnOpeType' class='mui-btn mui-btn-block mui-btn-primary' onclick='saveBiblio()'>" + btnName + "</button>"
                 + "<div class='link-area'><center>"
-                + "&nbsp;&nbsp;<a id='again' "+style+" href='JavaScript:void(0)' onclick='gotoUrl(\"" + biblioEditUrl+"\")'>再次新增书目</a>"
+                + "<a id='again' "+style+" href='JavaScript:void(0)' onclick='gotoUrl(\"" + biblioEditUrl+"\")'>新增书目</a>"
                 + "&nbsp;&nbsp;<a id='detail' "+style+" href='JavaScript:void(0)'  onclick='gotoUrl(\"" + detailUrl + "\")'>查看书目详情</a>"
                                 + "&nbsp;&nbsp;<a href='JavaScript:void(0)' onclick='gotoUrl(\"" + biblioSearchUrl + "\")'>返回书目查询</a>"
 

@@ -320,11 +320,11 @@ namespace dp2weixinWeb.ApiControllers
 
 
         // 编辑书目
-        //loginUserName:使用的dp2library帐号，即前端当前绑定的帐户，如果是读者则传读者证条码；如果是馆员帐户，传馆员用户名
-        //loginUserType：空表示馆员，如果是读者传"patron"
-        //weixinId：前端用户唯一id
-        //libId：图书馆id
-        //biblioFields:书目对象，是一个结构，里面有路径、要编辑的字段。
+        // loginUserName:使用的dp2library帐号,一般为馆员帐户
+        // loginUserType：空表示馆员，如果是读者传"patron"
+        // weixinId：前端用户唯一id
+        // libId：图书馆id
+        // biblioFields:书目对象，是一个结构，里面有路径、要编辑的字段。
         public SetBiblioResult SetBiblio(string loginUserName,
             string loginUserType,
             string weixinId,
