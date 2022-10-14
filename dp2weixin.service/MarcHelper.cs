@@ -11,12 +11,12 @@ namespace common
     {
 
         // 根据字段规则，从marc抽取字段
-        public static string GetFields(string strMarcWorksheet, string strFieldMap)
+        public static string GetFields(MarcRecord record, string strFieldMap)
         {
             List<FieldItem> fieldList = MarcHelper.ParseFieldMap(strFieldMap);
 
             // 抽取字段规则
-            MarcHelper.GetFields(strMarcWorksheet, ref fieldList);
+            MarcHelper.GetFields(record, ref fieldList);
 
             string info = "";
             foreach (FieldItem field in fieldList)
@@ -31,9 +31,9 @@ namespace common
         }
 
         // 根据字段规则，从marc抽取字段
-        public static void GetFields(string strMarcWorksheet, ref List<FieldItem> fieldList)
+        public static void GetFields(MarcRecord record, ref List<FieldItem> fieldList)
         {
-            MarcRecord record = MarcRecord.FromWorksheet(strMarcWorksheet); //new MarcRecord(strMarc);
+            //MarcRecord record = MarcRecord.FromWorksheet(strMarcWorksheet); //new MarcRecord(strMarc);
             foreach (FieldItem field in fieldList)
             {
                 // 设置字段的值

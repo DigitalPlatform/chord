@@ -24,6 +24,12 @@ namespace dp2weixin.service
         public object obj = "";
     }
 
+    public class SetBiblioResult : ApiResult
+    {
+        public string biblioPath = "";
+        public string biblioTimestamp = "";
+    }
+
     public class SetReaderInfoResult:ApiResult
     {
         public string recPath = "";

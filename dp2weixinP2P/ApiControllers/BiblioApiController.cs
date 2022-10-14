@@ -325,21 +325,25 @@ namespace dp2weixinWeb.ApiControllers
         //weixinId：前端用户唯一id
         //libId：图书馆id
         //biblioFields:书目对象，是一个结构，里面有路径、要编辑的字段。
-        public ApiResult SetBiblio(string loginUserName,
+        public SetBiblioResult SetBiblio(string loginUserName,
             string loginUserType,
             string weixinId,
             string libId,
             BiblioFields biblioFields) //前段简单先传一条书目，一开始想做成集合，但考虑到会带来复杂性，例如其中一条出错是否继续处理其它条，出错信息也要单独设置，返回值也有影响。
-        { 
+        {
 
-            ApiResult result = new ApiResult ();
+            SetBiblioResult result = new SetBiblioResult();
 
             string strError = "";
+            string outputBiblioPath = "";
+            string outputTimestamp = "";
             int nRet = dp2WeiXinService.Instance.SetBiblio(loginUserName,
                 loginUserType,
                 weixinId,
                 libId,
                 biblioFields,
+                out outputBiblioPath,
+                out outputTimestamp,
                 out strError);
             if (nRet == -1)
             {
@@ -348,6 +352,10 @@ namespace dp2weixinWeb.ApiControllers
             }
 
             result.errorInfo = strError;
+
+            result.biblioPath = outputBiblioPath;
+            result.biblioTimestamp= outputTimestamp;
+
             return result;
         }
 

@@ -7799,13 +7799,14 @@ ErrorInfo成员里可能会有报错信息。
                         //
 
                         // todo 修改书目跳转的url
+                        string biblioEditUrl = "/Biblio/BiblioEdit?biblioPath=" + HttpUtility.UrlEncode(biblioPath);
                         recommendBtn += "&nbsp;&nbsp;<button class='mui-btn  mui-btn-default' "
-                            + " onclick=\"gotoUrl('')\">修改书目</button>";
+                            + " onclick=\"gotoUrl('"+ biblioEditUrl+"')\">修改书目</button>";
 
 
                         // todo 删除书目
                         recommendBtn += "&nbsp;&nbsp;<button class='mui-btn  mui-btn-default' "
-                            + " onclick=\"gotoUrl('')\">删除书目</button>";
+                            + " onclick=\"alert('尚未实现')\">删除书目</button>";
 
 
                         recommendBtn = "<div class='btnRow'>" + recommendBtn + "</div>";
@@ -8617,6 +8618,8 @@ ErrorInfo成员里可能会有报错信息。
             string weixinId,
             string libId,
            BiblioFields biblio,
+           out string outputBiblioPath,
+           out string outputTimestamp,
             out string strError)
         {
             //strError = "loginUserName=" + loginUserName + ";"
@@ -8628,6 +8631,8 @@ ErrorInfo成员里可能会有报错信息。
 
             // 调点对点接口处理
             strError = "";
+            outputBiblioPath = "";
+            outputTimestamp = "";
 
 
             // todo，未用type
@@ -8646,19 +8651,9 @@ ErrorInfo成员里可能会有报错信息。
             int nRet = 0;
 
             string biblioXml = "";
-            /*
- <root>
-  <barcode>B002</barcode> 
-  <location>流通库</location> 
-  <bookType>普通</bookType> 
-  <accessNo>I563.85/H022</accessNo> 
-  <price>CNY28.80</price> 
-  <batchNo>20200405</batchNo>
-</root>
-             */
-            //2020-3-17统一用action来判断，原来的bMergeInfo好像没有用了
             if (biblio.Action == C_Action_new)
             {
+                // todo 新增需要改变
                 string strMarc = @"?????nam0 22?????   45__
 100  ǂa20071012d2007    ekmy0chiy1050    ea
 1010 ǂachi
@@ -8688,9 +8683,10 @@ ErrorInfo成员里可能会有报错信息。
 
                 string oldbiblioXml = dataList[0];
                 // todo 使用前端传过来的
-                biblio.Timestamp = dataList[1];
+                //biblio.Timestamp = dataList[1];
 
                 MarcRecord temp =MarcHelper.MarcXml2MarcRecord(oldbiblioXml, out string outMarcSyntax, out strError);
+                
                 MarcRecord record = MarcHelper.SetFields(temp, biblio.Fields);
                  nRet = MarcUtil.Marc2Xml(record.Text,
                     "unimarc",
@@ -8698,9 +8694,6 @@ ErrorInfo成员里可能会有报错信息。
                     out strError);
                 if (nRet == -1)
                     return -1;
-
-
-
             }
             else if (biblio.Action == C_Action_delete)
             {
@@ -8754,7 +8747,7 @@ ErrorInfo成员里可能会有报错信息。
                 entity.OldRecord = oldRecord;
             }
 
-            string outputXml = "";
+            //string outputXml = "";
 
             // 调点对点接口
             CancellationToken cancel_token = new CancellationToken();
@@ -8781,7 +8774,7 @@ ErrorInfo成员里可能会有报错信息。
                     return -1;
                 }
 
-                // 取出册信息，错误信息是放在具体的册对象里
+                // 取出实体对角信息，错误信息是放在具体的entity对象里
                 if (result.Entities.Count > 0)
                 {
                     Entity e = result.Entities[0];
@@ -8790,9 +8783,8 @@ ErrorInfo成员里可能会有报错信息。
                         strError = e.ErrorInfo;
                         return -1;
                     }
-                    //outputRecPath = result.Entities[0].NewRecord.RecPath;
-                    //outputTimestamp = result.Entities[0].NewRecord.Timestamp;
-                    outputXml = result.Entities[0].NewRecord.Data;
+                    outputBiblioPath = result.Entities[0].NewRecord.RecPath;
+                    outputTimestamp = result.Entities[0].NewRecord.Timestamp;
                 }
 
                 return (int)result.Value;

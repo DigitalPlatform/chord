@@ -1,4 +1,5 @@
 ﻿using common;
+using DigitalPlatform.Marc;
 using DigitalPlatform.Message;
 using dp2weixin.service;
 using System;
@@ -48,18 +49,9 @@ namespace dp2weixinWeb.Controllers
             string fieldMap = dp2WeiXinService.Instance.GetFieldsMap(sessionInfo.ActiveUser.libId,
                 sessionInfo.ActiveUser.bindLibraryCode,
                 out biblioDbName);
-            List<FieldItem> fieldList = new List<FieldItem>();
-            try
-            {
-                fieldList = MarcHelper.ParseFieldMap(fieldMap);
-            }
-            catch (Exception ex)
-            {
-                @ViewData["marcField"] = "解析marc字段配置规则出错：" + ex.Message;
-                return View();
 
-            }
             string btnName = "保存";
+            string timestamp = "";
 
             // 新增时，必须要在配置文件中配置好目标数据库
             if (string.IsNullOrEmpty(biblioPath) == true)
@@ -72,43 +64,110 @@ namespace dp2weixinWeb.Controllers
 
                 btnName = "新增";
                 biblioPath = biblioDbName + "/?";
+                ViewBag.biblioAction = "new";
             }
+            else
+            {
+                // 馆员身份
+                LoginInfo loginInfo = new LoginInfo(sessionInfo.ActiveUser.userName, false);
+                // 根据id找到图书馆对象
+                LibEntity lib = dp2WeiXinService.Instance.GetLibById(sessionInfo.ActiveUser.libId);
+                if (lib == null)
+                {
+                    ViewBag.Error = "未找到id为[" + sessionInfo.ActiveUser.libId + "]的图书馆定义。";
+                    return View();
+                }
+
+                List<string> dataList = null;
+                // 把书目记录获取出来（包括时间戳），把相关字段内容取出来
+
+                nRet = dp2WeiXinService.Instance.GetBiblioInfo(lib,
+                    loginInfo,
+                    biblioPath,
+                   "xml,timestamp",
+                    out dataList,
+                    out strError);
+                if (nRet == -1 || nRet == 0)
+                {
+                    ViewBag.Error = "获取书目["+biblioPath+"]出错："+strError;
+                    return View();
+                }
+                // 书目原始xml
+                string oldbiblioXml = dataList[0];
+
+                // 从marc中取出字段的值
+                MarcRecord marcRecord = MarcHelper.MarcXml2MarcRecord(oldbiblioXml, out string outMarcSyntax, out strError);
+                fieldMap=MarcHelper.GetFields(marcRecord, fieldMap);
+
+                // 时间戳
+                timestamp = dataList[1];
+                ViewBag.biblioTimestamp=timestamp;
+                ViewBag.biblioAction = "change";
+            }
+
 
             string html = "";
 
             // 书目路径
             html += @"<div class='mui-input-row '>"
-+ "<label  style='color:#cccccc'>书目路径</label>"
-+ "<input id='biblioPath' disabled type='text' class=' mui-input mui-input-clear' style='color:#bbbbbb'  value='" + biblioPath + "'/>"
-+ "</div>";
+                + "<label  style='color:#cccccc'>书目路径</label>"
+                + "<input id='biblioPath' disabled type='text' class=' mui-input mui-input-clear' style='color:#bbbbbb'  value='" + biblioPath + "'/>"
+                + "</div>";
 
+            // 解析marc字段字符串
+            List<FieldItem> fieldList = new List<FieldItem>();
+            try
+            {
+                fieldList = MarcHelper.ParseFieldMap(fieldMap);
+            }
+            catch (Exception ex)
+            {
+                @ViewData["marcField"] = "解析marc字段配置规则出错：" + ex.Message;
+                return View();
+            }
             // 字段
             foreach (FieldItem field in fieldList)
             {
                 string id = field.Caption + "|" + field.Field + "$" + field.Subfield;
                 html += @"<div class='mui-input-row '>"
                 + "<label  style='color:#cccccc'>" + field.Caption + "</label>"
-                + "<input id='" + id + "' type='text' class='_field mui-input mui-input-clear'>"
+                + "<input id='" + id + "' type='text' class='_field mui-input mui-input-clear' value='"+field.Value+"'>"
             + "</div>";
             }
 
+            //// 操作按钮
+            //html += @"<div class='mui-content-padded'><table style='width:100%'><tr>"
+            //    + "<td><button id='btnOpeType' class='mui-btn mui-btn-block mui-btn-default' onclick='saveBiblio()'>" + btnName + "</button></td>"
+            //     + "<td width='10px'>&nbsp;</td>"
+            //      + "<td><button class='mui-btn mui-btn-block mui-btn-default' onclick='cancelEdit()'>取消</button></td>"
+            //      + "</tr></table></div>";
 
-            // 操作按钮
-            html += @"<div class='mui-content-padded'><table style='width:100%'><tr>"
-                + "<td><button class='mui-btn mui-btn-block mui-btn-default' onclick='saveBiblio()'>" + btnName + "</button></td>"
-                 + "<td width='10px'>&nbsp;</td>"
-                  + "<td><button class='mui-btn mui-btn-block mui-btn-default' onclick='cancelEdit()'>取消</button></td>"
-                  + "</tr></table></div>";
+            // 一个按钮，三个锚点
+            string biblioEditUrl = "/Biblio/BiblioEdit";
+            string detailUrl = "/Biblio/Detail?biblioPath=" + HttpUtility.UrlEncode(biblioPath);
+            string biblioSearchUrl = "/Biblio/Index";
+
+            // 界面是新增的状态，不显示再次新增和详情
+            string style = "";
+            if (ViewBag.biblioAction=="new")
+                style = "style='display: none'";
+
+            html += @"<div class='mui-content-padded'>"
+                + "<button id='btnOpeType' class='mui-btn mui-btn-block mui-btn-primary' onclick='saveBiblio()'>" + btnName + "</button>"
+                + "<div class='link-area'><center>"
+                + "&nbsp;&nbsp;<a id='again' "+style+" href='JavaScript:void(0)' onclick='gotoUrl(\"" + biblioEditUrl+"\")'>再次新增书目</a>"
+                + "&nbsp;&nbsp;<a id='detail' "+style+" href='JavaScript:void(0)'  onclick='gotoUrl(\"" + detailUrl + "\")'>查看书目详情</a>"
+                                + "&nbsp;&nbsp;<a href='JavaScript:void(0)' onclick='gotoUrl(\"" + biblioSearchUrl + "\")'>返回书目查询</a>"
+
+                + "</center></div></div>";
 
             // 加外壳
             html = "<div class='mui-input-group' id='_marcEditor'>"
                 + html
                 + "</div>";
 
-
+            // 把拼出来的字段放在viewdata里，到时显示在前端界面
             @ViewData["marcField"] = html;
-            ViewBag.BiblioPath = biblioPath;
-
             return View();
         }
 

@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = "书目编辑";
+    ViewBag.Title = "书目简编";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -24,50 +24,55 @@
                 return;
             }
 
-            // 登录帐户和类型
-            var loginUserName = getLoginUserName();
-            //alert(loginUserName);
-            var loginUserType = getLoginUserType();
-            //alert(loginUserType);
-
             var weixinId = $("#weixinId").text();
             if (weixinId == null || weixinId == "") {
                 alert("weixinId参数为空");
                 return;
             }
 
+            // 动作
+            var biblioAction = $("#biblioAction").text();
+            if (biblioAction == null || biblioAction == "") {
+                alert("编辑书目时action参数不能为空");
+                return;
+            }
+
+            // 时间戳
+            var biblioTimestamp = "";
+            if (biblioAction == "change") {
+                biblioTimestamp = $("#biblioTimestamp").text();
+                if (biblioTimestamp == null || biblioTimestamp == "") {
+                    alert("编辑书目时timestamp参数不能为空");
+                    return;
+                }
+            }
+
+            // biblio path是放在一个不可编辑的输入框
             var biblioPath = $("#biblioPath").val();
             if (biblioPath == null || biblioPath == "") {
                 alert("书目路径不能为空");
                 return;
             }
 
+            // 拼装field字符串
             var field = "";
-
             $("#_marcEditor").find("._field").each(function (index) {
                 //alert(index);//循环的下标值，从0开始
-
-                //取出id
-                //alert($(this).attr("id"));
 
                 // 取出值
                 var id = $(this).attr("id");
                 var value = $(this).val();
 
-                //alert(id+"|"+value);
                 field += id + "|" + value + "\r\n";
-
             });
-
             //alert(field);
-
-
-
-
-
 
             //显示等待图层
             showMaskLayer();
+
+            // 登录帐户和类型
+            var loginUserName = getLoginUserName();
+            var loginUserType = getLoginUserType();
 
             // web api
             var url = "/api2/BiblioApi/SetBiblio?loginUserName=" + encodeURIComponent(loginUserName)
@@ -87,22 +92,39 @@
                         return;
                     }
 
-                    alert("新增书目成功");
+                    if (biblioAction == "new") {
+                        alert("新增书目成功。");
+
+                        gotoUrl("/biblio/biblioEdit?biblioPath=" + result.biblioPath);
+
+                        //// 转成编辑状态
+                        //$("#biblioAction").text("change");
+                        //$("#biblioPath").val(result.biblioPath);
+                        //$("#biblioTimestamp").text(result.biblioTimestamp);
+                        //$("#btnOpeType").text("保存");
+
+                        //// 让再次新增 和 查看详情 的锚点显示出来
+                        //$("#again").css('display', 'block');
+                        //$("#detail").css('display', 'block');
+                    }
+                    else {
+                        alert("保存书目成功。");
+                        $("#biblioTimestamp").text(result.biblioTimestamp);
+                    }
+
+                    //alert(result.biblioPath + "-" + result.biblioTimestamp);
+                       
+
+                    // todo 新增和编辑完成，还停留在这个界面，不跳转。
+                    // 那么针对编辑的情况，可以再次编辑，所以这次更新一下时间戳
+
+                    // 新增处理可以有两种情况：一是变成保存，那么如果用户还想继续新增一条，就得另点一下新增。
+                    // 另一种就是清空界面，还是新增界面，但这样就不方便查看原来的那条记录，需要加一个查看完整信息的锚点。
+                    // 这两种各有优点
 
                     /*
                     $("#_recPath").text(result.recPath);
                     $("#_timestamp").text(result.timestamp);
-
-                    if (opeType == "newByWorker") {
-                        $("#btnSave").attr("disabled", false);
-                        $("#_bLoad").text("0");
-                        alert("新增读者成功");
-                    }
-
-                    if (opeType == "changeByWorker") {
-                        alert("保存读者成功");
-                    }
-
                     //清空编辑界面信息,todo
                     */
 
@@ -110,18 +132,15 @@
                 function (xhq, textStatus, errorThrown) {
                     // 关闭等待层
                     hideMaskLayer();
-
                     alert(errorThrown);
                 },
                 {
                     BiblioPath: biblioPath,
-                    Action: "new",
+                    Action: biblioAction,
                     Fields: field,
-                    Timestamp: ""
+                    Timestamp: biblioTimestamp
                 }
             );
-
-
         }
 
 
@@ -149,8 +168,8 @@
     <h1 class="mui-title">书目编辑</h1>
 }
 <span id="weixinId" style="display:none;">@ViewBag.weixinId</span>
-<!--当前是馆员帐户，出现册登记按钮，注意这里用_worker-->
-<span id="_worker" style="display:none">@ViewBag.Worker</span>
+<span id="biblioTimestamp" style="display:none">@ViewBag.biblioTimestamp</span>
+<span id="biblioAction" style="display:none">@ViewBag.biblioAction</span>
 
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {
