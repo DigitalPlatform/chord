@@ -555,9 +555,10 @@ errorInfo)
             }
             catch (HttpRequestException ex)
             {
+                // InnerException
                 MessageResult result = new MessageResult();
                 result.Value = -1;
-                result.ErrorInfo = ex.Message;
+                result.ErrorInfo = ExceptionUtil.GetExceptionMessage(ex);    // ex.Message;
                 result.String = "HttpRequestException";
                 return result;
             }

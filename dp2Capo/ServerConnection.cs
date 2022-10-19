@@ -1482,6 +1482,12 @@ strError);
                 return;
             }
 
+            if (searchParam.Operation == "getItemInfoEx")
+            {
+                GetSingleItemInfo(searchParam);
+                return;
+            }
+
             if (searchParam.Operation == "getBrowseRecords")
             {
                 GetBrowseRecords(searchParam);
@@ -2692,6 +2698,179 @@ strError,
 strErrorCode));
         }
 
+        static string RemovePrefixParameter(string text, string prefix)
+        {
+            if (string.IsNullOrEmpty(text))
+                return text;
+            var list = text.Split(',').ToList();
+            for (int i = 0; i < list.Count; i++)
+            {
+                string s = list[i];
+                if (s == prefix || s.StartsWith(prefix + ":"))
+                {
+                    list.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            return StringUtil.MakePathList(list, ",");
+        }
+
+        // 2022/10/19
+        void GetSingleItemInfo(SearchRequest searchParam)
+        {
+            string strError = "";
+            string strErrorCode = "";
+            IList<DigitalPlatform.Message.Record> records = new List<DigitalPlatform.Message.Record>();
+
+            if (string.IsNullOrEmpty(searchParam.FormatList) == true)
+            {
+                strError = "FormatList 不应为空";
+                goto ERROR1;
+            }
+
+            try
+            {
+                LibraryChannel channel = GetChannel(searchParam.LoginInfo);
+                try
+                {
+                    string strItemDbType = searchParam.DbNameList;
+                    if (string.IsNullOrEmpty(strItemDbType))
+                        strItemDbType = "item";
+                    else if (strItemDbType == "entity")
+                        strItemDbType = "item";
+
+                    string strItemFormat = searchParam.FormatList;
+                    if (string.IsNullOrEmpty(strItemFormat))
+                        strItemFormat = "xml";
+                    else
+                    {
+                        // 从 strItemFormat 中去掉 biblioFormat:xxx 部分
+                        strItemFormat = RemovePrefixParameter(strItemFormat, "biblioFormat");
+                    }
+
+                    string strBiblioFormat = StringUtil.GetParameterByPrefix(searchParam.FormatList, "biblioFormat");
+
+                    long lRet = channel.GetItemInfo(
+                        strItemDbType,
+                        searchParam.QueryWord,
+                        searchParam.Filter, // filter 负责发送 strItemXml
+                        strItemFormat,
+                        out string strItemResult,
+                        out string strItemRecPath,
+                        out byte[] item_timestamp,
+                        strBiblioFormat,
+                        out string strBiblioResult,
+                        out string strBiblioRecPath,
+                        out strError);
+
+                    /*
+                                public long GetItemInfo(
+            // // DigitalPlatform.Stop stop,
+            string strItemDbType,
+            string strBarcode,
+            string strItemXml,
+            string strResultType,
+            out string strResult,
+            out string strItemRecPath,
+            out byte[] item_timestamp,
+            string strBiblioType,
+            out string strBiblio,
+            out string strBiblioRecPath,
+            out string strError)
+                    */
+
+                    /*
+                    long lRet = channel.GetReaderInfo(// null,
+                        searchParam.QueryWord,
+                        searchParam.FormatList,
+                        out results,
+                        out strRecPath,
+                        out baTimestamp,
+                        out strError);
+                    */
+                    strErrorCode = channel.ErrorCode.ToString();
+                    if (lRet == -1 || lRet == 0)
+                    {
+                        if (lRet == 0
+                            || (lRet == -1 && channel.ErrorCode == DigitalPlatform.LibraryClient.localhost.ErrorCode.NotFound))
+                        {
+                            // 没有命中
+                            TryResponseSearch(
+                                                                new SearchResponse(
+    searchParam.TaskID,
+    0,
+    0,
+    this.dp2library.LibraryUID,
+    records,
+    strError,  // 出错信息大概为 not found。
+    strErrorCode));
+                            return;
+                        }
+                        goto ERROR1;
+                    }
+
+                    records.Clear();
+                    // 返回册记录
+                    {
+                        DigitalPlatform.Message.Record item = new DigitalPlatform.Message.Record();
+                        item.RecPath = strItemRecPath;
+                        item.Data = strItemResult;
+                        if (item_timestamp != null)
+                            item.Timestamp = ByteArray.GetHexTimeStampString(item_timestamp);
+                        item.Format = strItemFormat;
+                        records.Add(item);
+                    }
+                    // 返回书目记录
+                    if (string.IsNullOrEmpty(strBiblioFormat) == false)
+                    {
+                        DigitalPlatform.Message.Record biblio = new DigitalPlatform.Message.Record();
+                        biblio.RecPath = strBiblioRecPath;
+                        biblio.Data = strBiblioResult;
+                        biblio.Format = strBiblioFormat;
+                        records.Add(biblio);
+                    }
+
+                    long batch_size = -1;
+                    bool bRet = TryResponseSearch(
+    searchParam.TaskID,
+    records.Count,
+    0,
+    this.dp2library.LibraryUID,
+    records,
+    "",
+    strErrorCode,
+    ref batch_size);
+                    Console.WriteLine("ResponseSearch called " + records.Count.ToString() + ", bRet=" + bRet);
+                    if (bRet == false)
+                        return;
+                }
+                finally
+                {
+                    this.ReturnChannel(channel);
+                }
+            }
+            catch (Exception ex)
+            {
+                AddErrorLine("GetSingleItemInfo() 出现异常: " + ex.Message);
+                strError = "GetSingleItemInfo() 异常：" + ExceptionUtil.GetDebugText(ex);
+                goto ERROR1;
+            }
+
+            this.AddInfoLine("search and response end");
+            return;
+        ERROR1:
+            // 报错
+            TryResponseSearch(
+                new SearchResponse(
+                searchParam.TaskID,
+                -1,
+                0,
+                this.dp2library.LibraryUID,
+                records,
+                strError,
+                strErrorCode));
+        }
 
         void GetPatronInfo(SearchRequest searchParam)
         {

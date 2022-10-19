@@ -32,8 +32,8 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“生成号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”: 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.52.*")]
-[assembly: AssemblyFileVersion("1.52.0.0")]
+[assembly: AssemblyVersion("1.53.*")]
+[assembly: AssemblyFileVersion("1.53.0.0")]
 
 // 1.1 (2016/6/26) 首次使用了版本号
 // 1.2 (2016/9/14) 管理线程中会不断重试连接 dp2mserver，并将此情况写入日志
@@ -84,7 +84,7 @@ using System.Runtime.InteropServices;
 //                  登录时，把对 dp2library 的 Login() 调用用记录锁保护起来，令针对同一个用户名(和实例名)的登录从并发变为顺次调用，避免突然在 dp2libraryChannelPool 中分配很多 dp2library 通道(可能导致通道配额耗尽)
 // 1.44 (2022/5/24) SIP Server ScStatus() API 改用 capo 账户。Login() API 增加检查危险权限功能
 // 1.45 (2022/6/20) SIP Server 增加了 LoginCache 机制，避免高密度的 Login() 请求引起 dp2library CPU 耗用居高不下
-// 1.46 (2022/9/16) SetInfo() API 中增加了 setBiblioInfo 子功能
+// 1.46 (2022/9/16) 点对点 SetInfo() API 中增加了 setBiblioInfo 子功能
 // 1.47 (2022/9/20) SIP Server PatronInformation() API 兑现了 summary 参数，并限制了每次获得 AU 等字段的总个数为 10 (这是一个实验性的数字，后面会再调整)
 // 1.48 (2022/9/23) SIP Server PatronInformation() API 中优化了为在借册获得机构代码的速度。要求最新版 3.129 dp2library 配合
 // 1.49 (2022/9/26) SIP Server PatronInformation() API 执行中途会检测 TCP 连接是否被前端 Close，如果被 Close 的话会尽快中断高耗能的处理
@@ -92,3 +92,4 @@ using System.Runtime.InteropServices;
 // 1.50 (2022/9/27) SIP Server 大约每一分钟清理一次 dp2library version 缓存
 // 1.51 (2022/9/29) SIP Server 借书或者续借限制了当前读者在借册 50 册以下。如果达到或超过 50 册，则不允许借书了，只能还书
 // 1.52 (2022/10/1) chordInstaller 中 dp2capo 实例对话框中，为 SIP 通道增加了一个“在借册数限额”参数。默认为 -1，表示不限制
+// 1.53 (2022/10/19) 点对点 Search() API 增加 getItemInfoEx 子功能，等同于 dp2library API 的 GetItemIinfo() API
