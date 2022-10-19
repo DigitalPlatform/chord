@@ -146,7 +146,7 @@ function loadJs(sid, jsurl, callback) {
 
                 var biblioName = $("#_biblioName").text();
                 if (biblioName != null && biblioName != "") {
-                    expand("d1", 1);
+                    expand("d1", 0);  //2022/10/17 修改：当新增册的情况也让书目展开，与从册编辑界面查看详情进入保持一致的状态。
                 }
             }
         });
@@ -450,7 +450,7 @@ else
             <input id='batchNo' type="text" class="mui-input mui-input-clear" value="" placeholder="请输入 批次号">
         </div>
         <div class="mui-content-padded">
-            <button id='btn' class="mui-btn mui-btn-block mui-btn-primary" onclick="saveItem()">保存</button>
+            <button id='btn' class="mui-btn mui-btn-block mui-btn-primary" onclick="saveItem()">新增册</button>
         </div>
     </div>
         }

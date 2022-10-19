@@ -7700,6 +7700,7 @@ ErrorInfo成员里可能会有报错信息。
                 string strBiblioInfo = "";
                 string imgHtml = "";// 封面图像
                 string biblioInfo = "";
+                string timestamp = "";
                 if (format == "summary")
                 {
                     nRet = this.GetSummaryAndImgHtml(lib,
@@ -7732,6 +7733,7 @@ ErrorInfo成员里可能会有报错信息。
                         showCover,
                         out strBiblioInfo,
                         out imgHtml,
+                        out timestamp,
                         out strError);
                     if (nRet == -1 || nRet == 0)
                     {
@@ -7777,13 +7779,11 @@ ErrorInfo成员里可能会有报错信息。
                         result.errorInfo = strError;
                         return result;
                     }
+                    // 有好书推荐的权限
                     if (nHasRights == 1)
                     {
                         workerUserName = activeUser.userName;
-                    }
 
-                    if (workerUserName != "")
-                    {
                         string returnUrl = "/Biblio/Index";
                         if (from == "detail")
                             returnUrl = "/Biblio/Detail?biblioPath=" + HttpUtility.UrlEncode(biblioPath);
@@ -7795,22 +7795,23 @@ ErrorInfo成员里可能会有报错信息。
                         // + "&returnUrl=" + HttpUtility.UrlEncode(returnUrl);
                         recommendBtn = "<button class='mui-btn  mui-btn-default' "
                             + " onclick=\"gotoUrl('" + recommPath + "')\">好书推荐</button>";
+                    }
 
-                        //
-
-                        // todo 修改书目跳转的url
+                    // 工作人员都出现编辑书目和删除书目的按钮
+                    {
+                        // 修改书目跳转的url
                         string biblioEditUrl = "/Biblio/BiblioEdit?biblioPath=" + HttpUtility.UrlEncode(biblioPath);
                         recommendBtn += "&nbsp;&nbsp;<button class='mui-btn  mui-btn-default' "
-                            + " onclick=\"gotoUrl('"+ biblioEditUrl+"')\">修改书目</button>";
+                            + " onclick=\"gotoUrl('" + biblioEditUrl + "')\">修改书目</button>";
 
-
-                        // todo 删除书目
+                        // 删除书目
+                        string deletefun = "deleteBiblio('" + biblioPath + "','" + timestamp + "')";
                         recommendBtn += "&nbsp;&nbsp;<button class='mui-btn  mui-btn-default' "
-                            + " onclick=\"alert('尚未实现')\">删除书目</button>";
-
-
-                        recommendBtn = "<div class='btnRow'>" + recommendBtn + "</div>";
+                            + " onclick=\"" + deletefun + "\">删除书目</button>";
                     }
+
+                    if (string.IsNullOrEmpty(recommendBtn) ==false)
+                        recommendBtn = "<div class='btnRow'>" + recommendBtn + "</div>";
                 }
 
                 // 书目信息上方为 table+好书推荐按钮
@@ -7878,11 +7879,13 @@ ErrorInfo成员里可能会有报错信息。
             bool showCover,
             out string table,
             out string coverImgHtml,
+            out string timestamp,  //2022/10/17增加时间戳
             out string strError)
         {
             strError = "";
             table = "";
             coverImgHtml = "";
+            timestamp = "";
 
             List<string> dataList = null;
             int nRet = this.GetBiblioInfo(lib,
@@ -7895,6 +7898,7 @@ ErrorInfo成员里可能会有报错信息。
                 return nRet;
 
             string xml = dataList[0];
+            timestamp = dataList[1];//2022/10/17取出时间戳
             XmlDocument dom = new XmlDocument();
             try
             {
@@ -8640,6 +8644,7 @@ ErrorInfo成员里可能会有报错信息。
             int nRet = 0;
             outputBiblioPath = "";
             outputTimestamp = "";
+            string style = "";  //删除记录时，传whenChildEmpty
 
             // 调dp2接口时，使用的dp2帐户
             LoginInfo loginInfo = GetLoginInfo(loginUserName, loginUserType);// new LoginInfo(loginUserName, false);
@@ -8705,7 +8710,8 @@ ErrorInfo成员里可能会有报错信息。
             }
             else if (biblio.Action == C_Action_delete)
             {
-                // todo
+                // 书目没有下级记录时，才可以删除。
+                style = "whenChildEmpty";
             }
             else
             {
@@ -8741,6 +8747,7 @@ ErrorInfo成员里可能会有报错信息。
             // 本接口目前仅支持处理一条记录
             Entity entity = new Entity();
             entity.Action = biblio.Action;
+            entity.Style = style;
 
             //新记录
             Record newRecord = new Record();
@@ -8773,10 +8780,11 @@ ErrorInfo成员里可能会有报错信息。
                 entities);
             try
             {
+                string connName = C_ConnPrefix_Myself + libId;   //"<myself>:";
                 // 连接
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this._dp2MServerUrl,
-                    "").Result;
+                    connName).Result;  //注意这里connName传的标记表示使用本图书馆的weixin_xxx帐户，这样在配置权限时，把setbiblio权限配置在weixin_xxx。
                 //发起请求
                 SetInfoResult result = connection.SetInfoTaskAsync(
                     lib.capoUserName,
@@ -8785,7 +8793,7 @@ ErrorInfo成员里可能会有报错信息。
                     cancel_token).Result;
                 if (result.Value == -1)
                 {
-                    strError = "图书馆 " + lib.libName + " 的保存书目出错:" + result.ErrorInfo;
+                    strError = "为图书馆'" + lib.libName + "'设置书目出错:" + result.ErrorInfo;
                     return -1;
                 }
 

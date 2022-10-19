@@ -739,8 +739,14 @@ function loadJs(sid, jsurl, callback) {
                 </table>
             </div>
             <div style="padding:10px">
-                （简单检索默认以"前方一致"匹配）&nbsp;<a id="searchType" href="javascript:void(0)" onclick="changeType()">高级检索</a> 
-                &nbsp;<a id="" href="javascript:void(0)" onclick="gotoBiblioEdit()">新增书目</a>
+                （简单检索默认以"前方一致"匹配）&nbsp;<a id="searchType" href="javascript:void(0)" onclick="changeType()">高级检索</a>
+
+                <!--如果是馆员帐户，才出现新增书目-->
+                @if (ViewBag.Worker != null && ViewBag.Worker != "")
+                {
+                    @Html.Raw("&nbsp;<a id='' href='javascript: void(0)' onclick='gotoBiblioEdit()'>新增书目</a>");
+                }
+
 
             </div>
             <div id="divResult">

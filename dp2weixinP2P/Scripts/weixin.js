@@ -371,7 +371,7 @@ function getDetail(libId, recPath, obj, from,biblioName) {
                     itemTables += "<tr>"
                         + "<td class='label' colspan='2'>"
                         //+ "<button  class='mui-btn' onclick='gotoEditItem(\"" + recPath + "\",\"" + biblioName + "\")'>编辑</button>"
-                        + "<button  class='mui-btn' onclick='deleteItem(\"" + worker + "\",\"" + libId + "\",\"" + recPath + "\",\"" + record.recPath + "\",\"" + tempBarcode + "\")'>删除</button>"
+                        + "<button  class='mui-btn' onclick='deleteItem(\"" + worker + "\",\"" + libId + "\",\"" + recPath + "\",\"" + record.recPath + "\",\"" + tempBarcode + "\")'>删除册</button>"
                         +"</td > "
                         + "</tr>";
                 }
@@ -412,6 +412,80 @@ function getDetail(libId, recPath, obj, from,biblioName) {
     });
 
     //return "";
+}
+
+//删除书目
+function deleteBiblio(biblioPath, biblioTimestamp) {
+
+    var gnl = confirm("您确认要删除书目[" + biblioPath + "]吗?");
+    if (gnl == false) {
+        return false;
+    }
+
+    //alert("1");
+    // 图书馆
+    var libId = getLibId();//$("#selLib").val();
+    if (libId == "" || libId == null) {
+        alert("您尚未选择图书馆。");
+        return;
+    }
+
+    var weixinId = $("#weixinId").text();
+    if (weixinId == null || weixinId == "") {
+        alert("weixinId参数为空");
+        return;
+    }
+
+    // 时间戳不能为空
+    if (biblioTimestamp == null || biblioTimestamp == "") {
+        alert("删除书目时timestamp参数不能为空");
+        return;
+    }
+
+    // biblio path不能为空
+    if (biblioPath == null || biblioPath == "") {
+        alert("书目路径不能为空");
+        return;
+    }
+
+    // 登录帐户和类型
+    var loginUserName = getLoginUserName();
+    var loginUserType = getLoginUserType();
+
+    // web api
+    var url = "/api2/BiblioApi/SetBiblio?loginUserName=" + encodeURIComponent(loginUserName)
+        + "&loginUserType=" + loginUserType
+        + "&weixinId=" + weixinId
+        + "&libId=" + libId
+
+    //alert(url);
+    sendAjaxRequest(url, "POST",
+        function (result) {
+            // 关闭等待层
+            hideMaskLayer();
+
+
+            if (result.errorCode == -1) {
+                alert(result.errorInfo);
+                return;
+            }
+
+            alert("删除书目成功。");
+
+        },
+        function (xhq, textStatus, errorThrown) {
+            // 关闭等待层
+            hideMaskLayer();
+            alert(errorThrown);
+        },
+        {
+            BiblioPath: biblioPath,
+            Action: "delete",
+            Fields: "",
+            Timestamp: biblioTimestamp
+        }
+    );
+
 }
 
 //预约

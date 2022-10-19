@@ -44,6 +44,9 @@ namespace dp2weixin.service
     {
         public string biblioPath { get; set; }
 
+        // 书目记录时间戳
+        public string Timestamp { get; set; }
+
         public List<BiblioItem> itemList { get; set; }
 
         //public string biblioName { get; set; }
