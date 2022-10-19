@@ -1649,6 +1649,7 @@ strErrorCode));
 #endif
         }
 
+        // searchBiblio searchPatron searchItem 等
         void SearchBiblio(SearchRequest searchParam)
         {
             string strError = "";
@@ -1672,6 +1673,16 @@ strErrorCode));
                     string strQueryXml = "";
                     long lRet = 0;
 
+                    string strSearchStyle = StringUtil.GetParameterByPrefix(searchParam.FormatList, "searchStyle")?.Replace("|", ",");
+                    searchParam.FormatList = RemovePrefixParameter(searchParam.FormatList, "searchStyle");
+                    string strOutputStyle = StringUtil.GetParameterByPrefix(searchParam.FormatList, "outputStyle")?.Replace("|", ",");
+                    searchParam.FormatList = RemovePrefixParameter(searchParam.FormatList, "outputStyle");
+
+                    string strLang = StringUtil.GetParameterByPrefix(searchParam.FormatList, "lang");
+                    if (string.IsNullOrEmpty(strLang))
+                        strLang = "zh";
+                    searchParam.FormatList = RemovePrefixParameter(searchParam.FormatList, "lang");
+
                     if (searchParam.QueryWord == "!getResult")
                     {
                         lRet = -1;
@@ -1688,10 +1699,10 @@ strErrorCode));
                                  (int)searchParam.MaxResults,
                                  searchParam.UseList,
                                  searchParam.MatchStyle,
-                                 "zh",
+                                 strLang,   // "zh",
                                  strResultSetName,
-                                 "", // strSearchStyle
-                                 "", // strOutputStyle
+                                 strSearchStyle,
+                                 strOutputStyle,
                                  searchParam.Filter,
                                  out strQueryXml,
                                  out strError);
@@ -1708,10 +1719,69 @@ strErrorCode));
                                 (int)searchParam.MaxResults,
                                 searchParam.UseList,
                                 searchParam.MatchStyle,
-                                "zh",
+                                strLang,    // "zh",
                                 strResultSetName,
-                                "",
+                                strOutputStyle, // "",
                                 out strError);
+                        }
+                        else if (searchParam.Operation == "searchItem"
+                            || searchParam.Operation == "searchIssue"
+                            || searchParam.Operation == "searchOrder"
+                            || searchParam.Operation == "searchComment")
+                        {
+                            if (searchParam.Operation == "searchItem")
+                            lRet = channel.SearchItem(// null,
+                                searchParam.DbNameList,
+                                searchParam.QueryWord,
+                                (int)searchParam.MaxResults,
+                                searchParam.UseList,
+                                searchParam.MatchStyle,
+                                strLang,
+                                strResultSetName,
+                                strSearchStyle,
+                                strOutputStyle,
+                                out strError);
+                            else if (searchParam.Operation == "searchIssue")
+                                lRet = channel.SearchIssue(
+                                    searchParam.DbNameList,
+                                    searchParam.QueryWord,
+                                    (int)searchParam.MaxResults,
+                                    searchParam.UseList,
+                                    searchParam.MatchStyle,
+                                    strLang,
+                                    strResultSetName,
+                                    strSearchStyle,
+                                    strOutputStyle,
+                                    out strError);
+                            else if (searchParam.Operation == "searchOrder")
+                                lRet = channel.SearchOrder(
+                                    searchParam.DbNameList,
+                                    searchParam.QueryWord,
+                                    (int)searchParam.MaxResults,
+                                    searchParam.UseList,
+                                    searchParam.MatchStyle,
+                                    strLang,
+                                    strResultSetName,
+                                    strSearchStyle,
+                                    strOutputStyle,
+                                    out strError);
+                            else if (searchParam.Operation == "searchComment")
+                                lRet = channel.SearchComment(
+                                    searchParam.DbNameList,
+                                    searchParam.QueryWord,
+                                    (int)searchParam.MaxResults,
+                                    searchParam.UseList,
+                                    searchParam.MatchStyle,
+                                    strLang,
+                                    strResultSetName,
+                                    strSearchStyle,
+                                    strOutputStyle,
+                                    out strError);
+                            else
+                            {
+                                strError = $"无法识别的 searchParam.Operation '{searchParam.Operation}'";
+                                goto ERROR1;
+                            }
                         }
                         else
                         {

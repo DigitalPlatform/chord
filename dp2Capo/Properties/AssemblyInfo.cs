@@ -93,3 +93,4 @@ using System.Runtime.InteropServices;
 // 1.51 (2022/9/29) SIP Server 借书或者续借限制了当前读者在借册 50 册以下。如果达到或超过 50 册，则不允许借书了，只能还书
 // 1.52 (2022/10/1) chordInstaller 中 dp2capo 实例对话框中，为 SIP 通道增加了一个“在借册数限额”参数。默认为 -1，表示不限制
 // 1.53 (2022/10/19) 点对点 Search() API 增加 getItemInfoEx 子功能，等同于 dp2library API 的 GetItemIinfo() API
+//                  点对点 Search() API 增加 searchItem searchIssue searchOrder searchComment 子功能，等同于 dp2library API 的和四个子功能同名的函数
