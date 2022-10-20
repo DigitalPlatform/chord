@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace dp2weixin.service
 {
     //书目检索返回结果
-    public class SearchBiblioResult
+    public class SearchApiResult
     {
         // 当检索成功时，errorcode成员返回命中总数。
         public ApiResult apiResult { get; set; }
@@ -22,9 +22,7 @@ namespace dp2weixin.service
         public string resultSetName { get; set; }
 
         // 本次返回的书目记录集合
-        public List<BiblioRecord> records { get; set; }
-
-
+        public object records { get; set; }  //List<BiblioRecord>
     }
 
     // 书目记录
@@ -52,9 +50,31 @@ namespace dp2weixin.service
         //public string biblioName { get; set; }
     }
 
+    /*
     public class BiblioItemResult : ApiResult
     {
         public List<BiblioItem> itemList { get; set; }
+    }
+    */
+
+    // 2022/10/20 增加
+    //册检索返回结果
+    public class SearchItemResult
+    {
+        // 当检索成功时，errorcode成员返回命中总数。
+        public ApiResult apiResult { get; set; }
+
+        // 本次返回记录数量
+        public long resultCount = 0;
+
+        // 是否有下次
+        public bool isCanNext { get; set; }
+
+        // 返回的结果集名称
+        public string resultSetName { get; set; }
+
+        // 本次返回的册记录集合
+        public List<BiblioItem> records { get; set; }
     }
 
     public class BiblioItem

@@ -33,126 +33,220 @@ namespace dp2weixinWeb.ApiControllers
         //searchRet.isCanNext = bNext;  //是否有下页
         //searchRet.apiResult.errorCode = lRet;  //-1表示出错，0未命中，其它表示命中总数。
         [HttpGet]
-        public SearchBiblioResult SearchBiblio(string loginUserName,
+        public SearchApiResult  Search(string searchType,
+            string loginUserName,
             string loginUserType,
             string weixinId,
             string libId,
-            string from,
             string word,
+            string from,
             string match,
             string resultSet)
         {
-            SearchBiblioResult searchRet = new SearchBiblioResult();
+            SearchApiResult searchRet = new SearchApiResult();
+            searchRet.apiResult = new ApiResult();
+            searchRet.apiResult.errorCode = 0;
+            searchRet.apiResult.errorInfo = "";
+            searchRet.records = null;
+            searchRet.isCanNext = false;
 
-            // 测试加的日志
-            //dp2WeiXinService.Instance.WriteErrorLog1("search-1");
+            string strError = "";
+            bool bNext = false;
+            long lRet = 0;
+
+            object records = null;//使用一个通用的类型，书目 和 册不同。
+            long recordsCount = 0;
 
             // 2021/8/2 根据前端传的帐户创建LoginInfo
             LoginInfo loginInfo = dp2WeiXinService.GetLoginInfo(loginUserName, loginUserType);
 
-
-            if (String.IsNullOrEmpty(resultSet) == true)
-            {
-                if (from == "_ReView")  // 重新获取信息时，如果不存在结果集，则返回错误。
-                {
-                    searchRet.apiResult = new ApiResult();
-                    searchRet.apiResult.errorCode = -1;
-                    searchRet.apiResult.errorInfo = "当review检索结果时，结果集名称不能为空。";
-                    return searchRet;
-                }
-
-                if (from == "_N")
-                {
-                    searchRet.apiResult = new ApiResult();
-                    searchRet.apiResult.errorCode = -1;
-                    searchRet.apiResult.errorInfo = "当from参数为_N时，结果集名称不能为空。";
-                    return searchRet;
-                }
-
-                resultSet = "weixin-" + Guid.NewGuid();
-            }
-
-            // 测试加的日志
-            //dp2WeiXinService.Instance.WriteErrorLog1("search-2-"+resultSet);
-
-
-            // 取下一页的情况
+            // 取下一页 或 刷新显示的情况，是从结果集中获取
             if (from == "_N" || from == "_ReView")
             {
-                // 测试加的日志
-                //dp2WeiXinService.Instance.WriteErrorLog1("search-3");
+                // 当获取下一页 或者 重新获取记录时，如果结果集参数为空，则返回错误。
+                if (String.IsNullOrEmpty(resultSet) == true)
+                {
+                    searchRet.apiResult.errorCode = -1;
+                    searchRet.apiResult.errorInfo = "当from参数=" + from + "时，结果集参数不能为空。";
+                    return searchRet;
+                }
 
-                searchRet.apiResult = new ApiResult();
-                long num = 0;
+                // 把结果集名称也设到返回结果中
+                searchRet.resultSetName = resultSet;
+
+                // 将传入的字符转换成数字
+                long lWord = 0;
                 try
                 {
-                    num = Convert.ToInt32(word);
-                    if (num < 0)
-                    {
-                        searchRet.apiResult.errorCode = -1;
-                        searchRet.apiResult.errorInfo = "传入的word值[" + word + "]格式不正确，必须是>=0。";
-                        goto END1;
-                    }
+                    lWord = Convert.ToInt32(word);
                 }
                 catch
                 {
                     searchRet.apiResult.errorCode = -1;
-                    searchRet.apiResult.errorInfo = "传入的word值[" + word + "]格式不正确，必须是数值。";
-                    goto END1;
+                    searchRet.apiResult.errorInfo = "当from=" + from + "时，传入的word值[" + word + "]格式不正确，必须是数值。";
+                    return searchRet;
+                }
+                if (lWord < 0) //不存在负数的情况
+                {
+                    searchRet.apiResult.errorCode = -1;
+                    searchRet.apiResult.errorInfo = "当from=" + from + "时，传入的word值[" + word + "]格式不正确，必须是>=0。";
+                    return searchRet;
                 }
 
+                long start = 0;  //开始
+                long count = 0;  //长度
                 if (from == "_N")
                 {
-                    //word值表示起始位置
-                    searchRet = dp2WeiXinService.Instance.getFromResultSet(loginInfo,
-                        weixinId,
-                        libId,
-                        resultSet,
-                        num,
-                        WeiXinConst.C_OnePage_Count);
-                    goto END1;
+                    start = lWord; //取下一页时，word值表示起始位置
+                    count = WeiXinConst.C_OnePage_Count;
                 }
-                else if (from == "_ReView")  //刷新的情况，显示从0至当前最大数字
+                else if (from == "_ReView")
                 {
                     if (resultSet.Substring(0, 1) == "#")
                         resultSet = resultSet.Substring(1);
 
-                    // 重新显示，此时word代表数量
-                    searchRet = dp2WeiXinService.Instance.getFromResultSet(loginInfo,
-                        weixinId,
-                        libId,
-                        resultSet,
-                        0,
-                        num);
-                    goto END1;
-
+                    //刷新的情况，显示从0至当前最大数字
+                    start = 0; //word值表示起始位置
+                    count = lWord;//重新显示，此时word代表数量
                 }
-                else
-                {
-                    searchRet.apiResult.errorCode = -1;
-                    searchRet.apiResult.errorInfo = "不支持的from[" + from + "]";
-                    goto END1;
-                }
-            }
-            else
-            {
-                // 测试加的日志
-                //dp2WeiXinService.Instance.WriteErrorLog1("search-4");
 
-
-                searchRet = dp2WeiXinService.Instance.SearchBiblio(loginInfo,
+                //List<BiblioRecord> biblios = null;
+                //List<BiblioItem> items = null;
+                // 获取结果集
+                lRet = dp2WeiXinService.Instance.Search(searchType,
                     weixinId,
-                    libId,
-                     from,
-                     word,
-                     match,
-                     resultSet);
-                goto END1;
+                   libId,
+                   loginInfo,
+                   "!getResult",  //word
+                    "",  //strFrom
+                    "", //match
+                    resultSet,
+                    start,
+                    count,
+                    out records,
+                    out recordsCount,
+                    out bNext,
+                    out strError);
+                if (lRet == -1 || lRet == 0)
+                {
+                    searchRet.apiResult.errorCode = (int)lRet;
+                    searchRet.apiResult.errorInfo = strError;
+                    return searchRet;
+                }
+
+                searchRet.resultCount = recordsCount;//biblios.Count;  //本次返回的记录条数
+                searchRet.records = records;
+                searchRet.isCanNext = bNext;
+                searchRet.apiResult.errorCode = lRet; //把总条数放在errorcode里
+
+                //接口返回
+                return searchRet;
             }
 
-        END1:
-            searchRet.resultSetName = resultSet;
+            //===上面是从结果集中获取，以下是检索===
+
+            // 传入的结果集参数为空，则new一个guid命令的新的结果集
+            if (String.IsNullOrEmpty(resultSet) == true)
+            {
+                // 设置一个新的结果集名称，后面传dp2检索接口，这个值也会放在接口返回结果中。
+                resultSet = "weixin-" + Guid.NewGuid();
+                searchRet.resultSetName = resultSet;
+            }
+
+            // 未传入检索途径
+            if (string.IsNullOrEmpty(from) == true)
+            {
+                searchRet.apiResult.errorCode = -1;
+                searchRet.apiResult.errorInfo = "尚未传入检索途径from参数。";
+                return searchRet;
+            }
+
+            // 未传入word时，设为空字符串
+            if (string.IsNullOrEmpty(word) == true)
+            {
+                word = "";
+            }
+
+            // 调书目检索函数
+            lRet = dp2WeiXinService.Instance.Search(searchType,
+                weixinId,
+               libId,
+               loginInfo,
+               word,
+               from,
+               match,
+               resultSet,
+               0,
+               15,// 2018/3/15第一次获取15条，稍微超出平板， WeiXinConst.C_OnePage_Count,
+               out records,
+               out recordsCount,
+               out bNext,
+               out strError);
+            if (lRet == -1 || lRet == 0)
+            {
+                searchRet.apiResult.errorCode = (int)lRet;
+
+                string libName = "";
+                LibEntity libEntity = dp2WeiXinService.Instance.GetLibById(libId);
+                if (libEntity != null)
+                {
+                    libName = libEntity.libName;
+                }
+                // 把帐户脱敏一下，防止在提示信息时暴露帐户。
+                string maskLoginName = loginInfo.UserName;
+                if (loginInfo.UserName != null && loginInfo.UserName.Length >= 1)
+                    maskLoginName = loginInfo.UserName.Substring(0, 1).PadRight(loginInfo.UserName.Length, '*');
+                searchRet.apiResult.errorInfo = strError + "[图书馆为" + libName + ",帐户为" + maskLoginName + "]";
+                return searchRet;
+            }
+
+            searchRet.records = records;  //返回的记录集合
+            searchRet.resultCount = recordsCount;//records.Count; // 本次返回的记录数 
+            searchRet.isCanNext = bNext;  //是否有下页
+            searchRet.apiResult.errorCode = lRet;  //-1表示出错，0未命中，其它表示命中总数。
             return searchRet;
+        }
+
+        [HttpGet]
+        public SearchApiResult SearchBiblio(string loginUserName,
+            string loginUserType,
+            string weixinId,
+            string libId,
+            string word,
+            string from,
+            string match,
+            string resultSet)
+        {
+            return Search("biblio",
+                loginUserName,
+                loginUserType,
+                weixinId,
+                libId,
+                word,
+                from,
+                match,
+                resultSet);
+        }
+
+        [HttpGet]
+        public SearchApiResult SearchItem(string loginUserName,
+            string loginUserType,
+            string weixinId,
+            string libId,
+            string word,
+            string from,
+            string match,
+            string resultSet)
+        {
+            return Search("item",
+                loginUserName,
+                loginUserType,
+                weixinId,
+                libId,
+                word,
+                from,
+                match,
+                resultSet);
         }
 
 
@@ -354,45 +448,148 @@ namespace dp2weixinWeb.ApiControllers
             result.errorInfo = strError;
 
             result.biblioPath = outputBiblioPath;
-            result.biblioTimestamp= outputTimestamp;
+            result.biblioTimestamp = outputTimestamp;
 
             return result;
         }
 
 
         /*
-        /// <summary>
-        /// 获取items
-        /// </summary>
-        /// <param name="libId"></param>
-        /// <param name="biblioPath"></param>
-        /// <returns></returns>
-        [HttpGet]
-        public BiblioItemResult GetBiblioItem(string weixinId, 
-            string libId, 
-            string biblioPath)
-        {
-            BiblioItemResult result = new BiblioItemResult();
 
-            List<BiblioItem> items = null;
-            string strError = "";
-            long ret= dp2WeiXinService.Instance.GetItemInfo(weixinId,
-                libId,
-                biblioPath,
-                out items,
-                out strError);
-            if (ret == -1)
+        // 检索书目
+        //loginUserName：检索使用的dp2library帐号，即前端当前绑定的帐户，如果是读者则传读者证条码；如果是馆员帐户，传馆员用户名
+        //loginUserType：空表示馆员，如果是读者传"patron"
+        //weixinId：前端用户唯一id，暂时没用到，后面可能会用到。
+        //libId：图书馆id
+        //word：检索词
+        //from：检索途径，例如册条码、馆藏地等。检索途径还可以传一个特殊含义的功能：
+        // _N表示下一页，此时word传是这次要获取记录的开始序号，结果集参数传前面检索返回的结果集。
+        // _ReView表示重新获取数据，此时word传是要获取多少条记录 todo应用场景是什么？
+        //match:匹配方式，简单检索时传的left
+        //resultSet:前端指定的一个结果集名称，用于分批获取。
+        //返回值：
+        //searchRet.records = records;  //返回的记录集合
+        //searchRet.resultCount = records.Count; // 本次返回的记录数 
+        //searchRet.isCanNext = bNext;  //是否有下页
+        //searchRet.apiResult.errorCode = lRet;  //-1表示出错，0未命中，其它表示命中总数。
+        [HttpGet]
+        public SearchItemResult SearchItem(string loginUserName,
+            string loginUserType,
+            string weixinId,
+            string libId,
+            string word,
+            string from,
+            string match,
+            string resultSet)
+        {
+            SearchItemResult searchRet = new SearchItemResult();
+            searchRet.apiResult = new ApiResult();
+            searchRet.apiResult.errorCode = 0;
+            searchRet.apiResult.errorInfo = "";
+            searchRet.records = new List<BiblioItem>();
+            searchRet.isCanNext = false;
+
+            // 根据前端传的帐户创建LoginInfo
+            LoginInfo loginInfo = dp2WeiXinService.GetLoginInfo(loginUserName, loginUserType);
+
+
+            if (String.IsNullOrEmpty(resultSet) == true)
             {
-                result.errorCode = -1;
-                result.errorInfo = strError;
-                return result;
+                if (from == "_ReView")  // 重新获取信息时，如果不存在结果集，则返回错误。
+                {
+                    searchRet.apiResult = new ApiResult();
+                    searchRet.apiResult.errorCode = -1;
+                    searchRet.apiResult.errorInfo = "当review检索结果时，结果集名称不能为空。";
+                    return searchRet;
+                }
+
+                if (from == "_N")  //当获取下一步时，如果结果集参数为空，则返回错误。
+                {
+                    searchRet.apiResult = new ApiResult();
+                    searchRet.apiResult.errorCode = -1;
+                    searchRet.apiResult.errorInfo = "当from参数为_N时，结果集名称不能为空。";
+                    return searchRet;
+                }
+
+                // 设置一个新的结果集名称，后面传dp2检索接口，这个值也会放在接口返回结果中。
+                resultSet = "weixin-" + Guid.NewGuid();
+                searchRet.resultSetName = resultSet;
             }
 
-            result.itemList = items;
-            return result;
+
+            // 取下一页的情况
+            if (from == "_N" || from == "_ReView")
+            {
+                // 将传入的字符转换成数字
+                long lWord = 0;
+                try
+                {
+                    lWord = Convert.ToInt32(word);
+                    if (lWord < 0)
+                    {
+                        searchRet.apiResult.errorCode = -1;
+                        searchRet.apiResult.errorInfo = "当from="+from+"时，传入的word值[" + word + "]格式不正确，必须是>=0。";
+                        goto END1;
+                    }
+                }
+                catch
+                {
+                    searchRet.apiResult.errorCode = -1;
+                    searchRet.apiResult.errorInfo = "当from=" + from + "时，传入的word值[" + word + "]格式不正确，必须是数值。";
+                    goto END1;
+                }
+
+                long start = 0;  //开始
+                long count = 0;  //长度
+                if (from == "_N")
+                {
+                    
+                    start = lWord; //word值表示起始位置
+                    count = WeiXinConst.C_OnePage_Count;
+
+
+                }
+                else if (from == "_ReView")  //刷新的情况，显示从0至当前最大数字
+                {
+                    if (resultSet.Substring(0, 1) == "#")
+                        resultSet = resultSet.Substring(1);
+
+                    start = 0; //word值表示起始位置
+                    count = lWord;//重新显示，此时word代表数量
+                }
+
+                searchRet = dp2WeiXinService.Instance.getFromResultSet(loginInfo,
+    weixinId,
+    libId,
+    resultSet,
+    num,
+    WeiXinConst.C_OnePage_Count);
+                goto END1;
+
+            }
+            else
+            {
+                // 测试加的日志
+                //dp2WeiXinService.Instance.WriteErrorLog1("search-4");
+
+
+                searchRet = dp2WeiXinService.Instance.SearchBiblio(loginInfo,
+                    weixinId,
+                    libId,
+                     from,
+                     word,
+                     match,
+                     resultSet);
+                goto END1;
+            }
+
+        END1:
+            searchRet.resultSetName = resultSet;
+            return searchRet;
         }
+
         */
     }
 
-    
+
 }

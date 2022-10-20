@@ -278,7 +278,8 @@ namespace dp2weixin.service
                     loginInfo,
                     "",//patronBarcode
                     recPath,
-                    cmd.type,
+                    //cmd.type,  没什么作用  2022/10/20 注释
+                    true,
                     out itemList,
                     out cmdError);
                 if (nRet == -1) //0的情况表示没有册，不是错误

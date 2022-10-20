@@ -174,7 +174,7 @@ namespace dp2weixin.service
                         + " bindStyle='" + lib.bindStyle+"'" // 2021/7/21 增加单一绑定开关
                         + " patronMaskValue='" + lib.patronMaskValue + "'" // 2021/8/3 增加通知中屏幕读者信息
                         + " fieldMap='"+lib.fieldsMap+"'"  // 2022/10/13 增加编目配置的字段规则
-                        + " biblioDbName=" + lib.biblioDbName + "'"  //2022/10/13 加
+                        + " biblioDbName='" + lib.biblioDbName + "'"  //2022/10/13 加
                         
 
                         + " />";

@@ -1,4 +1,298 @@
-﻿2022/10/13 简编界面
+﻿2022/10/20 原来解析item的代码，现在提成一个函数
+
+                XmlDocument dom = new XmlDocument();
+                dom.LoadXml(xml);
+
+                string strBarcode = DomUtil.GetElementText(dom.DocumentElement, "barcode");
+                string strRefID = DomUtil.GetElementText(dom.DocumentElement, "refID");
+                item.refID = strRefID;
+                item.pureBarcode = strBarcode;
+
+                // 册条码号,如果册条码为空，则写为@refID：refid
+                string strViewBarcode = "";
+                if (string.IsNullOrEmpty(strBarcode) == false)
+                    strViewBarcode = strBarcode;
+                else
+                    strViewBarcode = "@refID:" + strRefID;  //"@refID:" 
+                item.barcode = strViewBarcode;
+
+
+                //状态
+                string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
+
+                // 是否是成员册
+                bool bMember = false;
+                XmlNode nodeBindingParent = dom.DocumentElement.SelectSingleNode("binding/bindingParent");
+                if (nodeBindingParent != null)
+                {
+                    bMember = true;
+                    StringUtil.SetInList(ref strState, "已装入合订册", true);
+
+                    string parentRefID = DomUtil.GetAttr(nodeBindingParent, "refID");
+                    item.parentInfo = "@refID:" + parentRefID;
+                }
+                item.state = strState;
+
+                // 是否可用，加工中 或者  成员册不能使用，要划删除线等
+                bool disable = false;
+                if (StringUtil.IsInList("加工中", item.state) == true
+                    || bMember == true)
+                {
+                    disable = true;
+                }
+                item.disable = disable;
+
+
+                //卷册
+                item.volume = DomUtil.GetElementText(dom.DocumentElement, "volume");
+
+
+                // 馆藏地
+                item.location = DomUtil.GetElementText(dom.DocumentElement, "location");
+                // 检查该馆藏地的册记录是否可以显示出现
+                if (string.IsNullOrEmpty(lib.NoViewLocation) == false)
+                {
+                    if (lib.NoViewLocation.IndexOf(item.location) != -1)
+                    {
+                        if (string.IsNullOrEmpty(patronBarcode) == false
+                            || activeItem.userName == WxUserDatabase.C_Public)
+                        {
+                            // 读者身份的话，直接不显示
+                            continue;
+                        }
+                        else
+                        {
+                            // 馆员身份，灰色显示
+                            item.isGray = true;
+                        }
+                    }
+                }
+
+                // 2022/6/20 过滤内部册
+                if (StringUtil.IsInList("内部", item.state) == true)
+                {
+                    // 读者帐号或者public帐户不显示
+                    if (string.IsNullOrEmpty(patronBarcode) == false
+                        || activeItem.userName == WxUserDatabase.C_Public)
+                    {
+                        // 不显示
+                        continue;
+                    }
+                    else
+                    {
+                        // 馆员身份，灰色显示
+                        item.isGray = true;
+                    }
+                }
+
+
+                // 当前位置
+                item.currentLocation = DomUtil.GetElementText(dom.DocumentElement, "currentLocation");
+                // 架号
+                item.shelfNo = DomUtil.GetElementText(dom.DocumentElement, "shelfNo");
+
+                // 索引号
+                item.accessNo = DomUtil.GetElementText(dom.DocumentElement, "accessNo");
+                // 出版日期
+                item.publishTime = DomUtil.GetElementText(dom.DocumentElement, "publishTime");
+                // 价格
+                item.price = DomUtil.GetElementText(dom.DocumentElement, "price");
+                // 注释
+                item.comment = DomUtil.GetElementText(dom.DocumentElement, "comment");
+
+                // 借阅情况
+                /*
+                 <borrower>R00001</borrower>
+<borrowerReaderType>教职工</borrowerReaderType>
+<borrowerRecPath>读者/1</borrowerRecPath>
+<borrowDate>Sun, 17 Apr 2016 23:57:40 +0800</borrowDate>
+<borrowPeriod>31day</borrowPeriod>
+<returningDate>Wed, 18 May 2016 12:00:00 +0800</returningDate>
+                 */
+                string strBorrower1 = DomUtil.GetElementText(dom.DocumentElement, "borrower");
+                string borrowDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement,
+"borrowDate"), "yyyy/MM/dd");
+                string borrowPeriod = DomUtil.GetElementText(dom.DocumentElement, "borrowPeriod");
+
+
+                borrowPeriod = GetDisplayTimePeriodStringEx(borrowPeriod);
+                item.borrower = strBorrower1;
+                item.borrowDate = borrowDate;
+                item.borrowPeriod = borrowPeriod;
+
+                // 2022/8/9 增加一个还书日期
+                string returningDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement,
+"returningDate"), "yyyy/MM/dd"); //DomUtil.GetElementText(dom.DocumentElement, "returningDate");
+                item.returningDate = returningDate;
+
+
+
+                if (string.IsNullOrEmpty(cmdType) == false)//(isPatron1 == false)
+                {
+                    if (cmdType == "borrow")
+                    {
+                        if (string.IsNullOrEmpty(item.borrower) == false
+                            || String.IsNullOrEmpty(strState) == false) //状态有值是也不允许借阅
+                        {
+                            item.isGray = true;
+                        }
+                    }
+                    else if (cmdType == "return")
+                    {
+                        // 没有在借的册需要显示为灰色
+                        if (string.IsNullOrEmpty(item.borrower) == true)
+                            item.isGray = true;
+                    }
+                }
+
+
+
+                // 成员册 不显示“在借情况”和“预约信息”
+                if (bMember == false)
+                {
+                    // 在借信息
+                    string strBorrowInfo = "";
+                    if (string.IsNullOrEmpty(item.borrower) == true)// 在架的情况
+                    {
+                        strBorrowInfo = "在架";
+                    }
+                    else // 册记录中存在借阅者，被借出的情况
+                    {
+                        // 当前帐户就是借阅者本人
+                        if (patronBarcode == item.borrower) 
+                        {
+                            // 2016-8-16 无册条码的情况，用refid:id代替，但在前端界面要写为refID-，否则js没法续约
+                            string tempBarcode = item.barcode;
+                            if (tempBarcode.Contains("@refID:") == true)
+                                tempBarcode = tempBarcode.Replace("@refID:", "refID-");
+
+                            strBorrowInfo =
+                                "<table style='width:100%;border:0px'>"
+                                + "<tr>"
+                                + "<td class='info' style='border:0px'>借阅者：" + item.borrower + "<br/>"
+                                + "借阅日期：" + item.borrowDate + "<br/>"
+                                + "借期：" + item.borrowPeriod + "<br/>"
+                                + "还书日期：" + item.returningDate 
+                                + "</td>"
+                                + "<td class='btn' style='border:0px'>"
+                                + "<button class='mui-btn  mui-btn-default'  onclick=\"renew('" + tempBarcode + "')\">续借</button>"
+                                + "</td>"
+                                + "</tr>"
+                                + "<tr><td colspan='2'><div id='renewInfo-" + tempBarcode + "'/></td></tr>"
+                                + "</table>";
+
+                            //reservationInfo = "<div class='remark'>该册目前是您在借中，不能预约。</div>";
+                            //bCanReservation = false;
+                        }
+                        else 
+                        {
+                            //2022/8/5改进，接口返回的信息自然会脱敏，我爱图书馆这边原样显示返回的值即可
+                            strBorrowInfo = "借阅者：" + item.borrower + "<br/>" //"借阅者：***<br/>"
+                                + "借阅日期：" + item.borrowDate + "<br/>"
+                                + "借期：" + item.borrowPeriod + "<br/>"
+                                + "还书日期：" + item.returningDate;
+
+                            //bCanReservation = true;
+                        }
+                    }
+                    // 设置在借还是在架信息
+                    item.borrowInfo = strBorrowInfo;
+
+
+                    //=================
+                    // 预约信息
+                    string reservationInfo = "";
+                    bool bCanReservation = true;  // 默认是可以预约的
+                    if (lib.ReserveScope == LibDatabase.C_ReserveScope_No)
+                    {
+                        reservationInfo = "本图书馆不支持预约图书。";
+                        bCanReservation = false;
+                    }
+                    else if (lib.ReserveScope == LibDatabase.C_ReserveScope_All)
+                    {
+                        if (string.IsNullOrEmpty(patronBarcode) == false && item.borrower == patronBarcode)
+                        {
+                            reservationInfo = "该册目前是您在借中，不能预约。";
+                            bCanReservation = false;
+                        }
+                    }
+                    else if (lib.ReserveScope == LibDatabase.C_ReserveScope_OnlyBorrow)
+                    {
+                        if (string.IsNullOrEmpty(item.borrower) == true)
+                        {
+                            reservationInfo = "本图书馆不支持在架图书预约。";
+                            bCanReservation = false;
+                        }
+                        else
+                        {
+                            if (string.IsNullOrEmpty(patronBarcode) == false && item.borrower == patronBarcode)
+                            {
+                                reservationInfo = "该册目前是您在借中，不能预约。";
+                                bCanReservation = false;
+                            }
+                        }
+                    }
+                    else if (lib.ReserveScope == LibDatabase.C_ReserveScope_OnlyOnshelf)
+                    {
+                        if (string.IsNullOrEmpty(item.borrower) == false)
+                        {
+                            reservationInfo = "本图书馆不支持外借图书预约。";
+                            bCanReservation = false;
+                        }
+                    }
+
+                    // 检查该馆藏地是否预约
+                    if (string.IsNullOrEmpty(lib.NoReserveLocation) == false)
+                    {
+                        if (lib.NoReserveLocation.IndexOf(item.location) != -1)
+                        {
+                            reservationInfo = "本馆藏地不支持预约。";
+                            bCanReservation = false;
+                        }
+                    }
+
+                    // 如果不是读者帐户，提示不是读者帐号，不能预约
+                    // 如果前面已经判断是不能预约，就不走进这里，优先用前面的提示
+                    if (bCanReservation == true && string.IsNullOrEmpty(patronBarcode) == true)
+                    {
+                        reservationInfo = "<span class='remark'>您当前帐户不是读者账号，不能预约图书，"
+                            + "点击<a href='javascript:void(0)' onclick='gotoUrl(\"/Account/Index?returnUrl="
+                            + HttpUtility.UrlEncode("/Biblio/Index") + "\")'>这里</a>绑定读者帐号。</span>";
+                        bCanReservation = false;
+                    }
+
+                    if (disable == true)
+                    {
+                        reservationInfo = "图书状态不符合预约要求。";
+                        bCanReservation = false;
+                    }
+
+                    // 预约信息
+                    if (bCanReservation == true)
+                    {
+                        // 得到当前读者已经预约的信息
+                        List<ReservationInfo> reserList = null;
+                        if (string.IsNullOrEmpty(patronBarcode) == false)// patronBarcode != null && patronBarcode != "")
+                        {
+                            reservationInfo = "";
+                            int nRet = this.GetPatronReservation(lib.id,
+                                loginInfo,
+                                patronBarcode,
+                                out reserList,
+                                out strError);
+                            if (nRet == -1 || nRet == 0)
+                                goto ERROR1;
+                        }
+                        string state = this.getReservationState(reserList, item.barcode);
+                        reservationInfo = getReservationHtml(state, item.barcode, false, true);
+                    }
+                    // 设置预约信息
+                    item.reservationInfo = reservationInfo;
+                    
+                }
+===
+
+2022/10/13 简编界面
 
         // 简编界面
         public ActionResult BiblioEdit(string code, string state,string biblioPath)

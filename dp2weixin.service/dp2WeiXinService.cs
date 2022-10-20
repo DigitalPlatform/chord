@@ -6583,6 +6583,8 @@ ErrorInfo成员里可能会有报错信息。
 
         #region 检索书目
 
+
+        /*
         /// <summary>
         /// 检索书目
         /// </summary>
@@ -6646,12 +6648,9 @@ ErrorInfo成员里可能会有报错信息。
                 out records,
                 out bNext,
                 out strError);
-
-            // 测试加的日志
-            //dp2WeiXinService.Instance.WriteErrorLog1("走到SearchBiblio-5-SearchBiblioInternal返回[" + lRet + "]");
-
             if (lRet == -1 || lRet == 0)
             {
+                searchRet.apiResult.errorCode = (int)lRet;
 
                 string libName = "";
                 LibEntity libEntity = this.GetLibById(libId);
@@ -6659,9 +6658,7 @@ ErrorInfo成员里可能会有报错信息。
                 {
                     libName = libEntity.libName;
                 }
-
-                searchRet.apiResult.errorCode = (int)lRet;
-
+                // 把帐户脱敏一下，防止在提示信息时暴露帐户。
                 string maskLoginName = loginInfo.UserName;
                 if (loginInfo.UserName != null && loginInfo.UserName.Length >= 1)
                     maskLoginName = loginInfo.UserName.Substring(0, 1).PadRight(loginInfo.UserName.Length, '*');
@@ -6674,14 +6671,16 @@ ErrorInfo成员里可能会有报错信息。
             searchRet.isCanNext = bNext;  //是否有下页
             searchRet.apiResult.errorCode = lRet;  //-1表示出错，0未命中，其它表示命中总数。
 
-            // 测试加的日志
-            //dp2WeiXinService.Instance.WriteErrorLog1("走到SearchBiblio-6");
+
 
             return searchRet;
         }
+        */
 
-        // 从结果集中取记录
-        public SearchBiblioResult getFromResultSet(LoginInfo loginInfo,
+        // 2022/10/20 作废掉，逻辑比较简单，直接在外面写了，不用包装一个函数了。
+        /*
+        // 从结果集中获取书目记录
+        public SearchBiblioResult GetBiblioFromResultSet(LoginInfo loginInfo,
             string weixinId,
             string libId,
             string resultSet,
@@ -6727,61 +6726,24 @@ ErrorInfo成员里可能会有报错信息。
             searchRet.apiResult.errorCode = lRet;
             return searchRet;
         }
+        */
 
-        /// <summary>
-        /// 检索书目
-        /// </summary>
-        /// <param name="libId"></param>
-        /// <param name="strFrom"></param>
-        /// <param name="strWord"></param>
-        /// <param name="records">第一批的10条</param>
-        /// <param name="strError"></param>
-        /// <returns></returns>
-        private long SearchBiblioInternal(string weixinId,
-            string libId,
-            LoginInfo loginInfo,
-            string strFrom,
-            string strWord,
-            string match,
-            string resultSet,
-            long start,
-            long count,
-            out List<BiblioRecord> records,
-            out bool bNext,  //是否有下一页
-            out string strError)
+        // 检查是否支持对外公共检索，检索书目和检索册都使用此函数
+        public bool CheckOpenSearch(string weixinId,LibEntity lib,out string error)
         {
-            strError = "";
-            records = new List<BiblioRecord>();
-            bNext = false;
+            error = "";
 
-            // 测试加的日志
-            //this.WriteErrorLog1("走进SearchBiblioInternal-1");
-
-            LibEntity lib = this.GetLibById(libId);
-            if (lib == null)
-            {
-                strError = "未找到id为[" + libId + "]的图书馆定义。";
-                return -1;
-            }
-
-            // 测试加的日志
-            //this.WriteErrorLog1("走进SearchBiblioInternal-2");
-
-
-            // 检查该图书馆的配置是否支持检索
+            // 检查该图书馆的配置是否支持对外公开检索
             if (lib.noShareBiblio == 1)
             {
-                // 测试加的日志
-                //this.WriteErrorLog1("走进SearchBiblioInternal-3");
-
                 // 检查微信用户是否绑定了图书馆账户，如果未绑定，则不能检索
-                List<WxUserItem> userList = WxUserDatabase.Current.Get(weixinId, libId, -1);
+                List<WxUserItem> userList = WxUserDatabase.Current.Get(weixinId, lib.id, -1);
                 if (userList == null
                     || userList.Count == 0
                     || (userList.Count == 1 && userList[0].userName == WxUserDatabase.C_Public))
                 {
-                    strError = "图书馆\"" + lib.libName + "\"不对外公开书目信息。请点击'我的图书馆/绑定帐户'菜单进行绑定。";
-                    return -1;
+                    error = "图书馆\"" + lib.libName + "\"不支持对外公开检索书刊。请点击'我的图书馆/绑定帐户'菜单进行绑定。";
+                    return false;
                 }
 
                 // 2020/6/5 增加对注册用户的状态进行检查，待审核和审核不通过，不能检索
@@ -6790,45 +6752,160 @@ ErrorInfo成员里可能会有报错信息。
                         || userList[0].patronState == WxUserDatabase.C_PatronState_NoPass)
                     )
                 {
-                    strError = "您的帐户还未审核通过，不能检索书刊，请联系管理员。";
-                    return -1;
+                    error = "您的帐户还未审核通过，不能检索书刊，请联系管理员。";
+                    return false;
                 }
             }
-
-            string biblioFilter = lib.biblioFilter;
-            if (biblioFilter == null)
-                biblioFilter = "";
+            return true;
+        }
 
 
-            // 测试加的日志
-            //this.WriteErrorLog1("走进SearchBiblioInternal-4");
+        public long Search(string searchType,
+            string weixinId,
+            string libId,
+            LoginInfo loginInfo,
+            string strWord,
+            string strFrom,
+            string match,
+            string resultSet,
+            long start,
+            long count,
+            out object records,
+            out long recordsCount,
+            out bool bNext,  //是否有下一页
+            out string strError)
+        {
+            strError = "";
+            //biblios = null;
+            //items = null;
+            records = "";
+            bNext = false;
+            long lRet = 0;
+            recordsCount = 0;
 
-            // 获取参于检索的数据库
-            string dbnames = "";
-            int nRet = this.GetDbNames(lib, out dbnames, out strError);
-            if (nRet == -1)
+            LibEntity lib = this.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为[" + libId + "]的图书馆定义。";
+                return -1;
+            }
+
+            // 检查该图书馆的配置是否支持对外公开检索
+            bool bOpen = CheckOpenSearch(weixinId, lib, out strError);
+            if (bOpen == false)
                 return -1;
 
-            // 测试加的日志
-            //this.WriteErrorLog1("走进SearchBiblioInternal-5");
+            if (searchType == "biblio")
+            {
+                List<BiblioRecord> biblios = null;
+                lRet = this.SearchBiblioInternal(weixinId,
+                    lib,
+                    loginInfo,
+                    strWord,
+                    strFrom,
+                    match,
+                    resultSet,
+                    start,
+                    count,
+                    out biblios,
+                    out bNext,
+                    out strError);
 
+                records = biblios;
+                recordsCount = biblios.Count;
+                return lRet;
+            }
+            else if (searchType == "item")
+            {
+                List<BiblioItem> items = null;
+                lRet = this.SearchItem(weixinId,
+                    lib,
+                    loginInfo,
+                    strWord,
+                    strFrom,
+                    match,
+                    resultSet,
+                    start,
+                    count,
+                    out items,
+                    out bNext,
+                    out strError);
 
-            // 获取分馆代码
-            //UserSettingItem setting= UserSettingDb.Current.GetByWeixinId(weixinId);
-            WxUserItem activeUser = WxUserDatabase.Current.GetActive(weixinId);
-            string libraryCode = "";
-            if (activeUser != null)
-                libraryCode = activeUser.bindLibraryCode; // todo，这里用实际还是绑定,现成用的绑定帐户
+                records = items;
+                recordsCount = items.Count;
+                return lRet;
+            }
+            else
+            {
+                strError = "不支持的检索类型" + searchType;
+                return -1;
+            }
 
-            // 测试加的日志
-            //this.WriteErrorLog1("走进SearchBiblioInternal-6");
+            return 0;
+        }
+
+            /// <summary>
+            /// 检索书目
+            /// </summary>
+            /// <param name="libId"></param>
+            /// <param name="strFrom"></param>
+            /// <param name="strWord"></param>
+            /// <param name="records">第一批的10条</param>
+            /// <param name="strError"></param>
+            /// <returns></returns>
+           public long SearchBiblioInternal(string weixinId,
+                LibEntity lib,//string libId,
+                LoginInfo loginInfo,
+                string strWord,
+                string strFrom,
+                string match,
+                string resultSet,
+                long start,
+                long count,
+                out List<BiblioRecord> records,
+                out bool bNext,  //是否有下一页
+                out string strError)
+        {
+            strError = "";
+            records = new List<BiblioRecord>();
+            bNext = false;
+
+            /*
+            LibEntity lib = this.GetLibById(libId);
+            if (lib == null)
+            {
+                strError = "未找到id为[" + libId + "]的图书馆定义。";
+                return -1;
+            }
+
+            // 检查该图书馆的配置是否支持对外公开检索
+            bool bOpen = CheckOpenSearch(weixinId, lib, out strError);
+            if (bOpen == false)
+                return -1;
+            */
 
             try
             {
-                // 构造LoginInfo
-                //LoginInfo loginInfo = this.NewLoginInfo(userName, isPatron); //new LoginInfo("", false);
+                // 获取参于检索的数据库
+                string dbnames = "";
+                int nRet = this.GetDbNames(lib, out dbnames, out strError);
+                if (nRet == -1)
+                    return -1;
+
+                // 图书馆设置的过滤条件
+                string biblioFilter = lib.biblioFilter;
+                if (biblioFilter == null)
+                    biblioFilter = "";
+
+                // 获取当前帐户的分馆代码
+                WxUserItem activeUser = WxUserDatabase.Current.GetActive(weixinId);
+                string libraryCode = "";
+                if (activeUser != null)
+                    libraryCode = activeUser.bindLibraryCode; // todo，这里用实际还是绑定,现成用的绑定帐户
 
 
+                // 过滤条件，如果有分馆代码的过滤条件为分馆代码，如果图书馆设置的过滤条件
+                // todo 2022/10/20 感觉这里应该是把两个条件组合起来，现在这种写法是排斥效果。
                 string filter = "";
                 if (string.IsNullOrEmpty(libraryCode) == false)
                 {
@@ -6855,28 +6932,14 @@ ErrorInfo成员里可能会有报错信息。
                     start,  //每次获取范围
                     count);
 
-
-                // 测试加的日志
-                //this.WriteErrorLog1("走进SearchBiblioInternal-7");
-
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this._dp2MServerUrl,
                     lib.capoUserName).Result;
-
                 SearchResult result = connection.SearchTaskAsync(
                     lib.capoUserName,
                     request,
                     new TimeSpan(0, 1, 0),
                     cancel_token).Result;
-
-                // 测试加的日志
-                //this.WriteErrorLog1("走进SearchBiblioInternal-8");
-
-                // 输出检索语句
-#if LOG_REQUEST_SEARCH
-                writeDebug("search searchParam=" + request.Dump());
-#endif
-
                 if (result.ResultCount == -1)
                 {
                     bool bOffline = false;
@@ -6897,8 +6960,6 @@ ErrorInfo成员里可能会有报错信息。
                     strError = "未命中";
                     return 0;
                 }
-                // 测试加的日志
-                //this.WriteErrorLog1("走进SearchBiblioInternal-10");
 
 
                 List<string> resultPathList = new List<string>();
@@ -6950,6 +7011,104 @@ ErrorInfo成员里可能会有报错信息。
         }
 
 
+        public long SearchItem(string weixinId,
+             LibEntity lib,//string libId,
+             LoginInfo loginInfo,
+             string strWord,
+             string strFrom,
+             string match,
+             string resultSet,
+             long start,
+             long count,
+             out List<BiblioItem> records,
+             out bool bNext,  //是否有下一页
+             out string strError)
+        {
+            strError = "";
+            records = new List<BiblioItem>();
+            bNext = false;
+
+            try
+            {
+                // 获取参于检索的数据库
+                string dbnames = "<全部>";
+
+                CancellationToken cancel_token = new CancellationToken();
+                string id = Guid.NewGuid().ToString();
+                SearchRequest request = new SearchRequest(id,
+                    loginInfo,
+                    "searchItem",
+                    dbnames,
+                    strWord,
+                    strFrom,
+                    match,
+                    resultSet,
+                    "id,xml",
+                    "",//filter todo
+                    WeiXinConst.C_Search_MaxCount,  //最大数量 
+                    start,  //每次获取范围
+                    count);
+
+                MessageConnection connection = this._channels.GetConnectionTaskAsync(
+                    this._dp2MServerUrl,
+                    lib.capoUserName).Result;
+                SearchResult result = connection.SearchTaskAsync(
+                    lib.capoUserName,
+                    request,
+                    new TimeSpan(0, 1, 0),
+                    cancel_token).Result;
+                if (result.ResultCount == -1)
+                {
+                    bool bOffline = false;
+                    strError = "图书馆[" + lib.libName + "]返回错误:" + result.ErrorInfo;
+
+                    //strError = this.GetFriendlyErrorInfo(result, lib.libName, out bOffline);
+                    if (bOffline == true)
+                    {
+                        // 激活工作线程，为了给工作人员发通知。
+                        // todo 但发通知是超过一小时才会发通知，工作线程是10分钟一次，好像这里激活一下意义也不太大。
+                        this._managerThread.Activate();
+                    }
+                    return -1;
+                }
+
+                if (result.ResultCount == 0)
+                {
+                    strError = "未命中";
+                    return 0;
+                }
+
+
+                List<string> resultPathList = new List<string>();
+                for (int i = 0; i < result.Records.Count; i++)
+                {
+                    string xml = result.Records[i].Data;
+                    string path = result.Records[i].RecPath;
+
+                    // 解析item xml
+                    BiblioItem record = this.ParseItemXml(weixinId,loginInfo, lib, xml, true);
+                    record.recPath = path;
+                    records.Add(record);
+                }
+
+                // 检查是否有下页
+                if (start + records.Count < result.ResultCount)
+                    bNext = true;
+
+
+                return result.ResultCount;// records.Count;
+            }
+            catch (AggregateException ex)
+            {
+                strError = ex.Message;
+                return -1;
+            }
+            catch (Exception ex)
+            {
+                strError = ex.Message;
+                return -1;
+            }
+        }
 
         /// <summary>
         /// 获取登录身份
@@ -7281,6 +7440,7 @@ ErrorInfo成员里可能会有报错信息。
 
         #region 根据参数直接检索item
 
+        /*
         // 根据参数检索item
         public long SearchItem(WxUserItem userItem,
             LoginInfo loginInfo,
@@ -7449,7 +7609,7 @@ ErrorInfo成员里可能会有报错信息。
 
             return biblioList.Count();
         }
-
+        */
         #endregion
 
         // 为小程序做的获取册记录接口，仅返回纯净的书目信息
@@ -7491,7 +7651,8 @@ ErrorInfo成员里可能会有报错信息。
                     loginInfo,
                     patronBarcode,
                     biblioPath,
-                    "",
+                    //"",
+                    false,  //不获取预约详情
                     out itemList,
                     out strError);
                 if (nRet == -1) //0的情况表示没有册，不是错误
@@ -7836,7 +7997,8 @@ ErrorInfo成员里可能会有报错信息。
                     loginInfo,
                     patronBarcode,
                     biblioPath,
-                    "",
+                    //"",
+                    true,
                     out itemList,
                     out strError);
                 if (nRet == -1) //0的情况表示没有册，不是错误
@@ -8870,7 +9032,8 @@ ErrorInfo成员里可能会有报错信息。
             LoginInfo loginInfo,
             string patronBarcode,
             string biblioPath,
-            string cmdType,
+            //string cmdType,
+            bool containReservationInfo,
             out List<BiblioItem> itemList,
             out string strError)
         {
@@ -8946,89 +9109,165 @@ ErrorInfo成员里可能会有报错信息。
 
             for (int i = 0; i < recordList.Count; i++)
             {
-                BiblioItem item = new BiblioItem();
-                item.recPath = this.GetPurePath(recordList[i].RecPath);
-                item.isGray = false;
-
 
                 string xml = recordList[i].Data;//result.Records[i].Data;
-                XmlDocument dom = new XmlDocument();
-                dom.LoadXml(xml);
-
-                string strBarcode = DomUtil.GetElementText(dom.DocumentElement, "barcode");
-                string strRefID = DomUtil.GetElementText(dom.DocumentElement, "refID");
-                item.refID = strRefID;
-                item.pureBarcode = strBarcode;
-
-                // 册条码号,如果册条码为空，则写为@refID：refid
-                string strViewBarcode = "";
-                if (string.IsNullOrEmpty(strBarcode) == false)
-                    strViewBarcode = strBarcode;
-                else
-                    strViewBarcode = "@refID:" + strRefID;  //"@refID:" 
-                item.barcode = strViewBarcode;
+                BiblioItem item = ParseItemXml(weixinId, loginInfo, lib, xml, containReservationInfo);
+                item.recPath = this.GetPurePath(recordList[i].RecPath);
 
 
-                //状态
-                string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
+                //=====
+                // 检查数据库是否为期刊库，如果是期库，取出期的照片
+                string biblioDbName = "";
+                string biblioId = "";
+                int index = biblioPath.LastIndexOf("/");
+                biblioDbName = biblioPath.Substring(0, index);
+                biblioId = biblioPath.Substring(index + 1);
 
-                // 是否是成员册
-                bool bMember = false;
-                XmlNode nodeBindingParent = dom.DocumentElement.SelectSingleNode("binding/bindingParent");
-                if (nodeBindingParent != null)
+                Library thisLib = this.LibManager.GetLibrary(lib.id);
+                DbCfg db = thisLib.GetDb(biblioDbName);
+                if (db != null && String.IsNullOrEmpty(db.IssueDbName) == false)
                 {
-                    bMember = true;
-                    StringUtil.SetInList(ref strState, "已装入合订册", true);
-
-                    string parentRefID = DomUtil.GetAttr(nodeBindingParent, "refID");
-                    item.parentInfo = "@refID:" + parentRefID;
-                }
-                item.state = strState;
-
-                // 是否可用，加工中 或者  成员册不能使用，要划删除线等
-                bool disable = false;
-                if (StringUtil.IsInList("加工中", item.state) == true
-                    || bMember == true)
-                {
-                    disable = true;
-                }
-                item.disable = disable;
+                    string totalImgs = "";
 
 
-                //卷册
-                item.volume = DomUtil.GetElementText(dom.DocumentElement, "volume");
-
-
-                // 馆藏地
-                item.location = DomUtil.GetElementText(dom.DocumentElement, "location");
-                // 检查该馆藏地的册记录是否可以显示出现
-                if (string.IsNullOrEmpty(lib.NoViewLocation) == false)
-                {
-                    if (lib.NoViewLocation.IndexOf(item.location) != -1)
+                    XmlDocument dom = new XmlDocument();
+                    dom.LoadXml(xml);
+                    // 封面图片
+                    // 得到检索期的字符串
+                    List<IssueString> issueList = dp2StringUtil.GetIssueQueryStringFromItemXml(dom);
+                    if (issueList != null && issueList.Count > 0)// todo 为啥会有多项？
                     {
-                        if (string.IsNullOrEmpty(patronBarcode) == false
-                            || activeItem.userName == WxUserDatabase.C_Public)
+                        foreach (IssueString issueStr in issueList)
                         {
-                            // 读者身份的话，直接不显示
-                            continue;
-                        }
-                        else
-                        {
-                            // 馆员身份，灰色显示
-                            item.isGray = true;
+                            // 获取期记录
+                            string style = "query:父记录+期号|" + biblioId + "|" + issueStr.Query;
+                            string issueXml = "";
+                            string issuePath = "";
+                            long ret = this.GetIssue(lib,
+                                loginInfo,
+                                biblioPath,
+                                style,
+                                out issuePath,
+                                out issueXml,
+                                out strError);
+                            if (ret == -1)
+                            {
+                                //goto ERROR1;
+
+                                // 2017-12-7 未找到对应的期记录
+                                totalImgs += "<div style='color:red'>" + strError + "</div>";
+                                continue;
+                            }
+
+                            // 从期中取出图片url
+                            XmlDocument issueDom = new XmlDocument();
+                            issueDom.LoadXml(issueXml);
+                            string imgId = dp2StringUtil.GetCoverImageIDFromIssueRecord(issueDom, "LargeImage");
+                            //string issueImgUrl = issuePath + "/object/"+imgId;
+                            string imgHtml = dp2WeiXinService.GetImageHtmlFragment(lib.id, issuePath, imgId, true);
+
+                            if (totalImgs != "")
+                                totalImgs += "&nbsp;";
+                            totalImgs += imgHtml;
                         }
                     }
+
+                    item.imgHtml = totalImgs;
                 }
 
-                // 2022/6/20 过滤内部册
-                if (StringUtil.IsInList("内部", item.state) == true)
+                // 加到数组里
+                itemList.Add(item);
+            }
+
+            return lRet;
+
+        ERROR1:
+            return -1;
+        }
+
+
+        public BiblioItem ParseItemXml(string weixinId,
+            LoginInfo loginInfo,
+            LibEntity lib,
+            string itemXml,
+            bool containReservationInfo  //是否获取借书详情和预约详情
+            )
+        {
+            // 得到当前活动帐户，如果是读者帐户，取出证条码号，方便后面比较
+            string patronBarcode = "";
+            WxUserItem activeUser = WxUserDatabase.Current.GetActive(weixinId);
+            if (activeUser != null && activeUser.type == WxUserDatabase.C_Type_Patron)
+            {
+                patronBarcode = activeUser.readerBarcode;
+            }
+
+
+            BiblioItem item = new BiblioItem();
+            item.isGray = false;
+
+            XmlDocument dom = new XmlDocument();
+            dom.LoadXml(itemXml);
+
+
+            // refID
+            string strRefID = DomUtil.GetElementText(dom.DocumentElement, "refID");
+            item.refID = strRefID;
+
+            // barcode
+            string strBarcode = DomUtil.GetElementText(dom.DocumentElement, "barcode");
+            item.pureBarcode = strBarcode;
+            // 册条码号,如果册条码为空，则写为@refID：refid
+            string strViewBarcode = "";
+            if (string.IsNullOrEmpty(strBarcode) == false)
+                strViewBarcode = strBarcode;
+            else
+                strViewBarcode = "@refID:" + strRefID;  //"@refID:" 
+            item.barcode = strViewBarcode;
+
+
+            //状态
+            string strState = DomUtil.GetElementText(dom.DocumentElement, "state");
+
+            // 检查是否是成员册，更新一下显示的状态
+            bool bMember = false;
+            XmlNode nodeBindingParent = dom.DocumentElement.SelectSingleNode("binding/bindingParent");
+            if (nodeBindingParent != null)
+            {
+                bMember = true;
+                StringUtil.SetInList(ref strState, "已装入合订册", true);  //更改状态
+
+                string parentRefID = DomUtil.GetAttr(nodeBindingParent, "refID");
+                item.parentInfo = "@refID:" + parentRefID;
+            }
+            item.state = strState;
+
+            // 是否可用，加工中 或者  成员册不能使用，要划删除线等
+            bool disable = false;
+            if (StringUtil.IsInList("加工中", item.state) == true
+                || bMember == true)
+            {
+                disable = true;
+            }
+            item.disable = disable;
+
+
+            //卷册
+            item.volume = DomUtil.GetElementText(dom.DocumentElement, "volume");
+
+
+            // 馆藏地
+            item.location = DomUtil.GetElementText(dom.DocumentElement, "location");
+            // 检查该馆藏地的册记录是否可以显示出现
+            if (string.IsNullOrEmpty(lib.NoViewLocation) == false)
+            {
+                // todo 图书馆不显示的馆藏地
+                if (lib.NoViewLocation.IndexOf(item.location) != -1)
                 {
-                    // 读者帐号或者public帐户不显示
+                    // 读者身份 和 public帐户，直接不显示这一册
                     if (string.IsNullOrEmpty(patronBarcode) == false
-                        || activeItem.userName == WxUserDatabase.C_Public)
+                        || activeUser.userName == WxUserDatabase.C_Public)
                     {
-                        // 不显示
-                        continue;
+                        return null;
                     }
                     else
                     {
@@ -9036,123 +9275,138 @@ ErrorInfo成员里可能会有报错信息。
                         item.isGray = true;
                     }
                 }
+            }
+
+            // 2022/6/20 过滤内部册
+            if (StringUtil.IsInList("内部", item.state) == true)
+            {
+                // 读者帐号或者public帐户不显示
+                if (string.IsNullOrEmpty(patronBarcode) == false
+                    || activeUser.userName == WxUserDatabase.C_Public)
+                {
+                    return null;
+                }
+                else
+                {
+                    // 馆员身份，灰色显示
+                    item.isGray = true;
+                }
+            }
 
 
-                // 当前位置
-                item.currentLocation = DomUtil.GetElementText(dom.DocumentElement, "currentLocation");
-                // 架号
-                item.shelfNo = DomUtil.GetElementText(dom.DocumentElement, "shelfNo");
+            // 当前位置
+            item.currentLocation = DomUtil.GetElementText(dom.DocumentElement, "currentLocation");
+            // 架号
+            item.shelfNo = DomUtil.GetElementText(dom.DocumentElement, "shelfNo");
 
-                // 索引号
-                item.accessNo = DomUtil.GetElementText(dom.DocumentElement, "accessNo");
-                // 出版日期
-                item.publishTime = DomUtil.GetElementText(dom.DocumentElement, "publishTime");
-                // 价格
-                item.price = DomUtil.GetElementText(dom.DocumentElement, "price");
-                // 注释
-                item.comment = DomUtil.GetElementText(dom.DocumentElement, "comment");
+            // 索引号
+            item.accessNo = DomUtil.GetElementText(dom.DocumentElement, "accessNo");
+            // 出版日期
+            item.publishTime = DomUtil.GetElementText(dom.DocumentElement, "publishTime");
+            // 价格
+            item.price = DomUtil.GetElementText(dom.DocumentElement, "price");
+            // 注释
+            item.comment = DomUtil.GetElementText(dom.DocumentElement, "comment");
 
-                // 借阅情况
-                /*
-                 <borrower>R00001</borrower>
+            // 借阅情况
+            /*
+             <borrower>R00001</borrower>
 <borrowerReaderType>教职工</borrowerReaderType>
 <borrowerRecPath>读者/1</borrowerRecPath>
 <borrowDate>Sun, 17 Apr 2016 23:57:40 +0800</borrowDate>
 <borrowPeriod>31day</borrowPeriod>
 <returningDate>Wed, 18 May 2016 12:00:00 +0800</returningDate>
-                 */
-                string strBorrower1 = DomUtil.GetElementText(dom.DocumentElement, "borrower");
-                string borrowDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement,
+             */
+            string strBorrower1 = DomUtil.GetElementText(dom.DocumentElement, "borrower");
+            string borrowDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement,
 "borrowDate"), "yyyy/MM/dd");
-                string borrowPeriod = DomUtil.GetElementText(dom.DocumentElement, "borrowPeriod");
+            string borrowPeriod = DomUtil.GetElementText(dom.DocumentElement, "borrowPeriod");
 
 
-                borrowPeriod = GetDisplayTimePeriodStringEx(borrowPeriod);
-                item.borrower = strBorrower1;
-                item.borrowDate = borrowDate;
-                item.borrowPeriod = borrowPeriod;
+            borrowPeriod = GetDisplayTimePeriodStringEx(borrowPeriod);
+            item.borrower = strBorrower1;
+            item.borrowDate = borrowDate;
+            item.borrowPeriod = borrowPeriod;
 
-                // 2022/8/9 增加一个还书日期
-                string returningDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement,
+            // 2022/8/9 增加一个还书日期
+            string returningDate = DateTimeUtil.ToLocalTime(DomUtil.GetElementText(dom.DocumentElement,
 "returningDate"), "yyyy/MM/dd"); //DomUtil.GetElementText(dom.DocumentElement, "returningDate");
-                item.returningDate = returningDate;
+            item.returningDate = returningDate;
+
+
+            //todo
+            //if (string.IsNullOrEmpty(cmdType) == false)//(isPatron1 == false)
+            //{
+            //    if (cmdType == "borrow")
+            //    {
+            //        if (string.IsNullOrEmpty(item.borrower) == false
+            //            || String.IsNullOrEmpty(strState) == false) //状态有值是也不允许借阅
+            //        {
+            //            item.isGray = true;
+            //        }
+            //    }
+            //    else if (cmdType == "return")
+            //    {
+            //        // 没有在借的册需要显示为灰色
+            //        if (string.IsNullOrEmpty(item.borrower) == true)
+            //            item.isGray = true;
+            //    }
+            //}
 
 
 
-                if (string.IsNullOrEmpty(cmdType) == false)//(isPatron1 == false)
+            // 成员册 不显示“在借情况”和“预约信息”
+            if (bMember == false)
+            {
+                // 在借信息
+                string strBorrowInfo = "";
+                if (string.IsNullOrEmpty(item.borrower) == true)// 在架的情况
                 {
-                    if (cmdType == "borrow")
+                    strBorrowInfo = "在架";
+                }
+                else // 册记录中存在借阅者，被借出的情况
+                {
+                    // 2022/10/20 去掉这里的续借按钮，因为导致接口传输的数据包过多，续借动作只在我的信息二级页面进行。
+                    //// 当前帐户就是借阅者本人
+                    //if (patronBarcode == item.borrower)
+                    //{
+                    //    // 2016-8-16 无册条码的情况，用refid:id代替，但在前端界面要写为refID-，否则js没法续约
+                    //    string tempBarcode = item.barcode;
+                    //    if (tempBarcode.Contains("@refID:") == true)
+                    //        tempBarcode = tempBarcode.Replace("@refID:", "refID-");
+
+                    //    strBorrowInfo =
+                    //        "<table style='width:100%;border:0px'>"
+                    //        + "<tr>"
+                    //        + "<td class='info' style='border:0px'>借阅者：" + item.borrower + "<br/>"
+                    //        + "借阅日期：" + item.borrowDate + "<br/>"
+                    //        + "借期：" + item.borrowPeriod + "<br/>"
+                    //        + "还书日期：" + item.returningDate
+                    //        + "</td>"
+                    //        + "<td class='btn' style='border:0px'>"
+                    //        + "<button class='mui-btn  mui-btn-default'  onclick=\"renew('" + tempBarcode + "')\">续借</button>"
+                    //        + "</td>"
+                    //        + "</tr>"
+                    //        + "<tr><td colspan='2'><div id='renewInfo-" + tempBarcode + "'/></td></tr>"
+                    //        + "</table>";
+                    //}
+                    //else
                     {
-                        if (string.IsNullOrEmpty(item.borrower) == false
-                            || String.IsNullOrEmpty(strState) == false) //状态有值是也不允许借阅
-                        {
-                            item.isGray = true;
-                        }
-                    }
-                    else if (cmdType == "return")
-                    {
-                        // 没有在借的册需要显示为灰色
-                        if (string.IsNullOrEmpty(item.borrower) == true)
-                            item.isGray = true;
+                        //2022/8/5改进，接口返回的信息自然会脱敏，我爱图书馆这边原样显示返回的值即可
+                        strBorrowInfo = "借阅者：" + item.borrower + "<br/>" //"借阅者：***<br/>"
+                            + "借阅日期：" + item.borrowDate + "<br/>"
+                            + "借期：" + item.borrowPeriod + "<br/>"
+                            + "还书日期：" + item.returningDate;
                     }
                 }
+                // 设置在借还是在架信息
+                item.borrowInfo = strBorrowInfo;
 
 
-
-                // 成员册 不显示“在借情况”和“预约信息”
-                if (bMember == false)
+                //=================
+                // 预约信息
+                if (containReservationInfo == true)  //当详情格式时，才显示预约信息。
                 {
-                    // 在借信息
-                    string strBorrowInfo = "";
-                    if (string.IsNullOrEmpty(item.borrower) == true)// 在架的情况
-                    {
-                        strBorrowInfo = "在架";
-                    }
-                    else // 册记录中存在借阅者，被借出的情况
-                    {
-                        // 当前帐户就是借阅者本人
-                        if (patronBarcode == item.borrower) 
-                        {
-                            // 2016-8-16 无册条码的情况，用refid:id代替，但在前端界面要写为refID-，否则js没法续约
-                            string tempBarcode = item.barcode;
-                            if (tempBarcode.Contains("@refID:") == true)
-                                tempBarcode = tempBarcode.Replace("@refID:", "refID-");
-
-                            strBorrowInfo =
-                                "<table style='width:100%;border:0px'>"
-                                + "<tr>"
-                                + "<td class='info' style='border:0px'>借阅者：" + item.borrower + "<br/>"
-                                + "借阅日期：" + item.borrowDate + "<br/>"
-                                + "借期：" + item.borrowPeriod + "<br/>"
-                                + "还书日期：" + item.returningDate 
-                                + "</td>"
-                                + "<td class='btn' style='border:0px'>"
-                                + "<button class='mui-btn  mui-btn-default'  onclick=\"renew('" + tempBarcode + "')\">续借</button>"
-                                + "</td>"
-                                + "</tr>"
-                                + "<tr><td colspan='2'><div id='renewInfo-" + tempBarcode + "'/></td></tr>"
-                                + "</table>";
-
-                            //reservationInfo = "<div class='remark'>该册目前是您在借中，不能预约。</div>";
-                            //bCanReservation = false;
-                        }
-                        else 
-                        {
-                            //2022/8/5改进，接口返回的信息自然会脱敏，我爱图书馆这边原样显示返回的值即可
-                            strBorrowInfo = "借阅者：" + item.borrower + "<br/>" //"借阅者：***<br/>"
-                                + "借阅日期：" + item.borrowDate + "<br/>"
-                                + "借期：" + item.borrowPeriod + "<br/>"
-                                + "还书日期：" + item.returningDate;
-
-                            //bCanReservation = true;
-                        }
-                    }
-                    // 设置在借还是在架信息
-                    item.borrowInfo = strBorrowInfo;
-
-
-                    //=================
-                    // 预约信息
                     string reservationInfo = "";
                     bool bCanReservation = true;  // 默认是可以预约的
                     if (lib.ReserveScope == LibDatabase.C_ReserveScope_No)
@@ -9226,91 +9480,33 @@ ErrorInfo成员里可能会有报错信息。
                         List<ReservationInfo> reserList = null;
                         if (string.IsNullOrEmpty(patronBarcode) == false)// patronBarcode != null && patronBarcode != "")
                         {
+                            // 得到读者预约过哪些图书
                             reservationInfo = "";
                             int nRet = this.GetPatronReservation(lib.id,
                                 loginInfo,
                                 patronBarcode,
                                 out reserList,
-                                out strError);
+                                out string strError);
                             if (nRet == -1 || nRet == 0)
-                                goto ERROR1;
+                            {
+                                reservationInfo = "获取读者的预约信息时出错：" + strError;
+                                goto END1;
+                            }
                         }
                         string state = this.getReservationState(reserList, item.barcode);
                         reservationInfo = getReservationHtml(state, item.barcode, false, true);
                     }
+
+                END1:
                     // 设置预约信息
                     item.reservationInfo = reservationInfo;
-                    
                 }
+                // ===预约信息结束===
 
-
-                //=====
-                // 检查数据库是否为期刊库，如果是期库，取出期的照片
-                string biblioDbName = "";
-                string biblioId = "";
-                int index = biblioPath.LastIndexOf("/");
-                biblioDbName = biblioPath.Substring(0, index);
-                biblioId = biblioPath.Substring(index + 1);
-
-                Library thisLib = this.LibManager.GetLibrary(lib.id);
-                DbCfg db = thisLib.GetDb(biblioDbName);
-                if (db != null && String.IsNullOrEmpty(db.IssueDbName) == false)
-                {
-                    string totalImgs = "";
-
-                    // 封面图片
-                    // 得到检索期的字符串
-                    List<IssueString> issueList = dp2StringUtil.GetIssueQueryStringFromItemXml(dom);
-                    if (issueList != null && issueList.Count > 0)// todo 为啥会有多项？
-                    {
-                        foreach (IssueString issueStr in issueList)
-                        {
-                            // 获取期记录
-                            string style = "query:父记录+期号|" + biblioId + "|" + issueStr.Query;
-                            string issueXml = "";
-                            string issuePath = "";
-                            long ret = this.GetIssue(lib,
-                                loginInfo,
-                                biblioPath,
-                                style,
-                                out issuePath,
-                                out issueXml,
-                                out strError);
-                            if (ret == -1)
-                            {
-                                //goto ERROR1;
-
-                                // 2017-12-7 未找到对应的期记录
-                                totalImgs += "<div style='color:red'>" + strError + "</div>";
-                                continue;
-                            }
-
-                            // 从期中取出图片url
-                            XmlDocument issueDom = new XmlDocument();
-                            issueDom.LoadXml(issueXml);
-                            string imgId = dp2StringUtil.GetCoverImageIDFromIssueRecord(issueDom, "LargeImage");
-                            //string issueImgUrl = issuePath + "/object/"+imgId;
-                            string imgHtml = dp2WeiXinService.GetImageHtmlFragment(lib.id, issuePath, imgId, true);
-
-                            if (totalImgs != "")
-                                totalImgs += "&nbsp;";
-                            totalImgs += imgHtml;
-                        }
-                    }
-
-                    item.imgHtml = totalImgs;
-                }
-
-                // 加到数组里
-                itemList.Add(item);
             }
 
-            return lRet;
-
-        ERROR1:
-            return -1;
+            return item;
         }
-
 
         // 得到预约状态
         private string getReservationState(List<ReservationInfo> list, string barcode)
