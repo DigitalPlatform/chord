@@ -377,6 +377,7 @@
     <Content Include="Scripts\jquery-3.5.1.slim.min.map" />
     <Content Include="Scripts\jquery-3.5.1.min.map" />
     <Content Include="Views\Biblio\BiblioEdit.cshtml" />
+    <Content Include="Views\UI\SearchItemUI.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

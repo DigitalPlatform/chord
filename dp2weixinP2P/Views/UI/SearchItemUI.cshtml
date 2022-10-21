@@ -1,0 +1,520 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutManager.cshtml";
+}
+@section style {
+    <style type="text/css">
+
+        /*书目*/
+
+        /*自动加载中，把class设一下，防止重复加载*/
+        .nextdisabled {
+            color: gray;
+        }
+
+            .nextdisabled A {
+                color: gray;
+            }
+
+        DIV.biblio {
+            top: 0px;
+            padding: 10px;
+            background-color: white;
+        }
+
+        TABLE.result-biblio {
+            padding: 0px;
+            margin: 0px;
+            width: 100%;
+            table-layout: fixed;
+        }
+
+            TABLE.result-biblio td {
+                padding: 0px;
+                margin: 0px;
+            }
+
+                TABLE.result-biblio td.no {
+                    padding: 0px;
+                    margin: 0px;
+                    min-width: 18px;
+                    width: 18px;
+                }
+
+        /*信息行*/
+        DIV.biblio TABLE.info {
+            text-align: left;
+            background-color: white;
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+
+            DIV.biblio TABLE.info td.cover {
+                padding: 4px;
+                vertical-align: top;
+                width: 108px;
+            }
+
+            DIV.biblio TABLE.info td.biblio_info {
+                vertical-align: top;
+                padding: 2px;
+            }
+
+                DIV.biblio TABLE.info td.biblio_info .summary {
+                    vertical-align: middle;
+                }
+
+                DIV.biblio TABLE.info td.biblio_info table.biblio_table {
+                    width: 100%;
+                }
+
+                    DIV.biblio TABLE.info td.biblio_info table.biblio_table .name {
+                        color: #bbbbbb;
+                        padding-right: 4px;
+                        padding-bottom: 4px;
+                        text-align: right;
+                        min-width: 76px;
+                        width: 76px;
+                        vertical-align: top;
+                    }
+
+                    DIV.biblio TABLE.info td.biblio_info table.biblio_table .value {
+                        padding-bottom: 4px;
+                    }
+
+                    DIV.biblio TABLE.info td.biblio_info table.biblio_table .titlevalue {
+                        font-weight: bold;
+                        font-size: 16px;
+                    }
+
+        /*书目操作按钮行，现在有好书推荐按钮*/
+        DIV.biblio DIV.btnRow {
+            text-align: right;
+        }
+
+        /*整个册块*/
+        DIV.item {
+            margin: 14px 0px 0px;
+            padding: 2px;
+        }
+
+            /*册块标题，一般barcode使用该样式*/
+            DIV.item .title {
+                margin-top: 5px;
+                margin-bottom: 5px;
+                padding-left: 10px;
+                font-size: 20px;
+            }
+
+            DIV.item .titleGray {
+                margin-top: 5px;
+                margin-bottom: 5px;
+                padding-left: 10px;
+                font-size: 14px;
+                color: #cccccc;
+            }
+
+
+
+            /*册块备注，没有册文字使用该样式*/
+            DIV.item .remark {
+                color: #999999;
+                padding: 2px;
+            }
+
+            /*一条一条的册table*/
+            DIV.item TABLE {
+                text-align: left;
+                background-color: white;
+                width: 100%;
+                margin-top: 0px;
+            }
+
+                /*册td*/
+                DIV.item TABLE TR TD {
+                    border-width: 0px;
+                    /*border-top-width: 1px;*/
+                    border-color: #dddddd;
+                    border-style: dotted;
+                    padding: 1px;
+                    vertical-align: top;
+                }
+
+                    /*册右值数据td*/
+                    DIV.item TABLE TR TD.value {
+                        padding-left: 5px;
+                    }
+
+                    DIV.item TABLE TR TD.title {
+                        padding-left: 5px;
+                        font-size: 20px;
+                    }
+
+                    DIV.item TABLE TR TD.titleGray {
+                        padding-left: 5px;
+                        font-size: 12px;
+                        color: #cccccc;
+                    }
+
+                    DIV.item TABLE TR TD.error {
+                        padding-left: 5px;
+                        color: red;
+                    }
+
+                    /*册右值数据td*/
+                    DIV.item TABLE TR TD.value .info {
+                        /*float: left;*/
+                        padding-top: 0px;
+                        text-align: left;
+                    }
+
+
+
+                    /*册右值数据td*/
+                    DIV.item TABLE TR TD.value .btn {
+                        /*float: right;*/
+                        text-align: right;
+                    }
+
+                    /*册左侧标题td*/
+                    DIV.item TABLE TR TD.label {
+                        width: 65px;
+                        max-width: 65px;
+                        min-width: 65px;
+                        background-color: #ffffff;
+                        color: #999999;
+                        padding-right: 2px;
+                        text-align: right;
+                    }
+
+                    /*册里面的操作提示*/
+                    DIV.item TABLE TR TD .resultInfo {
+                        /*显示预约结果的span*/
+                    }
+
+        /*===========*/
+        DIV.search {
+            padding: 10px;
+            /*background-color: green;*/
+        }
+
+            /*消息div下的table*/
+            DIV.search TABLE {
+                width: 100%;
+                /*background-color: red;*/
+            }
+
+
+
+
+            /*=============*/
+            /*消息编辑态标题*/
+            DIV.search INPUT, SELECT {
+                margin-bottom: 0px;
+            }
+
+            DIV.search TABLE.advance tr td {
+                padding: 5px;
+            }
+
+                DIV.search TABLE.advance tr td.label {
+                    color: #999999;
+                    width: 70px;
+                }
+
+
+            DIV.search TABLE.advance select {
+                font-size: 17px;
+                height: 37px;
+                padding: 0px;
+                margin: 0px;
+                padding-left: 5px;
+            }
+
+            DIV.search TABLE.advance input, textarea {
+                padding: 5px;
+                margin: 0px;
+            }
+    </style>
+}
+
+@section Scripts {
+    <script>
+
+
+        //浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            //// 2021/8/2调试态显示当前操作帐号
+            //setOpeAccount("");
+
+            //// 如果是web来源，才加载JSSDK
+            //if (browser.versions.weixin == true) {
+            //    //alert("动态加载JSSDK...");
+            //    var myUrl = getRootPath() + "/Scripts/jweixin-1.0.0.js";
+            //    loadJs("yy", myUrl, callbackFunction);
+            //}
+
+            //// 打回车检索
+            //$('#txtWord').bind('keypress', function (event) {
+            //    //alert("test");
+            //    if (event.keyCode == "13") {
+            //        // 要先给观察模型赋值一下,鼠标没离开输入框时，观察者模型还没有值
+            //        search('');
+            //    }
+            //});
+
+            //// 打回车检索
+            //$('#txtWordSimple').bind('keypress', function (event) {
+            //    //alert("test");
+            //    if (event.keyCode == "13") {
+            //        // 要先给观察模型赋值一下,鼠标没离开输入框时，观察者模型还没有值
+            //        search('simple');
+            //    }
+            //});
+
+            //// 设顶部菜单不固定
+            //$("#myheader").css("position", "absolute");
+
+            $(window).scroll(function () {
+
+                //alert("1");
+
+                if ($("#more") != null && $("#more").offset() != null) {
+
+                    // alert("2");
+
+                    // 如果状态是不显示，则不处理。
+                    var show = $('#more').css('display');
+                    if (show == "none")
+                        return;
+
+                    // more节点的偏离top和高度。
+                    var itemOffsetTop = $("#more").offset().top;
+                    var itemOuterHeight = $("#more").outerHeight(true);
+
+                    //alert("3");
+
+                    // windows的高度和卷滚top偏移量
+                    var winHeight = $(window).height();
+                    var winScrollTop = $(window).scrollTop();
+
+                    //alert("4");
+
+                    //alert("itemOffsetTop=" + itemOffsetTop + ";itemOuterHeight=" + itemOuterHeight
+                    // + ";winScrollTop=" + winScrollTop+ ";winHeight=" + winHeight );
+
+                    // 如果more节点的top偏移量大于win的top，且小于win的top+height
+                    if (itemOffsetTop >= winScrollTop
+                        && itemOffsetTop < (winScrollTop + winHeight)) {
+                        //alert("5");
+                        //alert("div在可视范围");
+                        if ($("#more").hasClass("nextdisabled") == true) {
+                            //alert("未加载完，不能继续加载");
+                            return;
+                        }
+
+                        search(true);
+                    }
+                }
+            })
+
+
+            //// 重新检索
+            //redoSearch();
+        });
+
+        // 2016-6-17 jane 为了返回时记住展开项，expand函数由原来传一个对象，改为传一个id
+        function expand(expId, needClose) {
+            //根据id找到<li>元素
+            var id = "#" + expId;
+            var obj = $(id);
+
+            //alert(id);
+            //alert(obj);
+            if (needClose == 1) {
+                $(obj).find(".mui-collapse-content").css("display", "none");
+                $(obj).removeClass("mui-active");
+            }
+            else if (needClose == 0) {
+
+                $(obj).find(".mui-collapse-content").css("display", "block");
+                $(obj).addClass("mui-active");
+            }
+            else {
+
+                // 如果自己是展开状态，则收缩
+                var state = $(obj).find(".mui-collapse-content").first().css("display");
+                if (state == "block") { //自己本来是展开状态，要关闭
+                    $(obj).find(".mui-collapse-content").css("display", "none");
+                    $(obj).removeClass("mui-active");
+                    // alert("1");
+                }
+                else {
+
+                    //自己展开
+                    $(obj).find(".mui-collapse-content").css("display", "block");
+                    $(obj).addClass("mui-active");
+
+                    //alert("2");
+                }
+            }
+        }
+
+        // 检索
+        function search(bNext, expandId) {
+
+            //alert("search");
+
+            // 先将more设为不显示
+            $("#more").css("display", "none");
+
+            // todo??
+            //$("#searchInfo").text("");
+
+            var table = $("#ulResult");//$('.mui-table-view');
+            var start = 0;
+
+            word = $("#maxNo").val();
+
+            //if (bNext == 'true') {
+                start = parseInt($("#maxNo").val());
+            //}
+
+            var noWidth = '18px';
+            var length = 2;
+            var totalCount = 100;
+
+            //alert("1-2");
+
+            for (var i = 0; i < length; i++) {
+
+                //alert("1")
+                //var record = result.records[i];
+                var id = "rec-" + (start + i);
+
+                if (start + i >= 99)
+                    noWidth = "25px";
+
+                var no = start + i;
+                var recPath = "path-" + no;
+                var name = "name-" + no;
+
+                //var li = "<div style='padding-left: 10px;'>" +no+"&nbsp;"+ name + "</div>";
+
+                var li = "<li class='mui-table-view-cell mui-collapse mui-active' id='"+id+"'>"
+                    + "<a class='mui-navigate-right' onclick ='expand(\"" + id + "\")' href = 'javascript:void(0)' > " + no + "&nbsp;&nbsp;" + recPath + "&nbsp;&nbsp;" + name + "</a>"
+                    + "<div class='mui-collapse-content' style='display:block;padding-top: 0px;'>"
+                    + "<div class='mui-card item'>"
+                    + "<table>"
+                    + " <tr><td class='label'>册条码</td><td class='title'>" + name + "</td></tr>"
+                    + "<tr><td class='label'>馆藏地</td><td class='title'>流通库</td></tr>"
+                    + "<tr><td class='label'>状态</td><td class='value'></td></tr>"
+                    + "<tr><td class='label'>卷册</td><td class='value'></td></tr>"
+                    + "<tr><td class='label'>价格</td><td class='value'>CNY25.00</td></tr>"
+                    + "<tr> <td class='label'>在借情况</td><td class='value'>在架</td></tr>"
+                    + "<tr><td class='label'>预约信息</td><td class='value'><div class='remark'>该册目前是您在借中，不能预约。</div></td></tr>"
+                    + "</table>"
+                    + "</div>"
+                    + "</div>"
+                    + "</li>";
+
+                //追加
+                table.append(li);
+                //alert("2");
+
+                // 设一下最大号
+                if (i == length - 1) {
+                    $("#maxNo").val(no+1);
+
+                }
+            }
+
+
+            // 再判断一下
+            start = parseInt($("#maxNo").val());
+
+
+            //有下页的情况
+            if (start <= 100)
+            {
+
+            $("#more").css("display", "block");
+            //$("#more").css("color", "black");
+            $("#more").removeClass("nextdisabled");
+
+            var begin = start + length + 1;
+            var end = begin + 9;
+            if (totalCount < end)
+                end = totalCount;
+
+            var text = "正在加载..." + begin + "-" + end + "/" + totalCount;
+            //alert(text);
+            $("#moretext").text(text);
+            }
+            else {
+                $("#more").css("display", "none");
+
+            }
+
+            // 打开需要展开的项
+            if (expandId != null && expandId != "") {
+                expand(expandId);
+            }
+        }
+
+    </script>
+}
+
+<!--关于结果集-->
+<input id="maxNo" type="hidden" value="5">
+<input id="resultSet" type="hidden" value="" disabled="disabled">
+<input id="expandId" type="hidden" value="" disabled="disabled">
+
+<ul class="mui-table-view " id="ulResult1">
+
+    <li class="mui-table-view-cell mui-collapse mui-active" id="record-0">
+        <a class="mui-navigate-right" onclick='expand("record-0")' href="javascript:void(0)">1 &nbsp; &nbsp;B001 &nbsp;&nbsp;流通库</a>
+        <div class='mui-collapse-content' style='display:block;padding-top: 0px;'>
+            <div class="mui-card item">
+                <table>
+                    <tr><td class="label">册条码</td><td class="title">B001</td></tr>
+                    <tr><td class="label">馆藏地</td><td class="title">流通库</td></tr>
+                    <tr><td class="label">状态</td><td class="value"></td></tr>
+                    <tr><td class="label">卷册</td><td class="value"></td></tr>
+                    <tr><td class="label">价格</td><td class="value">CNY25.00</td></tr>
+                    <tr> <td class="label">在借情况</td><td class="value">在架</td></tr>
+                    <tr><td class="label">预约信息</td><td class="value"><div class="remark">该册目前是您在借中，不能预约。</div></td></tr>
+                </table>
+            </div>
+        </div>
+    </li>
+
+    <li class="mui-table-view-cell mui-collapse mui-active" id="record-1">
+        <a class="mui-navigate-right" onclick='expand("record-1")' href="javascript:void(0)">2 &nbsp; &nbsp;B002 &nbsp;&nbsp;流通库</a>
+        <div class="mui-collapse-content" style="display: block;">
+            <div class="mui-card item">
+                <table>
+                    <tr><td class="label">册条码</td><td class="title">B002</td></tr>
+                    <tr><td class="label">馆藏地</td><td class="value">流通库</td></tr>
+                    <tr><td class="label">状态</td><td class="value"></td></tr>
+                    <tr><td class="label">卷册</td><td class="value"></td></tr>
+                    <tr><td class="label">价格</td><td class="value">CNY25.00</td></tr>
+                    <tr> <td class="label">在借情况</td><td class="value">在架</td></tr>
+                    <tr><td class="label">预约信息</td><td class="value"><div class="remark">该册目前是您在借中，不能预约。</div></td></tr>
+                </table>
+            </div>
+        </div>
+    </li>
+
+</ul>
+
+
+<div id="divResult">
+    <!--数据列表-->
+    <span style="padding-left:10px;" id="searchInfo"></span>
+    <ul id="ulResult" class="mui-table-view "></ul>
+    <div id='more' style="display:block;color:black">
+        <center><a href='javascript:void(0)' onclick='searchN()'><img src='../img/loading.gif' />&nbsp;<span id="moretext">加载中...</span></a></center>
+    </div>
+</div>

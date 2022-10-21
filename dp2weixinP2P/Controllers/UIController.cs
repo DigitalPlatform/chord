@@ -21,7 +21,10 @@ namespace dp2weixinWeb.Controllers
     public class UIController : Controller
     {
 
-
+        public ActionResult SearchItemUI()
+        {
+            return View();
+        }
 
 
         public ActionResult AudioTest()
