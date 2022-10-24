@@ -1,5 +1,5 @@
 ﻿@section style {
-    <link href="@Url.Content("~/Content/biblio.css?a=7")" rel="stylesheet">
+    <link href="@Url.Content("~/Content/biblio.css?a=2")" rel="stylesheet">
 }
 @section Scripts {
     <script>
@@ -442,20 +442,39 @@
 
                         //alert("1");
                         // 调统一的函数显示册信息
-                        var itemhtml = getItemHtml(record);
+                        var itemhtml = getItemHtml(libId,record);
                         //alert("2");
                         
                         var li = "<li class='mui-table-view-cell mui-collapse ' id='" + id + "'>"
-                            + "<a class='mui-navigate-right' onclick ='expand(\"" + id + "\")' href = 'javascript:void(0)' > " + record.no + "&nbsp;&nbsp;" + record.barcode + "&nbsp;&nbsp;" + record.location + "</a>"
-                            + "<div class='mui-collapse-content' style='display:none;padding-top: 0px;'>"
-                            
-                            + "<div>"
-                            + "<span  class='pending summary ' style='padding-bottom:4px'>"
+                            + "<a class='mui-navigate-right' onclick ='expand(\"" + id + "\")' href = 'javascript:void(0)' > "
+                            + record.no + "&nbsp;&nbsp;" + record.barcode + "&nbsp;&nbsp;" + record.location
+                            + "</a>"
+                            //+ "<a onclick ='expand(\"" + id + "\")' href = 'javascript:void(0)' >"
+                            + "<div style = 'padding-left:10px;color:#999999' onclick ='expand(\"" + id + "\")'>"
+                            //+"查看馆藏地或某个存储位置有哪些书，例如用户要查看一个智能书柜格子里目前有哪些图书，可以通过柜格编号（即当前位置）检索册记录。"
+                            + "<span  class='pending summary ' style='padding-bottom:0px'>"
                             + "<label>bs-" + record.barcode + "</label>"
                             + "<img src='../img/loading.gif' />"
                             + "<span>" + libId + "</span>"
                             + "</span>"
-                            +"</div>"
+                            + "</div>"
+                            //+"</a>"
+
+                            /*
+                            + "<table width='100%' >"
+                            + "<tr><td style='width:" + noWidth + ";min-width:18px'>" + record.no + "</td>"
+                            + "<td style = 'padding-right:10px'><div id='" + id + "-name' style='width:100%;' >" + record.barcode + "&nbsp;&nbsp;" + record.location + "</div></td></tr > "
+                            + "<tr><td >&nbsp;</td><td style='color:#aaaaaa'>"
+                            //+ record.recPath
+
+                            + "</td></tr>"
+                            + "</table>"
+                            */
+                            
+
+                            + "<div class='mui-collapse-content' style='display:none;padding-top: 0px;'>"
+                            
+
 
                             + itemhtml
 
@@ -471,6 +490,7 @@
                             //+ "</table>"
                             //+ "</div>"
                             //+ "</div>"
+                            +"</div>"
                             + "</li>";
                             
                         //var li = "<li class='mui-table-view-cell mui-collapse' id='" + id + "'> "
@@ -533,6 +553,9 @@
                         expand(expandId);
                     }
 
+                    // 填充
+                    fillPending();
+
                 }, function (xhq, textStatus, errorThrown) {
 
                     // 关闭等待层
@@ -576,7 +599,8 @@
                 // 记住展开项
                 $("#expandId").val(expId);
 
-                fillPending();
+                // 填充
+                //fillPending();
 
                 /*
                 //alert("走进0");

@@ -235,16 +235,20 @@ function getDetail(libId, recPath, obj, from,biblioName) {
         var worker = $("#_worker").text();
 
 
-        
+        //alert("getDetail 5");
+
 
         // 循环显示每一册
         for (var i = 0; i < result.itemList.length; i++) {
             var record = result.itemList[i];
 
-            // 2022/10/21 采用统一的函数
-            itemTables += getItemHtml(record);
+            //alert("getDetail 6。1");
 
-           
+            // 2022/10/21 采用统一的函数
+            itemTables += getItemHtml(libId,record);
+
+            //alert("getDetail 6");
+
             //var titleClass = "title";
 
             ////alert("disable="+record.disable);
@@ -384,6 +388,8 @@ function getDetail(libId, recPath, obj, from,biblioName) {
             ////
             //itemTables += "</table>"
             //+ "</div>";
+
+            //alert("2");
         }
 
 
@@ -401,6 +407,7 @@ function getDetail(libId, recPath, obj, from,biblioName) {
             }
         }
 
+        //alert("3");
         // 册信息
         myHtml += itemTables
 
@@ -419,7 +426,7 @@ function getDetail(libId, recPath, obj, from,biblioName) {
 }
 
 // 拼册的html
-function getItemHtml(record) {
+function getItemHtml(libId,record) {
 
     //alert("3");
 
@@ -560,7 +567,7 @@ function getItemHtml(record) {
         itemTables += "<tr>"
             + "<td class='label' colspan='2'>"
             //+ "<button  class='mui-btn' onclick='gotoEditItem(\"" + recPath + "\",\"" + biblioName + "\")'>编辑</button>"
-            + "<button  class='mui-btn' onclick='deleteItem(\"" + worker + "\",\"" + libId + "\",\"" + recPath + "\",\"" + record.recPath + "\",\"" + tempBarcode + "\")'>删除册</button>"
+            + "<button  class='mui-btn' onclick='deleteItem(\"" + worker + "\",\"" + libId + "\",\"" + record.biblioPath + "\",\"" + record.recPath + "\",\"" + tempBarcode + "\")'>删除册</button>"
             + "</td > "
             + "</tr>";
     }

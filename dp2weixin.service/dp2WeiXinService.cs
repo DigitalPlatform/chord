@@ -1349,10 +1349,13 @@ namespace dp2weixin.service
         // 获取简编字段规则
         public string GetFieldsMap(string libId, string libraryCode,out string  biblioDbName)
         {
-            string fieldsMap = @"ISBN|010$a
+            /*
+ISBN|010$a
 题名|200$a
 第一作者|200$f
-个人主要作者|701$a";
+个人主要作者|701$a
+             */
+            string fieldsMap ="";
 
             biblioDbName = "";
 
@@ -7085,6 +7088,13 @@ ErrorInfo成员里可能会有报错信息。
                     string xml = result.Records[i].Data;
                     string path = result.Records[i].RecPath;
 
+
+                    // 需要获取一下书目库路径,要不没法删除 todo
+                    /*
+                     *  <itemdbgroup>
+        <database name="中文图书实体" biblioDbName="中文图书" syntax="unimarc" orderDbName="中文图书订购" commentDbName="中文图书评注" inCirculation="true" role="orderRecommendStore,catalogTarget" />
+                     */
+
                     // 解析item xml
                     BiblioItem record = this.ParseItemXml(weixinId,loginInfo, lib, xml, true);
                     record.recPath = path;
@@ -8629,14 +8639,18 @@ ErrorInfo成员里可能会有报错信息。
                 return -1;
             }
 
-            int nIndex = biblioPath.IndexOf("/");
             string parent = "";
-            if (nIndex > 0)
-                parent = biblioPath.Substring(nIndex + 1);
-            if (parent == "")
+
+            if (action != "delete")
             {
-                strError = "未得到书目id。";
-                return -1;
+                int nIndex = biblioPath.IndexOf("/");
+                if (nIndex > 0)
+                    parent = biblioPath.Substring(nIndex + 1);
+                if (parent == "")
+                {
+                    strError = "未得到书目id。";
+                    return -1;
+                }
             }
 
             string itemXml = "";
@@ -8732,9 +8746,11 @@ ErrorInfo成员里可能会有报错信息。
                 entities);
             try
             {
+                string connName = C_ConnPrefix_Myself + libId;   //"<myself>:";
+
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this._dp2MServerUrl,
-                    "").Result;
+                    connName).Result;//2022/10/25 改为weixin_client
 
                 SetInfoResult result = connection.SetInfoTaskAsync(
                     lib.capoUserName,
@@ -9114,6 +9130,7 @@ ErrorInfo成员里可能会有报错信息。
 
                 string xml = recordList[i].Data;//result.Records[i].Data;
                 BiblioItem item = ParseItemXml(weixinId, loginInfo, lib, xml, containReservationInfo);
+                item.biblioPath=biblioPath;
                 item.recPath = this.GetPurePath(recordList[i].RecPath);
 
 

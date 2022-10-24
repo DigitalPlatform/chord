@@ -125,6 +125,10 @@ namespace dp2weixin.service
 
         public string recPath { get; set; }
 
+        //2022/10/25 增加一个书目路径，方便前端使用
+        public string biblioPath { get; set; }
+
+
 
         public bool isGray = false;
         public bool isNotCareLoc = false;

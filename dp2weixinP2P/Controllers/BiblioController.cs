@@ -106,6 +106,14 @@ namespace dp2weixinWeb.Controllers
             string fieldMap = dp2WeiXinService.Instance.GetFieldsMap(sessionInfo.ActiveUser.libId,
                 sessionInfo.ActiveUser.bindLibraryCode,
                 out biblioDbName);
+            if (string.IsNullOrEmpty(fieldMap) == true)
+            {
+                if (string.IsNullOrEmpty(biblioDbName) == true)
+                {
+                    ViewBag.Error = "尚未配置简单编目的字段，请联系管理员。";
+                    return View();
+                }
+            }
 
             string btnName = "保存";
             string timestamp = "";
