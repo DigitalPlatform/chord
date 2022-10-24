@@ -241,145 +241,149 @@ function getDetail(libId, recPath, obj, from,biblioName) {
         for (var i = 0; i < result.itemList.length; i++) {
             var record = result.itemList[i];
 
-            var titleClass = "title";
+            // 2022/10/21 采用统一的函数
+            itemTables += getItemHtml(record);
 
-            //alert("disable="+record.disable);
+           
+            //var titleClass = "title";
 
-            var addStyle = "";  /*删除线*/
-            if (record.disable ==true)
-            {
-                addStyle = "style='color:#cccccc;text-decoration:line-through;'";  /*发灰，删除线*/
-            }
+            ////alert("disable="+record.disable);
 
-            if (record.isGray == true) {
-                addStyle = "style='color:#cccccc;'";  /*发灰，删除线*/
-            }
+            //var addStyle = "";  /*删除线*/
+            //if (record.disable ==true)
+            //{
+            //    addStyle = "style='color:#cccccc;text-decoration:line-through;'";  /*发灰，删除线*/
+            //}
+
+            //if (record.isGray == true) {
+            //    addStyle = "style='color:#cccccc;'";  /*发灰，删除线*/
+            //}
 
 
-            var tempBarcode = record.barcode;
-            if (tempBarcode.indexOf("@refID:") != -1)
-            {
-                //alert(tempBarcode+"前");
-                tempBarcode = tempBarcode.replace("@refID:", "refID-");
-                //alert(tempBarcode + "后");
+            //var tempBarcode = record.barcode;
+            //if (tempBarcode.indexOf("@refID:") != -1)
+            //{
+            //    //alert(tempBarcode+"前");
+            //    tempBarcode = tempBarcode.replace("@refID:", "refID-");
+            //    //alert(tempBarcode + "后");
 
-                titleClass = "titleGray";
-            }
+            //    titleClass = "titleGray";
+            //}
 
-            itemTables += "<div class='mui-card item' id='_item_" + tempBarcode + "'>"
-            //+ "<div class='"+titleClass+"'>" + record.barcode + "</div>"
-             + "<table>"
-            + "<tr>";
+            //itemTables += "<div class='mui-card item' id='_item_" + tempBarcode + "'>"
+            ////+ "<div class='"+titleClass+"'>" + record.barcode + "</div>"
+            // + "<table>"
+            //+ "<tr>";
 
-            // 有图片才显示
-            if (record.imgHtml != null && record.imgHtml != "") {
-                itemTables += "<td class='label'></td>"
-                + "<td class='value'>" + record.imgHtml + "</td>"
-                + "</tr>";
-            }
+            //// 有图片才显示
+            //if (record.imgHtml != null && record.imgHtml != "") {
+            //    itemTables += "<td class='label'></td>"
+            //    + "<td class='value'>" + record.imgHtml + "</td>"
+            //    + "</tr>";
+            //}
 
-            // 册条码
-                itemTables += "<tr>"
-                + "<td class='label'>册条码</td>"
-                + "<td class='value' " + addStyle + ">" + record.pureBarcode + "</td>"  //record.barcode
-                + "</tr>";
+            //// 册条码
+            //    itemTables += "<tr>"
+            //    + "<td class='label'>册条码</td>"
+            //    + "<td class='value' " + addStyle + ">" + record.pureBarcode + "</td>"  //record.barcode
+            //    + "</tr>";
 
-            if (record.state != null && record.state != "") {
-                itemTables += "<tr>"
-                + "<td class='label'>状态</td>"
-                + "<td class='value'  " + addStyle + ">" + record.state + "</td>"
-                + "</tr>";
-            }
+            //if (record.state != null && record.state != "") {
+            //    itemTables += "<tr>"
+            //    + "<td class='label'>状态</td>"
+            //    + "<td class='value'  " + addStyle + ">" + record.state + "</td>"
+            //    + "</tr>";
+            //}
 
-            if (record.volume != null && record.volume != "") {
-                itemTables += "<tr>"
-                + "<td class='label'>卷册</td>"
-                + "<td class='value' " + addStyle + ">" + record.volume + "</td>"
-                + "</tr>";
-            }
+            //if (record.volume != null && record.volume != "") {
+            //    itemTables += "<tr>"
+            //    + "<td class='label'>卷册</td>"
+            //    + "<td class='value' " + addStyle + ">" + record.volume + "</td>"
+            //    + "</tr>";
+            //}
 
-            var locationStyle = "title";
-            if (record.currentLocation != null && record.currentLocation != "") {
-                locationStyle = "value";
-            }
+            //var locationStyle = "title";
+            //if (record.currentLocation != null && record.currentLocation != "") {
+            //    locationStyle = "value";
+            //}
 
-            itemTables += "<tr>"
-                + "<td class='label'>馆藏地</td>"
-                + "<td class='" + locationStyle + "' " + addStyle + ">" + record.location + "</td>"
-                + "</tr>";
+            //itemTables += "<tr>"
+            //    + "<td class='label'>馆藏地</td>"
+            //    + "<td class='" + locationStyle + "' " + addStyle + ">" + record.location + "</td>"
+            //    + "</tr>";
 
-            // 2021/4/6 增加架号
-            if (record.shelfNo != null && record.shelfNo != "") {
-                itemTables += "<tr>"
-                    + "<td class='label'>架号</td>"
-                    + "<td class='value' " + addStyle + ">" + record.shelfNo + "</td>"
-                    + "</tr>";
-            }
+            //// 2021/4/6 增加架号
+            //if (record.shelfNo != null && record.shelfNo != "") {
+            //    itemTables += "<tr>"
+            //        + "<td class='label'>架号</td>"
+            //        + "<td class='value' " + addStyle + ">" + record.shelfNo + "</td>"
+            //        + "</tr>";
+            //}
 
-            itemTables +=  "<tr>"
-            + "<td class='label'>当前位置</td>"
-            + "<td class='title' " + addStyle + ">" + record.currentLocation + "</td>"
-            + "</tr>"
-            + "<tr>"
-            + "<td class='label'>索取号</td>"
-            + "<td class='title' " + addStyle + ">" + record.accessNo + "</td>"
-            + "</tr>"
-            + "<tr>"
-            + "<td class='label'>价格</td>"
-            + "<td class='value' " + addStyle + ">" + record.price + "</td>"
-            + "</tr>";
+            //itemTables +=  "<tr>"
+            //+ "<td class='label'>当前位置</td>"
+            //+ "<td class='title' " + addStyle + ">" + record.currentLocation + "</td>"
+            //+ "</tr>"
+            //+ "<tr>"
+            //+ "<td class='label'>索取号</td>"
+            //+ "<td class='title' " + addStyle + ">" + record.accessNo + "</td>"
+            //+ "</tr>"
+            //+ "<tr>"
+            //+ "<td class='label'>价格</td>"
+            //+ "<td class='value' " + addStyle + ">" + record.price + "</td>"
+            //+ "</tr>";
 
 
             
-            // 成员册 不显示在借情况
-            if (record.borrowInfo != null && record.borrowInfo != "") {
-                itemTables += "<tr>"
-                + "<td class='label'>在借情况</td>"
-                + "<td class='value' " + addStyle + ">" + record.borrowInfo + "</td>"
-                + "</tr>";
-            }
+            //// 成员册 不显示在借情况
+            //if (record.borrowInfo != null && record.borrowInfo != "") {
+            //    itemTables += "<tr>"
+            //    + "<td class='label'>在借情况</td>"
+            //    + "<td class='value' " + addStyle + ">" + record.borrowInfo + "</td>"
+            //    + "</tr>";
+            //}
 
-            // 成员册 不显示预约信息
-            if (record.reservationInfo != null && record.reservationInfo != "") {
-                itemTables += "<tr>"
-                + "<td class='label'>预约信息</td>"
-                + "<td class='value' " + addStyle + ">" + record.reservationInfo + "</td>"
-                + "</tr>";
-            }
+            //// 成员册 不显示预约信息
+            //if (record.reservationInfo != null && record.reservationInfo != "") {
+            //    itemTables += "<tr>"
+            //    + "<td class='label'>预约信息</td>"
+            //    + "<td class='value' " + addStyle + ">" + record.reservationInfo + "</td>"
+            //    + "</tr>";
+            //}
 
-            itemTables += "<tr>"
-            + "<td class='label'>参考ID</td>"
-            + "<td class='titleGray' " + addStyle + ">" + record.refID + "</td>"
-            + "</tr>";
+            //itemTables += "<tr>"
+            //+ "<td class='label'>参考ID</td>"
+            //+ "<td class='titleGray' " + addStyle + ">" + record.refID + "</td>"
+            //+ "</tr>";
 
 
-            //从属于，
-            if (record.parentInfo != null && record.parentInfo != "") {
-                itemTables += "<tr>"
-                    + "<td class='label'>从属于</td>"
-                    + "<td class='value' " + addStyle + ">" + record.parentInfo + "</td>"
-                    + "</tr>";
+            ////从属于，
+            //if (record.parentInfo != null && record.parentInfo != "") {
+            //    itemTables += "<tr>"
+            //        + "<td class='label'>从属于</td>"
+            //        + "<td class='value' " + addStyle + ">" + record.parentInfo + "</td>"
+            //        + "</tr>";
 
-                //当一个期刊册被做了合订的册，则不允许再编辑和删除
-            }
-            else {
+            //    //当一个期刊册被做了合订的册，则不允许再编辑和删除
+            //}
+            //else {
 
-                // 如果当前是工作人员帐户，则显示编辑和删除按钮
+            //    // 如果当前是工作人员帐户，则显示编辑和删除按钮
 
-                if (worker != null && worker != "") {
+            //    if (worker != null && worker != "") {
 
-                    itemTables += "<tr>"
-                        + "<td class='label' colspan='2'>"
-                        //+ "<button  class='mui-btn' onclick='gotoEditItem(\"" + recPath + "\",\"" + biblioName + "\")'>编辑</button>"
-                        + "<button  class='mui-btn' onclick='deleteItem(\"" + worker + "\",\"" + libId + "\",\"" + recPath + "\",\"" + record.recPath + "\",\"" + tempBarcode + "\")'>删除册</button>"
-                        +"</td > "
-                        + "</tr>";
-                }
-            }
+            //        itemTables += "<tr>"
+            //            + "<td class='label' colspan='2'>"
+            //            //+ "<button  class='mui-btn' onclick='gotoEditItem(\"" + recPath + "\",\"" + biblioName + "\")'>编辑</button>"
+            //            + "<button  class='mui-btn' onclick='deleteItem(\"" + worker + "\",\"" + libId + "\",\"" + recPath + "\",\"" + record.recPath + "\",\"" + tempBarcode + "\")'>删除册</button>"
+            //            +"</td > "
+            //            + "</tr>";
+            //    }
+            //}
 
-            //
-            itemTables += "</table>"
-            + "</div>";
+            ////
+            //itemTables += "</table>"
+            //+ "</div>";
         }
 
 
@@ -412,6 +416,161 @@ function getDetail(libId, recPath, obj, from,biblioName) {
     });
 
     //return "";
+}
+
+// 拼册的html
+function getItemHtml(record) {
+
+    //alert("3");
+
+    var itemTables = "";
+
+    // 工作人员帐号
+    var worker = $("#_worker").text();
+    
+    var titleClass = "title";
+
+    // 附件样式
+    var addStyle = "";
+
+    //发灰，删除线
+    if (record.disable == true) {
+        addStyle = "style='color:#cccccc;text-decoration:line-through;'"; 
+    }
+
+    // 发灰
+    if (record.isGray == true) {
+        addStyle = "style='color:#cccccc;'";  
+    }
+
+    // 没有册条码，使用参考ID的情况，反来没用到这种情况
+    var tempBarcode = record.barcode;
+    if (tempBarcode.indexOf("@refID:") != -1) {
+        //alert(tempBarcode+"前");
+        tempBarcode = tempBarcode.replace("@refID:", "refID-");
+        //alert(tempBarcode + "后");
+        titleClass = "titleGray";
+    }
+
+    // 表格头
+     itemTables += "<div class='mui-card item' id='_item_" + tempBarcode + "'>"
+        //+ "<div class='"+titleClass+"'>" + record.barcode + "</div>"
+        + "<table>"
+        + "<tr>";
+
+
+    // 有图片才显示
+    if (record.imgHtml != null && record.imgHtml != "") {
+        itemTables += "<td class='label'></td>"
+            + "<td class='value'>" + record.imgHtml + "</td>"
+            + "</tr>";
+    }
+
+    // 册条码
+    itemTables += "<tr>"
+        + "<td class='label'>册条码</td>"
+        + "<td class='value' " + addStyle + ">" + record.pureBarcode + "</td>"  //record.barcode
+        + "</tr>";
+
+    // 状态
+    if (record.state != null && record.state != "") {
+        itemTables += "<tr>"
+            + "<td class='label'>状态</td>"
+            + "<td class='value'  " + addStyle + ">" + record.state + "</td>"
+            + "</tr>";
+    }
+
+    // 卷册
+    if (record.volume != null && record.volume != "") {
+        itemTables += "<tr>"
+            + "<td class='label'>卷册</td>"
+            + "<td class='value' " + addStyle + ">" + record.volume + "</td>"
+            + "</tr>";
+    }
+
+    // 馆藏地
+    var locationStyle = "title";
+    if (record.currentLocation != null && record.currentLocation != "") {
+        locationStyle = "value";
+    }
+    itemTables += "<tr>"
+        + "<td class='label'>馆藏地</td>"
+        + "<td class='" + locationStyle + "' " + addStyle + ">" + record.location + "</td>"
+        + "</tr>";
+
+    // 2021/4/6 增加架号
+    if (record.shelfNo != null && record.shelfNo != "") {
+        itemTables += "<tr>"
+            + "<td class='label'>架号</td>"
+            + "<td class='value' " + addStyle + ">" + record.shelfNo + "</td>"
+            + "</tr>";
+    }
+
+    // 当前位置、索取号、价格
+    itemTables += "<tr>"
+        + "<td class='label'>当前位置</td>"
+        + "<td class='title' " + addStyle + ">" + record.currentLocation + "</td>"
+        + "</tr>"
+        + "<tr>"
+        + "<td class='label'>索取号</td>"
+        + "<td class='title' " + addStyle + ">" + record.accessNo + "</td>"
+        + "</tr>"
+        + "<tr>"
+        + "<td class='label'>价格</td>"
+        + "<td class='value' " + addStyle + ">" + record.price + "</td>"
+        + "</tr>";
+
+
+
+    // 成员册 不显示在借情况
+    if (record.borrowInfo != null && record.borrowInfo != "") {
+        itemTables += "<tr>"
+            + "<td class='label'>在借情况</td>"
+            + "<td class='value' " + addStyle + ">" + record.borrowInfo + "</td>"
+            + "</tr>";
+    }
+
+    // 成员册 不显示预约信息
+    if (record.reservationInfo != null && record.reservationInfo != "") {
+        itemTables += "<tr>"
+            + "<td class='label'>预约信息</td>"
+            + "<td class='value' " + addStyle + ">" + record.reservationInfo + "</td>"
+            + "</tr>";
+    }
+
+    itemTables += "<tr>"
+        + "<td class='label'>参考ID</td>"
+        + "<td class='titleGray' " + addStyle + ">" + record.refID + "</td>"
+        + "</tr>";
+
+
+    //从属于，
+    if (record.parentInfo != null && record.parentInfo != "") {
+        itemTables += "<tr>"
+            + "<td class='label'>从属于</td>"
+            + "<td class='value' " + addStyle + ">" + record.parentInfo + "</td>"
+            + "</tr>";
+
+        //当一个期刊册被做了合订的册，则不允许再编辑和删除
+    }
+
+    // 如果当前是工作人员帐户，则显示编辑和删除按钮
+    if (worker != null && worker != "") {
+
+        itemTables += "<tr>"
+            + "<td class='label' colspan='2'>"
+            //+ "<button  class='mui-btn' onclick='gotoEditItem(\"" + recPath + "\",\"" + biblioName + "\")'>编辑</button>"
+            + "<button  class='mui-btn' onclick='deleteItem(\"" + worker + "\",\"" + libId + "\",\"" + recPath + "\",\"" + record.recPath + "\",\"" + tempBarcode + "\")'>删除册</button>"
+            + "</td > "
+            + "</tr>";
+    }
+
+    // table收尾
+    itemTables += "</table>"
+        + "</div>";
+
+    return itemTables;
+    
 }
 
 //删除书目

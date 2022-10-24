@@ -12,6 +12,63 @@ namespace dp2weixinWeb.Controllers
 {
     public class BiblioController : BaseController
     {
+        // 册查询界面
+        public ActionResult SearchItem(string code, string state)
+        {
+            // 登录检查
+            string strError = "";
+            int nRet = 0;
+
+            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
+            // -1 出错
+            // 0 成功
+            nRet = this.GetSessionInfo(code, state,
+                out SessionInfo sessionInfo,
+                out strError);
+            if (nRet == -1)
+            {
+                ViewBag.Error = strError;
+                return View();
+            }
+
+            // 当前帐号不存在，尚未选择图书馆
+            if (sessionInfo.ActiveUser == null)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Biblio/SearchItem");// ("书目查询", "/Biblio/Index?a=1", lib.libName);
+                return View();
+            }
+
+            // 不允许外部访问，转到绑定帐号界面
+            if (sessionInfo.CurrentLib.Entity.noShareBiblio == 1)
+            {
+                List<WxUserItem> users = WxUserDatabase.Current.Get(sessionInfo.WeixinId, sessionInfo.CurrentLib.Entity.id, -1);
+                if (users.Count == 0)
+                {
+                    ViewBag.RedirectInfo = dp2WeiXinService.GetLinkHtml("册查询", "/Biblio/SearchItem", sessionInfo.CurrentLib.Entity.libName);
+                    return View();
+                }
+            }
+
+            //// 为啥要给ViewBag设置证条码号？ 2020-2-7
+            // 主要是一些预约和续借的功能，需要用到证条码号
+            ViewBag.PatronBarcode = sessionInfo.ActiveUser.readerBarcode;
+
+            //// 检索匹配方式
+            //string match = sessionInfo.CurrentLib.Entity.match;
+            //if (String.IsNullOrEmpty(match) == true)
+            //    match = "left";
+            //ViewBag.Match = match;
+
+            if (sessionInfo.ActiveUser != null
+                && sessionInfo.ActiveUser.type == WxUserDatabase.C_Type_Worker
+                && sessionInfo.ActiveUser.userName != WxUserDatabase.C_Public)
+            {
+                ViewBag.Worker = sessionInfo.ActiveUser.userName;
+            }
+
+            return View();
+        }
+
         // 简编界面
         public ActionResult BiblioEdit(string code, string state, string biblioPath)
         {

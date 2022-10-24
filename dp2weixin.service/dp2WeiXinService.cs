@@ -7089,6 +7089,8 @@ ErrorInfo成员里可能会有报错信息。
                     BiblioItem record = this.ParseItemXml(weixinId,loginInfo, lib, xml, true);
                     record.recPath = path;
                     records.Add(record);
+                    record.no = (i + start + 1).ToString();//todo 注意下一页的时候
+
                 }
 
                 // 检查是否有下页

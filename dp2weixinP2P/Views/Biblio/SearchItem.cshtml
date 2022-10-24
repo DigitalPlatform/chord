@@ -1,0 +1,700 @@
+﻿@section style {
+    <link href="@Url.Content("~/Content/biblio.css?a=7")" rel="stylesheet">
+}
+@section Scripts {
+    <script>
+
+
+//===========================
+        //关于微信扫码
+        function callbackFunction() {
+            //alert("1");
+            if (wx != null) {
+                //alert("走进wx");
+
+                //alert('@ViewData["AppId"]');
+                wx.config({
+                    debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+                    appId: '@ViewData["AppId"]', // 必填，公众号的唯一标识
+                    timestamp: '@ViewData["Timestamp"]', // 必填，生成签名的时间戳
+                    nonceStr: '@ViewData["NonceStr"]', // 必填，生成签名的随机串
+                    signature: '@ViewData["Signature"]',// 必填，签名
+                    jsApiList: [
+                        "checkJsApi",
+                        'onMenuShareTimeline',
+                        'onMenuShareAppMessage',
+                        'onMenuShareQQ',
+                        'onMenuShareWeibo',
+                        'hideMenuItems',
+                        'showMenuItems',
+                        'hideAllNonBaseMenuItem',
+                        'showAllNonBaseMenuItem',
+                        'translateVoice',
+                        'startRecord',
+                        'stopRecord',
+                        'onRecordEnd',
+                        'playVoice',
+                        'pauseVoice',
+                        'stopVoice',
+                        'uploadVoice',
+                        'downloadVoice',
+                        'chooseImage',
+                        'previewImage',
+                        'uploadImage',
+                        'downloadImage',
+                        'getNetworkType',
+                        'openLocation',
+                        'getLocation',
+                        'hideOptionMenu',
+                        'showOptionMenu',
+                        'closeWindow',
+                        'scanQRCode',
+                        'chooseWXPay',
+                        'openProductSpecificView',
+                        'addCard',
+                        'chooseCard',
+                        'openCard'
+                    ] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2。详见：http://mp.weixin.qq.com/wiki/7/aaa137b55fb2e0456bf8dd9148dd613f.html
+                });
+
+                wx.error(function (res) {
+                    //alert('JSSDK config信息验证失败：' + JSON.stringify(res));
+                    jssdkReady = -1;
+                });
+
+                wx.ready(function () {
+                    jssdkReady = 1;
+                });
+            }
+        }
+
+        // 加载微信扫
+        function loadJs(sid, jsurl, callback) {
+            var nodeHead = document.getElementsByTagName('head')[0];
+
+            //alert("0-1");
+            var nodeScript = null;
+            if (document.getElementById(sid) == null) {
+                nodeScript = document.createElement('script');
+                nodeScript.setAttribute('type', 'text/javascript');
+                nodeScript.setAttribute('src', jsurl);
+                nodeScript.setAttribute('id', sid);
+
+                //alert("0-2");
+
+                if (callback != null) {
+                    nodeScript.onload = nodeScript.onreadystatechange = function () {
+
+                        //alert("0-3");
+
+                        if (nodeScript.ready) {
+
+                            //alert("0-4");
+
+                            return false;
+                        }
+                        if (!nodeScript.readyState || nodeScript.readyState == "loaded" || nodeScript.readyState == 'complete') {
+                            //alert("0-5");
+
+                            nodeScript.ready = true;
+                            callback();
+                        }
+                    };
+                }
+                nodeHead.appendChild(nodeScript);
+
+                //alert("0-6");
+
+            } else {
+                if (callback != null) {
+
+                    //alert("0-7");
+
+                    callback();
+                }
+            }
+                }
+
+        // 扫ISBN号
+        function scanIsbn(bSimple) {
+            //alert("begin");
+
+            if (jssdkReady == -1) {
+                alert('JSSDK config信息验证失败，不能使用扫码功能。');
+                return;
+            }
+            else if (jssdkReady == 0) {
+                alert('JSSDK config未初始化完成，请稍候再试。');
+                return;
+            }
+
+            try {
+                wx.scanQRCode({
+                    needResult: 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
+                    scanType: ["qrCode", "barCode"], // 可以指定扫二维码还是一维码，默认二者都有
+                    success: function (res) {
+
+                        var code = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
+
+
+                        //alert("得到的isbn=" + isbn);
+                        var left = "";
+                        var barcode = code;  //注意这里是barcode
+                        if (code.indexOf(",") != -1) {
+                            left = code.substring(0, code.indexOf(","))//EAN_13
+                            barcode = code.substring(code.indexOf(",") + 1)
+                    }
+
+                        //if (left != "EAN_13" || isbn == "") {
+                        //    alert("抱歉，您扫描的不是合法的ISBN条码。\n扫描返回字符串为[" + code + "]，");
+                        //    return;
+                        //}
+
+                        //alert("扫到的isbn=" + isbn);
+
+                        if (barcode != null && barcode != "") {
+
+                            $("#selFrom").val("册条码");
+                            $("#txtWord").val(barcode);
+
+                            window.setTimeout("search('')", 1);
+
+                        }
+                    },
+                    fail: function (res) {
+                        alert("error:" + JSON.stringify(res));
+                        return "";
+                    }
+                });
+            }
+            catch (err) {
+                alert("扫码出错：" + err);
+            }
+            //alert("end");
+        }
+
+
+        //浏览器加载并处理了文档的所有HTML元素之后才会执行。
+        $(document).ready(function () {
+
+            // 2021/8/2调试态显示当前操作帐号
+            setOpeAccount("");
+
+            // 如果是web来源，才加载JSSDK
+            if (browser.versions.weixin == true) {
+                //alert("动态加载JSSDK...");
+                var myUrl = getRootPath() + "/Scripts/jweixin-1.0.0.js";
+                loadJs("yy", myUrl, callbackFunction);
+            }
+
+            // 打回车检索
+            $('#txtWord').bind('keypress', function (event) {
+                //alert("test");
+                if (event.keyCode == "13") {
+                    // 要先给观察模型赋值一下,鼠标没离开输入框时，观察者模型还没有值
+                    search('');
+                }
+            });
+
+
+            // 设顶部菜单不固定。todo 2022/10/21没明白？？？
+            $("#myheader").css("position", "absolute");
+
+            // 卷滚加载下一页
+            $(window).scroll(function () {
+
+                if ($("#more") != null && $("#more").offset() != null) {
+
+                    // 如果状态是不显示，则不处理。
+                    var show = $('#more').css('display');
+                    if (show == "none")
+                        return;
+
+                    // more节点的偏离top和高度。
+                    var itemOffsetTop = $("#more").offset().top;
+                    var itemOuterHeight = $("#more").outerHeight(true);
+
+                    // windows的高度和卷滚top偏移量
+                    var winHeight = $(window).height();
+                    var winScrollTop = $(window).scrollTop();
+
+
+                    // 如果more节点的top偏移量大于win的top，且小于win的top+height
+                    if (itemOffsetTop >= winScrollTop
+                        && itemOffsetTop < (winScrollTop + winHeight))
+                    {
+                        //alert("more在可视范围");
+                        if ($("#more").hasClass("nextdisabled") == true) {
+                            //alert("未加载完，不能继续加载");
+                            return;
+                        }
+
+                        // 获取下一页
+                        searchN();
+                    }
+
+                }
+            })
+
+
+            // 重新检索 todo
+            // redoSearch();
+        });
+
+        // 重新检索
+        function redoSearch() {
+            //alert("redoSearch1");
+
+            // 当按浏览器返回按钮时，要显示原来的数据
+            var word = $('#txtWord').val();
+
+            //resultSet 如果为空，服务器生成一个
+            var resultSet = $("#resultSet").val();
+            //alert("2resultSet=[" + resultSet + "]");
+
+            //alert("word=["+word+"]");
+            if (word != null && word != ""
+                && resultSet != null && resultSet != "") {
+                //alert("maxNo=" + $("#maxNo").val());
+                var expandId = $('#expandId').val();
+                search("_ReView", expandId);
+                ///alert("redoSearch3");
+            }
+        }
+
+        //必须要换一个名称，被下一页使用，直接用search("true")不行
+        function searchN() {
+            search("true");
+        }
+
+        // 检索
+        function search(bNext, expandId) {
+
+            //alert("search");
+
+            $("#more").css("display", "none");
+            $("#searchInfo").text("");
+
+            var from = "";
+            var word = "";
+            var match = "";
+
+            // 图书馆
+            var libId = getLibId();//$("#selLib").val();
+            if (libId == "" || libId == null) {
+                alert("您尚未选择图书馆。");
+                return;
+            }
+
+
+            if (bNext == 'true') {
+                //alert("下一页");
+                from = "_N";
+                word = $("#maxNo").val();
+
+                //alert("word=" + word);
+
+                //$("#more").css("color", "#cccccc");
+
+                // 不能再继续加载
+                $("#more").addClass("nextdisabled");
+                $("#more").css("display", "block");
+            }
+            else if (bNext == '_ReView') {
+                from = "_ReView";
+                word = $("#maxNo").val();
+            }
+            else {
+
+                // 检查是否选择的检索途径
+                from = $("#selFrom").val();
+                if (from == "") {
+                    alert("您尚未选择检索途径。");
+                    return;
+                }
+
+                // 检查检索词
+                word = $("#txtWord").val();
+                //if (word == "") {
+                //    alert("您尚未输入检索词。");
+                //    return;
+                //}
+                //alert("[" + from + "]-[" + word + "]");
+
+                match = $("#selMatch").val();
+                if (match == "") {
+                    alert("您尚未选择匹配方式。");
+                    return;
+                }
+                var table = $("#ulResult");//$('.mui-table-view');
+                table.html("");
+                //$("#searchInfo").text(""); //统一放在函数开头了
+
+            }
+
+            //resultSet 如果为空，服务器生成一个
+            var resultSet = $("#resultSet").val();
+            //alert("resultSet=[" + resultSet + "]");
+
+
+            var weixinId = $("#weixinId").text();
+            if (weixinId == null || weixinId == "") {
+                alert("weixinId参数为空");
+                return;
+            }
+
+            // 调检索接口
+            //显示等待图层
+            var index = -1;
+            if (bNext != 'true') {
+                //index= loadLayer();
+                //showMaskLayer();
+                showLoading();
+
+            }
+
+            // 登录帐户和类型
+            var loginUserName = getLoginUserName();
+            //alert(loginUserName);
+            var loginUserType = getLoginUserType();
+            //alert(loginUserType);
+
+            // 调书目Search web api
+            var url = "/api2/biblioapi/SearchItem?loginUserName=" + encodeURIComponent(loginUserName)
+                + "&loginUserType=" + encodeURIComponent(loginUserType)
+                + "&weixinId=" + encodeURIComponent(weixinId)
+                + "&libId=" + encodeURIComponent(libId)
+                + "&word=" + encodeURIComponent(word)
+                + "&from=" + encodeURIComponent(from)
+                + "&match=" + encodeURIComponent(match)
+                + "&resultSet=" + encodeURIComponent(resultSet);
+
+
+            //alert(url);
+            sendAjaxRequest(url, "GET",
+                function (result) {
+
+                    //alert("回来");
+
+                    // 关闭等待层
+                    //layer.close(index);
+                    //hideMaskLayer();
+                    hideLoading();
+
+                    var totalCount = 0;
+                    //alert("2");
+                    if (result.apiResult.errorCode == -1) {
+
+                        var errInfo = result.apiResult.errorInfo;
+                        if (errInfo != null && errInfo.indexOf("不对外公开") != -1)
+                        {
+                            var bindUrl = "/Account/Bind";
+                            gotoUrl(bindUrl);
+                            return;
+                        }
+
+                        $("#searchInfo").text("检索出错：" + result.apiResult.errorInfo);
+                        $("#searchInfo").css("color", "red");  //设置p元素的样式颜色为红色
+                    }
+                    else if (result.apiResult.errorCode == 0) {
+                        $("#searchInfo").text("未命中");
+                        $("#searchInfo").css("color", "red");  //设置p元素的样式颜色为红色
+                    }
+                    else {
+                        totalCount = result.apiResult.errorCode;
+                        $("#searchInfo").text("命中" + totalCount + "条记录。");
+                        $("#searchInfo").css("color", "darkgreen");  //设置p元素的样式颜色为红色
+                    }
+
+                    // 出错或未命中
+                    if (result.apiResult.errorCode == -1 || result.apiResult.errorCode == 0) {
+                        alert(result.apiResult.errorInfo);
+                        return;
+                    }
+
+                    //alert("1");
+
+                    var table = $("#ulResult");//$('.mui-table-view');
+                    var start = 0;
+                    if (bNext == 'true') {
+
+                        // 将起始值转成数值
+                        start = parseInt(word);
+
+                        
+                        //alert("start=" + start);
+                    }
+
+                    var noWidth = '18px';
+
+                    // 结果集名称
+                    $("#resultSet").val(result.resultSetName);
+                    //alert("返回的结果集名称[" + result.resultSetName + "]-[" + $("#resultSet").val()+"]");
+
+                    for (var i = 0; i < result.records.length; i++) {
+                        var record = result.records[i];
+                        var id = "record-" + (start + i);
+
+                        if (start + i >= 99)
+                            noWidth = "25px";
+
+                        var no = start + i + 1;
+
+                        //alert("1");
+                        // 调统一的函数显示册信息
+                        var itemhtml = getItemHtml(record);
+                        //alert("2");
+                        
+                        var li = "<li class='mui-table-view-cell mui-collapse ' id='" + id + "'>"
+                            + "<a class='mui-navigate-right' onclick ='expand(\"" + id + "\")' href = 'javascript:void(0)' > " + record.no + "&nbsp;&nbsp;" + record.barcode + "&nbsp;&nbsp;" + record.location + "</a>"
+                            + "<div class='mui-collapse-content' style='display:none;padding-top: 0px;'>"
+                            
+                            + "<div>"
+                            + "<span  class='pending summary ' style='padding-bottom:4px'>"
+                            + "<label>bs-" + record.barcode + "</label>"
+                            + "<img src='../img/loading.gif' />"
+                            + "<span>" + libId + "</span>"
+                            + "</span>"
+                            +"</div>"
+
+                            + itemhtml
+
+                            //+ "<div class='mui-card item'>"
+                            //+ "<table>"
+                            //+ " <tr><td class='label'>册条码</td><td class='title'>" + record.barcode + "</td></tr>"
+                            //+ "<tr><td class='label'>馆藏地</td><td class='title'>" + record.location+"</td></tr>"
+                            //+ "<tr><td class='label'>状态</td><td class='value'>"+record.state+"</td></tr>"
+                            //+ "<tr><td class='label'>卷册</td><td class='value'>" + record.volume+"</td></tr>"
+                            //+ "<tr><td class='label'>价格</td><td class='value'>" + record.price + "</td></tr>"
+                            //+ "<tr> <td class='label'>在借情况</td><td class='value'>" + record.borrowInfo + "</td></tr>"
+                            //+ "<tr><td class='label'>预约信息</td><td class='value'>" + record.reservationInfo+"</td></tr>"
+                            //+ "</table>"
+                            //+ "</div>"
+                            //+ "</div>"
+                            + "</li>";
+                            
+                        //var li = "<li class='mui-table-view-cell mui-collapse' id='" + id + "'> "
+                        //    + "<a class='mui-navigate-right'  href='javascript:void(0)' onclick='expand(\"" + id + "\")' style='padding-top:5px;padding-bottom:5px'>"
+                        //    + "<table width='100%' class='result-biblio'>"
+                        //    + "<tr><td style='width:" + noWidth + ";min-width:18px'>" + record.no + "</td><td style='padding-right:10px'><div id='"+id+"-name' style='width:100%; white-space:nowrap;overflow:hidden;text-overflow:ellipsis; ' >" + record.name + "</div></td></tr>"
+                        //    + "<tr><td >&nbsp;</td><td style='color:#cccccc'>" + record.recPath + "</td></tr>"
+                        //    + "</table>"
+                        //    + "</a>"
+                        //    + "<div class='mui-collapse-content' style='display:none;padding-top: 0px;'>"
+                        //    + "<div class='pendingDetail biblio' >"
+                        //    + "<label>" + record.recPath + "</label>"
+                        //    + "<img src='../img/wait2.gif' />"
+                        //    + "</div>"
+                        //    + "</div>"
+                        //    + "</li>";
+
+
+                        table.append(li);
+
+                        if (i == result.records.length - 1) {
+                            $("#maxNo").val(record.no);
+
+                        }
+                    }
+
+                    //<li class="mui-table-view-cell mui-collapse">
+                    //<a class="mui-navigate-right" href="#">表单</a>
+                    //<div class="mui-collapse-content">
+
+
+
+                    //有下页的情况
+                    if (result.isCanNext == true) {
+                        //alert("1");
+                        //var li1 = "<li class='mui-table-view-cell'  id='more'>"
+                        //    + "<center><a href='javascript:void(0)' onclick='searchN()'>点击加载更多</a></center>"
+                        //    + "</li>";
+                        //table.append(li1);
+                        $("#more").css("display", "block");
+                        //$("#more").css("color", "black");
+                        $("#more").removeClass("nextdisabled");
+
+                        var begin = start + result.records.length + 1;
+                        var end = begin + 9;
+                        if (totalCount < end)
+                            end = totalCount;
+
+                        var text = "正在加载..." + begin + "-" + end + "/" + totalCount;
+                        //alert(text);
+                        $("#moretext").text(text);
+                    }
+                    else {
+                        $("#more").css("display", "none");
+
+                    }
+
+                    // 打开需要展开的项
+                    if (expandId != null && expandId != "") {
+                        expand(expandId);
+                    }
+
+                }, function (xhq, textStatus, errorThrown) {
+
+                    // 关闭等待层
+                    //layer.close(index);
+                    //hideMaskLayer();
+                    hideLoading();
+
+                    alert("异常：" + errorThrown);
+
+                });
+        }
+
+
+        // expId 需要展开的节点的id
+        // 2016-6-17 为了返回时记住展开项，expand函数由原来传一个对象，改为传一个id
+        function expand(expId) {
+            //根据id找到<li>元素
+            var id = "#" + expId;
+            var obj = $(id);
+
+            // 书名
+            var nameId = "#" + expId + "-name";
+            var biblioName = $(nameId).text();
+            //alert(biblioName);
+
+            // 如果自己是展开状态，则收缩
+            var state = $(obj).find(".mui-collapse-content").first().css("display");
+            if (state == "block") { //自己本来是展开状态，要关闭
+                $(obj).find(".mui-collapse-content").css("display", "none");
+                $(obj).removeClass("mui-active");
+            }
+            else {
+                //其它收缩
+                //$(".mui-collapse-content").css("display", "none");
+                //$(".mui-collapse").removeClass("mui-active");
+
+                //自己展开
+                $(obj).find(".mui-collapse-content").css("display", "block");
+                $(obj).addClass("mui-active");
+
+                // 记住展开项
+                $("#expandId").val(expId);
+
+                fillPending();
+
+                /*
+                //alert("走进0");
+                //检查是否已经加载过了
+                var o = $(obj).find(".pendingDetail:first");
+                if (o.length == 0) {
+                    return;
+                }
+                else  // 未装载详细信息的情况，调接口获取详细信息
+                {
+                    //alert("走进1");
+
+                    var recPath = o.children("label").text();
+                    //alert(recPath);
+                    if (recPath != null && recPath != "") {
+
+                        //alert("走进2");
+
+                        // 图书馆
+                        var libId = getLibId();
+                        var myhtml = getDetail(libId, recPath, o, "index",biblioName);
+
+                        // 去掉css
+                        o.removeClass("pendingDetail");
+                    }
+                }
+                */
+            }
+        }
+
+
+    </script>
+}
+
+
+@section header {
+    <h1 class="mui-title">册查询</h1>
+}
+<span id="weixinId" style="display:none;">@ViewBag.weixinId</span>
+<span id="patronBarcode" style="display:none">@ViewBag.PatronBarcode</span>
+<span id="_match" style="display:none">@ViewBag.Match</span>
+<!--当前是馆员帐户，出现册登记按钮-->
+<span id="_worker" style="display:none">@ViewBag.Worker</span>
+<!--<span id="test" style="display:block"></span>-->
+<!--关于结果集-->
+<input id="maxNo" type="hidden">
+<input id="resultSet" type="hidden" value="" disabled="disabled">
+<input id="expandId" type="hidden" value="" disabled="disabled">
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span id="error" class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
+    </div>
+}
+else
+{
+
+    if (ViewBag.RedirectInfo != null && ViewBag.RedirectInfo != "")
+    {
+        @Html.Raw(ViewBag.RedirectInfo);
+    }
+    else
+    {
+        <div id="divAdvance" class="search" style="display:block">
+            <table class="advance">
+                <tr>
+                    <td class="label">检索词<img src='../img/barcode.png' onclick="scanIsbn(false)" /></td>
+                    <td>
+                        <input id="txtWord" type="text" class="mui-input mui-input-clear" placeholder="请输入 检索词">
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">检索途径</td>
+                    <td>
+                        <div style="border:1px solid #cccccc">
+                            <select id="selFrom" name="selFrom">
+                                <option value="册条码" selected>册条码</option>
+                                <option value="批次号">批次号</option>
+                                <option value="索取号">索取号</option>
+                                <option value="馆藏地点">馆藏地点</option>
+                                <option value="状态">状态</option>
+                                <option value="当前位置">当前位置</option>
+                            </select>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">匹配方式</td>
+                    <td>
+                        <div style="border:1px solid #cccccc">
+                            <!--left/middle/right/exact-->
+                            <select id="selMatch">
+                                <option value="left" selected>前方一致</option>
+                                <option value="middle">中间一致</option>
+                                <option value="right">后方一致</option>
+                                <option value="exact">精确一致</option>
+                            </select>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <button id='login' class="mui-btn mui-btn-block mui-btn-primary" onclick="search('')">检索</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div id="divResult">
+            <!--数据列表-->
+            <span style="padding-left:10px;" id="searchInfo"></span>
+            <ul id="ulResult" class="mui-table-view "></ul>
+            <div id='more' style="display:none;color:black">
+                <center><a href='javascript:void(0)' onclick='searchN()'><img src='../img/loading.gif' />&nbsp;<span id="moretext">加载中...</span></a></center>
+            </div>
+        </div>
+
+    }
+}
