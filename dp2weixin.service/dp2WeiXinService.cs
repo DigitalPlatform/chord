@@ -243,6 +243,106 @@ namespace dp2weixin.service
 
             return 1;
         }
+        List<biblioDbGroup> _dbs = null;
+
+        public string GetBiblioDbName(LibEntity lib, string type, string name)
+        {
+            biblioDbGroup db = this.GetDb(lib, type, name);
+            if (db != null)
+                return db.biblioDbName;
+
+
+            return "";
+        }
+        public biblioDbGroup GetDb(LibEntity lib,string type, string name)
+        {
+            string strError = "";
+
+            if (this._dbs == null)
+            {
+                int nRet = this.GetDbs(lib, out strError);
+                if (nRet == -1)
+                    return null;
+            }
+
+            if (this._dbs == null || this._dbs.Count == 0)
+                return null;
+
+            foreach(biblioDbGroup one  in this._dbs)
+            {
+                if (type == "item" && one.itemDbName == name)
+                { 
+                        return one;
+                }
+
+                if (type == "biblio" && one.biblioDbName == name)
+                {
+                    return one;
+                }
+            }
+
+            return null;
+        }
+
+        // 获取系统中的所有数据库
+        public int GetDbs(LibEntity lib,out string strError)
+        {
+                strError = "";
+            List<string> dataList = null;
+            // 获取书目库
+            int nRet = this.GetSystemParameter(lib,
+                "system",
+                "biblioDbGroup",
+                out dataList,
+                out strError);
+            if (nRet == -1 || nRet == 0)
+            {
+                return -1;
+            }
+
+            //<database biblioDbName="中文图书" syntax="unimarc"
+            // orderDbName="中文图书订购" commentDbName="中文图书评注"
+            // inCirculation="true" role="catalogWork" itemDbName="中文图书实体"  issueDbName="中文期刊期" >
+            string xml = dataList[0];
+            xml = "<root>" + xml + "</root>";
+            XmlDocument dom = new XmlDocument();
+            dom.LoadXml(xml);
+            XmlNodeList list = dom.DocumentElement.SelectNodes("database");
+            this._dbs = new List<biblioDbGroup>();
+            foreach (XmlNode node in list)
+            {
+
+                biblioDbGroup one = new biblioDbGroup();
+                one.biblioDbName = DomUtil.GetAttr(node, "biblioDbName");
+                one.itemDbName = DomUtil.GetAttr(node, "itemDbName");
+                one.orderDbName = DomUtil.GetAttr(node, "orderDbName");
+                one.commentDbName = DomUtil.GetAttr(node, "commentDbName");
+                one.issueDbName = DomUtil.GetAttr(node, "issueDbName");
+                one.syntax = DomUtil.GetAttr(node, "syntax");
+                one.inCirculation = DomUtil.GetAttr(node, "inCirculation");
+                one.role = DomUtil.GetAttr(node, "role");
+                this._dbs.Add(one);
+            }
+
+            return 0;
+        }
+
+        public class biblioDbGroup
+        {
+            //<database biblioDbName="中文图书" syntax="unimarc"
+            // orderDbName="中文图书订购" commentDbName="中文图书评注"
+            // inCirculation="true" role="catalogWork" itemDbName="中文图书实体"  issueDbName="中文期刊期" >
+            public string biblioDbName { get; set; }
+
+            public string itemDbName { get; set; }
+            public string orderDbName { get; set; }
+            public string commentDbName { get; set; }
+            public string issueDbName { get; set; }
+            public string syntax { get; set; }
+
+            public string inCirculation { get; set; }
+            public string role { get; set; }
+        }
 
         public int GetSystemParameter(LibEntity lib,
             string catgory,
@@ -6216,7 +6316,7 @@ ErrorInfo成员里可能会有报错信息。
             // 针对读者帐户，如果绑定时选择的图书馆 与 自己所属的分馆不一致，则不允许绑定
             if (type == C_TYPE_READER && bindLibraryCode != libraryCode)
             {
-                strError = "您的帐户没有 " + thislibName + " 的权限 libraryCode=[" + libraryCode + "] bindLibraryCode=[" + bindLibraryCode + "]";
+                strError = "您的帐户没有 " + thislibName + " 的权限,本帐户的libraryCode=[" + libraryCode + "]，准备绑定的图书馆馆代码libraryCode=[" + bindLibraryCode + "]";
                 return -1;
             }
 
@@ -7087,6 +7187,16 @@ ErrorInfo成员里可能会有报错信息。
                 {
                     string xml = result.Records[i].Data;
                     string path = result.Records[i].RecPath;
+                    path=this.GetPurePath(path);
+
+                    string itemDbName = "";
+                    int nIndex = path.IndexOf("/");
+                    if (nIndex > 0)
+                        itemDbName = path.Substring(0, nIndex);
+
+                    string biblioDbName =this.GetBiblioDbName(lib, "item", itemDbName);
+
+                    //GetDb
 
 
                     // 需要获取一下书目库路径,要不没法删除 todo
@@ -7098,6 +7208,7 @@ ErrorInfo成员里可能会有报错信息。
                     // 解析item xml
                     BiblioItem record = this.ParseItemXml(weixinId,loginInfo, lib, xml, true);
                     record.recPath = path;
+                    record.biblioPath = biblioDbName + "/" + record.parent;
                     records.Add(record);
                     record.no = (i + start + 1).ToString();//todo 注意下一页的时候
 
@@ -9228,6 +9339,10 @@ ErrorInfo成员里可能会有报错信息。
             dom.LoadXml(itemXml);
 
 
+            // parent
+            string parent = DomUtil.GetElementText(dom.DocumentElement, "parent");
+            item.parent = parent;
+
             // refID
             string strRefID = DomUtil.GetElementText(dom.DocumentElement, "refID");
             item.refID = strRefID;
@@ -9293,6 +9408,20 @@ ErrorInfo成员里可能会有报错信息。
                         // 馆员身份，灰色显示
                         item.isGray = true;
                     }
+                }
+            }
+
+            // 2022/10/25 分馆帐户，针对非自己馆的册，发灰显示
+            if (string.IsNullOrEmpty(activeUser.libraryCode) ==false)
+            {
+                string tempLibCode = "";
+                int index1 = item.location.IndexOf("/");
+                if (index1 > 0)
+                    tempLibCode = item.location.Substring(0, index1);
+                if (activeUser.libraryCode != tempLibCode)
+                {
+                    item.isGray = true;
+                    item.location += "(非本馆-不可操作)";
                 }
             }
 

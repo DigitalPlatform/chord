@@ -245,7 +245,7 @@ function getDetail(libId, recPath, obj, from,biblioName) {
             //alert("getDetail 6。1");
 
             // 2022/10/21 采用统一的函数
-            itemTables += getItemHtml(libId,record);
+            itemTables += getItemHtml(libId,record,true); //只有书目详情这里才显示删除册。册检索的命中列表不显示删除册。
 
             //alert("getDetail 6");
 
@@ -426,7 +426,7 @@ function getDetail(libId, recPath, obj, from,biblioName) {
 }
 
 // 拼册的html
-function getItemHtml(libId,record) {
+function getItemHtml(libId,record,showDeleteButton) {
 
     //alert("3");
 
@@ -545,10 +545,7 @@ function getItemHtml(libId,record) {
             + "</tr>";
     }
 
-    itemTables += "<tr>"
-        + "<td class='label'>参考ID</td>"
-        + "<td class='titleGray' " + addStyle + ">" + record.refID + "</td>"
-        + "</tr>";
+
 
 
     //从属于，
@@ -561,8 +558,18 @@ function getItemHtml(libId,record) {
         //当一个期刊册被做了合订的册，则不允许再编辑和删除
     }
 
+    itemTables += "<tr>"
+        + "<td class='label'>参考ID</td>"
+        + "<td class='titleGray' " + addStyle + ">" + record.refID + "</td>"
+        + "</tr>";
+
+    itemTables += "<tr>"
+        + "<td class='label'>册路径</td>"
+        + "<td class='titleGray' " + addStyle + ">" + record.recPath + "</td>"
+        + "</tr>";
+
     // 如果当前是工作人员帐户，则显示编辑和删除按钮
-    if (worker != null && worker != "") {
+    if (worker != null && worker != "" && showDeleteButton==true) {
 
         itemTables += "<tr>"
             + "<td class='label' colspan='2'>"

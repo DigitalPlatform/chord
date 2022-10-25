@@ -82,6 +82,8 @@ namespace dp2weixin.service
         //序号
         public string no = "";
 
+        public string parent = "";//2022/10/25加，用于拼书目路径
+
         public string barcode { get; set; }//这个barcode值：如果有册条码号为册条码，没有值为@refID:
         public string pureBarcode { get; set; }//册条码号
 
