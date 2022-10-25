@@ -379,6 +379,7 @@
     <Content Include="Views\Biblio\BiblioEdit.cshtml" />
     <Content Include="Views\UI\SearchItemUI.cshtml" />
     <Content Include="Views\Biblio\SearchItem.cshtml" />
+    <Content Include="Views\UI\header.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
