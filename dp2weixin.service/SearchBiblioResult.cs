@@ -149,6 +149,8 @@ namespace dp2weixin.service
         //一般是为"new" "change" "delete" "onlydeletebiblio" "onlydeletesubrecord"之一
         public string Action { get; set; }
 
+        public string Header { get; set; }
+
         // 字段组合字符串，格式如下：
         /*
             ISBN|010$a|978-7-101-10528-5

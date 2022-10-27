@@ -115,6 +115,9 @@ namespace dp2weixinWeb.Controllers
                 }
             }
 
+            // 得到一个缺少值的头标区
+            string strHeader = MarcHeaderHelper.GetMarcHeaderText();
+
             string btnName = "保存";
             string timestamp = "";
 
@@ -162,6 +165,11 @@ namespace dp2weixinWeb.Controllers
 
                 // 从marc中取出字段的值
                 MarcRecord marcRecord = MarcHelper.MarcXml2MarcRecord(oldbiblioXml, out string outMarcSyntax, out strError);
+
+                // 头标区
+                strHeader= marcRecord.Header.ToString();
+                
+                // 从marc中抽取字段
                 fieldMap=MarcHelper.GetFields(marcRecord, fieldMap);
 
                 // 时间戳
@@ -190,6 +198,25 @@ namespace dp2weixinWeb.Controllers
                 @ViewData["marcField"] = "解析marc字段配置规则出错：" + ex.Message;
                 return View();
             }
+
+            string headerHtml = MarcHeaderHelper.GetHeaderHtml(strHeader);
+
+            // 加头标区
+           // html += @"<div'>"
+           //    + "<label  style='color:#cccccc'>头标区</label>"
+           //    +headerHtml
+           //    //+ "<input id='" + id + "' type='text' class='_field mui-input mui-input-clear' value='" + field.Value + "'>"
+           //+ "</div>";
+
+            html += @"<table style='width:100%;border-bottom:1px solid #eeeeee;'>
+            <tr>
+                <td style='width:100px;padding-left:15px;padding-top:10px;vertical-align:top'>
+                            <label style='color:#cccccc;'>头标区</label>
+                </td>
+                <td>" + headerHtml+@"</td>
+            </tr>
+        </table>";
+
             // 字段
             foreach (FieldItem field in fieldList)
             {
@@ -453,7 +480,7 @@ namespace dp2weixinWeb.Controllers
                     string sel = "";
                     if (currentBookType == temp || list.Length == 1) //2020/10/10 如果只有一项，则默认选中 
                         sel = " selected ";
-                    html += "<option value='" + one + "' " + sel + ">" + one + "</option>";
+                    html += "<option value='" + temp + "' " + sel + ">" + one + "</option>";  //2022/10/27 改：value里放的是不带括号的
                 }
             }
             html = "<select id='selBookType' name='selBookType' class='selArrowRight'>"

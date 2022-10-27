@@ -302,6 +302,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="LocationService.cs" />
+    <Compile Include="MarcHeaderHelper.cs" />
     <Compile Include="Models\BookEditModel.cs" />
     <Compile Include="Models\LibInfoModel.cs" />
     <Compile Include="Models\LoginModel.cs" />

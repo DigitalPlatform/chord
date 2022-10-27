@@ -8778,6 +8778,14 @@ ErrorInfo成员里可能会有报错信息。
             //2020-3-17统一用action来判断，原来的bMergeInfo好像没有用了
             if (action == C_Action_new)
             {
+                // 2022/10/27 先暂时不启用这段代码，前端传的就是去掉分馆前缀的值
+                //string bookT = item.bookType;
+                //int nIndex = item.bookType.IndexOf("}");
+                //if (nIndex != -1)
+                //{
+                //    bookT = item.bookType.Substring(nIndex + 1).Trim();
+                //}
+
                 itemXml = "<root>"
                     + "<parent>" + parent + "</parent>"
                        + "<barcode>" + item.barcode + "</barcode>"
@@ -8951,12 +8959,15 @@ ErrorInfo成员里可能会有报错信息。
             string biblioXml = "";  //书目xml
             if (biblio.Action == C_Action_new)
             {
-                // marc工作单格式  todo 新增需要什么的初始化
-                string strMarc = @"?????nam0 22?????   45__
-100  ǂa20071012d2007    ekmy0chiy1050    ea
-1010 ǂachi
-102  ǂaCNǂb110000";
-                
+                //头标区
+                string strMarc = biblio.Header;  
+
+//                // marc工作单格式  todo 新增需要什么的初始化
+//                string strMarc = @"?????nam0 22?????   45__
+//100  ǂa20071012d2007    ekmy0chiy1050    ea
+//1010 ǂachi
+//102  ǂaCNǂb110000";
+
                 // 工作单到MarcRecord对象，方便用MarcQuery处理。
                 MarcRecord temp = MarcRecord.FromWorksheet(strMarc); 
 
@@ -8989,9 +9000,15 @@ ErrorInfo成员里可能会有报错信息。
 
                 // xml转成MarcRecord对象
                 MarcRecord temp =MarcHelper.MarcXml2MarcRecord(oldbiblioXml, out string outMarcSyntax, out strError);
-                
+
+
+                // 设置头标区
+                temp.Header[0, 24] = biblio.Header;
+
                 // 根据接口传入的字段组合字符串设置marc对应的字段
                 MarcRecord record = MarcHelper.SetFields(temp, biblio.Fields);
+
+                // 将marc转成xml
                  nRet = MarcUtil.Marc2Xml(record.Text,
                     "unimarc",
                     out biblioXml,

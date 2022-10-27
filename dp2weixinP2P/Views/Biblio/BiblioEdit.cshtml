@@ -17,6 +17,10 @@
         // 保存书目
         function saveBiblio() {
 
+            var headerV = getHeaderValue();
+            //alert("[" + headerV + "]");
+            //return;
+
             // 图书馆
             var libId = getLibId();//$("#selLib").val();
             if (libId == "" || libId == null) {
@@ -165,13 +169,71 @@
                 {
                     BiblioPath: biblioPath,
                     Action: biblioAction,
+                    Header: headerV,
                     Fields: field,
                     Timestamp: biblioTimestamp
                 }
             );
         }
 
+        // 展开头标区
+        function expandHeader(expId) {
 
+            //根据id找到元素
+            var id = "#" + expId;
+            var obj = $(id);
+
+
+
+            // 取元素下级的样式为mui-collapse-content的元素
+            var state = $(obj).find(".mui-collapse-content").first().css("display");
+
+            // 如果自己是展开状态，则收缩
+            if (state == "block") {
+
+                //alert("1");
+                //自己本来是展开状态，则收缩
+                $(obj).find(".mui-collapse-content").css("display", "none");
+                //$(obj).removeClass("mui-active");
+                $('#btn-header').text("展开");
+            }
+            else {
+               // alert("2");
+                //自己本是关闭状态，则展开
+                $(obj).find(".mui-collapse-content").css("display", "block");
+                //$(obj).addClass("mui-active");
+                $('#btn-header').text("收缩");
+            }
+        }
+
+        // 获取值
+        function getHeaderValue() {
+
+            //?????nam0 22?????   45__
+
+            // 字段id的命名 与 位置长度一致，省脑细胞。
+            var h0L5 = $("#h0L5").val().padEnd(5, "?").substring(0, 5);
+            //alert("h0Len5=[" + h0Len5 + "]");
+
+            var h5L1 = $("#h5L1").val().padEnd(1, " ").substring(0, 1);
+            var h6L1 = $("#h6L1").val().padEnd(1, " ").substring(0, 1);
+            var h7L1 = $("#h7L1").val().padEnd(1, " ").substring(0, 1);
+            var h8L1 = $("#h8L1").val().padEnd(1, " ").substring(0, 1);
+            var h9L1 = $("#h9L1").val().padEnd(1, " ").substring(0, 1);
+            var h10L1 = $("#h10L1").val().padEnd(1, " ").substring(0, 1);
+            var h11L1 = $("#h11L1").val().padEnd(1, " ").substring(0, 1);
+
+            var h12L5 = $("#h12L5").val().padEnd(5, "?").substring(0, 5);
+            var h17L1 = $("#h17L1").val().padEnd(1, " ").substring(0, 1);
+            var h18L1 = $("#h18L1").val().padEnd(1, " ").substring(0, 1);
+            var h19L1 = $("#h19L1").val().padEnd(1, " ").substring(0, 1);
+            var h20L4 = $("#h20L4").val().padEnd(4, " ").substring(0, 4);
+
+            var headerContent = h0L5 + h5L1 + h6L1 + h7L1 + h8L1 + h9L1 + h10L1 + h11L1
+                + h12L5 + h17L1 + h18L1 + h19L1 + h20L4;
+
+            return headerContent;
+        }
 
     </script>
 }
@@ -188,6 +250,39 @@
         .page {
             background-color: lightyellow;
         }
+
+        /*头标区*/
+        DIV.marcheader {
+            margin: 5px 0px 0px;
+            padding: 2px;
+            font-size: 10px;
+        }
+            /*一条一条的栏位*/
+            DIV.marcheader TABLE {
+                text-align: left;
+                background-color: white;
+                width: 100%;
+                margin-top: 0px;
+            }
+
+            DIV.marcheader .myinput {
+                text-align: left;
+                height: 30px;
+                padding: 0px;
+                margin: 1px;
+                font-size: 10px;
+                border: 1px solid gray
+            }
+
+            DIV.marcheader .label {
+                width: 180px;
+                /*max-width: 190px;*/
+                /* min-width: 190px;*/
+                background-color: #ffffff;
+                color: #999999;
+                padding-right: 2px;
+                text-align: right;
+            }
     </style>
 }
 
@@ -220,8 +315,6 @@ else
     }
     else
     {
-
-
 
         <div>@Html.Raw(ViewData["marcField"])</div>
     }

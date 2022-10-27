@@ -3,18 +3,12 @@
 }
 @section style {
     <style type="text/css">
-
-
-
-        /*整个册块*/
-        DIV.marcheader {
-            margin: 5px 0px 0px;
-            padding: 2px;
-            font-size: 10px;
-        }
-
-           
-
+            /*头标区*/
+            DIV.marcheader {
+                margin: 5px 0px 0px;
+                padding: 2px;
+                font-size: 10px;
+            }
             /*一条一条的栏位*/
             DIV.marcheader TABLE {
                 text-align: left;
@@ -23,36 +17,22 @@
                 margin-top: 0px;
             }
 
-        /*marcheader td*/
-                DIV.item TABLE TR TD {
-                    border-width: 0px;
-                    /*border-top-width: 1px;*/
-                    border-color: #dddddd;
-                    border-style: dotted;
-                    padding: 1px;
-                    vertical-align: top;
-                }
+            DIV.marcheader .myinput {
+                text-align: left;
+                height: 30px;
+                padding: 0px;
+                margin: 1px
+            }
 
-     
-
-        DIV.marcheader .myinput {
-            text-align: left;
-            height: 30px;
-            padding: 0px;
-            margin: 0px
-        }
-
-
-        DIV.marcheader .label {
-            width: 190px;
-            max-width: 190px;
-            min-width: 190px;
-            background-color: #ffffff;
-            color: #999999;
-            padding-right: 2px;
-            text-align: right;
-        }
-
+            DIV.marcheader .label {
+                width: 190px;
+                max-width: 190px;
+                min-width: 190px;
+                background-color: #ffffff;
+                color: #999999;
+                padding-right: 2px;
+                text-align: right;
+            }
     </style>
 }
 
@@ -60,41 +40,62 @@
     <script>
 
 
-        //浏览器加载并处理了文档的所有HTML元素之后才会执行。
-        $(document).ready(function () {
+        // 展开头标区
+        function expandHeader(expId) {
 
-
-        });
-
-        // 2016-6-17 jane 为了返回时记住展开项，expand函数由原来传一个对象，改为传一个id
-        function expand(expId) {
-            //根据id找到<li>元素
+            //根据id找到元素
             var id = "#" + expId;
             var obj = $(id);
 
+            // 取元素下级的样式为mui-collapse-content的元素
+            var state = $(obj).find(".mui-collapse-content").first().css("display");
 
             // 如果自己是展开状态，则收缩
-            var state = $(obj).find(".mui-collapse-content").first().css("display");
-            if (state == "block") { //自己本来是展开状态，要关闭
+            if (state == "block") {
+
+                //自己本来是展开状态，则收缩
                 $(obj).find(".mui-collapse-content").css("display", "none");
                 $(obj).removeClass("mui-active");
-                // alert("1");
-
-                $('#btn-header').text("展开头标区");
+                $('#btn-header').text("展开");
             }
             else {
 
-                //自己展开
+                //自己本是关闭状态，则展开
                 $(obj).find(".mui-collapse-content").css("display", "block");
                 $(obj).addClass("mui-active");
-
-                //alert("2");
-
-                $('#btn-header').text("收缩头标区");
+                $('#btn-header').text("收缩");
             }
-
         }
 
+        // 获取值
+        function getHeaderValue() {
+
+            //?????nam0 22?????   45__
+
+            // 字段id的命名 与 位置长度一致，省脑细胞。
+            var h0L5 = $("#h0L5").val().padEnd(5, "?").substring(0, 5);
+            //alert("h0Len5=[" + h0Len5 + "]");
+
+            var h5L1 = $("#h5L1").val().padEnd(1, " ").substring(0, 1);
+            var h6L1 = $("#h6L1").val().padEnd(1, " ").substring(0, 1);
+            var h7L1 = $("#h7L1").val().padEnd(1, " ").substring(0, 1);
+            var h8L1 = $("#h8L1").val().padEnd(1, " ").substring(0, 1);
+            var h9L1 = $("#h9L1").val().padEnd(1, " ").substring(0, 1);
+            var h10L1 = $("#h10L1").val().padEnd(1, " ").substring(0, 1);
+            var h11L1 = $("#h11L1").val().padEnd(1, " ").substring(0, 1);
+
+            var h12L5 = $("#h12L5").val().padEnd(5, "?").substring(0, 5);
+            var h17L1 = $("#h17L1").val().padEnd(1, " ").substring(0, 1);
+            var h18L1 = $("#h18L1").val().padEnd(1, " ").substring(0, 1);
+            var h19L1 = $("#h19L1").val().padEnd(1, " ").substring(0, 1);
+            var h20L4 = $("#h20L4").val().padEnd(4, " ").substring(0, 4);
+
+            var headerContent = h0L5 + h5L1 + h6L1 + h7L1 + h8L1 + h9L1 + h10L1 + h11L1
+                + h12L5 + h17L1 + h18L1 + h19L1 + h20L4;
+
+            alert("[" + headerContent + "]");
+            $("#result").text(headerContent);
+        }
 
     </script>
 }
@@ -121,27 +122,33 @@
 地址目次项结构 20/4
 -->
 
-<div id="rec0">
-    <button id='btn-header' onclick="expand('rec0')" class="" style="border:1px dotted gray;margin-right:2px;height:40px;">展开头标区</button>
+<div>@Html.Raw(ViewData["marcheader"])</div>
 
-    <div class='mui-collapse-content' style='display:none;padding-top: 1px;'>
-        <div class="marcheader">
-            <table>
-                <tr><td class="label">记录长度 0/5</td><td><input id='h0-5' type="text" class="myinput" style="width:100px;"  value='1'/></td></tr>
-                <tr><td class="label">记录状态 5/1</td><td><input id='h5-1' type="text" class="myinput"  style="width:20px" /></td></tr>
-                <tr><td class="label">执行代码:记录类型 6/1</td><td><input id='h6-1' type="text" class="myinput" style="width:20px" /></td></tr>
-                <tr><td class="label">执行代码:书目级别 7/1</td><td><input id='h6-1' type="text" class="myinput" style="width:20px" /></td></tr>
-                <tr><td class="label">执行代码:层次等级 8/1</td><td><input id='h6-1' type="text" class="myinput" style="width:20px" /></td></tr>
-                <tr> <td class="label">执行代码:未定义 9/1</td><td><input id='h6-1' type="text" class="myinput" style="width:20px" /></td></tr>
-                <tr><td class="label">指示符长度: 10/1</td><td><input id='h6-1' type="text" class="myinput" style="width:20px" /></td></tr>
 
-                <tr><td class="label">子字段标识符长度: 11/1</td><td ></td></tr>
-                <tr><td class="label">数据基地址: 12/5</td><td><input id='h6-1' type="text" class="myinput" style="width:20px" /></td></tr>
-                <tr><td class="label">记录附加定义:编目等级 17/1</td><td><input id='h6-1' type="text" class="myinput" style="width:20px" /></td></tr>
-                <tr><td class="label">记录附加定义:著录格式 18/1</td><td><input id='h6-1' type="text" class="myinput" style="width:20px" /></td></tr>
-                <tr><td class="label">记录附加定义:未定义 19/1</td><td><input id='h6-1' type="text" class="myinput" style="width:20px" /></td></tr>
-                <tr><td class="label">地址目次项结构 20/4</td><td><input id='h6-1' type="text" class="myinput" style="width:20px" /></td></tr>
-            </table>
-        </div>
+<button onclick="getHeaderValue()">获取值</button>
+<div id="result"/>
+
+<hr />
+
+
+
+<div id='header0'>
+    <button id='btn-header' onclick="expand('header0')">展开</button>
+    <div class='mui-collapse-content marcheader' style='display:none'>
+        <table>
+            <tr><td class='label'>记录长度 0/5</td><td><input id='h0-5' type='text' class='myinput' style='width:100px;' value='1' /></td></tr>
+            <tr><td class='label'>记录状态 5/1</td><td><input id='h5-1' type='text' class='myinput' style='width:20px' /></td></tr>
+            <tr><td class='label'>执行代码:记录类型 6/1</td><td><input id='h6-1' type='text' class='myinput' style='width:20px' /></td></tr>
+            <tr><td class='label'>执行代码:书目级别 7/1</td><td><input id='h6-1' type='text' class='myinput' style='width:20px' /></td></tr>
+            <tr><td class='label'>执行代码:层次等级 8/1</td><td><input id='h6-1' type='text' class='myinput' style='width:20px' /></td></tr>
+            <tr> <td class='label'>执行代码:未定义 9/1</td><td><input id='h6-1' type='text' class='myinput' style='width:20px' /></td></tr>
+            <tr><td class='label'>指示符长度: 10/1</td><td><input id='h6-1' type='text' class='myinput' style='width:20px' /></td></tr>
+            <tr><td class='label'>子字段标识符长度: 11/1</td><td></td></tr>
+            <tr><td class='label'>数据基地址: 12/5</td><td><input id='h6-1' type='text' class='myinput' style='width:20px' /></td></tr>
+            <tr><td class='label'>记录附加定义:编目等级 17/1</td><td><input id='h6-1' type='text' class='myinput' style='width:20px' /></td></tr>
+            <tr><td class='label'>记录附加定义:著录格式 18/1</td><td><input id='h6-1' type='text' class='myinput' style='width:20px' /></td></tr>
+            <tr><td class='label'>记录附加定义:未定义 19/1</td><td><input id='h6-1' type='text' class='myinput' style='width:20px' /></td></tr>
+            <tr><td class='label'>地址目次项结构 20/4</td><td><input id='h6-1' type='text' class='myinput' style='width:20px' /></td></tr>
+        </table>
     </div>
 </div>
