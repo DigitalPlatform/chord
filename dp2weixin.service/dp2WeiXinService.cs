@@ -7019,6 +7019,15 @@ ErrorInfo成员里可能会有报错信息。
                     filter = biblioFilter;
                 }
 
+                //2022/10/27 获取的结果集按id倒序排序。
+                //因为点对点的接口包括了获取结果集，所以一开始就要把排序规则传上。
+                string formatList = "id,cols,sort:-0";  
+                //if (strWord == "getResult")
+                //{
+                //    formatList += ",sort:-0";
+                //}
+
+
                 CancellationToken cancel_token = new CancellationToken();
                 string id = Guid.NewGuid().ToString();
                 SearchRequest request = new SearchRequest(id,
@@ -7029,11 +7038,11 @@ ErrorInfo成员里可能会有报错信息。
                     strFrom,
                     match,
                     resultSet,
-                    "id,cols",
+                    formatList,//"id,cols",
                     filter,//libraryCode,//filter 20170509
                     WeiXinConst.C_Search_MaxCount,  //最大数量 // 20190506 todo这个参数要传进来，如果不传表示用默认设置
                     start,  //每次获取范围
-                    count);
+                    count) ;
 
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this._dp2MServerUrl,
