@@ -149,7 +149,8 @@ namespace dp2weixin.service
         //一般是为"new" "change" "delete" "onlydeletebiblio" "onlydeletesubrecord"之一
         public string Action { get; set; }
 
-        public string Header { get; set; }
+        // 2022/10/31 不单独处理，与可编辑字段一起处理，在配置项里
+        //public string Header { get; set; }
 
         // 字段组合字符串，格式如下：
         /*

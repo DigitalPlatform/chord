@@ -92,6 +92,9 @@ namespace dp2weixin.service
         public string _libCfgFile = "";
         public AreaManager _areaMgr = null;
 
+        // 定长字段配置
+        public MarcFixedFieldManager _marcFixedFieldMgr = null;
+
         // dp2服务器地址与代理账号
         public string _dp2MServerUrl = "";
         public string _userNameWeixin = "";
@@ -649,6 +652,12 @@ namespace dp2weixin.service
             if (nRet == -1)
                 throw new Exception(strError);
 
+            // 把配置的定制字段文件装载到内存结构，用于简编功能
+            string fixedFieldFile = this._weiXinDataDir + "\\" + "MarcFixedFieldDef.xml";
+            this._marcFixedFieldMgr = new MarcFixedFieldManager();
+            nRet = _marcFixedFieldMgr.init(fixedFieldFile, out strError);
+            if (nRet == -1)
+                throw new Exception(strError);
 
             // 初始化接口类
             nRet = this.InitialExternalMessageInterfaces(dom, out strError);
@@ -8969,7 +8978,7 @@ ErrorInfo成员里可能会有报错信息。
             if (biblio.Action == C_Action_new)
             {
                 //头标区
-                string strMarc = biblio.Header;  
+                string strMarc = "";//biblio.Header;  
 
 //                // marc工作单格式  todo 新增需要什么的初始化
 //                string strMarc = @"?????nam0 22?????   45__
@@ -9010,9 +9019,9 @@ ErrorInfo成员里可能会有报错信息。
                 // xml转成MarcRecord对象
                 MarcRecord temp =MarcHelper.MarcXml2MarcRecord(oldbiblioXml, out string outMarcSyntax, out strError);
 
-
+                // 2022/10/31统一在fields里做了
                 // 设置头标区
-                temp.Header[0, 24] = biblio.Header;
+                //temp.Header[0, 24] = biblio.Header;
 
                 // 根据接口传入的字段组合字符串设置marc对应的字段
                 MarcRecord record = MarcHelper.SetFields(temp, biblio.Fields);

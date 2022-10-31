@@ -164,9 +164,9 @@ namespace dp2weixinWeb.Controllers
         public ActionResult header()
         {
 
-            string strheader = MarcHeaderHelper.GetMarcHeaderText();
+            string strheader = MarcHeaderHelper1.GetMarcHeaderText();
 
-            string headerHtml = MarcHeaderHelper.GetHeaderHtml(strheader);
+            string headerHtml = MarcHeaderHelper1.GetHeaderHtml(strheader);
             ViewData["marcheader"] = headerHtml;
 
             return View();

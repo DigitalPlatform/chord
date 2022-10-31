@@ -25,7 +25,7 @@ namespace common
                 {
                     info += "\r\n";
                 }
-                info += field.Dump();
+                info += field.dump();
             }
             return info;
         }
@@ -36,9 +36,24 @@ namespace common
             //MarcRecord record = MarcRecord.FromWorksheet(strMarcWorksheet); //new MarcRecord(strMarc);
             foreach (FieldItem field in fieldList)
             {
-                // 设置字段的值
-                string value = record.select("field[@name='" + field.Field + "']/subfield[@name='" + field.Subfield + "']").FirstContent;
-                field.Value = value;
+                if (field.name == "###")
+                {
+                    field.value = record.Header.ToString();
+                    continue;
+                }
+
+                if (string.IsNullOrEmpty(field.subfield) == false)
+                {
+                    // 设置字段的值
+                    string value = record.select("field[@name='" + field.field + "']/subfield[@name='" + field.subfield + "']").FirstContent;
+                    field.value = value;
+                }
+                else
+                {
+                    // 设置字段的值
+                    string value = record.select("field[@name='" + field.field + "']").FirstContent;
+                    field.value = value;
+                }
             }
         }
 
@@ -51,19 +66,51 @@ namespace common
             //MarcRecord record = MarcRecord.FromWorksheet(strMarcWorksheet); //new MarcRecord(strMarc);
             foreach (FieldItem field in list)
             {
-                MarcNodeList fields = record.select("field[@name='" + field.Field + "']");
-                if (fields.count > 0)
+                if (field.name == "###")
                 {
-                    MarcNodeList subfields = fields[0].select("subfield[@name='" + field.Subfield + "']");
-                    if (subfields.count > 0)
-                        subfields[0].Content = field.Value;  //只更改第一个子字段
-                    else
-                        fields[0].ChildNodes.insertSequence(new MarcSubfield(field.Subfield, field.Value)); //不存在时，新增一个子字段
-
+                    //头标区
+                    record.Header[0, 24] = field.value;//.Header;
+                    //record.Header = field.value;
+                    continue;
                 }
-                else
-                    record.ChildNodes.insertSequence(new MarcField('$', field.Field + "  $" + field.Subfield + field.Value));
+
+                // 子字段的情况
+                if (string.IsNullOrEmpty(field.subfield) == false)
+                {
+                    MarcNodeList fields = record.select("field[@name='" + field.field + "']");
+                    if (fields.count > 0)
+                    {
+                        MarcNodeList subfields = fields[0].select("subfield[@name='" + field.subfield + "']");
+                        if (subfields.count > 0)
+                            subfields[0].Content = field.value;  //只更改第一个子字段
+                        else
+                            fields[0].ChildNodes.insertSequence(new MarcSubfield(field.subfield, field.value)); //不存在时，新增一个子字段
+
+                    }
+                    else
+                        record.ChildNodes.insertSequence(new MarcField('$', field.field + "  $" + field.subfield + field.value));
+                }
+                else  //字段的情况
+                {
+                    MarcNodeList fields = record.select("field[@name='" + field.field + "']");
+                    if (fields.count > 0)
+                    {
+                        fields[0].Content = field.value;
+                    }
+                    else
+                    {
+                        record.ChildNodes.insertSequence(new MarcField(field.field +  field.value));  //中间没有2位"  " 
+
+                    }
+                }
+
             }
+
+            // 对字段排序
+            record.ChildNodes.sort((a, b) => {
+                return string.Compare(a.Name, b.Name);
+            });
+
             return record;
 
             //return record.ToWorksheet(); //转换成工作单格式  //.Text;  //完整内容
@@ -114,8 +161,9 @@ out string strError)
                     continue;
 
                 string caption = "";
-                string field = "";
-                string subfield = "";
+                string name = "";
+                //string field = "";
+                //string subfield = "";
                 string value = "";
 
 
@@ -125,32 +173,33 @@ out string strError)
                 {
                     caption = one.Substring(0, index);
                     string right = one.Substring(index + 1);
-                    string tempField = right;
+                    name = right;
 
                     index = right.IndexOf('|');
                     if (index != -1)
                     {
-                        tempField = right.Substring(0, index);
+                        name = right.Substring(0, index);
                         value = right.Substring(index + 1);
                     }
 
-                    index = tempField.IndexOf("$");
-                    if (index != -1)
-                    {
-                        field = tempField.Substring(0, index);
-                        subfield = tempField.Substring(index + 1);
-                    }
+                    // 放在字段里面处理
+                    //index = name.IndexOf("$");
+                    //if (index != -1)
+                    //{
+                    //    field = name.Substring(0, index);
+                    //    subfield = name.Substring(index + 1);
+                    //}
                 }
 
                 if (string.IsNullOrEmpty(caption) == true
-                    || string.IsNullOrEmpty(field) == true
-                    || string.IsNullOrEmpty(subfield) == true)
+                    || string.IsNullOrEmpty(name) == true)
+                    //|| string.IsNullOrEmpty(subfield) == true)
                 {
-                    throw new Exception("此行字段抽取规则[" + one + "]配置的不合法，应为[caption|field$subfield]格式。");
+                    throw new Exception("此行字段抽取规则[" + one + "]配置的不合法，应为[caption|name]格式。name可以是字段名，例如001;也可以是子字段名称，例如105$a。");
                 }
 
 
-                FieldItem item = new FieldItem(caption, field, subfield, value);
+                FieldItem item = new FieldItem(caption,name, value);
                 list.Add(item);
             }
 
@@ -195,36 +244,52 @@ out string strError)
     public class FieldItem
     {
 
-        public FieldItem(string caption, string field, string subfield)
+
+
+        // name的值可能是字段，例如001；也可能是子字段，例如105$a
+        public FieldItem(string strCaption, string strName,string strValue)
         {
-            this.Caption = caption;
-            this.Field = field;
-            this.Subfield = subfield;
+            this.lable = strCaption;
+            this.name  = strName;
+            this.value = strValue;
+
+            // 字段与子字段之间用$号分隔。
+            this.field = this.name;
+            // 如果有$表示有子字段，需要拆分一下
+            int index = this.name.IndexOf("$");
+            if (index != -1)
+            {
+                this.field = this.name.Substring(0, index);
+                this.subfield = this.name.Substring(index + 1);
+            }
+
         }
 
-        public FieldItem(string caption, string field, string subfield, string value)
+
+
+        public string lable { get; set; }
+
+        public string name { get; set; }
+
+        public string field { get; set; }
+
+        public string subfield { get; set; }
+
+
+        public string value { get; set; }
+
+
+        public string dump()
         {
-            this.Caption = caption;
-            this.Field = field;
-            this.Subfield = subfield;
-            this.Value = value;
-        }
 
-        public string Caption { get; set; }
-
-        public string Field { get; set; }
-
-        public string Subfield { get; set; }
+            string result = lable + "|" + field;
+            
+            if (string.IsNullOrEmpty(this.subfield)==false)
+                result+= "$" + subfield;
 
 
-        public string Value { get; set; }
-
-
-        public string Dump()
-        {
-            string result = Caption + "|" + Field + "$" + Subfield;
-            if (string.IsNullOrEmpty(Value) == false)
-                result += "|" + Value;
+            if (string.IsNullOrEmpty(value) == false)
+                result += "|" + value;
 
             return result;
 

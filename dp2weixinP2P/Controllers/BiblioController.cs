@@ -116,7 +116,7 @@ namespace dp2weixinWeb.Controllers
             }
 
             // 得到一个缺少值的头标区
-            string strHeader = MarcHeaderHelper.GetMarcHeaderText();
+            string strHeader = MarcFixedFieldManager.GetMarcHeaderText();
 
             string btnName = "保存";
             string timestamp = "";
@@ -169,7 +169,7 @@ namespace dp2weixinWeb.Controllers
                 // 头标区
                 strHeader= marcRecord.Header.ToString();
                 
-                // 从marc中抽取字段
+                // 从marc中抽取字段,再变成一组有值的fieldMap字段串
                 fieldMap=MarcHelper.GetFields(marcRecord, fieldMap);
 
                 // 时间戳
@@ -199,32 +199,63 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
 
-            string headerHtml = MarcHeaderHelper.GetHeaderHtml(strHeader);
 
-            // 加头标区
-           // html += @"<div'>"
-           //    + "<label  style='color:#cccccc'>头标区</label>"
-           //    +headerHtml
-           //    //+ "<input id='" + id + "' type='text' class='_field mui-input mui-input-clear' value='" + field.Value + "'>"
-           //+ "</div>";
+        //    // 加头标区
+        //    string headerHtml = MarcHeaderHelper.GetHeaderHtml(strHeader);
+        //    html += @"<table style='width:100%;border-bottom:1px solid #eeeeee;'>
+        //    <tr>
+        //        <td style='width:150px;padding-left:15px;padding-top:10px;vertical-align:top'>
+        //                    <label style='color:#cccccc;'>头标区</label>
+        //        </td>
+        //        <td>" + headerHtml+@"</td>
+        //    </tr>
+        //</table>";
 
-            html += @"<table style='width:100%;border-bottom:1px solid #eeeeee;'>
-            <tr>
-                <td style='width:100px;padding-left:15px;padding-top:10px;vertical-align:top'>
-                            <label style='color:#cccccc;'>头标区</label>
-                </td>
-                <td>" + headerHtml+@"</td>
-            </tr>
-        </table>";
+            //加一个集合里，方便界面的js使用
+            List<string> fixedFileds = new List<string>();
 
+            MarcFixedFieldManager fixedFieldMgr = dp2WeiXinService.Instance._marcFixedFieldMgr;
             // 字段
             foreach (FieldItem field in fieldList)
             {
-                string id = field.Caption + "|" + field.Field + "$" + field.Subfield;
-                html += @"<div class='mui-input-row '>"
-                + "<label  style='color:#cccccc'>" + field.Caption + "</label>"
-                + "<input id='" + id + "' type='text' class='_field mui-input mui-input-clear' value='"+field.Value+"'>"
-            + "</div>";
+                // 这个id很长，但很有意义，后面组合编辑后的字符串时，直接使用。
+                string id = field.lable + "|" + field.name; //有可能没有子字段//field.field + "$" + field.subfield;
+
+                MarcFixedField fixedField = fixedFieldMgr.GetFixedField(field.name);
+                if (fixedField != null)  // 找到对应的定长字段配置，按定长样式拼html
+                {
+
+                    // 先得把原有的值设进去
+                    if (string.IsNullOrEmpty(field.value) == false)
+                    {
+                        fixedField.SetValue(field.value);
+                    }
+
+
+                    // 获取这个定长字段的html
+                    string inputIds = "";
+                    string fieldhtml = MarcFixedFieldManager.GetHtml(fixedField,out inputIds);
+
+                    // 加到定长字段名称集合中
+                    fixedFileds.Add(id + "-" + inputIds);
+                    
+                    // 外面用一个table括起来，与其它行整合
+                    html += "<table style='width:100%;border-bottom:1px solid #eeeeee;'>"
+                                +"<tr>"
+                                    + "<td style='min-width:150px;padding-left:15px;padding-top:10px;vertical-align:top'>"
+                                        + "<label style='color:#cccccc;vertical-align:bottom'>" + fixedField.lable+ "<span style='font-size:1px'>" + fixedField.name + "</span>" +"</label>"
+                                    + "</td> "
+                                    + "<td style='width:100%'>" + fieldhtml + @"</td>"
+                                + " </tr>"
+                            +"</table>";
+                }
+                else
+                {
+                    html += @"<div class='mui-input-row ' >"
+                    + "<label  style='color:#cccccc;vertical-align:bottom'>" + field.lable+ "<span style='font-size:1px;'>" + field.name+ "</label>"
+                    + "<input id='" + id + "' type='text' class='_field mui-input mui-input-clear' value='" + field.value + "' />"
+                + "</div>";
+                }
             }
 
             //// 操作按钮
@@ -260,6 +291,11 @@ namespace dp2weixinWeb.Controllers
 
             // 把拼出来的字段放在viewdata里，到时显示在前端界面
             @ViewData["marcField"] = html;
+
+
+            // 定长字段
+            ViewData["fixedFileds"] = fixedFileds;
+
             return View();
         }
 

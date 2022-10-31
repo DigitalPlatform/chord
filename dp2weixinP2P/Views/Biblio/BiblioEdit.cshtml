@@ -13,11 +13,77 @@
         //    //alert("test");
         //});
 
+        function getFixedFields() {
+
+            //alert("1");
+
+            // 拼装field字符串
+            var fields = "";
+            $("#aaa").find(".fixedField").each(function (index) {
+                //alert(index);//循环的下标值，从0开始
+
+                var temp = "";
+
+                // 取出值
+                var id = $(this).attr("id");
+                temp += id+"\r\n";
+
+                var charIds = $(this).text();
+
+                var charValues = "";
+
+                // value是一批字符名称，以逗号分隔，现在要拆出来。
+                // 然后根据每个字符的id，取出对应的值。
+                // 每个值还需要根据长度进行截短或补位。
+                var arr = new Array();
+                arr = charIds.split(",");
+                for (var i = 0; i < arr.length; i++) {
+
+                    var charId = arr[i];
+                    var charV= $("#" + charId).val();
+
+                    // 找到这个字符有多少位
+                    var temparr = charId.split("_");
+                    var length = temparr[2];
+
+                    // 补充或截取值
+                    charV = CheckCharValue(charV, length);
+
+                    temp += charId + "=[" + charV + "]\r\n";
+
+                    // 正式的值
+                    charValues += charV;
+                }
+
+                var oneField = id + "|" + charValues;
+                alert(oneField);
+
+                if (fields != "")
+                    fields += "\r\n";
+
+                fields += oneField;
+            });
+
+            //alert("2");
+
+            return fields;
+        }
+
+        // 补齐或截取字符串
+        function CheckCharValue(charValue, length) {
+            return charValue.padEnd(length, "?").substring(0, length);
+        }
+
 
         // 保存书目
         function saveBiblio() {
 
-            var headerV = getHeaderValue();
+            //// 处理定长字段
+            //var fixedFields = getFixedFields();
+            //return;
+
+
+            //var headerV = getHeaderValue();
             //alert("[" + headerV + "]");
             //return;
 
@@ -68,12 +134,10 @@
 
                 // 取出值
                 var id = $(this).attr("id");
-
                 var value = $(this).val();
-
                 // 2022/10/25
-                if (id.indexOf("*") != -1 && 
-                    (value==null || value=="")) {
+                if (id.indexOf("*") != -1 &&
+                    (value == null || value == "")) {
 
                     var temp = id;
                     var index1 = id.indexOf("|");
@@ -82,17 +146,18 @@
 
                     if (warnInfo != "")
                         warnInfo += "\r\n";
-                    warnInfo += temp+"字段内容不能为空。";
+                    warnInfo += temp + "字段内容不能为空。";
                     //return;
                 }
 
-                // 如果
-
-
-
+                // 拼成一个字段的完整字段串。
                 field += id + "|" + value + "\r\n";
             });
             //alert(field);
+
+            // 处理定长字段
+            var fixedFields = getFixedFields();
+            field += fixedFields;
 
             if (warnInfo != "") {
                 alert(warnInfo);
@@ -169,7 +234,7 @@
                 {
                     BiblioPath: biblioPath,
                     Action: biblioAction,
-                    Header: headerV,
+                    //Header: headerV,
                     Fields: field,
                     Timestamp: biblioTimestamp
                 }
@@ -195,16 +260,17 @@
                 //自己本来是展开状态，则收缩
                 $(obj).find(".mui-collapse-content").css("display", "none");
                 //$(obj).removeClass("mui-active");
-                $('#btn-header').text("展开");
+                $(obj).find('#btn-expand').text("展开");
             }
             else {
-               // alert("2");
+                // alert("2");
                 //自己本是关闭状态，则展开
                 $(obj).find(".mui-collapse-content").css("display", "block");
                 //$(obj).addClass("mui-active");
-                $('#btn-header').text("收缩");
+                $(obj).find('#btn-expand').text("收缩");
             }
         }
+
 
         // 获取值
         function getHeaderValue() {
@@ -282,6 +348,7 @@
                 color: #999999;
                 padding-right: 2px;
                 text-align: right;
+                
             }
     </style>
 }
@@ -317,6 +384,18 @@ else
     {
 
         <div>@Html.Raw(ViewData["marcField"])</div>
+
+        <div id="aaa">
+            @foreach (var one in ViewData["fixedFileds"] as List<string>)
+                {
+                int nIndex = one.IndexOf("-");
+                var name = one.Substring(0, nIndex);
+                var inputIds = one.Substring(nIndex + 1);
+
+                <span id="@name" class="fixedField" style="display:none;">@inputIds</span>
+                }
+
+        </div>
     }
 
 }

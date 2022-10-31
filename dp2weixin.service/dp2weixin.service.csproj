@@ -178,6 +178,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MarcFixedFieldManager.cs" />
     <Compile Include="AreaLib.cs" />
     <Compile Include="ChargeCommand.cs" />
     <Compile Include="ChargeCommandContainer.cs" />

@@ -15,7 +15,7 @@ using System.IO;
 namespace dp2weixinWeb.Controllers
 {
 
-    public class MarcHeaderHelper
+    public class MarcHeaderHelper1
     {
         // 得到默认的header结构
         public static List<MarcHeaderItem> GetMarcHeader()
@@ -107,11 +107,11 @@ namespace dp2weixinWeb.Controllers
         public static string GetHeaderHtml(string strHeader)
         {
             string headerHtml = "<div id='marcheader' style='padding:2px'>"
-                                                + "<button id='btn-header' onclick=\"expandHeader('marcheader')\">展开</button>"
+                                                + "<button id='btn-expand' onclick=\"expandHeader('marcheader')\">展开</button>"
                                                 + "<div class='mui-collapse-content marcheader' style='display:none'>"
             + " <table>";
 
-            List<MarcHeaderItem> marcHeader = MarcHeaderHelper.Parse(strHeader);
+            List<MarcHeaderItem> marcHeader = MarcHeaderHelper1.Parse(strHeader);
             foreach (MarcHeaderItem item in marcHeader)
             {
                 int width = 20 * item.Length;
