@@ -431,18 +431,27 @@ namespace dp2weixinWeb.ApiControllers
             string strError = "";
             string outputBiblioPath = "";
             string outputTimestamp = "";
-            int nRet = dp2WeiXinService.Instance.SetBiblio(loginUserName,
-                loginUserType,
-                weixinId,
-                libId,
-                biblioFields,
-                out outputBiblioPath,
-                out outputTimestamp,
-                out strError);
-            if (nRet == -1)
+            try
+            {
+                int nRet = dp2WeiXinService.Instance.SetBiblio(loginUserName,
+                    loginUserType,
+                    weixinId,
+                    libId,
+                    biblioFields,
+                    out outputBiblioPath,
+                    out outputTimestamp,
+                    out strError);
+                if (nRet == -1)
+                {
+                    result.errorCode = -1;
+                    result.errorInfo = strError;
+                }
+            }
+            catch (Exception e)
             {
                 result.errorCode = -1;
-                result.errorInfo = strError;
+                result.errorInfo = e.Message;
+                return result;
             }
 
             result.errorInfo = strError;

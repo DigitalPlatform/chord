@@ -66,42 +66,49 @@ namespace common
             //MarcRecord record = MarcRecord.FromWorksheet(strMarcWorksheet); //new MarcRecord(strMarc);
             foreach (FieldItem field in list)
             {
-                if (field.name == "###")
+                try
                 {
-                    //头标区
-                    record.Header[0, 24] = field.value;//.Header;
-                    //record.Header = field.value;
-                    continue;
-                }
-
-                // 子字段的情况
-                if (string.IsNullOrEmpty(field.subfield) == false)
-                {
-                    MarcNodeList fields = record.select("field[@name='" + field.field + "']");
-                    if (fields.count > 0)
+                    if (field.name == "###")
                     {
-                        MarcNodeList subfields = fields[0].select("subfield[@name='" + field.subfield + "']");
-                        if (subfields.count > 0)
-                            subfields[0].Content = field.value;  //只更改第一个子字段
+                        //头标区
+                        record.Header[0, 24] = field.value;//.Header;
+                                                           //record.Header = field.value;
+                        continue;
+                    }
+
+                    // 子字段的情况
+                    if (string.IsNullOrEmpty(field.subfield) == false)
+                    {
+                        MarcNodeList fields = record.select("field[@name='" + field.field + "']");
+                        if (fields.count > 0)
+                        {
+                            MarcNodeList subfields = fields[0].select("subfield[@name='" + field.subfield + "']");
+                            if (subfields.count > 0)
+                                subfields[0].Content = field.value;  //只更改第一个子字段
+                            else
+                                fields[0].ChildNodes.insertSequence(new MarcSubfield(field.subfield, field.value)); //不存在时，新增一个子字段
+
+                        }
                         else
-                            fields[0].ChildNodes.insertSequence(new MarcSubfield(field.subfield, field.value)); //不存在时，新增一个子字段
-
+                            record.ChildNodes.insertSequence(new MarcField('$', field.field + "  $" + field.subfield + field.value));
                     }
-                    else
-                        record.ChildNodes.insertSequence(new MarcField('$', field.field + "  $" + field.subfield + field.value));
+                    else  //字段的情况
+                    {
+                        MarcNodeList fields = record.select("field[@name='" + field.field + "']");
+                        if (fields.count > 0)
+                        {
+                            fields[0].Content = field.value;
+                        }
+                        else
+                        {
+                            record.ChildNodes.insertSequence(new MarcField(field.field + field.value));  //中间没有2位"  " 
+
+                        }
+                    }
                 }
-                else  //字段的情况
+                catch (Exception ex)
                 {
-                    MarcNodeList fields = record.select("field[@name='" + field.field + "']");
-                    if (fields.count > 0)
-                    {
-                        fields[0].Content = field.value;
-                    }
-                    else
-                    {
-                        record.ChildNodes.insertSequence(new MarcField(field.field +  field.value));  //中间没有2位"  " 
-
-                    }
+                    throw new Exception("设置'"+field.lable+ field.name+"'字段的出错："+ex.Message);
                 }
 
             }
@@ -195,7 +202,7 @@ out string strError)
                     || string.IsNullOrEmpty(name) == true)
                     //|| string.IsNullOrEmpty(subfield) == true)
                 {
-                    throw new Exception("此行字段抽取规则[" + one + "]配置的不合法，应为[caption|name]格式。name可以是字段名，例如001;也可以是子字段名称，例如105$a。");
+                    throw new Exception("字段规则[" + one + "]配置的不合法，应为[caption|name]格式。name可以是字段名，例如001；也可以是子字段名称，例如105$a；头标区时name为###。");
                 }
 
 

@@ -8974,29 +8974,24 @@ ErrorInfo成员里可能会有报错信息。
                 return -1;
             }
 
+            MarcRecord marcRecord = null;
+
             string biblioXml = "";  //书目xml
             if (biblio.Action == C_Action_new)
             {
                 //头标区
                 string strMarc = "";//biblio.Header;  
 
-//                // marc工作单格式  todo 新增需要什么的初始化
-//                string strMarc = @"?????nam0 22?????   45__
-//100  ǂa20071012d2007    ekmy0chiy1050    ea
-//1010 ǂachi
-//102  ǂaCNǂb110000";
+                //                // marc工作单格式  todo 新增需要什么的初始化
+                //                string strMarc = @"?????nam0 22?????   45__
+                //100  ǂa20071012d2007    ekmy0chiy1050    ea
+                //1010 ǂachi
+                //102  ǂaCNǂb110000";
 
                 // 工作单到MarcRecord对象，方便用MarcQuery处理。
-                MarcRecord temp = MarcRecord.FromWorksheet(strMarc); 
+                marcRecord = MarcRecord.FromWorksheet(strMarc); 
 
-                // 给marc中设置字段
-                MarcRecord record= MarcHelper.SetFields(temp, biblio.Fields);
-                nRet = MarcUtil.Marc2Xml(record.Text,
-                    "unimarc",
-                    out biblioXml,
-                    out strError);
-                if (nRet == -1)
-                    return -1;
+
             }
             else if (biblio.Action == C_Action_change)  //修改
             {
@@ -9013,26 +9008,11 @@ ErrorInfo成员里可能会有报错信息。
 
                 string oldbiblioXml = dataList[0];
 
-                // 使用前端传过来的
-                //biblio.Timestamp = dataList[1];
 
                 // xml转成MarcRecord对象
-                MarcRecord temp =MarcHelper.MarcXml2MarcRecord(oldbiblioXml, out string outMarcSyntax, out strError);
+                marcRecord =MarcHelper.MarcXml2MarcRecord(oldbiblioXml, out string outMarcSyntax, out strError);
 
-                // 2022/10/31统一在fields里做了
-                // 设置头标区
-                //temp.Header[0, 24] = biblio.Header;
-
-                // 根据接口传入的字段组合字符串设置marc对应的字段
-                MarcRecord record = MarcHelper.SetFields(temp, biblio.Fields);
-
-                // 将marc转成xml
-                 nRet = MarcUtil.Marc2Xml(record.Text,
-                    "unimarc",
-                    out biblioXml,
-                    out strError);
-                if (nRet == -1)
-                    return -1;
+                
             }
             else if (biblio.Action == C_Action_delete)
             {
@@ -9044,6 +9024,21 @@ ErrorInfo成员里可能会有报错信息。
                 // 目前仅支持new,change,delete。先不支持其它动作
                 strError = "SetBiblio()接口不能识别的action[" + biblio.Action + "]";
                 return -1;
+            }
+
+
+            if (marcRecord != null)
+            {
+                // 根据接口传入的字段组合字符串设置marc对应的可编辑字段
+                MarcRecord record = MarcHelper.SetFields(marcRecord, biblio.Fields);
+
+                // 将marc转成xml
+                nRet = MarcUtil.Marc2Xml(record.Text,
+                   "unimarc",
+                   out biblioXml,
+                   out strError);
+                if (nRet == -1)
+                    return -1;
             }
 
             // 点对点消息实体
