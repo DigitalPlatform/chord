@@ -122,6 +122,7 @@ namespace dp2weixinWeb.Controllers
 
                 string btnName = "保存";
                 string timestamp = "";
+                bool bNew = false;
 
                 // 新增时，必须要在配置文件中配置好目标数据库
                 if (string.IsNullOrEmpty(biblioPath) == true)
@@ -132,11 +133,8 @@ namespace dp2weixinWeb.Controllers
                         return View();
                     }
 
-                    //得到一个缺少值的头标区
-                    string strHeader = MarcFixedFieldManager.GetMarcHeaderText();
-                    MarcRecord marcRecord = MarcRecord.FromWorksheet(strHeader);
-                    // 从marc中抽取字段,再变成一组有值的fieldMap字段串
-                    fieldMap = MarcHelper.GetFields(marcRecord, fieldMap);
+                    // 设这个变量，是因为后面要设一下头标区
+                    bNew=true; 
 
                     btnName = "新增";
                     biblioPath = biblioDbName + "/?";
@@ -214,6 +212,15 @@ namespace dp2weixinWeb.Controllers
                     //ViewData["marcField"] = "解析marc字段配置规则出错：" + ex.Message;
                     return View();
                 }
+
+                // 如果新增，需要设置一下头标区的默认值
+                if (bNew == true)
+                {
+                    //得到一个缺少值的头标区
+                    string strHeader = MarcFixedFieldManager.GetMarcHeaderText();
+                    MarcHelper.SetFieldValue(fieldList, "###", strHeader);
+                }
+
 
                 // 2022/11/31 统一用定长字段来处理
                 //    // 加头标区

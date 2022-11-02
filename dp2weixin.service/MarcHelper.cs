@@ -133,8 +133,8 @@ namespace common
         }
 
         public static MarcRecord MarcXml2MarcRecord(string strMarcXml,
-out string strOutMarcSyntax,
-out string strError)
+            out string strOutMarcSyntax,
+            out string strError)
         {
             MarcRecord record = null;
 
@@ -247,6 +247,19 @@ out string strError)
             */
         }
 
+
+        // 为某个字段设置值。
+        public static void SetFieldValue(List<FieldItem> list, string fieldName, string fieldValue)
+        {
+            foreach (FieldItem field in list)
+            {
+                if (field.name == fieldName)
+                {
+                    field.value = fieldValue;
+                    return;
+                }
+            }
+        }
 
     }
 
