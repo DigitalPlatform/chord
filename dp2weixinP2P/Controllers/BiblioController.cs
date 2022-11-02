@@ -109,13 +109,21 @@ namespace dp2weixinWeb.Controllers
                 string fieldMap = dp2WeiXinService.Instance.GetFieldsMap(sessionInfo.ActiveUser.libId,
                     sessionInfo.ActiveUser.bindLibraryCode,
                     out biblioDbName);
+
+                // 消除左右空白 2022/11/2
+                fieldMap = fieldMap.Trim();
+
+                // 判断是否配置的简编字段
                 if (string.IsNullOrEmpty(fieldMap) == true)
                 {
-                    if (string.IsNullOrEmpty(biblioDbName) == true)
-                    {
-                        ViewBag.Error = "尚未配置简单编目的字段，请联系管理员。";
-                        return View();
-                    }
+                    ViewBag.Error = "尚未配置简单编目的字段，请联系管理员。";
+                    return View();
+                }
+                //判断是否配置的目标数据库
+                if (string.IsNullOrEmpty(biblioDbName) == true)
+                {
+                    ViewBag.Error = "尚未配置简单编目的目标数据库，请联系管理员。";
+                    return View();
                 }
 
 

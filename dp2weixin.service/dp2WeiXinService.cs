@@ -655,9 +655,12 @@ namespace dp2weixin.service
             // 把配置的定制字段文件装载到内存结构，用于简编功能
             string fixedFieldFile = this._weiXinDataDir + "\\" + "MarcFixedFieldDef.xml";
             this._marcFixedFieldMgr = new MarcFixedFieldManager();
-            nRet = _marcFixedFieldMgr.init(fixedFieldFile, out strError);
-            if (nRet == -1)
-                throw new Exception(strError);
+            if (File.Exists(fixedFieldFile) == true)
+            {
+                nRet = _marcFixedFieldMgr.init(fixedFieldFile, out strError);
+                if (nRet == -1)
+                    throw new Exception(strError);
+            }
 
             // 初始化接口类
             nRet = this.InitialExternalMessageInterfaces(dom, out strError);
@@ -8972,6 +8975,16 @@ ErrorInfo成员里可能会有报错信息。
             {
                 strError = "未找到id为[" + libId + "]的图书馆定义。";
                 return -1;
+            }
+
+            if (biblio.Action == C_Action_new || biblio.Action == C_Action_change)
+            {
+                if (string.IsNullOrEmpty(biblio.Fields) == true)
+                {
+                    strError = "SetBiblio()传入的字段内容参数值不能为空。";
+                    return -1;
+                }
+            
             }
 
             MarcRecord marcRecord = null;
