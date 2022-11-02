@@ -203,7 +203,7 @@ namespace dp2weixinWeb.Controllers
                     return View();
                 }
 
-
+                // 2022/11/31 统一用定长字段来处理
                 //    // 加头标区
                 //    string headerHtml = MarcHeaderHelper.GetHeaderHtml(strHeader);
                 //    html += @"<table style='width:100%;border-bottom:1px solid #eeeeee;'>
@@ -262,13 +262,6 @@ namespace dp2weixinWeb.Controllers
                     }
                 }
 
-                //// 操作按钮
-                //html += @"<div class='mui-content-padded'><table style='width:100%'><tr>"
-                //    + "<td><button id='btnOpeType' class='mui-btn mui-btn-block mui-btn-default' onclick='saveBiblio()'>" + btnName + "</button></td>"
-                //     + "<td width='10px'>&nbsp;</td>"
-                //      + "<td><button class='mui-btn mui-btn-block mui-btn-default' onclick='cancelEdit()'>取消</button></td>"
-                //      + "</tr></table></div>";
-
                 // 一个按钮，三个锚点
                 string biblioEditUrl = "/Biblio/BiblioEdit";
                 string detailUrl = "/Biblio/Detail?biblioPath=" + HttpUtility.UrlEncode(biblioPath);
@@ -281,12 +274,13 @@ namespace dp2weixinWeb.Controllers
 
                 html += @"<div class='mui-content-padded'>"
                     + "<button id='btnOpeType' class='mui-btn mui-btn-block mui-btn-primary' onclick='saveBiblio()'>" + btnName + "</button>"
-                    + "<div class='link-area'><center>"
+                    + "<div class='link-area'>"
+                    +"<center>"
                     + "<a id='again' " + style + " href='JavaScript:void(0)' onclick='gotoUrl(\"" + biblioEditUrl + "\")'>新增书目</a>"
                     + "&nbsp;&nbsp;<a id='detail' " + style + " href='JavaScript:void(0)'  onclick='gotoUrl(\"" + detailUrl + "\")'>查看书目详情</a>"
-                                    + "&nbsp;&nbsp;<a href='JavaScript:void(0)' onclick='gotoUrl(\"" + biblioSearchUrl + "\")'>返回书目查询</a>"
-
-                    + "</center></div></div>";
+                    + "&nbsp;&nbsp;<a href='JavaScript:void(0)' onclick='gotoUrl(\"" + biblioSearchUrl + "\")'>返回书目查询</a>"
+                    + "</center>"
+                    +"</div></div>";
 
                 // 加外壳
                 html = "<div class='mui-input-group' id='_marcEditor'>"
@@ -296,8 +290,7 @@ namespace dp2weixinWeb.Controllers
                 // 把拼出来的字段放在viewdata里，到时显示在前端界面
                 @ViewData["marcField"] = html;
 
-
-                // 定长字段
+                // 定长字段名称集合，为了前端js收集输入内容。
                 ViewData["fixedFileds"] = fixedFileds;
 
                 return View();

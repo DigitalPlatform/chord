@@ -164,10 +164,15 @@ namespace dp2weixinWeb.Controllers
         public ActionResult header()
         {
 
-            string strheader = MarcHeaderHelper1.GetMarcHeaderText();
+            string strheader = MarcFixedFieldManager.GetMarcHeaderText();
 
-            string headerHtml = MarcHeaderHelper1.GetHeaderHtml(strheader);
-            ViewData["marcheader"] = headerHtml;
+
+            // todo 这一段改为使用MarcFixedFieldManager
+
+            //string headerHtml = MarcFixedFieldManager.GetHeaderHtml(strheader);
+            //ViewData["marcheader"] = headerHtml;
+
+            ViewData["marcheader"] = "";
 
             return View();
         }

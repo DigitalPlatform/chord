@@ -15,24 +15,19 @@
 
         function getFixedFields() {
 
-            //alert("1");
-
             // 拼装field字符串
             var fields = "";
-            $("#aaa").find(".fixedField").each(function (index) {
-                //alert(index);//循环的下标值，从0开始
+            $("#fixedFieldDiv").find(".fixedField").each(function (index) {
 
-                var temp = "";
-
-                // 取出值
+                // 字段id
                 var id = $(this).attr("id");
-                temp += id+"\r\n";
 
+                // 当前这个字段各栏位的id命名，以逗号分隔的
                 var charIds = $(this).text();
 
                 var charValues = "";
 
-                // value是一批字符名称，以逗号分隔，现在要拆出来。
+                // charIds是一批定长字符名称，以逗号分隔，现在要拆出来。
                 // 然后根据每个字符的id，取出对应的值。
                 // 每个值还需要根据长度进行截短或补位。
                 var arr = new Array();
@@ -40,31 +35,30 @@
                 for (var i = 0; i < arr.length; i++) {
 
                     var charId = arr[i];
-                    var charV= $("#" + charId).val();
+                    var charV = $("#" + charId).val();
 
-                    // 找到这个字符有多少位
+                    // 根据字符的id命名，找到这个字符有多少位
                     var temparr = charId.split("_");
                     var length = temparr[2];
 
-                    // 补充或截取值
+                    // 补充或截取值，一个栏位的值
                     charV = CheckCharValue(charV, length);
 
-                    temp += charId + "=[" + charV + "]\r\n";
+                    // 用于调试态显示
+                    //var temp += charId + "=[" + charV + "]\r\n";
 
                     // 正式的值
                     charValues += charV;
                 }
 
+                // 拼成一个完整字段及值
                 var oneField = id + "|" + charValues;
-                //alert(oneField);
 
+                // 把每个字段累加起来，每行一个字段
                 if (fields != "")
                     fields += "\r\n";
-
                 fields += oneField;
             });
-
-            //alert("2");
 
             return fields;
         }
@@ -135,7 +129,8 @@
                 // 取出值
                 var id = $(this).attr("id");
                 var value = $(this).val();
-                // 2022/10/25
+
+                // 2022/10/25 带*号不允许为空
                 if (id.indexOf("*") != -1 &&
                     (value == null || value == "")) {
 
@@ -159,6 +154,7 @@
             var fixedFields = getFixedFields();
             field += fixedFields;
 
+            // 如果有警告信息，弹出提示，不再继续。
             if (warnInfo != "") {
                 alert(warnInfo);
                 return;
@@ -348,7 +344,6 @@
                 color: #999999;
                 padding-right: 2px;
                 text-align: right;
-                
             }
     </style>
 }
@@ -364,7 +359,7 @@
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {
     <div class="mui-content-padded">
-        <span class="errorinfo" >
+        <span class="errorinfo">
             @Html.Raw(ViewBag.Error)
         </span>
     </div>
@@ -385,7 +380,7 @@ else
 
         <div>@Html.Raw(ViewData["marcField"])</div>
 
-        <div id="aaa">
+        <div id="fixedFieldDiv">
 
             @if (ViewData["fixedFileds"] != null)
             {
@@ -395,7 +390,7 @@ else
                     var name = one.Substring(0, nIndex);
                     var inputIds = one.Substring(nIndex + 1);
 
-                <span id="@name" class="fixedField" style="display:none;">@inputIds</span>
+                    <span id="@name" class="fixedField" style="display:none;">@inputIds</span>
                 }
             }
         </div>
