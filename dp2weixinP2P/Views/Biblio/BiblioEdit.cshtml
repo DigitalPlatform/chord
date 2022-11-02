@@ -65,7 +65,8 @@
 
         // 补齐或截取字符串
         function CheckCharValue(charValue, length) {
-            return charValue.padEnd(length, " ").substring(0, length);  //原来为了方便测试，不足是补齐的?，现在测差不多，我将补齐的字符改为空格了。
+            //2022/11/2 还是换回?号，要不保存marc时或者获取marc时，会把空白忽略，还不是在我爱图书馆，可能dp2library相关接口就会忽略。
+            return charValue.padEnd(length, "?").substring(0, length);  //原来为了方便测试，不足是补齐的?，现在测差不多，我将补齐的字符改为空格了。
         }
 
 

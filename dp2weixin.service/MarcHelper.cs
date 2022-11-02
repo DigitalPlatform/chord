@@ -38,7 +38,9 @@ namespace common
             {
                 if (field.name == "###")
                 {
-                    field.value = record.Header.ToString();
+                    if (record.Header!= null)  // 2022/11/2 record.Header有可能为null，就是没有头标区的情况。
+                        field.value = record.Header.ToString();
+
                     continue;
                 }
 
@@ -149,7 +151,7 @@ out string strError)
             if (nRet == 0)
                 record = new MarcRecord(strMARC);
             else
-                strError = "MarcXml转换错误:" + strError;
+                strError = "MarcUtil.Xml2Marc()返回错误:" + strError;
 
             return record;
         }

@@ -118,8 +118,7 @@ namespace dp2weixinWeb.Controllers
                     }
                 }
 
-                // 得到一个缺少值的头标区
-                string strHeader = MarcFixedFieldManager.GetMarcHeaderText();
+
 
                 string btnName = "保存";
                 string timestamp = "";
@@ -132,6 +131,12 @@ namespace dp2weixinWeb.Controllers
                         ViewBag.Error = "尚未配置目标书目库，无法新增书目，请联系管理员。";
                         return View();
                     }
+
+                    //得到一个缺少值的头标区
+                    string strHeader = MarcFixedFieldManager.GetMarcHeaderText();
+                    MarcRecord marcRecord = MarcRecord.FromWorksheet(strHeader);
+                    // 从marc中抽取字段,再变成一组有值的fieldMap字段串
+                    fieldMap = MarcHelper.GetFields(marcRecord, fieldMap);
 
                     btnName = "新增";
                     biblioPath = biblioDbName + "/?";
@@ -167,10 +172,17 @@ namespace dp2weixinWeb.Controllers
                     string oldbiblioXml = dataList[0];
 
                     // 从marc中取出字段的值
-                    MarcRecord marcRecord = MarcHelper.MarcXml2MarcRecord(oldbiblioXml, out string outMarcSyntax, out strError);
+                    MarcRecord marcRecord = MarcHelper.MarcXml2MarcRecord(oldbiblioXml,
+                        out string outMarcSyntax, 
+                        out strError);
+                    if (marcRecord == null)
+                    {
+                        ViewBag.Error = strError;
+                        return View();
+                    }
 
                     // 头标区
-                    strHeader = marcRecord.Header.ToString();
+                    //strHeader = marcRecord.Header.ToString();
 
                     // 从marc中抽取字段,再变成一组有值的fieldMap字段串
                     fieldMap = MarcHelper.GetFields(marcRecord, fieldMap);
