@@ -80,6 +80,27 @@ namespace dp2weixinWeb.Controllers
                         lib.Checked = "";
                         lib.bindFlag = "";
 
+                        // 如果是到期的图书馆，不显示出来
+                        Library thisLib = dp2WeiXinService.Instance.LibManager.GetLibrary(lib.libId);//.GetLibById(lib.libId);
+                        if (thisLib != null && thisLib.Entity.state == "到期")
+                        {
+                            continue;
+                        }
+
+                        //如果不在可访问范围，不显示
+                        if (thisLib != null && avaiblelibList.IndexOf(thisLib) == -1)
+                        {
+                            continue;
+                        }
+
+                        // 如果从mongodb库没有找到图书馆，不显示
+                        // 有可能是mongodb库删除，但配置文件还没有删除
+                        if (thisLib == null)
+                        {
+                            dp2WeiXinService.Instance.WriteDebug("选择图书馆时，根据[" + lib.libId + "]未找到对应的图书馆");
+                            continue;
+                        }
+
                         // 检查微信用户是否绑定了这个图书馆
                         WxUserItem tempUser = null;
                         if (this.CheckIsBind(list, lib, out tempUser) == true)  //libs.Contains(lib.libId)
@@ -113,6 +134,12 @@ namespace dp2weixinWeb.Controllers
                         newArea.libs = libList;
                         areaList.Add(newArea);
                     }
+                }
+
+                // 如果没有绑定的图书馆，直接跳转到
+                if (areaList.Count == 0)
+                {
+                    return Redirect("~/Patron/selectlib?returnUrl=" + HttpUtility.UrlEncode(returnUrl));
                 }
 
                 // 放到界面上

@@ -6535,7 +6535,9 @@ ErrorInfo成员里可能会有报错信息。
             }
 
 
-            LibEntity lib = this.GetLibById(userItem.libId);
+            //LibEntity lib = this.GetLibById(userItem.libId);
+            //2022/11/8 不能用this.GetLibById()，因为这个函数内部会过滤到期的，所以直接从底层数据库来看。
+            LibEntity lib = LibDatabase.Current.GetLibById1(userItem.libId);
             if (lib == null)
             {
                 strError = "未找到id为[" + userItem.libId + "]的图书馆定义。";
@@ -9119,6 +9121,7 @@ ErrorInfo成员里可能会有报错信息。
                 MessageConnection connection = this._channels.GetConnectionTaskAsync(
                     this._dp2MServerUrl,
                     connName).Result;  //注意这里connName传的标记表示使用本图书馆的weixin_xxx帐户，这样在配置权限时，把setbiblio权限配置在weixin_xxx。
+                
                 //发起请求
                 SetInfoResult result = connection.SetInfoTaskAsync(
                     lib.capoUserName,

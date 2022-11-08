@@ -321,6 +321,12 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
 
+            if (sessionInfo.CurrentLib == null)
+            {
+                ViewBag.Error = "您之前选择的图书馆已经不存在。";
+                return View();
+            }
+
             //绑定的工作人员账号 需要有权限
             string userName = "";
             // 2016-8-24 超级管理员可修改任何图书馆的介绍与公告

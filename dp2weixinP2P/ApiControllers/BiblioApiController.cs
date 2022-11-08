@@ -149,7 +149,7 @@ namespace dp2weixinWeb.ApiControllers
             if (String.IsNullOrEmpty(resultSet) == true)
             {
                 // 设置一个新的结果集名称，后面传dp2检索接口，这个值也会放在接口返回结果中。
-                resultSet = "weixin-" + Guid.NewGuid();
+                resultSet = "#weixin-" + Guid.NewGuid();  //2022/11/8 在结果集前面加#号，表示使用全局结果集。
                 searchRet.resultSetName = resultSet;
             }
 

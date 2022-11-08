@@ -326,6 +326,11 @@ namespace dp2weixin.service
                 // 当前图书馆
                 this.CurrentLib = dp2WeiXinService.Instance.LibManager.GetLibrary(this.ActiveUser.libId);
 
+
+                // 2022/11/8  到期时，有activeUser但没有当前
+                if (this.CurrentLib == null)
+                    this.ActiveUser = null;
+
                 //// 如果是工作人员，获取地应图书馆的读者类型和读者库，用于读者登记
                 //if (this.ActiveUser.type == WxUserDatabase.C_Type_Worker 
                 //    && this.ActiveUser.userName != WxUserDatabase.C_Public)
