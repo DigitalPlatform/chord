@@ -204,6 +204,9 @@ namespace dp2weixinWeb.ApiControllers
             searchRet.resultCount = recordsCount;//records.Count; // 本次返回的记录数 
             searchRet.isCanNext = bNext;  //是否有下页
             searchRet.apiResult.errorCode = lRet;  //-1表示出错，0未命中，其它表示命中总数。
+            
+            // 2022/11/17 任何时候都要返回一下结果集，因为前端切换高级检索和简单结果，会把界面的结果集名称置空
+            searchRet.resultSetName = resultSet;
             return searchRet;
         }
 

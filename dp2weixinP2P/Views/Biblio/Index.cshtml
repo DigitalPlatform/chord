@@ -366,7 +366,12 @@ function loadJs(sid, jsurl, callback) {
             //resultSet 如果为空，服务器生成一个
             var resultSet = $("#resultSet").val();
             //alert("resultSet=[" + resultSet + "]");
-
+            if (from == "_N") {
+                if (resultSet == null || resultSet == "") {
+                    alert("异常：下一页时，resultSet参数不能为空。");
+                    return;
+                }
+            }
 
             var weixinId = $("#weixinId").text();
             if (weixinId == null || weixinId == "") {
