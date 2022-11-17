@@ -7204,6 +7204,9 @@ ErrorInfo成员里可能会有报错信息。
                     return 0;
                 }
 
+                int tempNo = 0;
+
+                int filterCount = 0;
 
                 List<string> resultPathList = new List<string>();
                 for (int i = 0; i < result.Records.Count; i++)
@@ -7230,19 +7233,29 @@ ErrorInfo成员里可能会有报错信息。
 
                     // 解析item xml
                     BiblioItem record = this.ParseItemXml(weixinId,loginInfo, lib, xml, true);
+                    if (record == null)  //内部状态过滤掉的
+                    {
+                        filterCount++;  //过滤数量加1
+                        continue;
+                    }
+
+
+                    
                     record.recPath = path;
                     record.biblioPath = biblioDbName + "/" + record.parent;
                     records.Add(record);
-                    record.no = (i + start + 1).ToString();//todo 注意下一页的时候
 
+                    // 2022/11/17 计算序号，使用的一个临时变量，不用i，因为有内部过滤到的记录
+                    record.no = (tempNo + start + 1).ToString();
+                    tempNo++;
                 }
 
                 // 检查是否有下页
-                if (start + records.Count < result.ResultCount)
+                if (start + records.Count < result.ResultCount-filterCount)  // 2022/11/17 总命中数量要减去filterCount过滤的数量
                     bNext = true;
 
 
-                return result.ResultCount;// records.Count;
+                return result.ResultCount-filterCount;// 2022/11/17 总命中数量要减去filterCount过滤的数量
             }
             catch (AggregateException ex)
             {
@@ -9287,6 +9300,8 @@ ErrorInfo成员里可能会有报错信息。
 
                 string xml = recordList[i].Data;//result.Records[i].Data;
                 BiblioItem item = ParseItemXml(weixinId, loginInfo, lib, xml, containReservationInfo);
+                if (item == null)
+                    continue;
                 item.biblioPath=biblioPath;
                 item.recPath = this.GetPurePath(recordList[i].RecPath);
 
