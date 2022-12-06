@@ -3659,6 +3659,13 @@ ISBN|010$a
         public const string C_State_Expire = "到期";
 
 
+        /// <summary>
+        /// 检查图书馆是否在线
+        /// </summary>
+        /// <param name="libEntity"></param>
+        /// <param name="clock"></param>
+        /// <param name="strError"></param>
+        /// <returns></returns>
         public bool CheckIsOnline(LibEntity libEntity,
             out string clock,
             out string strError)
@@ -3929,6 +3936,7 @@ ISBN|010$a
 
                     // 查找绑定了这个图书馆的工作人员 weixinid
                     List<WxUserItem> libWorkers = this.getWarningWorkerWeixinIds(lib.Entity);
+
                     this.WriteDebug("找到 " + libWorkers.Count.ToString() + " 位图书馆 " + lib.Entity.libName + " 工作人员");
 
                     // 当这个图书馆和数字平台都没有可收警告的工作人员，则不再发送通知
@@ -8529,7 +8537,10 @@ ErrorInfo成员里可能会有报错信息。
             strError = "";
             dataList = new List<string>();
 
-            
+            int redocount = 0;
+
+        REDO1:
+
             CancellationToken cancel_token = new CancellationToken();
             string id = Guid.NewGuid().ToString();
             SearchRequest request = new SearchRequest(id,
@@ -8556,8 +8567,15 @@ ErrorInfo成员里可能会有报错信息。
                     cancel_token).Result;
                 if (result.ResultCount == -1)
                 {
-                    bool bOffline = false;
+                    //bool bOffline = false;
                     strError = "图书馆[" + lib.libName + "]返回错误:" + result.ErrorInfo;
+
+                    // 通道断了，重来一次
+                    if (result.ErrorCode == "ChannelReleased" && redocount == 0)
+                    {
+                        redocount++;
+                        goto REDO1;
+                    }
 
                     //strError = this.GetFriendlyErrorInfo(result, lib.libName, out bOffline);// result.ErrorInfo;
                     return -1;
@@ -8574,17 +8592,28 @@ ErrorInfo成员里可能会有报错信息。
                         dataList.Add(result.Records[i].Data);
                     }
                 }
-
                 return 1;
             }
             catch (AggregateException ex)
             {
                 strError = MessageConnection.GetExceptionText(ex);
+                if (redocount == 0)
+                {
+                    redocount++;
+                    goto REDO1;
+                }
+
                 goto ERROR1;
             }
             catch (Exception ex)
             {
                 strError = ex.Message;
+                if (redocount == 0)
+                {
+                    redocount++;
+                    goto REDO1;
+                }
+
                 goto ERROR1;
             }
         ERROR1:

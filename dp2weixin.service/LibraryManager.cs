@@ -77,8 +77,9 @@ namespace dp2weixin.service
                 return;
             }
 
-            // 设置版本
+            // 给内存中的lib设置上版本
             library.Version = capoVersion;
+
             // 比较capo版本是否满足需求
             nRet = StringUtil.CompareVersion(library.Version,
                LibraryManager.C_RequestCapoVersion);
