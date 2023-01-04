@@ -21,15 +21,17 @@ namespace TestZClient
 {
     public partial class Form1 : Form
     {
+        #region 成员
         //Z39.50 前端类。维持通讯通道
         ZClient _zclient = new ZClient();
 
         //ISBN号分析器，todo isbn需要进行哪些处理？
         public IsbnSplitter _isbnSplitter = null;
 
-        // todo啥作用？
+        // 检索途径集合
         public UseCollection _useList = new UseCollection();
 
+        #endregion
 
         #region 窗体加载和关闭事件里做的事情，以及初始化信息
 
@@ -51,6 +53,7 @@ namespace TestZClient
                 MessageBox.Show(this, result.ErrorInfo);
         }
 
+        // 窗体关闭时，目前里面没写代码。
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
 
@@ -458,9 +461,6 @@ namespace TestZClient
             SetQueryEnabled(bEnable);
         }
 
-
-
-
         // 把marc显示在界面上
         void AppendMarcRecords(RecordCollection records,
             Encoding encoding,
@@ -622,7 +622,7 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
 
         #endregion
 
-        #region 界面按钮
+        #region 界面按钮事件
 
         // 切断通道
         private void button_close_Click(object sender, EventArgs e)
