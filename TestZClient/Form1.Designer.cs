@@ -33,6 +33,7 @@
             this.MenuItem_multiChannelTest = new System.Windows.Forms.ToolStripMenuItem();
             this.MenuItem_iso2709LoaderTest = new System.Windows.Forms.ToolStripMenuItem();
             this.MenuItem_singlePresent = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuItem_hugeRequestAttack = new System.Windows.Forms.ToolStripMenuItem();
             this.MenuItem_utility = new System.Windows.Forms.ToolStripMenuItem();
             this.MenuItem_escapeString = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
@@ -69,7 +70,6 @@
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
-            this.MenuItem_hugeRequestAttack = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -82,6 +82,7 @@
             // 
             // menuStrip1
             // 
+            this.menuStrip1.GripMargin = new System.Windows.Forms.Padding(2, 2, 0, 2);
             this.menuStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.MenuItem_test,
@@ -89,7 +90,7 @@
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Padding = new System.Windows.Forms.Padding(7, 3, 0, 3);
-            this.menuStrip1.Size = new System.Drawing.Size(1040, 34);
+            this.menuStrip1.Size = new System.Drawing.Size(1040, 45);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -101,49 +102,56 @@
             this.MenuItem_singlePresent,
             this.MenuItem_hugeRequestAttack});
             this.MenuItem_test.Name = "MenuItem_test";
-            this.MenuItem_test.Size = new System.Drawing.Size(58, 28);
+            this.MenuItem_test.Size = new System.Drawing.Size(91, 39);
             this.MenuItem_test.Text = "测试";
             // 
             // MenuItem_multiChannelTest
             // 
             this.MenuItem_multiChannelTest.Name = "MenuItem_multiChannelTest";
-            this.MenuItem_multiChannelTest.Size = new System.Drawing.Size(279, 30);
+            this.MenuItem_multiChannelTest.Size = new System.Drawing.Size(443, 48);
             this.MenuItem_multiChannelTest.Text = "多通道测试";
             this.MenuItem_multiChannelTest.Click += new System.EventHandler(this.MenuItem_multiChannelTest_Click);
             // 
             // MenuItem_iso2709LoaderTest
             // 
             this.MenuItem_iso2709LoaderTest.Name = "MenuItem_iso2709LoaderTest";
-            this.MenuItem_iso2709LoaderTest.Size = new System.Drawing.Size(279, 30);
+            this.MenuItem_iso2709LoaderTest.Size = new System.Drawing.Size(443, 48);
             this.MenuItem_iso2709LoaderTest.Text = "ISO2709 文件装载测试";
             this.MenuItem_iso2709LoaderTest.Click += new System.EventHandler(this.MenuItem_iso2709LoaderTest_Click);
             // 
             // MenuItem_singlePresent
             // 
             this.MenuItem_singlePresent.Name = "MenuItem_singlePresent";
-            this.MenuItem_singlePresent.Size = new System.Drawing.Size(279, 30);
+            this.MenuItem_singlePresent.Size = new System.Drawing.Size(443, 48);
             this.MenuItem_singlePresent.Text = "单个 Present 操作 ...";
             this.MenuItem_singlePresent.Click += new System.EventHandler(this.MenuItem_singlePresent_Click);
+            // 
+            // MenuItem_hugeRequestAttack
+            // 
+            this.MenuItem_hugeRequestAttack.Name = "MenuItem_hugeRequestAttack";
+            this.MenuItem_hugeRequestAttack.Size = new System.Drawing.Size(443, 48);
+            this.MenuItem_hugeRequestAttack.Text = "超大请求攻击";
+            this.MenuItem_hugeRequestAttack.Click += new System.EventHandler(this.MenuItem_hugeRequestAttack_Click);
             // 
             // MenuItem_utility
             // 
             this.MenuItem_utility.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.MenuItem_escapeString});
             this.MenuItem_utility.Name = "MenuItem_utility";
-            this.MenuItem_utility.Size = new System.Drawing.Size(58, 28);
+            this.MenuItem_utility.Size = new System.Drawing.Size(91, 39);
             this.MenuItem_utility.Text = "工具";
             // 
             // MenuItem_escapeString
             // 
             this.MenuItem_escapeString.Name = "MenuItem_escapeString";
-            this.MenuItem_escapeString.Size = new System.Drawing.Size(199, 30);
+            this.MenuItem_escapeString.Size = new System.Drawing.Size(327, 48);
             this.MenuItem_escapeString.Text = "转义检索词 ...";
             this.MenuItem_escapeString.Click += new System.EventHandler(this.MenuItem_escapeString_Click);
             // 
             // toolStrip1
             // 
             this.toolStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
-            this.toolStrip1.Location = new System.Drawing.Point(0, 34);
+            this.toolStrip1.Location = new System.Drawing.Point(0, 45);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(1040, 25);
             this.toolStrip1.TabIndex = 1;
@@ -155,28 +163,28 @@
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripProgressBar1,
             this.toolStripStatusLabel1});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 779);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 930);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Padding = new System.Windows.Forms.Padding(1, 0, 17, 0);
-            this.statusStrip1.Size = new System.Drawing.Size(1040, 29);
+            this.statusStrip1.Size = new System.Drawing.Size(1040, 46);
             this.statusStrip1.TabIndex = 2;
             this.statusStrip1.Text = "statusStrip1";
             // 
             // toolStripProgressBar1
             // 
             this.toolStripProgressBar1.Name = "toolStripProgressBar1";
-            this.toolStripProgressBar1.Size = new System.Drawing.Size(200, 23);
+            this.toolStripProgressBar1.Size = new System.Drawing.Size(200, 32);
             // 
             // toolStripStatusLabel1
             // 
             this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            this.toolStripStatusLabel1.Size = new System.Drawing.Size(195, 24);
+            this.toolStripStatusLabel1.Size = new System.Drawing.Size(291, 35);
             this.toolStripStatusLabel1.Text = "toolStripStatusLabel1";
             // 
             // splitContainer1
             // 
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer1.Location = new System.Drawing.Point(0, 59);
+            this.splitContainer1.Location = new System.Drawing.Point(0, 70);
             this.splitContainer1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.splitContainer1.Name = "splitContainer1";
             // 
@@ -187,7 +195,7 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.webBrowser1);
-            this.splitContainer1.Size = new System.Drawing.Size(1040, 720);
+            this.splitContainer1.Size = new System.Drawing.Size(1040, 860);
             this.splitContainer1.SplitterDistance = 464;
             this.splitContainer1.SplitterWidth = 10;
             this.splitContainer1.TabIndex = 3;
@@ -224,7 +232,7 @@
             this.panel_query.Location = new System.Drawing.Point(0, 0);
             this.panel_query.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.panel_query.Name = "panel_query";
-            this.panel_query.Size = new System.Drawing.Size(464, 720);
+            this.panel_query.Size = new System.Drawing.Size(464, 860);
             this.panel_query.TabIndex = 0;
             // 
             // radioButton_query_origin
@@ -233,7 +241,7 @@
             this.radioButton_query_origin.Location = new System.Drawing.Point(21, 283);
             this.radioButton_query_origin.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.radioButton_query_origin.Name = "radioButton_query_origin";
-            this.radioButton_query_origin.Size = new System.Drawing.Size(107, 28);
+            this.radioButton_query_origin.Size = new System.Drawing.Size(154, 39);
             this.radioButton_query_origin.TabIndex = 11;
             this.radioButton_query_origin.Text = "原始方式";
             this.radioButton_query_origin.UseVisualStyleBackColor = true;
@@ -246,7 +254,7 @@
             this.radioButton_query_easy.Location = new System.Drawing.Point(17, 153);
             this.radioButton_query_easy.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.radioButton_query_easy.Name = "radioButton_query_easy";
-            this.radioButton_query_easy.Size = new System.Drawing.Size(107, 28);
+            this.radioButton_query_easy.Size = new System.Drawing.Size(154, 39);
             this.radioButton_query_easy.TabIndex = 6;
             this.radioButton_query_easy.TabStop = true;
             this.radioButton_query_easy.Text = "易用方式";
@@ -261,7 +269,7 @@
             this.textBox_queryString.Location = new System.Drawing.Point(152, 321);
             this.textBox_queryString.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox_queryString.Name = "textBox_queryString";
-            this.textBox_queryString.Size = new System.Drawing.Size(117, 31);
+            this.textBox_queryString.Size = new System.Drawing.Size(117, 43);
             this.textBox_queryString.TabIndex = 13;
             // 
             // label9
@@ -270,7 +278,7 @@
             this.label9.Location = new System.Drawing.Point(35, 325);
             this.label9.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(68, 24);
+            this.label9.Size = new System.Drawing.Size(103, 35);
             this.label9.TabIndex = 12;
             this.label9.Text = "检索式:";
             // 
@@ -293,7 +301,7 @@
             this.textBox_password.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox_password.Name = "textBox_password";
             this.textBox_password.PasswordChar = '*';
-            this.textBox_password.Size = new System.Drawing.Size(272, 31);
+            this.textBox_password.Size = new System.Drawing.Size(272, 43);
             this.textBox_password.TabIndex = 24;
             // 
             // label7
@@ -302,7 +310,7 @@
             this.label7.Location = new System.Drawing.Point(13, 747);
             this.label7.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(73, 24);
+            this.label7.Size = new System.Drawing.Size(111, 35);
             this.label7.TabIndex = 23;
             this.label7.Text = "密码(&P):";
             // 
@@ -312,7 +320,7 @@
             this.textBox_userName.Location = new System.Drawing.Point(158, 699);
             this.textBox_userName.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox_userName.Name = "textBox_userName";
-            this.textBox_userName.Size = new System.Drawing.Size(272, 31);
+            this.textBox_userName.Size = new System.Drawing.Size(272, 43);
             this.textBox_userName.TabIndex = 22;
             // 
             // label6
@@ -321,7 +329,7 @@
             this.label6.Location = new System.Drawing.Point(13, 703);
             this.label6.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(93, 24);
+            this.label6.Size = new System.Drawing.Size(141, 35);
             this.label6.TabIndex = 21;
             this.label6.Text = "用户名(&U):";
             // 
@@ -331,7 +339,7 @@
             this.textBox_groupID.Location = new System.Drawing.Point(158, 656);
             this.textBox_groupID.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox_groupID.Name = "textBox_groupID";
-            this.textBox_groupID.Size = new System.Drawing.Size(272, 31);
+            this.textBox_groupID.Size = new System.Drawing.Size(272, 43);
             this.textBox_groupID.TabIndex = 20;
             // 
             // label8
@@ -340,7 +348,7 @@
             this.label8.Location = new System.Drawing.Point(13, 659);
             this.label8.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(92, 24);
+            this.label8.Size = new System.Drawing.Size(140, 35);
             this.label8.TabIndex = 19;
             this.label8.Text = "&Group ID:";
             // 
@@ -363,7 +371,7 @@
             this.radioButton_authenStyleIdpass.Location = new System.Drawing.Point(26, 83);
             this.radioButton_authenStyleIdpass.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.radioButton_authenStyleIdpass.Name = "radioButton_authenStyleIdpass";
-            this.radioButton_authenStyleIdpass.Size = new System.Drawing.Size(99, 28);
+            this.radioButton_authenStyleIdpass.Size = new System.Drawing.Size(145, 39);
             this.radioButton_authenStyleIdpass.TabIndex = 1;
             this.radioButton_authenStyleIdpass.TabStop = true;
             this.radioButton_authenStyleIdpass.Text = "&ID/Pass";
@@ -375,7 +383,7 @@
             this.radioButton_authenStyleOpen.Location = new System.Drawing.Point(26, 43);
             this.radioButton_authenStyleOpen.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.radioButton_authenStyleOpen.Name = "radioButton_authenStyleOpen";
-            this.radioButton_authenStyleOpen.Size = new System.Drawing.Size(83, 28);
+            this.radioButton_authenStyleOpen.Size = new System.Drawing.Size(117, 39);
             this.radioButton_authenStyleOpen.TabIndex = 0;
             this.radioButton_authenStyleOpen.TabStop = true;
             this.radioButton_authenStyleOpen.Text = "&Open";
@@ -411,7 +419,7 @@
             this.textBox_database.Location = new System.Drawing.Point(138, 104);
             this.textBox_database.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox_database.Name = "textBox_database";
-            this.textBox_database.Size = new System.Drawing.Size(131, 31);
+            this.textBox_database.Size = new System.Drawing.Size(131, 43);
             this.textBox_database.TabIndex = 5;
             // 
             // button_search
@@ -431,7 +439,7 @@
             this.label1.Location = new System.Drawing.Point(13, 17);
             this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(50, 24);
+            this.label1.Size = new System.Drawing.Size(76, 35);
             this.label1.TabIndex = 0;
             this.label1.Text = "地址:";
             // 
@@ -443,7 +451,7 @@
             this.comboBox_use.Location = new System.Drawing.Point(152, 237);
             this.comboBox_use.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.comboBox_use.Name = "comboBox_use";
-            this.comboBox_use.Size = new System.Drawing.Size(117, 32);
+            this.comboBox_use.Size = new System.Drawing.Size(117, 43);
             this.comboBox_use.TabIndex = 10;
             // 
             // textBox_serverAddr
@@ -453,7 +461,7 @@
             this.textBox_serverAddr.Location = new System.Drawing.Point(138, 13);
             this.textBox_serverAddr.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox_serverAddr.Name = "textBox_serverAddr";
-            this.textBox_serverAddr.Size = new System.Drawing.Size(131, 31);
+            this.textBox_serverAddr.Size = new System.Drawing.Size(131, 43);
             this.textBox_serverAddr.TabIndex = 1;
             // 
             // label5
@@ -462,7 +470,7 @@
             this.label5.Location = new System.Drawing.Point(35, 241);
             this.label5.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(86, 24);
+            this.label5.Size = new System.Drawing.Size(130, 35);
             this.label5.TabIndex = 9;
             this.label5.Text = "检索途径:";
             // 
@@ -472,7 +480,7 @@
             this.label2.Location = new System.Drawing.Point(13, 63);
             this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(68, 24);
+            this.label2.Size = new System.Drawing.Size(103, 35);
             this.label2.TabIndex = 2;
             this.label2.Text = "端口号:";
             // 
@@ -483,7 +491,7 @@
             this.textBox_queryWord.Location = new System.Drawing.Point(152, 191);
             this.textBox_queryWord.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox_queryWord.Name = "textBox_queryWord";
-            this.textBox_queryWord.Size = new System.Drawing.Size(117, 31);
+            this.textBox_queryWord.Size = new System.Drawing.Size(117, 43);
             this.textBox_queryWord.TabIndex = 8;
             // 
             // textBox_serverPort
@@ -493,7 +501,7 @@
             this.textBox_serverPort.Location = new System.Drawing.Point(138, 59);
             this.textBox_serverPort.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox_serverPort.Name = "textBox_serverPort";
-            this.textBox_serverPort.Size = new System.Drawing.Size(131, 31);
+            this.textBox_serverPort.Size = new System.Drawing.Size(131, 43);
             this.textBox_serverPort.TabIndex = 3;
             // 
             // label4
@@ -502,7 +510,7 @@
             this.label4.Location = new System.Drawing.Point(35, 195);
             this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(68, 24);
+            this.label4.Size = new System.Drawing.Size(103, 35);
             this.label4.TabIndex = 7;
             this.label4.Text = "检索词:";
             // 
@@ -512,7 +520,7 @@
             this.label3.Location = new System.Drawing.Point(13, 107);
             this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(86, 24);
+            this.label3.Size = new System.Drawing.Size(130, 35);
             this.label3.TabIndex = 4;
             this.label3.Text = "数据库名:";
             // 
@@ -523,21 +531,14 @@
             this.webBrowser1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.webBrowser1.MinimumSize = new System.Drawing.Size(24, 27);
             this.webBrowser1.Name = "webBrowser1";
-            this.webBrowser1.Size = new System.Drawing.Size(566, 720);
+            this.webBrowser1.Size = new System.Drawing.Size(566, 860);
             this.webBrowser1.TabIndex = 0;
-            // 
-            // MenuItem_hugeRequestAttack
-            // 
-            this.MenuItem_hugeRequestAttack.Name = "MenuItem_hugeRequestAttack";
-            this.MenuItem_hugeRequestAttack.Size = new System.Drawing.Size(279, 30);
-            this.MenuItem_hugeRequestAttack.Text = "超大请求攻击";
-            this.MenuItem_hugeRequestAttack.Click += new System.EventHandler(this.MenuItem_hugeRequestAttack_Click);
             // 
             // Form1
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(11F, 24F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(16F, 35F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1040, 808);
+            this.ClientSize = new System.Drawing.Size(1040, 976);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.toolStrip1);

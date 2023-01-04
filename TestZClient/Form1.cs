@@ -21,19 +21,31 @@ namespace TestZClient
 {
     public partial class Form1 : Form
     {
+        //Z39.50 前端类。维持通讯通道
         ZClient _zclient = new ZClient();
+
+        //ISBN号分析器，todo isbn需要进行哪些处理？
         public IsbnSplitter _isbnSplitter = null;
+
+        // todo啥作用？
         public UseCollection _useList = new UseCollection();
+
+
+        #region 窗体加载和关闭事件里做的事情，以及初始化信息
 
         public Form1()
         {
             InitializeComponent();
         }
 
+        // 窗体装载
         private void Form1_Load(object sender, EventArgs e)
         {
+            // 把以前的记下来的信息装载到界面上。
             LoadSettings();
 
+            // 准备环境，包括isbn的rangemessage和检索途径。
+            // 注意这里用的了一个Result作为返回结果，这样
             Result result = LoadEnvironment();
             if (result.Value == -1)
                 MessageBox.Show(this, result.ErrorInfo);
@@ -44,10 +56,13 @@ namespace TestZClient
 
         }
 
+        // 窗体关闭
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
+            // 保存界面输入
             SaveSettings();
 
+            // 关闭通道
             if (_zclient != null)
             {
                 _zclient.CloseConnection();
@@ -55,13 +70,18 @@ namespace TestZClient
             }
         }
 
+
+        // 准备环境
         Result LoadEnvironment()
         {
+            // 清空右侧html
             this.ClearHtml();
 
+            // 装载rangemessage.xml文件，这个处理是定义isbn的一些规则。
             try
             {
-                this._isbnSplitter = new IsbnSplitter(Path.Combine(Environment.CurrentDirectory, "rangemessage.xml"));  // "\\isbn.xml"
+                this._isbnSplitter = new IsbnSplitter(Path.Combine(Environment.CurrentDirectory,
+                    "rangemessage.xml"));  // "\\isbn.xml"
             }
             catch (FileNotFoundException ex)
             {
@@ -90,16 +110,20 @@ namespace TestZClient
                 return new Result { Value = -1, ErrorInfo = "装载本地 isbn 规则文件发生错误 :" + ex.Message };
             }
 
+            // 装载检索途径文件bib1use.xml
             Result result = _useList.Load(Path.Combine(Environment.CurrentDirectory, "bib1use.xml"));
             if (result.Value == -1)
                 return result;
 
+            // 得到检索途径数组
             string[] fromlist = this._useList.GetDropDownList();
+            // 把检索途径装载到下拉列表中
             this.comboBox_use.Items.AddRange(fromlist);
 
             return new Result();
         }
 
+        // 装载记载的上次界面信息
         void LoadSettings()
         {
             this.textBox_serverAddr.Text = Settings.Default.serverAddr;
@@ -128,6 +152,7 @@ namespace TestZClient
 
         }
 
+        // 保存界面信息
         void SaveSettings()
         {
             Settings.Default.serverAddr = this.textBox_serverAddr.Text;
@@ -154,6 +179,10 @@ namespace TestZClient
 
             Settings.Default.Save();
         }
+
+        #endregion
+
+        #region 检索相关
 
         // 创建只包含一个检索词的简单 XML 检索式
         // 注：这种 XML 检索式不是 Z39.50 函数库必需的。只是用它来方便构造 API 检索式的过程
@@ -182,21 +211,30 @@ namespace TestZClient
             return (this.radioButton_authenStyleIdpass.Checked ? 1 : 0);
         }
 
+        // 检索目标信息
         TargetInfo _targetInfo = new TargetInfo();
 
-        long _resultCount = 0;   // 检索命中条数
-        int _fetched = 0;   // 已经 Present 获取的条数
+        // 检索命中条数
+        long _resultCount = 0;
+        // 已经 Present 获取的条数
+        int _fetched = 0;  
 
+        // 发起检索
         private async void button_search_Click(object sender, EventArgs e)
         {
+            // 状态条文字设为空
             this.toolStripStatusLabel1.Text = "";
 
             string strError = "";
 
+            // 清空右侧html
             this.ClearHtml();
-            _resultCount = 0;
-            _fetched = 0;
 
+            // 命中记录数
+            _resultCount = 0;
+            _fetched = 0;  //获取的数量
+
+            // 让界面控件不可用
             EnableControls(false);
 
             try
@@ -211,17 +249,25 @@ namespace TestZClient
                 {
                     _targetInfo = new TargetInfo
                     {
-                        HostName = this.textBox_serverAddr.Text,
-                        Port = Convert.ToInt32(this.textBox_serverPort.Text),
-                        DbNames = StringUtil.SplitList(this.textBox_database.Text).ToArray(),
-                        AuthenticationMethod = GetAuthentcationMethod(),
-                        GroupID = this.textBox_groupID.Text,
-                        UserName = this.textBox_userName.Text,
-                        Password = this.textBox_password.Text,
+                        HostName = this.textBox_serverAddr.Text,  //服务器地址
+                        Port = Convert.ToInt32(this.textBox_serverPort.Text),  //端口
+                        DbNames = StringUtil.SplitList(this.textBox_database.Text).ToArray(),  //数据库名
+                        AuthenticationMethod = GetAuthentcationMethod(),  // // 	0: open 1:idPass
+                        GroupID = this.textBox_groupID.Text,  //? groupid是啥作用？
+                        UserName = this.textBox_userName.Text,  //帐户名
+                        Password = this.textBox_password.Text,  //密码
                     };
+
+                    // 因为新new了targetInfo，所以把原来的通道关闭
                     _zclient.CloseConnection();
                 }
 
+                // ISBN检索前，对检索词如下预处理：
+                //* 加入横杠
+                //* 去除横杠
+                //* 规整为13位形态
+                //* 规整为10位形态
+                //* 野蛮匹配
                 IsbnConvertInfo isbnconvertinfo = new IsbnConvertInfo
                 {
                     IsbnSplitter = this._isbnSplitter,
@@ -235,6 +281,7 @@ namespace TestZClient
 
                 string strQueryString = "";
 
+                // 易用方式
                 if (this.radioButton_query_easy.Checked)
                 {
                     // 创建只包含一个检索词的简单 XML 检索式
@@ -255,7 +302,10 @@ namespace TestZClient
                     this.textBox_queryString.Text = strQueryString; // 便于调试观察
                 }
                 else
+                {
+                    // 直接使用原始检索式
                     strQueryString = this.textBox_queryString.Text;
+                }
 
                 REDO_SEARCH:
                 {
@@ -285,11 +335,11 @@ namespace TestZClient
                 // result.ResultCount:
                 //      命中结果集内记录条数 (当 result.Value 为 1 时)
                 SearchResult search_result = await _zclient.Search(
-        strQueryString,
-        _targetInfo.DefaultQueryTermEncoding,
-        _targetInfo.DbNames,
-        _targetInfo.PreferredRecordSyntax,
-        "default");
+                    strQueryString,
+                    _targetInfo.DefaultQueryTermEncoding,
+                    _targetInfo.DbNames,
+                    _targetInfo.PreferredRecordSyntax,
+                    "default");
                 if (search_result.Value == -1 || search_result.Value == 0)
                 {
                     this.AppendHtml("<div class='debug error' >检索出错 " + search_result.ErrorInfo + "</div>");
@@ -315,7 +365,7 @@ namespace TestZClient
                 else
                     this.button_nextBatch.Enabled = false;
 #endif
-
+                // 获取记录
                 await FetchRecords(_targetInfo);
 
                 return;
@@ -329,35 +379,7 @@ namespace TestZClient
             MessageBox.Show(this, strError);
         }
 
-        void EnableControls(bool bEnable)
-        {
-            this.button_search.Enabled = bEnable;
-            this.button_stop.Enabled = !bEnable;
-            this.button_close.Enabled = bEnable;
-            if (_resultCount - _fetched > 0)
-                this.button_nextBatch.Enabled = bEnable;
-            else
-                this.button_nextBatch.Enabled = false;
-
-            if (_resultCount == 0)
-                this.button_nextBatch.Text = ">> ";
-            else
-                this.button_nextBatch.Text = ">> " + _fetched + "/" + _resultCount;
-
-            this.textBox_database.Enabled = bEnable;
-            this.textBox_groupID.Enabled = bEnable;
-            this.textBox_password.Enabled = bEnable;
-            //this.textBox_queryString.Enabled = bEnable;
-            //this.textBox_queryWord.Enabled = bEnable;
-            this.textBox_serverAddr.Enabled = bEnable;
-            this.textBox_serverPort.Enabled = bEnable;
-            this.textBox_userName.Enabled = bEnable;
-
-            this.groupBox1.Enabled = bEnable;
-
-            SetQueryEnabled(bEnable);
-        }
-
+        // 获取记录
         async Task FetchRecords(TargetInfo targetinfo)
         {
             EnableControls(false);  // 暂时禁用
@@ -365,6 +387,11 @@ namespace TestZClient
             {
                 if (_resultCount - _fetched > 0)
                 {
+                    // 获得记录
+                    // 确保一定可以获得nCount个
+                    // parameters:
+                    //		nStart	获取记录的开始位置(从0开始计数)
+                    //      nPreferedEachCount  推荐的每次条数。这涉及到响应的敏捷性。如果为-1或者0，表示最大
                     PresentResult present_result = await _zclient.Present(
                         "default",
                         _fetched,
@@ -401,15 +428,40 @@ namespace TestZClient
 #endif
         }
 
-        private void button_close_Click(object sender, EventArgs e)
+        // 设置控件可用状态
+        void EnableControls(bool bEnable)
         {
-            EnableControls(false);
-            _zclient.CloseConnection();
-            EnableControls(true);
-            // MessageBox.Show(this, "通道已切断");
-            this.toolStripStatusLabel1.Text = "通道已切断";
+            this.button_search.Enabled = bEnable;
+            this.button_stop.Enabled = !bEnable;
+            this.button_close.Enabled = bEnable;
+            if (_resultCount - _fetched > 0)
+                this.button_nextBatch.Enabled = bEnable;
+            else
+                this.button_nextBatch.Enabled = false;
+
+            if (_resultCount == 0)
+                this.button_nextBatch.Text = ">> ";
+            else
+                this.button_nextBatch.Text = ">> " + _fetched + "/" + _resultCount;
+
+            this.textBox_database.Enabled = bEnable;
+            this.textBox_groupID.Enabled = bEnable;
+            this.textBox_password.Enabled = bEnable;
+            //this.textBox_queryString.Enabled = bEnable;
+            //this.textBox_queryWord.Enabled = bEnable;
+            this.textBox_serverAddr.Enabled = bEnable;
+            this.textBox_serverPort.Enabled = bEnable;
+            this.textBox_userName.Enabled = bEnable;
+
+            this.groupBox1.Enabled = bEnable;
+
+            SetQueryEnabled(bEnable);
         }
 
+
+
+
+        // 把marc显示在界面上
         void AppendMarcRecords(RecordCollection records,
             Encoding encoding,
             int start_index)
@@ -458,6 +510,8 @@ namespace TestZClient
                 i++;
             }
         }
+
+        #endregion
 
         #region 浏览器控件
 
@@ -568,6 +622,18 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
 
         #endregion
 
+        #region 界面按钮
+
+        // 切断通道
+        private void button_close_Click(object sender, EventArgs e)
+        {
+            EnableControls(false);
+            _zclient.CloseConnection();
+            EnableControls(true);
+            // MessageBox.Show(this, "通道已切断");
+            this.toolStripStatusLabel1.Text = "通道已切断";
+        }
+
         // 获得下一批记录
         private async void button_nextBatch_Click(object sender, EventArgs e)
         {
@@ -586,19 +652,13 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             EnableControls(true);
         }
 
-        // 多通道测试
-        private void MenuItem_multiChannelTest_Click(object sender, EventArgs e)
-        {
-            MultiChannelForm dlg = new MultiChannelForm();
-            dlg.StartPosition = FormStartPosition.CenterParent;
-            dlg.ShowDialog(this);
-        }
-
+        // 易用方式 与 原始检索 切换。
         private void radioButton_query_origin_CheckedChanged(object sender, EventArgs e)
         {
             SetQueryEnabled(true);
         }
 
+        // 切换易用和原始检索
         void SetQueryEnabled(bool bEnable)
         {
             this.radioButton_query_easy.Enabled = bEnable;
@@ -626,12 +686,27 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             }
         }
 
+        #endregion
+
+        #region 菜单命令
+
+        // 测试-多通道测试
+        private void MenuItem_multiChannelTest_Click(object sender, EventArgs e)
+        {
+            MultiChannelForm dlg = new MultiChannelForm();
+            dlg.StartPosition = FormStartPosition.CenterParent;
+            dlg.ShowDialog(this);
+        }
+
+
+        // 工具-转义检索词
         private void MenuItem_escapeString_Click(object sender, EventArgs e)
         {
             EscapeStringDialog dlg = new EscapeStringDialog();
             dlg.ShowDialog(this);
         }
 
+        // 测试-装载iso2709文件
         private async void MenuItem_iso2709LoaderTest_Click(object sender, EventArgs e)
         {
             this.MenuItem_iso2709LoaderTest.Enabled = false;
@@ -687,8 +762,16 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             }
         }
 
+
+        // 测试-单个present操作
+        private async void MenuItem_singlePresent_Click(object sender, EventArgs e)
+        {
+            await Present();
+        }
+
         string _uiState;
 
+        // 单独测试获取记录
         async Task Present()
         {
             PresentDialog dlg = new PresentDialog();
@@ -730,16 +813,13 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             }
         }
 
-        private async void MenuItem_singlePresent_Click(object sender, EventArgs e)
-        {
-            await Present();
-        }
 
+
+        // 测试-超大请求攻击
         private async void MenuItem_hugeRequestAttack_Click(object sender, EventArgs e)
         {
             await HugeRequestAttack();
         }
-
         async Task HugeRequestAttack()
         {
             EnableControls(false);  // 暂时禁用
@@ -759,5 +839,6 @@ System.Runtime.InteropServices.COMException (0x800700AA): 请求的资源在使�
             }
         }
 
+        #endregion
     }
 }
