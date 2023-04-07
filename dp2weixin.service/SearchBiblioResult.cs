@@ -79,6 +79,7 @@ namespace dp2weixin.service
 
     public class BiblioItem
     {
+
         //序号
         public string no = "";
 
@@ -86,6 +87,9 @@ namespace dp2weixin.service
 
         public string barcode { get; set; }//这个barcode值：如果有册条码号为册条码，没有值为@refID:
         public string pureBarcode { get; set; }//册条码号
+
+        // 2023/4/7增加
+        public string Timestamp { get; set; }
 
         public string state { get; set; }  //状态   
         public string volume { get; set; }  //卷册

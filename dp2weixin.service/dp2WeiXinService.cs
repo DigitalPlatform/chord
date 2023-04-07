@@ -8914,7 +8914,8 @@ ErrorInfo成员里可能会有报错信息。
                 Record oldRecord = new Record();
                 oldRecord.RecPath = item.recPath;
 
-                //oldRecord.Timestamp = timestamp;
+                
+                oldRecord.Timestamp = item.Timestamp;// 2023/4/7现在dp2端需要时间戳参数，原来的接口不需要时间戳也能删除，
                 entity.OldRecord = oldRecord;
             }
 
@@ -9326,13 +9327,16 @@ ErrorInfo成员里可能会有报错信息。
 
             for (int i = 0; i < recordList.Count; i++)
             {
-
-                string xml = recordList[i].Data;//result.Records[i].Data;
+                Record r= recordList[i];//result.Records[i].Data;
+                string xml = r.Data;
                 BiblioItem item = ParseItemXml(weixinId, loginInfo, lib, xml, containReservationInfo);
                 if (item == null)
                     continue;
                 item.biblioPath=biblioPath;
                 item.recPath = this.GetPurePath(recordList[i].RecPath);
+
+                // 2023/4/7 要加上时间戳，否则没法编辑和删除
+                item.Timestamp= r.Timestamp;
 
 
                 //=====
@@ -9508,7 +9512,9 @@ ErrorInfo成员里可能会有报错信息。
                 int index1 = item.location.IndexOf("/");
                 if (index1 > 0)
                     tempLibCode = item.location.Substring(0, index1);
-                if (activeUser.libraryCode != tempLibCode)
+
+                //2023/4/7 修改，有的工作人员管理多个馆
+                if (StringUtil.IsInList(tempLibCode, activeUser.libraryCode) == false)// != tempLibCode)
                 {
                     item.isGray = true;
                     item.location += "(非本馆-不可操作)";

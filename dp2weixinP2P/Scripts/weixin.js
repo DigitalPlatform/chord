@@ -115,7 +115,7 @@ function gotoEditItem(biblioPath, biblioName) {
 }
 
 // 删除册
-function deleteItem(worker,libId,biblioPath,itemPath,barcode) {
+function deleteItem(worker, libId, biblioPath, itemPath, barcode, timestamp) {
 
     var gnl = confirm("您确认要删除册[" + barcode + "]吗?");
     if (gnl == false) {
@@ -161,7 +161,8 @@ function deleteItem(worker,libId,biblioPath,itemPath,barcode) {
             alert(errorThrown);
         },
         {
-            recPath: itemPath
+            recPath: itemPath,
+            Timestamp: timestamp
         }
     );
 }
@@ -574,7 +575,7 @@ function getItemHtml(libId,record,showDeleteButton) {
         itemTables += "<tr>"
             + "<td class='label' colspan='2'>"
             //+ "<button  class='mui-btn' onclick='gotoEditItem(\"" + recPath + "\",\"" + biblioName + "\")'>编辑</button>"
-            + "<button  class='mui-btn' onclick='deleteItem(\"" + worker + "\",\"" + libId + "\",\"" + record.biblioPath + "\",\"" + record.recPath + "\",\"" + tempBarcode + "\")'>删除册</button>"
+            + "<button  class='mui-btn' onclick='deleteItem(\"" + worker + "\",\"" + libId + "\",\"" + record.biblioPath + "\",\"" + record.recPath + "\",\"" + tempBarcode + "\",\"" + record.Timestamp + "\")'>删除册</button>"
             + "</td > "
             + "</tr>";
     }
