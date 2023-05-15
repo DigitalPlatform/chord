@@ -31,6 +31,14 @@ namespace dp2weixin.service
             string k1, string k2, 
             string remark)
         {
+
+            // 每个字段文字不能太长
+            //// 2023/5/10 腾讯新模板不支持备注，合到第2个字段里。
+            //if (string.IsNullOrEmpty(remark)==false)
+            //{
+            //    k2 += "," + remark;
+            //}
+
             this.first = new TemplateDataItem(first, first_color);
             this.keyword1 = new TemplateDataItem(k1, C_TColor_Content);
             this.keyword2 = new TemplateDataItem(k2, C_TColor_Content);
@@ -375,6 +383,7 @@ namespace dp2weixin.service
     //{{remark.DATA}}
     public class BindTemplateData:Template2Data
     {
+
         public BindTemplateData(string first, string first_color,
             string k1, string k2,
             string remark)

@@ -1589,20 +1589,44 @@ ISBN|010$a
         {
             strError = "";
 
-            BaseTemplateData templateData = (BaseTemplateData)msgData;
-            string oldRemark = templateData.remark.value;
+            BaseTemplateData templateData1 = (BaseTemplateData)msgData;
+            string oldRemark = templateData1.remark.value;
 
-            // 加日期与操作人
-            string nowTime = dp2WeiXinService.DateTimeToStringNoSec(DateTime.Now);
-            templateData.remark.value = oldRemark + "\n" + nowTime;
-            if (theOperator != "")
-                templateData.remark.value = templateData.remark.value + " " + theOperator;
+            // 2023/5/10 加日期与操作人
+            //string nowTime = dp2WeiXinService.DateTimeToStringNoSec(DateTime.Now);
+            //if (theOperator != "")
+            //    nowTime += " " + theOperator;
+            //if (msgData is Template2Data)
+            //{
+            //    ((Template2Data)msgData).keyword2.value += " " + nowTime;
+            //}
+            //else if (msgData is Template3Data)
+            //{
+            //    ((Template3Data)msgData).keyword3.value += " " + nowTime;
+            //}
+            //else if (msgData is Template4Data)
+            //{
+            //    ((Template4Data)msgData).keyword4.value += " " + nowTime;
+            //}
+            //else if (msgData is Template5Data)
+            //{
+            //    ((Template5Data)msgData).keyword5.value += " " + nowTime;
+            //}
+
+
+            // 2023/5/10 不支持加到备注里
+            //// 加日期与操作人
+            //templateData.remark.value = oldRemark + "\n" + nowTime;
+            //if (theOperator != "")
+            //    templateData.remark.value = templateData.remark.value + " " + theOperator;
+
+
 
             // 给每个帐户发通知
             foreach (WxUserItem u in userList)//string oneWeixinId in weixinIds)
             {
                 // 把消息信息写日志和本地库
-                string messageXml = templateData.Dump();
+                string messageXml = ((BaseTemplateData)msgData).Dump();
                 // 写到日志里
                 {
                     string msgType = templateName;
@@ -1671,7 +1695,7 @@ ISBN|010$a
                             pureWeixinId,  // 用单纯的weixinId
                             templateId,
                             linkUrl,
-                            templateData);
+                            msgData);
 
                         WriteDebug("SendTemplateMessage完成,errorcode=[" + ret.errcode + "],errorstr=[" + ret.errmsg + "]");
                         if (ret.errcode != 0)
@@ -1724,7 +1748,7 @@ ISBN|010$a
             }
 
             // 还回原来的值，因为是引用型，外面还在用这个data
-            templateData.remark.value = oldRemark;
+            ((BaseTemplateData)msgData).remark.value = oldRemark;
 
             return 0;
         }
@@ -2477,18 +2501,22 @@ ISBN|010$a
             if (nodeOperator != null)
             {
                 theOperator = DomUtil.GetNodeText(nodeOperator);
-                //if (String.IsNullOrEmpty(theOperator) == false)
-                //    theOperator = " 操作者：" + theOperator;
             }
 
             // 备注
             string remark = patronName + "，祝您阅读愉快。";//，欢迎再借。";
+
+            
 
 
             // 完整证条码 
             string fullPatronBarcode = this.GetFullPatronName("", patronBarcode, libName, patronLibraryCode,
                 false,
                 maskDef);
+
+            //2023/5/15 加 姓名
+            fullPatronBarcode += " " + patronName;
+
             summary = this.GetShortSummary(summary);
 
             //增加卷册信息
@@ -2670,6 +2698,9 @@ ISBN|010$a
             string operTime = DomUtil.GetNodeText(nodeOperTime);
             operTime = DateTimeUtil.ToLocalTime(operTime, "yyyy/MM/dd");
 
+            // 2023/5/15 把证条码和姓名加到 最后一个字段 还书时间。
+            operTime += " " + fullPatronName;
+
             // 摘要
             XmlNode nodeSummary = root.SelectSingleNode("itemRecord/summary");
             if (nodeSummary == null)
@@ -2697,6 +2728,7 @@ ISBN|010$a
 
             // 册条码完整表示 C001 图书馆/馆藏地
             string fullItemBarcode = this.GetFullItemBarcode(itemBarcode, libName, location);
+
 
 
             // 备注，检查是否有超期信息
@@ -2815,6 +2847,9 @@ ISBN|010$a
             }
             string operTime = DomUtil.GetNodeText(nodeOperTime);
             operTime = DateTimeUtil.ToLocalTime(operTime, "yyyy/MM/dd");
+
+            // 2023/5/15 把读者信息 合到交费时间里。
+            operTime += " " + fullPatronName;
 
             // 操作人 operator
             string theOperator = "";
@@ -2952,6 +2987,9 @@ ISBN|010$a
             string operTime = DomUtil.GetNodeText(nodeOperTime);
             operTime = DateTimeUtil.ToLocalTime(operTime, "yyyy/MM/dd");
 
+            // 2023/5/15 把读者信息 合到撤消交费时间里。
+            operTime += " " + fullPatronName;
+
             // 操作人 operator
             string theOperator = "";
             XmlNode nodeOperator = root.SelectSingleNode("operator");
@@ -3082,13 +3120,14 @@ ISBN|010$a
 
                 //overdueType是超期类型，overdue表示超期，warning表示即将超期。
                 string overdueType = DomUtil.GetAttr(item, "overdueType");
-                string remark = "";
 
+                //2023/5/15 在最后一个字段，增加读者姓名
+                overdueType += " " + fullPatronName;
+
+                string remark = "";
                 if (overdueType == "overdue")
                 {
                     remark = "\n" + fullPatronName + "，您借出的图书已超期，请尽快归还。";
-
-
                 }
                 else if (overdueType == "warning")
                 {
@@ -3186,11 +3225,6 @@ ISBN|010$a
                     if (nRet == -1)
                         return -1;
                 }
-
-
-
-
-
             }
             return 0;
         }
