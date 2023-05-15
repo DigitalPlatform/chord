@@ -3436,6 +3436,9 @@ ISBN|010$a
                 remark += "索取号" + accessNo;
             }
 
+            // 2023/5/15
+            reserveTime += " " + fullPatronName; 
+
             summary = this.GetShortSummary(summary);
             //您好，您预约的图书已经到书。
             //书刊摘要：中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00
@@ -11496,9 +11499,15 @@ ErrorInfo成员里可能会有报错信息。
 
                         //证条码号处
                         string markFullPatronBarcode = this.GetFullPatronName("", patron, lib.libName, user.libraryCode, true, maskDef);
+                        
                         //备注姓名
                         string markPatronName = dp2WeiXinService.Mask(maskDef, user.readerName, "name");//this.markString(user.readerName);
                         string tempRemark = remark.Replace(user.readerName, markPatronName);// +theOperator; ;
+
+
+                        
+
+
                         CancelReserveTemplateData maskMsgData = new CancelReserveTemplateData(first,
                             first_color,
                             summary,
