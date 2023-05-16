@@ -3436,7 +3436,7 @@ ISBN|010$a
                 remark += "索取号" + accessNo;
             }
 
-            // 2023/5/15
+            // 2023/5/15  加上姓名
             reserveTime += " " + fullPatronName; 
 
             summary = this.GetShortSummary(summary);
@@ -11473,6 +11473,9 @@ ErrorInfo成员里可能会有报错信息。
                         //张三，您取消图书预约成功，该书将不再为您保留。
                         string fullPatronBarcode = this.GetFullPatronName("", patron, lib.libName, user.libraryCode, false, maskDef);
 
+                        // 2023/5/16 增加上读者姓名
+                        fullPatronBarcode += " " + user.readerName;
+
                         CancelReserveTemplateData mData = new CancelReserveTemplateData(first,
                             first_color,
                             summary,
@@ -11504,8 +11507,9 @@ ErrorInfo成员里可能会有报错信息。
                         string markPatronName = dp2WeiXinService.Mask(maskDef, user.readerName, "name");//this.markString(user.readerName);
                         string tempRemark = remark.Replace(user.readerName, markPatronName);// +theOperator; ;
 
+                        // 2023/5/16 增加上读者姓名
+                        markFullPatronBarcode += " " + markPatronName;
 
-                        
 
 
                         CancelReserveTemplateData maskMsgData = new CancelReserveTemplateData(first,
