@@ -2548,7 +2548,13 @@ ISBN|010$a
                 maskDef);
             //备注姓名
             string markPatronName = dp2WeiXinService.Mask(maskDef, patronName, "name"); //this.markString(patronName);
+
+            // 2023/5/17 增加姓名
+            tempFullPatronBarcode += " " + markPatronName;
+
             string tempRemark = remark.Replace(patronName, markPatronName);// +theOperator; ;
+
+
             BorrowTemplateData maskMsgData = new BorrowTemplateData(first,
                 first_color,
                 summary,
