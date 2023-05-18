@@ -2515,7 +2515,7 @@ ISBN|010$a
                 maskDef);
 
             //2023/5/15 加 姓名
-            fullPatronBarcode += " " + patronName;
+            fullPatronBarcode = patronName+ " " + fullPatronBarcode;
 
             summary = this.GetShortSummary(summary);
 
@@ -2550,7 +2550,7 @@ ISBN|010$a
             string markPatronName = dp2WeiXinService.Mask(maskDef, patronName, "name"); //this.markString(patronName);
 
             // 2023/5/17 增加姓名
-            tempFullPatronBarcode += " " + markPatronName;
+            tempFullPatronBarcode =  markPatronName + " " + tempFullPatronBarcode;
 
             string tempRemark = remark.Replace(patronName, markPatronName);// +theOperator; ;
 
