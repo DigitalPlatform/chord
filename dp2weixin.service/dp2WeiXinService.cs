@@ -2506,9 +2506,6 @@ ISBN|010$a
             // 备注
             string remark = patronName + "，祝您阅读愉快。";//，欢迎再借。";
 
-            
-
-
             // 完整证条码 
             string fullPatronBarcode = this.GetFullPatronName("", patronBarcode, libName, patronLibraryCode,
                 false,
@@ -2546,6 +2543,7 @@ ISBN|010$a
             string tempFullPatronBarcode = this.GetFullPatronName("", patronBarcode, libName, patronLibraryCode,
                 true,
                 maskDef);
+
             //备注姓名
             string markPatronName = dp2WeiXinService.Mask(maskDef, patronName, "name"); //this.markString(patronName);
 
