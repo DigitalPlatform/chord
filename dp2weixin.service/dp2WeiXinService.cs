@@ -105,13 +105,16 @@ namespace dp2weixin.service
         public bool _bTrace = false;
 
         // 密码钥匙
-        public string EncryptKey = "dp2weixinPassword";
+        public string EncryptKey = "";//安全性，删除，内部保存。
 
         // 微信公众号信息
         public GzhContainer _gzhContainer = null;
 
         public string AppletAppId = "";
         public string AppletAppSecret = "";
+
+        // 2023/5/24加
+        private string _messageLinkUrl = "";
 
 
         // dp2消息处理类
@@ -613,6 +616,16 @@ namespace dp2weixin.service
             this.AppletAppId =DomUtil.GetAttr(root, "applet", "appId");
             this.AppletAppSecret= DomUtil.GetAttr(root, "applet", "appSecret");
 
+
+            // 消息详情url
+            GzhCfg gzh = dp2WeiXinService.Instance._gzhContainer.GetDefault();//.GetByAppId(this.AppId);
+            if (gzh == null)
+            {
+                throw new Exception("未找到默认的公众号配置");
+            }
+            this._messageLinkUrl = dp2WeiXinService.Instance.GetOAuth2Url(gzh,
+                        HttpUtility.UrlEncode("Library/Message")
+                        );
 
 
             // mongo配置
@@ -1673,14 +1686,15 @@ ISBN|010$a
                         continue;
                     }
 
+                    // 2020/5/24 尝试放开，把消息写到本地库，方便看详情
                     // 2021/8/13 消息库太大了，暂时不要写了
-                    //// 2020/4/1 发微信通知前，都写到本地库中
-                    //UserMessageItem myMsg = new UserMessageItem();
-                    //myMsg.userId = u.id;// 2020/4/2 这里应该用userId,这样可以关联到绑定帐户,而不是用单纯的weixinId
-                    //myMsg.msgType = templateName;
-                    //myMsg.xml = messageXml;
-                    //myMsg.createTime = GetNowTime();
-                    //UserMessageDb.Current.Add(myMsg);
+                    // 2020/4/1 发微信通知前，都写到本地库中
+                    UserMessageItem myMsg = new UserMessageItem();
+                    myMsg.userId = u.id;// 2020/4/2 这里应该用userId,这样可以关联到绑定帐户,而不是用单纯的weixinId
+                    myMsg.msgType = templateName;
+                    myMsg.xml = messageXml;
+                    myMsg.createTime = GetNowTime();
+                    UserMessageDb.Current.Add(myMsg);
 
                     // 只有微信公众号入口，才发微信通知
                     if (WxUserDatabase.CheckFrom(u.weixinId) == WxUserDatabase.C_from_weixin) //.CheckIsFromWeb(u.weixinId) == false) //weixinId.Length > 2 && weixinId.Substring(0, 2) == "~~")
@@ -1766,7 +1780,7 @@ ISBN|010$a
         /// <param name="theOperator">操作人</param>
         /// <param name="strError"></param>
         /// <returns></returns>
-        public int SendTemplateMsg(string templateName,
+        public int SendTemplateMsg1(string templateName,
             List<WxUserItem> patrons, //List<string> weixinIds,
             List<WxUserItem> workers,
             object msgData,
@@ -2092,12 +2106,12 @@ ISBN|010$a
                 strContent,
                 remark);
 
-            int nRet = this.SendTemplateMsg(GzhCfg.C_Template_Message,
+            int nRet = this.SendTemplateMsg1(GzhCfg.C_Template_Message,
                 bindPatronList,//bindWeixinIds,
                 workers,
                 msgData,
                 maskMsgData,
-                "",//linkurl
+                this._messageLinkUrl,//linkurl
                 "",//theOperator,
                 send2PatronIsMask,  // 2021/8/3 不mask
                 out strError);
@@ -2223,12 +2237,12 @@ ISBN|010$a
                 strText,
                 remark);
 
-            int nRet = this.SendTemplateMsg(GzhCfg.C_Template_Message,
+            int nRet = this.SendTemplateMsg1(GzhCfg.C_Template_Message,
                 bindPatronList,//bindWeixinIds,
                 workers,
                 msgData,
                 maskMsgData,
-                "",//linkurl
+                this._messageLinkUrl,//linkurl
                 "",//theOperator,
                 send2PatronIsMask,
                 out strError);
@@ -2333,12 +2347,12 @@ ISBN|010$a
                 remark,
                 remark);
 
-            int nRet = this.SendTemplateMsg(GzhCfg.C_Template_Message,
+            int nRet = this.SendTemplateMsg1(GzhCfg.C_Template_Message,
                 bindPatronList,//bindWeixinIds,
                 workers,
                 msgData,
                 maskMsgData,
-                "",//linkurl
+                this._messageLinkUrl,//linkurl
                 "",//theOperator,
                 send2PatronIsMask,  // 2021/8/3 不mask
                 out strError);
@@ -2562,12 +2576,12 @@ ISBN|010$a
                 tempFullPatronBarcode,
                 tempRemark);
 
-            int nRet = this.SendTemplateMsg(GzhCfg.C_Template_Borrow,
+            int nRet = this.SendTemplateMsg1(GzhCfg.C_Template_Borrow,
                 bindPatronList,//bindWeixinIds,
                 workers,
                 msgData,
                 maskMsgData,
-                "",//linkurl
+                this._messageLinkUrl,//linkurl
                 theOperator,
                 send2PatronIsMask,
                 out strError);
@@ -2778,12 +2792,12 @@ ISBN|010$a
                 remark);
 
             // 发送消息
-            int nRet = this.SendTemplateMsg(GzhCfg.C_Template_Return,
+            int nRet = this.SendTemplateMsg1(GzhCfg.C_Template_Return,
                 bindPatronList,//bindWeixinIds,
                 workers,
                 msgData,
                 maskMsgData,
-                "",//linkurl
+                this._messageLinkUrl,//linkurl
                 theOperator,
                 send2PatronIsMask,
                 out strError);
@@ -2912,12 +2926,12 @@ ISBN|010$a
                     remark);
 
                 // 发送消息
-                int nRet = this.SendTemplateMsg(GzhCfg.C_Template_Pay,
+                int nRet = this.SendTemplateMsg1(GzhCfg.C_Template_Pay,
                     bindPatronList,//bindWeixinIds,
                     workers,
                     msgData,
                     maskMsgData,
-                    "",//linkurl
+                    this._messageLinkUrl,//linkurl
                     theOperator,
                     send2PatronIsMask,
                     out strError);
@@ -3049,12 +3063,12 @@ ISBN|010$a
                     remark);
 
                 // 发送消息
-                int nRet = this.SendTemplateMsg(GzhCfg.C_Template_CancelPay,
+                int nRet = this.SendTemplateMsg1(GzhCfg.C_Template_CancelPay,
                     bindPatronList,//bindWeixinIds,
                     workers,
                     msgData,
                     maskMsgData,
-                    "",//linkurl
+                    this._messageLinkUrl,//linkurl
                     theOperator,
                     send2PatronIsMask,
                     out strError);
@@ -3178,12 +3192,12 @@ ISBN|010$a
                         remark);
 
                     // 发送消息
-                    int nRet = this.SendTemplateMsg(GzhCfg.C_Template_CaoQi,
+                    int nRet = this.SendTemplateMsg1(GzhCfg.C_Template_CaoQi,
                         bindPatronList,//bindWeixinIds,
                         workers,
                         msgData,
                         maskMsgData,
-                        "",//linkurl
+                        this._messageLinkUrl,//linkurl
                         "",//theOperator,
                         send2PatronIsMask,
                         out strError);
@@ -3217,12 +3231,12 @@ ISBN|010$a
                         remark);
 
                     // 发送消息
-                    int nRet = this.SendTemplateMsg(GzhCfg.C_Template_KuaiCaoQi,
+                    int nRet = this.SendTemplateMsg1(GzhCfg.C_Template_KuaiCaoQi,
                         bindPatronList,//bindWeixinIds,
                         workers,
                         msgData,
                         maskMsgData,
-                        "",//linkurl
+                        this._messageLinkUrl,//linkurl
                         "",//theOperator,
                         send2PatronIsMask,
                         out strError);
@@ -3474,12 +3488,12 @@ ISBN|010$a
                 remark);
 
             // 发送消息
-            int nRet = this.SendTemplateMsg(GzhCfg.C_Template_Arrived,
+            int nRet = this.SendTemplateMsg1(GzhCfg.C_Template_Arrived,
                 bindPatronList,
                 workers,
                 msgData,
                 maskMsgData,
-                "",//linkurl
+                this._messageLinkUrl,//linkurl
                 "",//theOperator,
                 send2PatronIsMask,
                 out strError);
@@ -5088,12 +5102,12 @@ ErrorInfo成员里可能会有报错信息。
                             strRemark);
 
                         // 发送待审核的微信消息
-                        nRet = this.SendTemplateMsg(GzhCfg.C_Template_PatronInfoChanged,
+                        nRet = this.SendTemplateMsg1(GzhCfg.C_Template_PatronInfoChanged,
                            bindPatronList,
                            workers,
                            msgData,
                            msgData, //用的同一组数据，不做马赛克
-                           linkUrl,
+                           this._messageLinkUrl,//linkUrl,
                            "",
                            false,
                            out strError);
@@ -5216,12 +5230,12 @@ ErrorInfo成员里可能会有报错信息。
                         //    strRemark);
 
                         // 发送待审核的微信消息
-                        nRet = this.SendTemplateMsg(GzhCfg.C_Template_ReviewPatron,
+                        nRet = this.SendTemplateMsg1(GzhCfg.C_Template_ReviewPatron,
                            bindPatronList,
                            workers,
                            msgData,
                            msgData, //用的同一组数据，不做马赛克
-                           linkUrl,
+                           linkUrl,  //注意这里有专用的url
                            "",
                            false,
                            out strError);
@@ -5312,12 +5326,12 @@ ErrorInfo成员里可能会有报错信息。
                             strRemark);
 
                         // 发送消息
-                        nRet = this.SendTemplateMsg(GzhCfg.C_Template_ReviewResult,
+                        nRet = this.SendTemplateMsg1(GzhCfg.C_Template_ReviewResult,
                            bindPatronList,
                            workers,
                            msgData,
                            maskMsgData,
-                           linkUrl,
+                           linkUrl,  // 专用地址
                            "",
                            send2PatronIsMask,
                            out strError);
@@ -5400,7 +5414,7 @@ ErrorInfo成员里可能会有报错信息。
                                 strRemark);
 
                             // 发送一条修改读者信息的微信通知
-                            nRet = this.SendTemplateMsg(GzhCfg.C_Template_PatronInfoChanged,
+                            nRet = this.SendTemplateMsg1(GzhCfg.C_Template_PatronInfoChanged,
                                bindPatronList,
                                workers,
                                msgData,
@@ -6215,7 +6229,7 @@ ErrorInfo成员里可能会有报错信息。
                     }
 
                     string fullLibName = this.GetFullLibName(userItem.libName, userItem.libraryCode, "");
-                    string linkUrl = "";//dp2WeiXinService.Instance.OAuth2_Url_AccountIndex,//详情转到账户管理界面
+                    //string linkUrl = "";//dp2WeiXinService.Instance.OAuth2_Url_AccountIndex,//详情转到账户管理界面
 
                     // 本人
                     List<WxUserItem> bindPatronList = new List<WxUserItem>();
@@ -6248,12 +6262,12 @@ ErrorInfo成员里可能会有报错信息。
                         strRemark);
 
                     // 发送微信消息
-                    nRet = this.SendTemplateMsg(GzhCfg.C_Template_Bind,
+                    nRet = this.SendTemplateMsg1(GzhCfg.C_Template_Bind,
                        bindPatronList,
                        workers,
                        msgData,
                        maskMsgData,
-                       linkUrl,
+                       this._messageLinkUrl,//linkUrl,
                        "",
                        send2PatronIsMask,
                        out strError);
@@ -6666,7 +6680,7 @@ ErrorInfo成员里可能会有报错信息。
 
                     string fullLibName = this.GetFullLibName(userItem.libName, userItem.libraryCode, "");
 
-                    string linkUrl = "";//dp2WeiXinService.Instance.OAuth2_Url_AccountIndex,//详情转到账户管理界面
+                    //string linkUrl = "";//dp2WeiXinService.Instance.OAuth2_Url_AccountIndex,//详情转到账户管理界面
                     string first_color = "#000000";
 
                     // 本人
@@ -6697,12 +6711,12 @@ ErrorInfo成员里可能会有报错信息。
                         fullLibName,
                         strRemark);
 
-                    int nRet = this.SendTemplateMsg(GzhCfg.C_Template_UnBind,
+                    int nRet = this.SendTemplateMsg1(GzhCfg.C_Template_UnBind,
                         bindPatronList,
                         workers,
                         msgData,
                         maskMsgData,
-                        linkUrl,
+                        this._messageLinkUrl,//linkUrl,
                         "",
                         send2PatronIsMask,
                         out strError);
@@ -11532,12 +11546,12 @@ ErrorInfo成员里可能会有报错信息。
                         //    strText,
                         //    remark);
 
-                        int nRet = this.SendTemplateMsg(GzhCfg.C_Template_CancelReserve,
+                        int nRet = this.SendTemplateMsg1(GzhCfg.C_Template_CancelReserve,
                             bindPatronList,
                             workers,
                             mData,
                             maskMsgData,
-                            "",
+                            this._messageLinkUrl,//"",
                             "",
                             send2PatronIsMask,
                             out strError);

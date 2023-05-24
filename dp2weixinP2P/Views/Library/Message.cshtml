@@ -122,8 +122,8 @@ else
                     {
 
                         <tbody>
+                            <tr><td colspan="2" class="title">@item.msgType</td></tr>
                             <tr>
-                                <!--<td class="title">@item.msgType</td>-->
                                 <td class="xml" style="padding-top:10px">@Html.Raw(item.xml)</td>
                                 <td>
                                     <button class="mui-btn" onclick="deleteMsg('@item.id')">
