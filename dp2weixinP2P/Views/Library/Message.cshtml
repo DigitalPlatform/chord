@@ -1,4 +1,4 @@
-﻿@model List<dp2weixin.service.UserMessageItem>
+﻿@model List<dp2weixin.service.UserMessageMode>
 @{
     ViewBag.Title = "Message";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -8,14 +8,22 @@
     <script>
 
         // 删除一项
-        function deleteMsg(id)
-        {
+        function deleteMsg(id) {
             if (id == null)
                 id = "";
 
-            var gnl = confirm("你确定要删除全部消息吗?");
-            if (gnl == false) {
-                return false;
+            // 确定
+            if (id == "") {
+                var gnl = confirm("你确定要删除全部消息吗?");
+                if (gnl == false) {
+                    return false;
+                }
+            }
+            else {
+                var gnl = confirm("你确定要删除消息" + id + "吗?");
+                if (gnl == false) {
+                    return false;
+                }
             }
 
             var bindUserId = $("#bindUserId").text();
@@ -24,19 +32,19 @@
                 return;
             }
 
-            //???
-            if (id != "" && id != null)
-                bindUserId = "";
+            ////???
+            //if (id != "" && id != null)
+            //    bindUserId = "";
 
             //显示等待图层
             //var index = loadLayer();
             showMaskLayer();
 
             //调接口删除消息
-            var url = "/api2/UserNoticeApi/?bindUserId=" + bindUserId + "&id=" + id;
-            sendAjaxRequest(url, "POST", function (result) { 
+            var url = "/api2/UserNoticeApi/DeleteNotice?bindUserId=" + bindUserId + "&id=" + id;
+            sendAjaxRequest(url, "POST", function (result) {
 
-                                    // 关闭等待层
+                // 关闭等待层
                 hideMaskLayer();
 
                 if (result.errorCode == -1) {
@@ -51,8 +59,8 @@
 
 
             }, function (xhq, textStatus, errorThrown) {
-                    // 关闭等待层
-                    hideMaskLayer();
+                // 关闭等待层
+                hideMaskLayer();
 
                 alert(errorThrown);
             });
@@ -116,31 +124,26 @@ else
         }
         if (Model != null)
         {
-            <div class="mui-card message" style="padding:10px">
-                <table class="view-top">
-                    @foreach (dp2weixin.service.UserMessageItem item in Model)
+            foreach (dp2weixin.service.UserMessageMode item in Model)
+            {
+                <div class="mui-card message" style="padding:10px;margin-top:15px">
+                    <span style="font-size:large">@item.title</span><br />
+                    <span style="color:gray;font-size:small">@item.first</span>  <br />
+                    @foreach (dp2weixin.service.LabelValue one in item.valueList)
                     {
-
-                        <tbody>
-                            <tr><td colspan="2" class="title">@item.msgType</td></tr>
-                            <tr>
-                                <td class="xml" style="padding-top:10px">@Html.Raw(item.xml)</td>
-                                <td>
-                                    <button class="mui-btn" onclick="deleteMsg('@item.id')">
-                                        删除
-                                    </button>
-
-                                </td>
-                            </tr>
-                        </tbody>
+                        @one.lable <b>@one.value</b><br />
                     }
-                </table>
-            </div>
+                    <span style="color:gray"> @item.remark</span>
+                    <!--<button class="mui-btn" onclick="deleteMsg('@item.id')">删除</button>-->
+                </div>
+            }
+            <!--
             <div style="padding:10px">
                 <button class="mui-btn" onclick="deleteMsg()">
                     删除全部
                 </button>
             </div>
+                -->
         }
     }
 }

@@ -102,10 +102,31 @@ namespace dp2weixinWeb.Controllers
 
             //ViewBag.userId = sessionInfo.ActiveUser.id; 在base页面中已有
 
+            /*
+<root>
+<first>▉▊▋▍▎▉▊▋▍▎▉▊▋▍▎</first>
+<keyword1>文心雕龙义证 [专著]  </keyword1>
+<keyword2>B001(本地图书馆/流通库)</keyword2>
+<keyword3>2023/05/24</keyword3>
+<keyword4>31天</keyword4>
+<keyword5>2023/05/24 test P001(本地图书馆)</keyword5>
+<remark>test P001(本地图书馆)，感谢还书。</remark>
+</root>
+             */
             // 获取消息
             List<UserMessageItem> list =  UserMessageDb.Current.GetByUserId(sessionInfo.ActiveUser.id);
-            return View(list);
+
+
+            List<UserMessageMode> modelist = new List<UserMessageMode>();
+            foreach (UserMessageItem item in list)
+            {
+                modelist.Add(new UserMessageMode(item));
+            }
+
+            return View(modelist);
         }
+
+
 
 
         // 借还窗

@@ -92,17 +92,7 @@ namespace dp2weixin.service
 
         private XmlNode _node = null;
 
-        //// 模板消息id
-        //public string Template_Bind_Id = "";//微信绑定通知        
-        //public string Template_UnBind_Id = "";// 微信解绑通知        
-        //public string Template_Borrow_Id = "";//借书成功        
-        //public string Template_Return_Id = "";//归书成功       
-        //public string Template_Pay_Id = ""; //交费成功        
-        //public string Template_CancelPay_Id = "";//撤消交费成功        
-        //public string Template_Message_Id = "";//个人消息通知         
-        //public string Template_Arrived_Id = "";//预约到书通知         
-        //public string Template_CaoQi_Id = "";//超期通知 
-
+        // 微信通知类型，到时根据此类型转为对应的模板消息id
         public const string C_Template_Bind = "Bind";
         public const string C_Template_UnBind = "UnBind";
         public const string C_Template_Borrow = "Borrow";
@@ -116,12 +106,11 @@ namespace dp2weixin.service
         public const string C_Template_KuaiCaoQi = "KuaiCaoQi";
         public const string C_Template_CancelReserve = "CancelReserve";
 
-        // 2020-3-1 加
+        // 2020-3-1增加 审核读者
         public const string C_Template_ReviewPatron = "ReviewPatron";
-        // 2020-3-7加
+        // 2020-3-7加 审核结果
         public const string C_Template_ReviewResult = "ReviewResult";
-
-        // 2020-3-17 加
+        // 2020-3-17 加 读者信息变更
         public const string C_Template_PatronInfoChanged = "PatronInfoChanged";
 
         public GzhCfg(XmlNode node)
