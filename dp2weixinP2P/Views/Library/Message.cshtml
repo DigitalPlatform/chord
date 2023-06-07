@@ -75,6 +75,36 @@
             // 2021/8/2调试态显示当前操作帐号
             setOpeAccount("");
 
+            // 卷滚到指定的消息
+            //647ea13f312dac756995f110
+            var i = $("#curMessageId").text();
+
+            //alert("["+i+"]");
+            if (i == null || i == "")
+                return;
+
+
+
+            var a = $("#"+i);
+
+            //var itemOuterHeight = a.outerHeight(true);
+
+            var mytop = a.offset().top;
+
+            //alert("[" + mytop + "]+[" + a.outerHeight(true) +"]");
+
+            document.documentElement.scrollTop = mytop-50;
+
+            //window.scrollTo(mytop);
+
+            //$("html,body").scrollTop($("646d8fef5020b432046f86d7").offset().top);
+
+            //document.getElementById("646d8fef5020b432046f86d7").scrollTo(100, 200);
+            //document.getElementById("647ea13f312dac756995f110").scrollTo({ top: 500, behavior: 'smooth' });
+
+            //alert("2");
+
+
         })
     </script>
 }
@@ -86,6 +116,8 @@
 
 
 <span id="bindUserId" style="display:none">@ViewBag.bindUserId</span>
+<span id="curMessageId" style="display:none">@ViewBag.curMessageId</span>
+
 @if (String.IsNullOrEmpty(ViewBag.Error) == false)
 {
     <div class="mui-content-padded">
@@ -126,16 +158,19 @@ else
         {
             foreach (dp2weixin.service.UserMessageMode item in Model)
             {
-                <div class="mui-card message" style="padding:10px;margin-top:15px">
-                    <span style="font-size:large">@item.title</span><br />
-                    <span style="color:gray;font-size:xx-small">@item.first</span>  <br />
-                    @foreach (dp2weixin.service.LabelValue one in item.valueList)
-                    {
-                        @one.lable <b>@one.value</b><br />
-                    }
-                    <span style="color:gray"> @item.remark</span>
-                    <!--<button class="mui-btn" onclick="deleteMsg('@item.id')">删除</button>-->
-                </div>
+<div class="mui-card message" style="padding:10px;margin-top:15px" id="@item.id">
+    <span style="font-size:large">@item.title</span><br />
+    <span style="color:gray;font-size:xx-small">@item.first</span><br />
+    <span style="color:gray;font-size:xx-small">@item.id</span><br />
+
+    @foreach (dp2weixin.service.LabelValue one in item.valueList)
+    {
+        @one.lable <b>@one.value</b><br />
+    }
+
+    <span style="color:gray"> @item.remark</span>
+    <!--<button class="mui-btn" onclick="deleteMsg('@item.id')">删除</button>-->
+</div>
             }
             <!--
             <div style="padding:10px">

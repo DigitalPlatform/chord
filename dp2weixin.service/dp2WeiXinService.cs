@@ -623,10 +623,12 @@ namespace dp2weixin.service
             {
                 throw new Exception("未找到默认的公众号配置");
             }
-            this._messageLinkUrl = dp2WeiXinService.Instance.GetOAuth2Url(gzh,
-                        HttpUtility.UrlEncode("Library/Message")
-                        );
+            //this._messageLinkUrl = dp2WeiXinService.Instance.GetOAuth2Url(gzh,HttpUtility.UrlEncode("Library/Message"));
 
+            this._messageLinkUrl = dp2WeiXinService.Instance.GetOAuth2Url_part(gzh)+"[message]";
+
+
+            //
 
             // mongo配置
             XmlNode nodeMongoDB = root.SelectSingleNode("mongoDB");
@@ -788,9 +790,33 @@ namespace dp2weixin.service
 
             this.WriteDebug(url);
             return url;
+        }
 
+        public string GetOAuth2Url_part(GzhCfg gzh)
+        {
+            // auth2地址
+            string url = "https://open.weixin.qq.com/connect/oauth2/authorize"
+                + "?appid=" + gzh.appId
+                + "&response_type=code"
+                + "&scope=snsapi_base"
+                + "&state=" + gzh.appName;
+
+            this.WriteDebug(url);
+            return url;
+        }
+
+        public string GetOAuth2Url_func(string url, string func)
+        {
+            func = func.Replace("/", "%2f");
+
+            // auth2地址
+            return url+ "&redirect_uri=http%3a%2f%2fdp2003.com%2fi%2f" + func
+                + "#wechat_redirect";
 
         }
+
+
+
 
 
 
@@ -1101,7 +1127,6 @@ namespace dp2weixin.service
                 strError = "加载消息data到xml出错：" + ex.Message + "\r\n" + data;
                 return -1;
             }
-
 
             //检查是不是patronNotify通知
             //<root>
@@ -1598,6 +1623,7 @@ ISBN|010$a
           object msgData,
           string linkUrl,
           string theOperator,
+          string originalXml,
           out string strError)
         {
             strError = "";
@@ -1693,12 +1719,22 @@ ISBN|010$a
                     myMsg.userId = u.id;// 2020/4/2 这里应该用userId,这样可以关联到绑定帐户,而不是用单纯的weixinId
                     myMsg.msgType = templateName;
                     myMsg.xml = messageXml;
+                    myMsg.originalXml = originalXml;  //长度不限  2023/6/7增加
                     myMsg.createTime = GetNowTime();
                     UserMessageDb.Current.Add(myMsg);
+
+                    //UserMessageDb.Current.get
 
                     // 只有微信公众号入口，才发微信通知
                     if (WxUserDatabase.CheckFrom(u.weixinId) == WxUserDatabase.C_from_weixin) //.CheckIsFromWeb(u.weixinId) == false) //weixinId.Length > 2 && weixinId.Substring(0, 2) == "~~")
                     {
+                        // 给linkUrl加上id
+                        if (linkUrl.IndexOf("[message]") != -1) {
+
+                            linkUrl = linkUrl.Replace("[message]", "");
+                            linkUrl=this.GetOAuth2Url_func(linkUrl, HttpUtility.UrlEncode("Library/Message?msgId=" +myMsg.id));
+                        }
+
                         // 调微信接口发送消息
                         string appId = gzh.appId;
                         string templateId = gzh.GetTemplateId(templateName);
@@ -1788,6 +1824,7 @@ ISBN|010$a
             string linkUrl,
             string theOperator,
             bool send2PatronIsMask,
+            string originalXml,
             out string strError)
         {
             int nRet = 0;
@@ -1806,6 +1843,7 @@ ISBN|010$a
                     msg,//msgData,
                     linkUrl,
                     "",// theOperator,
+                    originalXml,
                     out strError);
                 if (nRet == -1)
                     return -1;
@@ -1827,6 +1865,7 @@ ISBN|010$a
                         msgData,
                         linkUrl,
                         theOperator,
+                        originalXml,
                         out strError);
                     if (nRet == -1)
                         return -1;
@@ -1839,6 +1878,7 @@ ISBN|010$a
                         maskMsgData,
                         linkUrl,
                         theOperator,
+                        originalXml,
                         out strError);
                     if (nRet == -1)
                         return -1;
@@ -2114,6 +2154,7 @@ ISBN|010$a
                 this._messageLinkUrl,//linkurl
                 "",//theOperator,
                 send2PatronIsMask,  // 2021/8/3 不mask
+                bodyDom.OuterXml,
                 out strError);
             if (nRet == -1)
                 return -1;
@@ -2245,6 +2286,7 @@ ISBN|010$a
                 this._messageLinkUrl,//linkurl
                 "",//theOperator,
                 send2PatronIsMask,
+                bodyDom.OuterXml,
                 out strError);
             if (nRet == -1)
                 return -1;
@@ -2355,6 +2397,7 @@ ISBN|010$a
                 this._messageLinkUrl,//linkurl
                 "",//theOperator,
                 send2PatronIsMask,  // 2021/8/3 不mask
+                bodyDom.OuterXml,
                 out strError);
             if (nRet == -1)
                 return -1;
@@ -2584,6 +2627,7 @@ ISBN|010$a
                 this._messageLinkUrl,//linkurl
                 theOperator,
                 send2PatronIsMask,
+                bodyDom.OuterXml,
                 out strError);
             if (nRet == -1)
                 return -1;
@@ -2800,6 +2844,7 @@ ISBN|010$a
                 this._messageLinkUrl,//linkurl
                 theOperator,
                 send2PatronIsMask,
+                bodyDom.OuterXml,
                 out strError);
             if (nRet == -1)
                 return -1;
@@ -2934,6 +2979,7 @@ ISBN|010$a
                     this._messageLinkUrl,//linkurl
                     theOperator,
                     send2PatronIsMask,
+                    bodyDom.OuterXml,
                     out strError);
                 if (nRet == -1)
                     return -1;
@@ -3071,6 +3117,7 @@ ISBN|010$a
                     this._messageLinkUrl,//linkurl
                     theOperator,
                     send2PatronIsMask,
+                    bodyDom.OuterXml,
                     out strError);
                 if (nRet == -1)
                     return -1;
@@ -3139,8 +3186,6 @@ ISBN|010$a
                 //overdueType是超期类型，overdue表示超期，warning表示即将超期。
                 string overdueType = DomUtil.GetAttr(item, "overdueType");
 
-                //2023/5/15 在最后一个字段，增加读者姓名
-                overdueType += " " + fullPatronName;
 
                 string remark = "";
                 if (overdueType == "overdue")
@@ -3200,6 +3245,7 @@ ISBN|010$a
                         this._messageLinkUrl,//linkurl
                         "",//theOperator,
                         send2PatronIsMask,
+                        bodyDom.OuterXml,
                         out strError);
                     if (nRet == -1)
                         return -1;
@@ -3239,6 +3285,7 @@ ISBN|010$a
                         this._messageLinkUrl,//linkurl
                         "",//theOperator,
                         send2PatronIsMask,
+                        bodyDom.OuterXml,
                         out strError);
                     if (nRet == -1)
                         return -1;
@@ -3496,6 +3543,7 @@ ISBN|010$a
                 this._messageLinkUrl,//linkurl
                 "",//theOperator,
                 send2PatronIsMask,
+                bodyDom.OuterXml,
                 out strError);
             if (nRet == -1)
                 return -1;
@@ -4049,6 +4097,7 @@ ISBN|010$a
                              msgData,
                              "",
                              "",// theOperator,
+                             "",// originalXml  2023/6/7
                              out strError);
                         if (nRet == -1)
                         {
@@ -4078,6 +4127,7 @@ ISBN|010$a
                              msgData,
                              "",
                              "",// theOperator,
+                             "",// originalXml  2023/6/7
                              out strError);
                         if (nRet == -1)
                         {
@@ -5110,6 +5160,7 @@ ErrorInfo成员里可能会有报错信息。
                            this._messageLinkUrl,//linkUrl,
                            "",
                            false,
+                           "",// originalXml  2023/6/7
                            out strError);
                         if (nRet == -1)
                         {
@@ -5238,6 +5289,7 @@ ErrorInfo成员里可能会有报错信息。
                            linkUrl,  //注意这里有专用的url
                            "",
                            false,
+                           "",// originalXml  2023/6/7
                            out strError);
                         if (nRet == -1)
                         {
@@ -5334,6 +5386,7 @@ ErrorInfo成员里可能会有报错信息。
                            linkUrl,  // 专用地址
                            "",
                            send2PatronIsMask,
+                           "",// originalXml  2023/6/7
                            out strError);
                         if (nRet == -1)
                         {
@@ -5422,6 +5475,7 @@ ErrorInfo成员里可能会有报错信息。
                                linkUrl,
                                "",
                                false,
+                               "",// originalXml  2023/6/7
                                out strError);
                             if (nRet == -1)
                             {
@@ -6270,6 +6324,7 @@ ErrorInfo成员里可能会有报错信息。
                        this._messageLinkUrl,//linkUrl,
                        "",
                        send2PatronIsMask,
+                       "",// originalXml  2023/6/7
                        out strError);
                     if (nRet == -1)
                     {
@@ -6719,6 +6774,7 @@ ErrorInfo成员里可能会有报错信息。
                         this._messageLinkUrl,//linkUrl,
                         "",
                         send2PatronIsMask,
+                        "",// originalXml  2023/6/7
                         out strError);
                     if (nRet == -1)
                     {
@@ -11529,7 +11585,6 @@ ErrorInfo成员里可能会有报错信息。
                         markFullPatronBarcode += " " + markPatronName;
 
 
-
                         CancelReserveTemplateData maskMsgData = new CancelReserveTemplateData(first,
                             first_color,
                             summary,
@@ -11554,6 +11609,7 @@ ErrorInfo成员里可能会有报错信息。
                             this._messageLinkUrl,//"",
                             "",
                             send2PatronIsMask,
+                            "",// originalXml  2023/6/7  我爱图书馆自己的消息，没有原始xml
                             out strError);
                         if (nRet == -1)
                             return -1;

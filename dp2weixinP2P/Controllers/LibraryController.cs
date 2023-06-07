@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Threading;
 using System.Web;
 using System.Web.Mvc;
+using WebGrease;
 
 namespace dp2weixinWeb.Controllers
 {
@@ -75,7 +76,7 @@ namespace dp2weixinWeb.Controllers
 
 
 
-        public ActionResult Message(string code, string state)
+        public ActionResult Message(string code, string state,string msgId)
         {
 
             string strError = "";
@@ -100,7 +101,10 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
 
-            //ViewBag.userId = sessionInfo.ActiveUser.id; 在base页面中已有
+            dp2WeiXinService.Instance.WriteDebug("Message界面传进来的msgId参数值为["+msgId+"]");
+
+            ViewBag.bindUserId = sessionInfo.ActiveUser.id; //在base页面中已有
+            ViewBag.curMessageId = msgId;//"647ea13f312dac756995f110";//msgId;
 
             /*
 <root>

@@ -137,6 +137,9 @@ namespace dp2weixin.service
 
         public string xml { get; set; }
 
+        // 原始xml 2023/6/7增加
+        public string originalXml { get; set; }
+
 
         public string createTime { get; set; }
     }
@@ -150,6 +153,7 @@ namespace dp2weixin.service
             this.userId=item.userId;
             this.msgType=item.msgType;
             this.xml=item.xml;
+            this.originalXml=item.originalXml;
             this.createTime=item.createTime;
 
             this.ParseXml(item.xml);
@@ -163,6 +167,9 @@ namespace dp2weixin.service
 
         // 消息message
         public string xml { get; set; }
+
+        // 原始xml，暂未使用
+        public string originalXml { get; set; }
 
         public string createTime { get; set; }
 
