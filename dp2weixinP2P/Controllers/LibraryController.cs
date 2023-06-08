@@ -76,7 +76,7 @@ namespace dp2weixinWeb.Controllers
 
 
 
-        public ActionResult Message(string code, string state,string msgId)
+        public ActionResult Message(string code, string state,string msgRefid)
         {
 
             string strError = "";
@@ -101,10 +101,10 @@ namespace dp2weixinWeb.Controllers
                 return View();
             }
 
-            dp2WeiXinService.Instance.WriteDebug("Message界面传进来的msgId参数值为["+msgId+"]");
+            dp2WeiXinService.Instance.WriteDebug("Message界面传进来的msgId参数值为["+ msgRefid + "]");
 
             ViewBag.bindUserId = sessionInfo.ActiveUser.id; //在base页面中已有
-            ViewBag.curMessageId = msgId;//"647ea13f312dac756995f110";//msgId;
+            ViewBag.curMessageId = msgRefid;//"647ea13f312dac756995f110";//msgId;
 
             /*
 <root>

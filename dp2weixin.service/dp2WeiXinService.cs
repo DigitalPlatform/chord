@@ -1621,20 +1621,21 @@ ISBN|010$a
         private int SendTemplateMsgInternal(List<WxUserItem> userList,
             string templateName,
           object msgData,
-          string linkUrl,
+          string linkUrl2,
           string theOperator,
           string originalXml,
           out string strError)
         {
             strError = "";
 
-            BaseTemplateData templateData1 = (BaseTemplateData)msgData;
-            string oldRemark = templateData1.remark.value;
+            BaseTemplateData templateData = (BaseTemplateData)msgData;
+            string oldRemark = templateData.remark.value;
 
             // 2023/5/10 加日期与操作人
-            //string nowTime = dp2WeiXinService.DateTimeToStringNoSec(DateTime.Now);
-            //if (theOperator != "")
-            //    nowTime += " " + theOperator;
+            string nowTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");//dp2WeiXinService.DateTimeToStringNoSec(DateTime.Now);
+            if (theOperator != "")
+                nowTime += " " + theOperator;
+
             //if (msgData is Template2Data)
             //{
             //    ((Template2Data)msgData).keyword2.value += " " + nowTime;
@@ -1653,13 +1654,14 @@ ISBN|010$a
             //}
 
 
-            // 2023/5/10 不支持加到备注里
-            //// 加日期与操作人
-            //templateData.remark.value = oldRemark + "\n" + nowTime;
-            //if (theOperator != "")
-            //    templateData.remark.value = templateData.remark.value + " " + theOperator;
+            //2023 / 5 / 10 不支持加到备注里
+            // 加日期与操作人
+            templateData.remark.value = oldRemark + "\n" + nowTime;
+            if (theOperator != "")
+                templateData.remark.value = templateData.remark.value + " " + theOperator;
 
 
+            int nIndex1 = 1;
 
             // 给每个帐户发通知
             foreach (WxUserItem u in userList)//string oneWeixinId in weixinIds)
@@ -1716,24 +1718,37 @@ ISBN|010$a
                     // 2021/8/13 消息库太大了，暂时不要写了
                     // 2020/4/1 发微信通知前，都写到本地库中
                     UserMessageItem myMsg = new UserMessageItem();
+                    myMsg.refid = Guid.NewGuid().ToString();
                     myMsg.userId = u.id;// 2020/4/2 这里应该用userId,这样可以关联到绑定帐户,而不是用单纯的weixinId
                     myMsg.msgType = templateName;
                     myMsg.xml = messageXml;
                     myMsg.originalXml = originalXml;  //长度不限  2023/6/7增加
-                    myMsg.createTime = GetNowTime();
+                    myMsg.createTime = nowTime;//GetNowTime();
                     UserMessageDb.Current.Add(myMsg);
+
+
+
 
                     //UserMessageDb.Current.get
 
                     // 只有微信公众号入口，才发微信通知
                     if (WxUserDatabase.CheckFrom(u.weixinId) == WxUserDatabase.C_from_weixin) //.CheckIsFromWeb(u.weixinId) == false) //weixinId.Length > 2 && weixinId.Substring(0, 2) == "~~")
                     {
-                        // 给linkUrl加上id
-                        if (linkUrl.IndexOf("[message]") != -1) {
 
-                            linkUrl = linkUrl.Replace("[message]", "");
-                            linkUrl=this.GetOAuth2Url_func(linkUrl, HttpUtility.UrlEncode("Library/Message?msgId=" +myMsg.id));
+                        string myLinkUrl = linkUrl2;
+                        this.WriteDebug(nIndex1.ToString() + " linkUrl==[" + myLinkUrl + "]");
+                        nIndex1++;
+                        // 给linkUrl加上id
+                        if (myLinkUrl.IndexOf("[message]") != -1)
+                        {
+                            myLinkUrl = myLinkUrl.Replace("[message]", "");
+                            myLinkUrl = this.GetOAuth2Url_func(myLinkUrl, HttpUtility.UrlEncode("Library/Message?msgRefid=" + myMsg.refid));
+
+                            // 2023/6/8 写日志
+                            this.WriteDebug("oauth[" + myLinkUrl + "]");
+                            //this.WriteDebug("oauth对应的消息:" + myMsg.refid + "\r\n" + myMsg.xml);
                         }
+
 
                         // 调微信接口发送消息
                         string appId = gzh.appId;
@@ -1744,7 +1759,7 @@ ISBN|010$a
                         var ret = TemplateApi.SendTemplateMessage(accessToken,
                             pureWeixinId,  // 用单纯的weixinId
                             templateId,
-                            linkUrl,
+                            myLinkUrl,
                             msgData);
 
                         WriteDebug("SendTemplateMessage完成,errorcode=[" + ret.errcode + "],errorstr=[" + ret.errmsg + "]");

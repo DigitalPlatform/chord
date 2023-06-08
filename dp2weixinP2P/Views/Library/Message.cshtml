@@ -85,7 +85,9 @@
 
 
 
-            var a = $("#"+i);
+            var a = $("#" + i);
+
+            a.css("background-color", "yellow");
 
             //var itemOuterHeight = a.outerHeight(true);
 
@@ -158,10 +160,10 @@ else
         {
             foreach (dp2weixin.service.UserMessageMode item in Model)
             {
-<div class="mui-card message" style="padding:10px;margin-top:15px" id="@item.id">
+<div class="mui-card message" style="padding:10px;margin-top:15px" id="@item.refid">
     <span style="font-size:large">@item.title</span><br />
     <span style="color:gray;font-size:xx-small">@item.first</span><br />
-    <span style="color:gray;font-size:xx-small">@item.id</span><br />
+    <!--<span style="color:gray;font-size:xx-small">@item.refid</span><br />-->
 
     @foreach (dp2weixin.service.LabelValue one in item.valueList)
     {

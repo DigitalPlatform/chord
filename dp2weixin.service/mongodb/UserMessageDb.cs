@@ -131,6 +131,9 @@ namespace dp2weixin.service
         [BsonRepresentation(BsonType.ObjectId)]
         public string id { get; private set; }
 
+        // 用于定位元素，id是objectid类型，是自动产生的，消息设置linkurl时还不知道id值，所以新增一个统一的refid
+        public string refid { get; set; }
+
         public string userId { get; set; }  // 对应的微信id,也可能是~~
 
         public string msgType { get; set; }
@@ -142,6 +145,9 @@ namespace dp2weixin.service
 
 
         public string createTime { get; set; }
+
+
+
     }
 
     public class UserMessageMode
@@ -150,6 +156,7 @@ namespace dp2weixin.service
         public UserMessageMode(UserMessageItem item)
         {
             this.id=item.id;
+            this.refid=item.refid;
             this.userId=item.userId;
             this.msgType=item.msgType;
             this.xml=item.xml;
@@ -160,6 +167,9 @@ namespace dp2weixin.service
         }
 
         public string id { get; private set; }
+
+        // 用于定位元素
+        public string refid { get; set; }
 
         public string userId { get; set; }  // 对应的微信id,也可能是~~
 
