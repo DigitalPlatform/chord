@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,9 +18,11 @@ namespace dp2weixin.service
 
         public virtual string Dump()
         {
+
+            
             return "<root>" +"\r\n"
-                + "<first>"+first.value + "</first>" + "\r\n"
-                + "<remark>"+remark.value + "</remark>" + "\r\n"
+                + "<first color='" + first.color + "'>" + SecurityElement.Escape(first.value) + "</first>" + "\r\n"
+                + "<remark>"+ SecurityElement.Escape(remark.value) + "</remark>" + "\r\n"
                 + "</root>";
         }
     }
@@ -51,10 +54,10 @@ namespace dp2weixin.service
         public override string Dump()
         {
             return "<root>" + "\r\n"
-                + "<first>" + first.value + "</first>" + "\r\n"
-                + "<keyword1>"+keyword1.value + "</keyword1>" + "\r\n"
-                + "<keyword2>"+keyword2.value + "</keyword2>" + "\r\n"
-                + "<remark>" + remark.value + "</remark>" + "\r\n"
+                + "<first color='" + first.color + "'>" + SecurityElement.Escape(first.value) + "</first>" + "\r\n"
+                + "<keyword1>" + SecurityElement.Escape(keyword1.value) + "</keyword1>" + "\r\n"
+                + "<keyword2>"+ SecurityElement.Escape(keyword2.value) + "</keyword2>" + "\r\n"
+                + "<remark>" + SecurityElement.Escape(remark.value) + "</remark>" + "\r\n"
                 + "</root>";
         }
     }
@@ -80,11 +83,11 @@ namespace dp2weixin.service
         public override string Dump()
         {
             return "<root>" + "\r\n"
-                + "<first>" + first.value + "</first>" + "\r\n"
-                + "<keyword1>" + keyword1.value + "</keyword1>" + "\r\n"
-                + "<keyword2>" + keyword2.value + "</keyword2>" + "\r\n"
-                + "<keyword3>" + keyword3.value + "</keyword3>" + "\r\n"
-                + "<remark>" + remark.value + "</remark>" + "\r\n"
+                + "<first color='" + first.color + "'>" + SecurityElement.Escape(first.value) + "</first>" + "\r\n"
+                + "<keyword1>" + SecurityElement.Escape(keyword1.value) + "</keyword1>" + "\r\n"
+                + "<keyword2>" + SecurityElement.Escape(keyword2.value) + "</keyword2>" + "\r\n"
+                + "<keyword3>" + SecurityElement.Escape(keyword3.value) + "</keyword3>" + "\r\n"
+                + "<remark>" + SecurityElement.Escape(remark.value) + "</remark>" + "\r\n"
                 + "</root>";
         }
     }
@@ -111,12 +114,12 @@ namespace dp2weixin.service
         public override string Dump()
         {
             return "<root>" + "\r\n"
-                + "<first>" + first.value + "</first>" + "\r\n"
-                + "<keyword1>" + keyword1.value + "</keyword1>" + "\r\n"
-                + "<keyword2>" + keyword2.value + "</keyword2>" + "\r\n"
-                + "<keyword3>" + keyword3.value + "</keyword3>" + "\r\n"
-                + "<keyword4>" + keyword4.value + "</keyword4>" + "\r\n"
-                + "<remark>" + remark.value + "</remark>" + "\r\n"
+                + "<first color='" + first.color + "'>" + SecurityElement.Escape(first.value) + "</first>" + "\r\n"
+                + "<keyword1>" + SecurityElement.Escape(keyword1.value) + "</keyword1>" + "\r\n"
+                + "<keyword2>" + SecurityElement.Escape(keyword2.value) + "</keyword2>" + "\r\n"
+                + "<keyword3>" + SecurityElement.Escape(keyword3.value) + "</keyword3>" + "\r\n"
+                + "<keyword4>" + SecurityElement.Escape(keyword4.value) + "</keyword4>" + "\r\n"
+                + "<remark>" + SecurityElement.Escape(remark.value) + "</remark>" + "\r\n"
                 + "</root>";
         }
     }
@@ -147,13 +150,13 @@ namespace dp2weixin.service
         public override string Dump()
         {
             return "<root>" + "\r\n"
-                + "<first>" + first.value + "</first>" + "\r\n"
-                + "<keyword1>" + keyword1.value + "</keyword1>" + "\r\n"
-                + "<keyword2>" + keyword2.value + "</keyword2>" + "\r\n"
-                + "<keyword3>" + keyword3.value + "</keyword3>" + "\r\n"
-                + "<keyword4>" + keyword4.value + "</keyword4>" + "\r\n"
-                + "<keyword5>" + keyword5.value + "</keyword5>" + "\r\n"
-                + "<remark>" + remark.value + "</remark>" + "\r\n"
+                + "<first color='" + first.color + "'>" + SecurityElement.Escape(first.value) + "</first>" + "\r\n"
+                + "<keyword1>" + SecurityElement.Escape(keyword1.value) + "</keyword1>" + "\r\n"
+                + "<keyword2>" + SecurityElement.Escape(keyword2.value) + "</keyword2>" + "\r\n"
+                + "<keyword3>" + SecurityElement.Escape(keyword3.value) + "</keyword3>" + "\r\n"
+                + "<keyword4>" + SecurityElement.Escape(keyword4.value) + "</keyword4>" + "\r\n"
+                + "<keyword5>" + SecurityElement.Escape(keyword5.value) + "</keyword5>" + "\r\n"
+                + "<remark>" + SecurityElement.Escape(remark.value) + "</remark>" + "\r\n"
                 + "</root>";
         }
     }
@@ -203,25 +206,20 @@ namespace dp2weixin.service
      */
     public class ReviewResultTemplateData : Template3Data
     {
+        // 审核结果
+        /*
+{{first.DATA}}
+申请人：{{keyword1.DATA}}
+手机号码：{{keyword2.DATA}}
+审核结果：{{keyword3.DATA}}
+{{remark.DATA}}
+         */
         public ReviewResultTemplateData(string first, string first_color,
             string k1, string k2, string k3,
             string remark)
             : base(first, first_color, k1, k2, k3, remark)
         { }
     }
-
-    /*
-超期图书停借期满
-书刊名称：剪面包的男孩
-到期事项：B000001,B000002
-到期日期：2017-10-25
-证条码号：B0000003
-张三，您的2册超期图书停借期满，可以继续借书了。
-*/
-
-
-
-
 
     //您好，您已借书成功。
     //书刊摘要：中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00
@@ -306,8 +304,6 @@ namespace dp2weixin.service
         { }
     }
 
-
-
     //您好，您借出的图书已超期。
     //书刊摘要：中国机读目录格式使用手册 / 北京图书馆《中国机读目录格式使用手册》编委会. -- ISBN 7-80039-990-7 : ￥58.00
     //册条码号：C0000001
@@ -318,6 +314,24 @@ namespace dp2weixin.service
     public class CaoQiTemplateData : Template5Data
     {
         public CaoQiTemplateData(string first, string first_color,
+            string k1, string k2, string k3, string k4, string k5,
+            string remark)
+            : base(first, first_color, k1, k2, k3, k4, k5, remark)
+        { }
+    }
+
+    /*
+{{first.DATA}}
+书刊摘要：{{keyword1.DATA}}
+册条码号：{{keyword2.DATA}}
+借书日期：{{keyword3.DATA}}
+应还日期：{{keyword4.DATA}}
+召回原因：{{keyword5.DATA}}
+{{remark.DATA}}
+    */
+    public class RecallTemplateData : Template5Data
+    {
+        public RecallTemplateData(string first, string first_color,
             string k1, string k2, string k3, string k4, string k5,
             string remark)
             : base(first, first_color, k1, k2, k3, k4, k5, remark)
@@ -358,6 +372,7 @@ namespace dp2weixin.service
         { }
     }
 
+
     /*
     超期图书停借期满
     书刊名称：剪面包的男孩
@@ -375,8 +390,6 @@ namespace dp2weixin.service
         { }
     }
 
-
-
     //{{first.DATA}}
     //绑定帐号：{{keyword1.DATA}}
     //绑定说明：{{keyword2.DATA}}
@@ -390,8 +403,6 @@ namespace dp2weixin.service
             : base(first, first_color, k1, k2, remark)
         { }
     }
-
-
 
     //{{first.DATA}}
     //解绑帐号：{{keyword1.DATA}}
@@ -419,4 +430,6 @@ namespace dp2weixin.service
             : base(first, first_color, k1, k2,k3, remark)
         { }
     }
+
+
 }

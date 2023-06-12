@@ -1389,9 +1389,8 @@ namespace dp2weixin.service
                 nRet = this.SendCallMsg(bodyDom,
                     libName,
                     bindPatronList,
-                    patronBarcode,
-                    patronName,
-                    libraryCode,
+                    fullPatronName,
+                    markFullPatronName,
                     workerList,
                     maskDef,
                     send2PatronIsMask,
@@ -2314,30 +2313,30 @@ ISBN|010$a
 <?xml version="1.0" encoding="utf-8"?>
 <root>
     <type>召回通知</type>
-    <items overdueCount="0" normalCount="2">
-        <item barcode="B002" location="流通库" refID="" summary="彼得兔的故事 [专著]  / (英)比阿特丽斯·波特著 ; (美)查尔斯·桑托利绘 ; 司南译. -- ISBN 978-7-5346-5588-3 : CNY16.80" borrowDate="Mon, 20 Jun 2022 19:53:43 +0800" borrowPeriod="31day" timeReturning="2022/7/21" overdue="" overdueType="warning" />
-        <item barcode="B004" location="流通库" refID="" summary="兔子布莱尔 [专著]  / (美)约耳·钱德勒·哈里斯原著 ; (美)唐·戴利绘 ; 司南译. -- ISBN 978-7-5346-5595-1 : CNY16.80" borrowDate="Mon, 20 Jun 2022 12:05:34 +0800" borrowPeriod="31day" timeReturning="2022/7/21" overdue="" overdueType="warning" />
+    <reason>毕业手续需要</reason>
+    <items overdueCount="0" normalCount="3">
+        <item barcode="B003" location="流通库" refID="" summary="唐宋词人年谱 [专著]  / 夏承焘著. -- ISBN 978-7-5540-0713-6 (精装 ) : CNY60.00" borrowDate="Fri, 09 Jun 2023 11:09:12 +0800" borrowPeriod="31day" timeReturning="2023/7/10" overdue="" overdueType="warning" />
+        <item barcode="B002" location="流通库" refID="" summary="杜诗详注 [专著]  / (唐)杜甫撰 ; (清)仇兆鳌注. -- ISBN 978-7-101-10528-5 (精装 ) : CNY156.00" borrowDate="Thu, 08 Jun 2023 15:37:08 +0800" borrowPeriod="31day" timeReturning="2023/7/9" overdue="已超期 1 天" overdueType="overdue" />
+        <item barcode="B001" location="流通库" refID="" summary="文心雕龙义证 [专著]  / (南朝梁)刘勰著 ; 詹锳义证. -- ISBN 7-5325-0326-7 : CNY150.00" borrowDate="Thu, 08 Jun 2023 14:04:18 +0800" borrowPeriod="31day" timeReturning="2023/7/9" overdue="已超期 1 天" overdueType="overdue" />
     </items>
-    <text>因 毕业手续需要，图书馆提醒您尽快归还下列书刊：
-彼得兔的故事 [专著]  / (英)比阿特丽斯·波特著 ; (美)查尔斯·桑托利绘 ; 司南译. -- ISBN 978-7-5346-5588-3 : CNY16.80 
-兔子布莱尔 [专著]  / (美)约耳·钱德勒·哈里斯原著 ; (美)唐·戴利绘 ; 司南译. -- ISBN 978-7-5346-5595-1 : CNY16.80 
+    <text>因毕业手续需要，图书馆提醒您尽快归还下列书刊：
+唐宋词人年谱 [专著]  / 夏承焘著. -- ISBN 978-7-5540-0713-6 (精装 ) : CNY60.00 
+杜诗详注 [专著]  / (唐)杜甫撰 ; (清)仇兆鳌注. -- ISBN 978-7-101-10528-5 (精装 ) : CNY156.00 
+文心雕龙义证 [专著]  / (南朝梁)刘勰著 ; 詹锳义证. -- ISBN 7-5325-0326-7 : CNY150.00 
 </text>
     <patronRecord>
         <barcode>P001</barcode>
         <readerType>本科生</readerType>
-        <name>张三</name>
-        <tel>13862157150</tel>
-        <refID>30704c50-21a5-43ba-b7a9-ab99826a1fb9</refID>
+        <name>test</name>
+        <refID>768bac1c-c149-487a-ae47-d7fe3ae3ff1b</refID>
         <libraryCode>
         </libraryCode>
         <borrows>
-            <borrow barcode="B002" oi="" recPath="中文图书实体/2" biblioRecPath="中文图书/2" location="流通库" borrowDate="Mon, 20 Jun 2022 19:53:43 +0800" borrowPeriod="31day" borrowID="7235d0a7-ddc4-4d96-951d-89cee40e6764" returningDate="Thu, 21 Jul 2022 12:00:00 +0800" operator="supervisor" type="普通" price="CNY16.80" notifyHistory="" />
-            <borrow barcode="B004" oi="" recPath="中文图书实体/4" biblioRecPath="中文图书/4" location="流通库" borrowDate="Mon, 20 Jun 2022 12:05:34 +0800" borrowPeriod="31day" borrowID="ad28a288-b98f-4869-b46f-6205644e52ef" returningDate="Thu, 21 Jul 2022 12:00:00 +0800" operator="supervisor" type="普通" price="CNY16.80" notifyHistory="" />
+            <borrow barcode="B003" oi="" recPath="中文图书实体/3" biblioRecPath="中文图书/3" location="流通库" borrowDate="Fri, 09 Jun 2023 11:09:12 +0800" borrowPeriod="31day" borrowID="45a40514-42a6-4625-b5ec-c5be3c6da4de" returningDate="Mon, 10 Jul 2023 12:00:00 +0800" operator="supervisor" type="普通" price="CNY60.00" notifyHistory="" />
+            <borrow barcode="B002" oi="" recPath="中文图书实体/2" biblioRecPath="中文图书/2" location="流通库" borrowDate="Thu, 08 Jun 2023 15:37:08 +0800" borrowPeriod="31day" borrowID="de62e17f-2a04-434e-bf02-b06744f44988" returningDate="Sun, 09 Jul 2023 12:00:00 +0800" operator="supervisor" type="普通" price="CNY156.00" notifyHistory="" />
+            <borrow barcode="B001" oi="" recPath="中文图书实体/1" biblioRecPath="中文图书/1" location="流通库" borrowDate="Thu, 08 Jun 2023 14:04:18 +0800" borrowPeriod="31day" borrowID="b73954c9-cbf2-4ae4-becb-5b9b55b77272" returningDate="Sun, 09 Jul 2023 12:00:00 +0800" operator="supervisor" type="普通" price="CNY150.00" notifyHistory="" />
         </borrows>
-        <state operator="supervisor" time="Tue, 14 Jun 2022 03:19:28 GMT">
-        </state>
-        <comment>测试注释</comment>
-        <hire expireDate="" period="" />
+        <email>weixinid:~~d65388ef-5ffd-47d6-b4e9-4efc070d4fd6,weixinid:~~13aaa56e-2100-4741-9323-0d0bc6913b7c</email>
         <overdues>
         </overdues>
     </patronRecord>
@@ -2346,9 +2345,11 @@ ISBN|010$a
         private int SendCallMsg(XmlDocument bodyDom,
              string libName,
              List<WxUserItem> bindPatronList,
-             string patronBarcode,
-             string patronName,
-             string patronLibraryCode,
+                                 //string patronBarcode,
+                                 //string patronName,
+                                 //string patronLibraryCode,
+             string fullPatronName,
+             string maskFullPatronName,
              List<WxUserItem> workers,
              string maskDef, //2021/8/3 mask定义
              bool send2PatronIsMask,
@@ -2367,15 +2368,7 @@ ISBN|010$a
              */
 
 
-            // todo 等模板消息申请下来，改为一册一条消息，枚举下面item
-            /*
-    <items overdueCount="0" normalCount="2">
-        <item barcode="B002" location="流通库" refID="" summary="彼得兔的故事 [专著]  / (英)比阿特丽斯·波特著 ; (美)查尔斯·桑托利绘 ; 司南译. -- ISBN 978-7-5346-5588-3 : CNY16.80" borrowDate="Mon, 20 Jun 2022 19:53:43 +0800" borrowPeriod="31day" timeReturning="2022/7/21" overdue="" overdueType="warning" />
-        <item barcode="B004" location="流通库" refID="" summary="兔子布莱尔 [专著]  / (美)约耳·钱德勒·哈里斯原著 ; (美)唐·戴利绘 ; 司南译. -- ISBN 978-7-5346-5595-1 : CNY16.80" borrowDate="Mon, 20 Jun 2022 12:05:34 +0800" borrowPeriod="31day" timeReturning="2022/7/21" overdue="" overdueType="warning" />
-    </items>
-             */
-
-
+            /* 这是老方式，将召开通知整个作为一个消息发出，内容为text
             // 备注
             string remark = this._msgRemark;
             string operTime = DateTime.Now.ToString("yyyy/MM/dd");
@@ -2416,6 +2409,105 @@ ISBN|010$a
                 out strError);
             if (nRet == -1)
                 return -1;
+
+            */
+
+            string first_text = "☀☀☀☀☀☀☀☀☀☀";
+            string first_color = "#9400D3";
+
+            // <reason>毕业手续需要</reason>
+            string reason = DomUtil.GetElementText(root, "reason");
+
+            //string remark = this._msgRemark;
+
+            // 2023/6/9 改为将召回消息根据里面的册，发出多条消息
+            /*
+    <reason>毕业手续需要</reason>
+    <items overdueCount="0" normalCount="3">
+        <item barcode="B003" location="流通库" refID="" summary="唐宋词人年谱 [专著]  / 夏承焘著. -- ISBN 978-7-5540-0713-6 (精装 ) : CNY60.00" borrowDate="Fri, 09 Jun 2023 11:09:12 +0800" borrowPeriod="31day" timeReturning="2023/7/10" overdue="" overdueType="warning" />
+        <item barcode="B002" location="流通库" refID="" summary="杜诗详注 [专著]  / (唐)杜甫撰 ; (清)仇兆鳌注. -- ISBN 978-7-101-10528-5 (精装 ) : CNY156.00" borrowDate="Thu, 08 Jun 2023 15:37:08 +0800" borrowPeriod="31day" timeReturning="2023/7/9" overdue="已超期 1 天" overdueType="overdue" />
+        <item barcode="B001" location="流通库" refID="" 
+            summary="文心雕龙义证 [专著]  / (南朝梁)刘勰著 ; 詹锳义证. -- ISBN 7-5325-0326-7 : CNY150.00" 
+            borrowDate="Thu, 08 Jun 2023 14:04:18 +0800" 
+            borrowPeriod="31day" timeReturning="2023/7/9" 
+            overdue="已超期 1 天" overdueType="overdue" />
+    </items>
+             */
+            //// 备注，检查是否有超期信息
+            //remark = fullPatronName + "，"+this._msgRemark;//"，感谢及时归还，欢迎继续借书。";
+            //XmlNodeList listOverdue = root.SelectNodes("patronRecord/overdues/overdue");
+            //if (listOverdue.Count > 0)
+            //{
+            //    remark = fullPatronName + "，您有" + listOverdue.Count + "笔超期违约记录，请履行超期手续。";
+            //}
+            XmlNodeList list = root.SelectNodes("items/item");
+            foreach (XmlNode item in list)
+            {
+                /*
+{{first.DATA}}
+书刊摘要：{{keyword1.DATA}}
+册条码号：{{keyword2.DATA}}
+借书日期：{{keyword3.DATA}}
+应还日期：{{keyword4.DATA}}
+召回原因：{{keyword5.DATA}}
+{{remark.DATA}}
+*/
+                string summary = DomUtil.GetAttr(item, "summary");
+                string barcode = DomUtil.GetAttr(item, "barcode");
+
+                string borrowDate = DomUtil.GetAttr(item, "borrowDate");
+                borrowDate = DateTimeUtil.ToLocalTime(borrowDate, "yyyy/MM/dd");
+
+                string timeReturning = DomUtil.GetAttr(item, "timeReturning");
+
+                string overdueType = DomUtil.GetAttr(item, "overdueType");
+                string overdue = DomUtil.GetAttr(item, "overdue");
+
+                string strText = fullPatronName ;
+                if (string.IsNullOrEmpty(overdue) == false)
+                    strText += "，" + "该书" + overdue + "。";
+                else
+                    strText += "，";
+                string remark = strText + this._msgRemark;
+
+
+                RecallTemplateData msgData = new RecallTemplateData(first_text,
+                    first_color,
+                    summary,
+                    barcode,
+                    borrowDate,
+                    timeReturning,
+                    reason,
+                    remark);
+
+               
+                // 脱敏信息
+                remark=remark.Replace(fullPatronName, maskFullPatronName); 
+                RecallTemplateData maskMsgData = new RecallTemplateData(first_text,
+                     first_color,
+                     summary,
+                     barcode,
+                     borrowDate,
+                     timeReturning,
+                     reason,
+                     remark);
+
+
+
+                int nRet = this.SendTemplateMsg1(GzhCfg.C_Template_Recall,
+                    bindPatronList,//bindWeixinIds,
+                    workers,
+                    msgData,
+                    maskMsgData,
+                    this._messageLinkUrl,//linkurl
+                    "",//theOperator,
+                    send2PatronIsMask,  // 2021/8/3 不mask
+                    bodyDom.OuterXml,
+                    out strError);
+                if (nRet == -1)
+                    return -1;
+            }
+
 
             return 0;
         }
@@ -12092,6 +12184,7 @@ ErrorInfo成员里可能会有报错信息。
 
 
         public int GetPDFCount(string libId,
+            LoginInfo loginInfo,
     string objectPath,
     out string filename,
     out string strError)
@@ -12106,8 +12199,10 @@ ErrorInfo成员里可能会有报错信息。
                 goto ERROR1;
             }
 
+            // 2023/6/12 使用传下来的帐户
             // 使用代理账号capo 20161024 jane
-            LoginInfo loginInfo = new LoginInfo("", false);
+            //LoginInfo loginInfo = new LoginInfo("", false);
+
 
             CancellationToken cancel_token = new CancellationToken();
 

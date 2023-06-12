@@ -336,15 +336,44 @@ namespace dp2weixinWeb.Controllers
         /// <param name="libId"></param>
         /// <param name="uri"></param>
         /// <returns></returns>
-        public ActionResult ViewPDF(string libId, string uri)
+        public ActionResult ViewPDF( string code, string state,string libId, string uri)
         {
             ViewBag.libId = libId;
             ViewBag.objectUri = uri;
 
-            string strError = "";
+            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
+            // -1 出错
+            // 0 成功
+            int nRet = this.GetSessionInfo(code, state,
+                out SessionInfo sessionInfo,
+                out string strError);
+            if (nRet == -1)
+            {
+                ViewBag.Error = strError;
+                return View();
+            }
+
+            // 当前帐号不存在，尚未选择图书馆
+            if (sessionInfo.ActiveUser == null)
+            {
+                ViewBag.Error = "当前帐户不存在";
+                return View();
+            }
+
+            //// 2021/8/2 根据前端传的帐户创建LoginInfo
+            //LoginInfo loginInfo = dp2WeiXinService.GetLoginInfo(sessionInfo.ActiveUser.userName, loginUserType);
+
+
+            LoginInfo loginInfo = dp2WeiXinService.Instance.Getdp2AccoutActive(sessionInfo.ActiveUser);
             string filename = "";
-            int totalPage = dp2WeiXinService.Instance.GetPDFCount(libId, uri,
+            int totalPage = dp2WeiXinService.Instance.GetPDFCount(libId, loginInfo,
+                uri,
                 out filename, out strError);
+            if (totalPage == -1)
+            {
+                ViewBag.Error = "获取PDF页数出错："+strError;
+                return View();
+            }
             ViewBag.pageCount = totalPage;
 
             string strImgUri = uri + "/page:1,format:jpeg,dpi:75";

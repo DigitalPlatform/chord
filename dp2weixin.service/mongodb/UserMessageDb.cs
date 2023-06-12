@@ -184,6 +184,7 @@ namespace dp2weixin.service
         public string createTime { get; set; }
 
         public string first { get; set; }
+        public string firstcolor { get; set; }
         public string remark { get; set; }
 
         public string title { get; set; }
@@ -210,10 +211,21 @@ namespace dp2weixin.service
                 return;
 
             XmlDocument dom = new XmlDocument ();
-            dom.LoadXml(xml);
+            try
+            {
+                dom.LoadXml(xml);
+            }
+            catch(Exception ex)
+            {
+                throw new Exception("装载消息xml出错：" + ex.Message + "\r\n" + xml);
+            }
             XmlNode root=dom.DocumentElement;
 
             this.first=DomUtil.GetElementText(root, "first");
+
+            this.firstcolor=DomUtil.GetAttr(root, "first", "color");
+
+
             this.remark = DomUtil.GetElementText(root, "remark");
 
             this.keyword1 = DomUtil.GetElementText(root, "keyword1");
@@ -502,6 +514,32 @@ L0RqYhRelT7AJ5Z2_eeImlK0cq4sn4mBHmZYv_Lbkw0
                 this.valueList.Add(new LabelValue("交费原因", keyword3));
                 this.valueList.Add(new LabelValue("撤消金额", keyword4));
                 this.valueList.Add(new LabelValue("撤消时间", keyword5));
+            }
+            else if (this.msgType == "Recall")
+            {
+                /*
+模板ID
+ttezO2WKz3oSns7mdpp8cFVk8JZ34XohuPLppLKvnF4
+开发者调用模板消息接口时需提供模板ID
+标题
+图书召回通知
+行业
+IT科技 - IT软件与服务
+详细内容
+{{first.DATA}}
+书刊摘要：{{keyword1.DATA}}
+册条码号：{{keyword2.DATA}}
+借书日期：{{keyword3.DATA}}
+应还日期：{{keyword4.DATA}}
+召回原因：{{keyword5.DATA}}
+{{remark.DATA}}
+                 */
+                this.title = "图书召回通知";
+                this.valueList.Add(new LabelValue("书刊摘要", keyword1));
+                this.valueList.Add(new LabelValue("册条码号", keyword2));
+                this.valueList.Add(new LabelValue("借书日期", keyword3));
+                this.valueList.Add(new LabelValue("应还日期", keyword4));
+                this.valueList.Add(new LabelValue("召回原因", keyword5));
             }
             else if (this.msgType == "Message")
             {

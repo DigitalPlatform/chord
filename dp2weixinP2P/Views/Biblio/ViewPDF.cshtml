@@ -20,12 +20,13 @@
             // 滑滚事件
             $(window).scroll(function () {
 
+
                 /*
                 var winHeight = $(window).height();  //屏幕高度
                 var winScrollTop = $(window).scrollTop();  //卷滚条top
                 var docHeight = $(document).height();  //文档高度
 
-                //alert("winHeight=" + winHeight + ";winScrollTop=" + winScrollTop + ";docHeight=" + docHeight);
+                alert("winHeight=" + winHeight + ";winScrollTop=" + winScrollTop + ";docHeight=" + docHeight);
 
 
                 var img1 = $("#img1");
@@ -33,7 +34,7 @@
 
 
                 // 计算出需要显示第几个
-                var tempNo = (winHeight + winScrollTop) / (imgHeight + 10);  
+                var tempNo = (winHeight + winScrollTop) / (imgHeight + 10);
                 var no = Math.ceil(tempNo);
                 //alert("tempNo=" + tempNo + ";no=" + no);
 
@@ -62,14 +63,16 @@
 
 
             var pageCountStr = $("#_pageCount").text();
+
+            //alert("pageCountStr=[" + pageCountStr +"]");
             var pageCount = parseInt(pageCountStr);
             if (pageCount > 0) {
 
                 // 从第2个图片填，第1个图片要先设好，否则在手机上通过append动态加的img不能立即得到尺寸。
                 for (var i = 2; i <= pageCount; i++) {
 
-                    var div = "<div class='block todo" + i + "' " + styleStr + " onclick=tryShowImg("+i+") >"
-                        + "点击加载 第" + i +"页"
+                    var div = "<div class='block todo" + i + "' " + styleStr + " onclick=tryShowImg(" + i + ") >"
+                        + "点击加载 第" + i + "页"
                         + "</div>";
                     main.append(div);
                 }
@@ -85,7 +88,7 @@
                     imgWidth = totalWidth1;
                     img1.width(imgWidth); //修改第一个图片的宽度
                 }
-               // alert("width=" + img1.width() + ",height=" + img1.height());
+                // alert("width=" + img1.width() + ",height=" + img1.height());
 
                 // 将所有图片框子div的宽高 设成与第一个图片一致
                 $(".block").width(img1.width());
@@ -104,8 +107,7 @@
 
         }
 
-        function tryShowImg(no)
-        {
+        function tryShowImg(no) {
             var name = ".todo" + no;
             var todoDiv = $(name);
 
@@ -142,7 +144,7 @@
             var o = $("#w" + no);
             o.remove();
             //o.parent().remove(o);
-           // alert("1");
+            // alert("1");
 
             // 测试出现pdf每页的尺寸可能不一样，div的尺寸随着img的尺寸变化。
             //alert("3-1");
@@ -150,11 +152,11 @@
             if (imgN != undefined) {
                 imgN.parent().height(imgN.height());
             }
-               // alert("3-2");
+            // alert("3-2");
         }
 
 
-         //先不加横竖屏切换
+        //先不加横竖屏切换
         function testOrientation() {
             if (window.orientation == 90 || window.orientation == -90) {
                 //alert('现在是横屏');
@@ -162,7 +164,7 @@
                 window.location.reload();
             }
             else if (window.orientation == 180 || window.orientation == 0) {
-               // alert('现在是竖屏');
+                // alert('现在是竖屏');
                 // 重新加载页面
                 window.location.reload();
             }
@@ -179,13 +181,12 @@
         .block {
             background-color: #dddddd;
             margin-top: 10px;
-            vertical-align:middle;
-            text-align:center;
+            vertical-align: middle;
+            text-align: center;
         }
 
         .page {
             background-color: lightyellow;
-            
         }
     </style>
 }
@@ -193,12 +194,22 @@
 <span id="_libId" style="display:none;">@ViewBag.libId</span>
 <span id="_objectUri" style="display:none;">@ViewBag.objectUri</span>
 <span id="_pageCount" style="display:none;">@ViewBag.pageCount</span>
-<center>
-    <div id="main">
-
-        <div class='block'>
-            <img class='page' id='img1' src='@ViewBag.firstUrl'  onload="firstImgLoad()"/>
-        </div>
+@if (String.IsNullOrEmpty(ViewBag.Error) == false)
+{
+    <div class="mui-content-padded">
+        <span id="error" class="errorinfo">
+            @Html.Raw(ViewBag.Error)
+        </span>
     </div>
-</center>
+}
+else
+{
+    <center>
+        <div id="main">
 
+            <div class='block'>
+                <img class='page' id='img1' src='@ViewBag.firstUrl' onload="firstImgLoad()" />
+            </div>
+        </div>
+    </center>
+}

@@ -105,6 +105,7 @@ namespace dp2weixin.service
         public const string C_Template_CaoQi = "CaoQi";
         public const string C_Template_KuaiCaoQi = "KuaiCaoQi";
         public const string C_Template_CancelReserve = "CancelReserve";
+        public const string C_Template_Recall = "Recall";
 
         // 2020-3-1增加 审核读者
         public const string C_Template_ReviewPatron = "ReviewPatron";
