@@ -1630,33 +1630,10 @@ ISBN|010$a
             BaseTemplateData templateData = (BaseTemplateData)msgData;
             string oldRemark = templateData.remark.value;
 
-            // 2023/5/10 加日期与操作人
-            string nowTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");//dp2WeiXinService.DateTimeToStringNoSec(DateTime.Now);
-            if (theOperator != "")
-                nowTime += " " + theOperator;
-
-            //if (msgData is Template2Data)
-            //{
-            //    ((Template2Data)msgData).keyword2.value += " " + nowTime;
-            //}
-            //else if (msgData is Template3Data)
-            //{
-            //    ((Template3Data)msgData).keyword3.value += " " + nowTime;
-            //}
-            //else if (msgData is Template4Data)
-            //{
-            //    ((Template4Data)msgData).keyword4.value += " " + nowTime;
-            //}
-            //else if (msgData is Template5Data)
-            //{
-            //    ((Template5Data)msgData).keyword5.value += " " + nowTime;
-            //}
-
-
-            //2023 / 5 / 10 不支持加到备注里
             // 加日期与操作人
+            string nowTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");//dp2WeiXinService.DateTimeToStringNoSec(DateTime.Now);
             templateData.remark.value = oldRemark + "\n" + nowTime;
-            if (theOperator != "")
+            if (string.IsNullOrEmpty(theOperator)==false)
                 templateData.remark.value = templateData.remark.value + " " + theOperator;
 
 
@@ -1725,18 +1702,15 @@ ISBN|010$a
                     myMsg.createTime = nowTime;//GetNowTime();
                     UserMessageDb.Current.Add(myMsg);
 
-
-
-
-                    //UserMessageDb.Current.get
-
                     // 只有微信公众号入口，才发微信通知
                     if (WxUserDatabase.CheckFrom(u.weixinId) == WxUserDatabase.C_from_weixin) //.CheckIsFromWeb(u.weixinId) == false) //weixinId.Length > 2 && weixinId.Substring(0, 2) == "~~")
                     {
-
                         string myLinkUrl = linkUrl2;
+
                         this.WriteDebug(nIndex1.ToString() + " linkUrl==[" + myLinkUrl + "]");
+
                         nIndex1++;
+
                         // 给linkUrl加上id
                         if (myLinkUrl.IndexOf("[message]") != -1)
                         {
@@ -1748,13 +1722,14 @@ ISBN|010$a
                             //this.WriteDebug("oauth对应的消息:" + myMsg.refid + "\r\n" + myMsg.xml);
                         }
 
-
                         // 调微信接口发送消息
                         string appId = gzh.appId;
                         string templateId = gzh.GetTemplateId(templateName);
                         WriteDebug("开始获取accessToken");
+
                         var accessToken = AccessTokenContainer.GetAccessToken(appId);
                         WriteDebug("完成获取accessToken=[" + accessToken + "]");
+
                         var ret = TemplateApi.SendTemplateMessage(accessToken,
                             pureWeixinId,  // 用单纯的weixinId
                             templateId,
@@ -1797,15 +1772,12 @@ ISBN|010$a
                         //}
 
                         //this.WriteDebug("发通知时发现微信号" + u.weixinId + "已取消关注公众号,之前绑定的帐户有:" + tempInfo);
-
                     }
                     else
                     {
                         strError = "走进异常,发送失败:" + ex0.Message;
                         this.WriteErrorLog(strError);
                     }
-
-
                 }
 
 
@@ -2932,14 +2904,18 @@ ISBN|010$a
                 borrowPeriod,
                 operTime,
                 remark);
+
+
             remark = remark.Replace(fullPatronName, markFullPatronName);
+
+            string maskOperTime=operTime.Replace(fullPatronName, markFullPatronName);
             ReturnTemplateData maskMsgData = new ReturnTemplateData(first,
                 first_color,
                 summary,
                 fullItemBarcode,
                 borrowDate,
                 borrowPeriod,
-                operTime,
+                maskOperTime,
                 remark);
 
             // 发送消息
@@ -4955,7 +4931,7 @@ ErrorInfo成员里可能会有报错信息。
         /// -1 出错
         /// 0 正常
         /// </returns>
-        public int SetReaderInfo(LoginInfo loginInfo,
+        public  int SetReaderInfo(LoginInfo loginInfo,
             string libId,
             string userName,
             string opeType,
@@ -5012,6 +4988,7 @@ ErrorInfo成员里可能会有报错信息。
                 default:
                     break;
             }
+
             if (action == "")
             {
                 strError = "无法将opeType=" + opeType + "转换为action";
@@ -5178,6 +5155,8 @@ ErrorInfo成员里可能会有报错信息。
                     outputRecPath = result.Entities[0].NewRecord.RecPath;
                     outputTimestamp = result.Entities[0].NewRecord.Timestamp;
                     outputPatronXml = result.Entities[0].NewRecord.Data;
+
+
                 }
 
             }
@@ -5205,6 +5184,8 @@ ErrorInfo成员里可能会有报错信息。
 变更时间：2016年1月2日 14:00
 请登录系统查看该客户的详细更新情况！
                  */
+
+                this.WriteDebug("设置读者接口返回的xml为：" + outputPatronXml);
 
                 WxUserItem patronInfo = this.GetPatronInfoByXml(outputPatronXml, out List<string> tempWeixinIds);
 
@@ -5235,16 +5216,23 @@ ErrorInfo成员里可能会有报错信息。
                     string libraryCode = patronInfo.libraryCode;
                     if (libraryCode == "")
                         libraryCode = "空";
+
+                    this.WriteDebug("检索工作人员条件libId=["+libId+"],libraryCode=["+libraryCode+"]");
                     List<WxUserItem> tempWorkers = WxUserDatabase.Current.GetWorkers("", libId, libraryCode, "");
+                    this.WriteDebug("共检索到" + tempWorkers.Count + "个工作人员");
                     List<WxUserItem> workers = new List<WxUserItem>();
                     foreach (WxUserItem one in tempWorkers)
                     {
+                        //this.WriteDebug("工作人员详情："+one.Dump());
+
                         // 2020-3-11 还要加上public帐户
                         // web来源，小程序来源，public帐户不需要发微信通知
                         if (WxUserDatabase.CheckFrom(one.weixinId) == WxUserDatabase.C_from_web
                             || WxUserDatabase.CheckFrom(one.weixinId) == WxUserDatabase.C_from_applet
-                            || one.userName == WxUserDatabase.C_Public)
+                           || one.userName == WxUserDatabase.C_Public)
+                        {
                             continue;
+                        }
 
                         workers.Add(one);
                     }

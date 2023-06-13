@@ -42,6 +42,10 @@
             sendAjaxRequest(url, "GET",
                 function (result) {
 
+
+                    alert(result.verifyCode);
+                    $("#_verifyCode").text(result.verifyCode);
+
                     // 关闭等待层
                     hideLoading();
                     if (result.errorCode == -1) {
@@ -49,9 +53,6 @@
                         return;
                     }
 
-                    //alert(result.verifyCode);
-
-                    $("#_verifyCode").text(result.verifyCode);
 
 
                     alert("短信验证码已发送到您手机号，请查收。");// + result.verifyCode);  //todo正式版本删除码提示
