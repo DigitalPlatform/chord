@@ -86,8 +86,25 @@ namespace dp2weixin.service
             List<UserMessageItem> list = this.Collection.Find(filter).Sort(sort).ToList();
             return list;
         }
-        
-        
+
+        // 根据refid获取一条本地存储的消息
+        public UserMessageItem GetByRefId(string refid)
+        {
+            var filter = Builders<UserMessageItem>.Filter.Eq("refid", refid);
+
+            List<UserMessageItem> list = this.Collection.Find(filter).ToList();
+            if (list.Count > 1)
+            {
+                throw new Exception("异常：根据refid=["+refid+"]获取到多条消息，应最多只有一条。");
+            }
+
+            if (list.Count > 0)
+                return list[0];
+            else
+                return null;
+        }
+
+
         /// <summary>
         /// 新增微信用户
         /// </summary>
@@ -131,23 +148,21 @@ namespace dp2weixin.service
         [BsonRepresentation(BsonType.ObjectId)]
         public string id { get; private set; }
 
-        // 用于定位元素，id是objectid类型，是自动产生的，消息设置linkurl时还不知道id值，所以新增一个统一的refid
+        // 用于定位元素，id是objectid类型，是自动产生的，给微信通知设置linkurl时可能还不知道id值，所以新增一个唯一的refid用于定位
         public string refid { get; set; }
 
         public string userId { get; set; }  // 对应的微信id,也可能是~~
 
         public string msgType { get; set; }
 
+        // 根据模板消息的内容组成的xml，消息界面显示目前使用这个xml
         public string xml { get; set; }
 
-        // 原始xml 2023/6/7增加
+        // 原始xml 2023/6/7增加，用于将来的扩展，目前没有使用到。
         public string originalXml { get; set; }
 
-
+        // 格式为yyyy-MM-dd HH:mm:ss
         public string createTime { get; set; }
-
-
-
     }
 
     public class UserMessageMode
@@ -508,7 +523,7 @@ L0RqYhRelT7AJ5Z2_eeImlK0cq4sn4mBHmZYv_Lbkw0
 {{remark.DATA}}
 
                  */
-                this.title = "交费成功通知";
+                this.title = "交费撤消通知";
                 this.valueList.Add(new LabelValue("书刊摘要", keyword1));
                 this.valueList.Add(new LabelValue("册条码号", keyword2));
                 this.valueList.Add(new LabelValue("交费原因", keyword3));

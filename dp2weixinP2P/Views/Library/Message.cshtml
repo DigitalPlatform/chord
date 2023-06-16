@@ -1,72 +1,12 @@
-﻿@model List<dp2weixin.service.UserMessageMode>
+﻿@model dp2weixin.service.UserMessageMode
 @{
-    ViewBag.Title = "Message";
+    ViewBag.Title = "消息详情";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 @section Scripts {
     <script>
 
-        // 删除一项
-        function deleteMsg(id) {
-            if (id == null)
-                id = "";
-
-            // 确定
-            if (id == "") {
-                var gnl = confirm("你确定要删除全部消息吗?");
-                if (gnl == false) {
-                    return false;
-                }
-            }
-            else {
-                var gnl = confirm("你确定要删除消息" + id + "吗?");
-                if (gnl == false) {
-                    return false;
-                }
-            }
-
-            var bindUserId = $("#bindUserId").text();
-            if (bindUserId == "") {
-                alert("异常情况：bindUserId为空");
-                return;
-            }
-
-            ////???
-            //if (id != "" && id != null)
-            //    bindUserId = "";
-
-            //显示等待图层
-            //var index = loadLayer();
-            showMaskLayer();
-
-            //调接口删除消息
-            var url = "/api2/UserNoticeApi/DeleteNotice?bindUserId=" + bindUserId + "&id=" + id;
-            sendAjaxRequest(url, "POST", function (result) {
-
-                // 关闭等待层
-                hideMaskLayer();
-
-                if (result.errorCode == -1) {
-                    alert(result.errorInfo);
-                    return;
-                }
-
-                alert("删除完成");
-
-                // 重新加载页面
-                window.location.reload();
-
-
-            }, function (xhq, textStatus, errorThrown) {
-                // 关闭等待层
-                hideMaskLayer();
-
-                alert(errorThrown);
-            });
-
-
-        }
 
         //$(document).ready调用是jQuery推迟函数执行的一项标准技术，
         //它直到浏览器加载并处理了文档的所有HTML元素之后才会执行。
@@ -75,46 +15,13 @@
             // 2021/8/2调试态显示当前操作帐号
             setOpeAccount("");
 
-            // 卷滚到指定的消息
-            //647ea13f312dac756995f110
-            var i = $("#curMessageId").text();
-
-            //alert("["+i+"]");
-            if (i == null || i == "")
-                return;
-
-
-
-            var a = $("#" + i);
-
-            a.css("background-color", "yellow");
-
-            //var itemOuterHeight = a.outerHeight(true);
-
-            var mytop = a.offset().top;
-
-            //alert("[" + mytop + "]+[" + a.outerHeight(true) +"]");
-
-            document.documentElement.scrollTop = mytop-50;
-
-            //window.scrollTo(mytop);
-
-            //$("html,body").scrollTop($("646d8fef5020b432046f86d7").offset().top);
-
-            //document.getElementById("646d8fef5020b432046f86d7").scrollTo(100, 200);
-            //document.getElementById("647ea13f312dac756995f110").scrollTo({ top: 500, behavior: 'smooth' });
-
-            //alert("2");
-
-
         })
     </script>
 }
 
 @section header {
-    <h1 class="mui-title">我的消息</h1>
+    <h1 class="mui-title">消息详情</h1>
 }
-
 
 
 <span id="bindUserId" style="display:none">@ViewBag.bindUserId</span>
@@ -146,43 +53,27 @@ else
                 </span>
             </div>
         }
+        
+        <div class="mui-card message" style="padding:10px;margin-top:15px" id="@Model.refid">
+            <span style="font-size:large">@Model.title</span><br />
+            <span style="color:@Model.firstcolor;font-size:xx-small">@Model.first</span><br />
+            <!--<span style="color:gray;font-size:xx-small">@Model.refid</span><br />-->
 
-        if (Model == null || Model.Count == 0)
-        {
-            <div class="mui-card" id="divNo" style="margin-top:10px;">
-                <center>
-                    <img src='../img/empty2.jpg' width='100' height='100' style=" padding-top:5px" />
-                    <div>目前没有消息。</div>
-                </center>
-            </div>
-        }
-        if (Model != null)
-        {
-            foreach (dp2weixin.service.UserMessageMode item in Model)
+            @foreach (dp2weixin.service.LabelValue one in Model.valueList)
             {
-<div class="mui-card message" style="padding:10px;margin-top:15px" id="@item.refid">
-    <span style="font-size:large">@item.title</span><br />
-    <span style="color:@item.firstcolor;font-size:xx-small">@item.first</span><br />
-    <!--<span style="color:gray;font-size:xx-small">@item.refid</span><br />-->
-
-    @foreach (dp2weixin.service.LabelValue one in item.valueList)
-    {
-        @one.lable <b>@one.value</b><br />
-    }
-
-    <span style="color:gray"> @item.remark</span>
-    <!--<button class="mui-btn" onclick="deleteMsg('@item.id')">删除</button>-->
-</div>
+                @one.lable <b>@one.value</b><br />
             }
-            <!--
-            <div style="padding:10px">
-                <button class="mui-btn" onclick="deleteMsg()">
-                    删除全部
-                </button>
-            </div>
-                -->
-        }
+
+            <span style="color:gray"> @Model.remark</span>
+        </div>
+
+        <div style="padding:10px">
+            <a href="~/Library/AllMessage">查看全部消息</a>
+        </div>
     }
+
+
+
 }
 
 

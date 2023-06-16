@@ -381,6 +381,7 @@
     <Content Include="Views\UI\SearchItemUI.cshtml" />
     <Content Include="Views\Biblio\SearchItem.cshtml" />
     <Content Include="Views\UI\header.cshtml" />
+    <Content Include="Views\Library\AllMessage.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

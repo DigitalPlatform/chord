@@ -103,6 +103,12 @@ namespace dp2weixinWeb.Controllers
 
             dp2WeiXinService.Instance.WriteDebug("Message界面传进来的msgId参数值为["+ msgRefid + "]");
 
+            if (string.IsNullOrEmpty(msgRefid) == true)
+            {
+                ViewBag.Error = "异常：传进来的msgId参数值为空，请联系系统管理员。";
+                return View();
+            }
+
             ViewBag.bindUserId = sessionInfo.ActiveUser.id; //在base页面中已有
             ViewBag.curMessageId = msgRefid;//"647ea13f312dac756995f110";//msgId;
 
@@ -118,7 +124,70 @@ namespace dp2weixinWeb.Controllers
 </root>
              */
             // 获取消息
-            List<UserMessageItem> list =  UserMessageDb.Current.GetByUserId(sessionInfo.ActiveUser.id);
+            UserMessageItem item = null;
+
+            try
+            {
+                item = UserMessageDb.Current.GetByRefId(msgRefid);
+            }
+            catch(Exception ex)
+            {
+                ViewBag.Error = ex.Message;
+                return View();
+            }
+
+            if (item == null)
+            {
+                ViewBag.Error = "根据msgRefid=[" + msgRefid+"]未找到对应的消息，可以消息已被删除，如有疑问，请联系系统管理员。";
+                return View();
+            }
+
+            return View(new UserMessageMode(item));  //注意转换为UserMessageMode
+        }
+
+        public ActionResult AllMessage(string code, string state, string msgRefid)
+        {
+
+            string strError = "";
+            int nRet = 0;
+
+            // 获取当前sessionInfo，里面有选择的图书馆和帐号等信息
+            // -1 出错
+            // 0 成功
+            nRet = this.GetSessionInfo(code, state,
+                out SessionInfo sessionInfo,
+                out strError);
+            if (nRet == -1)
+            {
+                ViewBag.Error = strError;
+                return View();
+            }
+
+            // 当前帐号不存在，尚未选择图书馆
+            if (sessionInfo.ActiveUser == null)
+            {
+                ViewBag.RedirectInfo = dp2WeiXinService.GetSelLibLink(state, "/Library/Message");
+                return View();
+            }
+
+            dp2WeiXinService.Instance.WriteDebug("Message界面传进来的msgId参数值为[" + msgRefid + "]");
+
+            ViewBag.bindUserId = sessionInfo.ActiveUser.id; //在base页面中已有
+            ViewBag.curMessageId = msgRefid;//"647ea13f312dac756995f110";//msgId;
+
+            /*
+<root>
+<first>▉▊▋▍▎▉▊▋▍▎▉▊▋▍▎</first>
+<keyword1>文心雕龙义证 [专著]  </keyword1>
+<keyword2>B001(本地图书馆/流通库)</keyword2>
+<keyword3>2023/05/24</keyword3>
+<keyword4>31天</keyword4>
+<keyword5>2023/05/24 test P001(本地图书馆)</keyword5>
+<remark>test P001(本地图书馆)，感谢还书。</remark>
+</root>
+             */
+            // 获取消息
+            List<UserMessageItem> list = UserMessageDb.Current.GetByUserId(sessionInfo.ActiveUser.id);
 
 
             List<UserMessageMode> modelist = new List<UserMessageMode>();
@@ -129,8 +198,6 @@ namespace dp2weixinWeb.Controllers
 
             return View(modelist);
         }
-
-
 
 
         // 借还窗

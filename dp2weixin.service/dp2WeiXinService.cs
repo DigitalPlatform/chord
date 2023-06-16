@@ -1620,7 +1620,7 @@ ISBN|010$a
         private int SendTemplateMsgInternal(List<WxUserItem> userList,
             string templateName,
           object msgData,
-          string linkUrl2,
+          string linkUrl,
           string theOperator,
           string originalXml,
           out string strError)
@@ -1635,9 +1635,6 @@ ISBN|010$a
             templateData.remark.value = oldRemark + "\n" + nowTime;
             if (string.IsNullOrEmpty(theOperator)==false)
                 templateData.remark.value = templateData.remark.value + " " + theOperator;
-
-
-            int nIndex1 = 1;
 
             // 给每个帐户发通知
             foreach (WxUserItem u in userList)//string oneWeixinId in weixinIds)
@@ -1705,21 +1702,17 @@ ISBN|010$a
                     // 只有微信公众号入口，才发微信通知
                     if (WxUserDatabase.CheckFrom(u.weixinId) == WxUserDatabase.C_from_weixin) //.CheckIsFromWeb(u.weixinId) == false) //weixinId.Length > 2 && weixinId.Substring(0, 2) == "~~")
                     {
-                        string myLinkUrl = linkUrl2;
+                        // 注意：这里一定要用一个临时变量，否则修改后会影响其它的消息，整个就混乱了。
+                        string myLinkUrl = linkUrl;
+                        //this.WriteDebug(nIndex1.ToString() + " linkUrl==[" + myLinkUrl + "]");
 
-                        this.WriteDebug(nIndex1.ToString() + " linkUrl==[" + myLinkUrl + "]");
-
-                        nIndex1++;
-
-                        // 给linkUrl加上id
+                        // 给linkUrl加上msgRefid，用于进入消息界面，定位到对应消息上
                         if (myLinkUrl.IndexOf("[message]") != -1)
                         {
                             myLinkUrl = myLinkUrl.Replace("[message]", "");
                             myLinkUrl = this.GetOAuth2Url_func(myLinkUrl, HttpUtility.UrlEncode("Library/Message?msgRefid=" + myMsg.refid));
-
                             // 2023/6/8 写日志
-                            this.WriteDebug("oauth[" + myLinkUrl + "]");
-                            //this.WriteDebug("oauth对应的消息:" + myMsg.refid + "\r\n" + myMsg.xml);
+                            //this.WriteDebug("oauth[" + myLinkUrl + "]");
                         }
 
                         // 调微信接口发送消息
