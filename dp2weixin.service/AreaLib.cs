@@ -106,12 +106,17 @@ namespace dp2weixin.service
 
         public void SaveLib(LibEntity entity)
         {
-            // 2021/7/9 先找到这个老实例 ，以免丢信息
-           LibModel oldLib= this.GetLibCfgByName(entity.id, entity.libName);
 
+           //dp2WeiXinService.Instance.WriteDebug("41");
+
+            // 2021/7/9 先找到这个老实例 ，以免丢信息
+            LibModel oldLib= this.GetLibCfgByName(entity.id, entity.libName);
+
+            //dp2WeiXinService.Instance.WriteDebug("42");
             // 先将已经对应的删除
             DelLib(entity.id, entity.libName);
 
+            //dp2WeiXinService.Instance.WriteDebug("43");
 
             // 先查一下有没有对应的地区
             Area area = this.GetArea(entity.area);
@@ -121,8 +126,10 @@ namespace dp2weixin.service
                 area.name = entity.area;
                 this._areas.Add(area);
             }
+            //dp2WeiXinService.Instance.WriteDebug("44");
 
             LibModel lib = area.GetLib(entity.id, entity.libName);
+            //dp2WeiXinService.Instance.WriteDebug("45");
             if (lib == null)
             {
                 lib = new LibModel();
@@ -150,42 +157,72 @@ namespace dp2weixin.service
                     lib.bindFlag = oldLib.bindFlag;
                 }
 
-
+                //dp2WeiXinService.Instance.WriteDebug("46");
                 this.Save2Xml();
+
+                //dp2WeiXinService.Instance.WriteDebug("47");
             }
         }
 
         public void Save2Xml()
         {
+            //dp2WeiXinService.Instance.WriteDebug("461");
+
             string xml = "";
             foreach (Area area in this._areas)
             {
                 xml += "<area name='" + area.name + "'>";
 
-                foreach (LibModel lib in area.libs)
+                if (area.libs != null)
                 {
-                    xml += "<lib id='" + lib.libId +"'"
-                        + " name='" + lib.name + "'"
-                        + " libraryCode='" + lib.libraryCode + "'"
-                        + " patronDbName='" + lib.patronDbName + "'"
-                        + " departments='"+lib.departments+"'"
-                        + " patronBarcodeTail='"+ lib.patronBarcodeTail+"'" //2020/6/5增加证条码号尾号
-                        + " noticedll='" + lib.noticedll + "'" //2020/8/24 转发通知到第三方的接口
-                        + " bindStyle='" + lib.bindStyle+"'" // 2021/7/21 增加单一绑定开关
-                        + " patronMaskValue='" + lib.patronMaskValue + "'" // 2021/8/3 增加通知中屏幕读者信息
-                        + " fieldsMap='"+lib.fieldsMap+"'"  // 2022/10/13 增加编目配置的字段规则
-                        + " biblioDbName='" + lib.biblioDbName + "'"  //2022/10/13 加
-                        
+                    foreach (LibModel lib in area.libs)
+                    {
+                        xml += "<lib id='" + lib.libId + "'"
+                            + " name='" + lib.name + "'"
+                            + " libraryCode='" + lib.libraryCode + "'"
+                            + " patronDbName='" + lib.patronDbName + "'"
+                            + " departments='" + lib.departments + "'"
+                            + " patronBarcodeTail='" + lib.patronBarcodeTail + "'" //2020/6/5增加证条码号尾号
+                            + " noticedll='" + lib.noticedll + "'" //2020/8/24 转发通知到第三方的接口
+                            + " bindStyle='" + lib.bindStyle + "'" // 2021/7/21 增加单一绑定开关
+                            + " patronMaskValue='" + lib.patronMaskValue + "'" // 2021/8/3 增加通知中屏幕读者信息
+                            + " fieldsMap='" + lib.fieldsMap + "'"  // 2022/10/13 增加编目配置的字段规则
+                            + " biblioDbName='" + lib.biblioDbName + "'"  //2022/10/13 加
 
-                        + " />";
+
+                            + " />";
+                    }
                 }
                 xml += "</area>";
             }
+            //dp2WeiXinService.Instance.WriteDebug("462");
             xml = "<root>" + xml + "</root>";
+
+            //dp2WeiXinService.Instance.WriteDebug("463");
+
             XmlDocument dom = new XmlDocument();
             dom.LoadXml(xml);
-            dom.Save(this._libcfgfile);
 
+            //dp2WeiXinService.Instance.WriteDebug("464");
+
+            //if (this._libcfgfile == null)
+            //{
+            //    dp2WeiXinService.Instance.WriteDebug("_libcfgfile=null");
+            //}
+            //else
+            //    dp2WeiXinService.Instance.WriteDebug("_libcfgfile=["+this._libcfgfile+"]");
+
+            try
+            {
+                dom.Save(this._libcfgfile);
+            }
+            catch(Exception ex)
+            {
+                dp2WeiXinService.Instance.WriteDebug("异常："+ex.Message);
+                throw ex;
+            }
+
+           // dp2WeiXinService.Instance.WriteDebug("465");
         }
 
         public Area GetArea(string name)
@@ -202,6 +239,9 @@ namespace dp2weixin.service
         public void DelLib(string id, string name)
         {
             List<Area> delAreas = new List<Area>();
+
+            if (this._areas==null || this._areas.Count==0)
+                   return;
 
             foreach (Area area in this._areas)
             {

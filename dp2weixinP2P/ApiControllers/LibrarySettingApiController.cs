@@ -161,25 +161,45 @@ namespace dp2weixinWeb.ApiControllers
         public ApiResult ChangeLib(string userName, string password,string libId, LibEntity item)
         {
             ApiResult result = new ApiResult();
+            long ret = 0;
 
-            // 检查是否已登录  2022/9/6
-            bool bLogin = this.CheckIsLogin(userName, password, out string error);
-            if (bLogin == false)
+            try
             {
-                result.errorInfo = error;
+
+                //dp2WeiXinService.Instance.WriteDebug("1");
+
+                // 检查是否已登录  2022/9/6
+                bool bLogin = this.CheckIsLogin(userName, password, out string error);
+                if (bLogin == false)
+                {
+                    result.errorInfo = error;
+                    result.errorCode = -1;
+                    return result;
+                }
+
+                //dp2WeiXinService.Instance.WriteDebug("2");
+
+                 ret = LibDatabase.Current.Update(libId, item);
+
+                if (ret > 0)
+                {
+                    // 更新内存 2016-9-13 jane
+                    dp2WeiXinService.Instance.LibManager.UpdateLib(libId);
+                }
+
+                //dp2WeiXinService.Instance.WriteDebug("3");
+
+
+                dp2WeiXinService.Instance._areaMgr.SaveLib(item);
+
+                //dp2WeiXinService.Instance.WriteDebug("4");
+            }
+            catch (Exception ex)
+            {
+
                 result.errorCode = -1;
-                return result;
+                result.errorInfo = "ChangeLib()出错：" + ex.Message;
             }
-
-            long ret = LibDatabase.Current.Update(libId, item);
-
-            if (ret > 0)
-            {
-                // 更新内存 2016-9-13 jane
-                dp2WeiXinService.Instance.LibManager.UpdateLib(libId);
-            }
-
-            dp2WeiXinService.Instance._areaMgr.SaveLib(item);
 
             result.errorCode = ret;
             return result;
