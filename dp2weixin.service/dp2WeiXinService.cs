@@ -3395,7 +3395,6 @@ ISBN|010$a
                 libName = "";
 
 
-
             /*
            body元素里面是预约到书通知记录(注意这是一个字符串，需要另行装入一个XmlDocument解析)，其格式如下：
            <?xml version="1.0" encoding="utf-8"?>
@@ -3425,6 +3424,8 @@ ISBN|010$a
     </patronRecord>
 </root>
            */
+
+
             XmlNode root = bodyDom.DocumentElement;
             //<onShelf>false</onShelf>
             // <reserveTime>2天</reserveTime>
@@ -3450,10 +3451,38 @@ ISBN|010$a
                 //if (bOnShelf == true
                 //    && string.IsNullOrEmpty(lib.comment) == false
                 //    && lib.comment.IndexOf("OnshelfArrivedNoNotice") != -1)
-                if (lib.IsSendArrivedNotice == "N") //2020/3/22 改为直接使用变量
+
+                // //2020/3/22 改为直接使用变量
+                // 2023/11/2 改为一个丰富信息的字符串
+                if (lib.IsSendArrivedNotice.Contains("N") == true) 
                 {
-                    //return 0;  //2020-3-9改为不给读者立即发，还是给监控的工作人员发送
-                    bindPatronList.Clear(); //bindWeixinIds.Clear();
+
+                    if (lib.IsSendArrivedNotice == "N")
+                    {
+                        //return 0;  //2020-3-9改为不给读者立即发，还是给监控的工作人员发送
+                        bindPatronList.Clear(); //bindWeixinIds.Clear();
+                    }
+                    else
+                    {
+
+                        // 将不发通知的分馆过滤掉。
+
+                        List<WxUserItem> sendPatrons = new List<WxUserItem>();
+
+                        // 2023/11/2 解析字符串，格式为: 分馆1:N;分馆2:N
+                        List<string> fenguanList = SplitArrivedParam(lib.IsSendArrivedNotice);
+                        foreach (WxUserItem one in bindPatronList)
+                        {
+                            // 读者不属于不发消息的分馆，才会给这个读者发通知
+                            if (fenguanList.Contains(one.libraryCode) == false)
+                            {
+                                //bindPatronList.Remove(one);   //这样写会报错
+                                sendPatrons.Add(one);
+                            }
+                        }
+
+                        bindPatronList = sendPatrons;
+                    }
                 }
             }
 
@@ -3627,6 +3656,24 @@ ISBN|010$a
             return 0;
         }
 
+
+        public List<string> SplitArrivedParam(string text)
+        {
+            //lib.IsSendArrivedNotice
+            List<string> list = new List<string>();
+
+            string[] array=text.Trim().Split(new char[] { ';' });
+            foreach (string one in array)
+            {
+                string[] temp = one.Split(new char[] { ':' });
+                if (temp.Length==2 && temp[1]=="N")
+                {
+                    list.Add(temp[0]);
+                }
+            }
+
+            return list;
+        }
 
 
         #endregion
@@ -11578,9 +11625,30 @@ ErrorInfo成员里可能会有报错信息。
 
                     // 2021/3/22改为如果设置了不给读者发送通知，则简化提示，以前是根据是否只有在架预约的
                     //if (lib.ReserveScope == LibDatabase.C_ReserveScope_OnlyOnshelf)  // 2020/3/22 改为使用参数
-                    if (lib.IsSendArrivedNotice == "N") //2020/3/22 改为直接使用变量
+                    //2020/3/22 改为直接使用变量
+                    // 2023/11/2 改为支持分馆，这个参数是一个复杂格式的字符串，例如：分馆1:N;分馆2:N
+                    if (lib.IsSendArrivedNotice.Contains("N")==true) 
                     {
-                        strError = ""; //将在架预约的提示清掉。
+                        // 全局配置
+                        if (lib.IsSendArrivedNotice == "N")
+                        {
+                            strError = ""; //将在架预约的提示清掉。
+                        }
+                        else //分馆配置
+                        {
+                            WxUserItem user = WxUserDatabase.Current.GetActive(weixinId);
+                            if (user != null && user.type == WxUserDatabase.C_Type_Patron)
+                            {
+                                List<string> noSendArricedFenguanList = SplitArrivedParam(lib.IsSendArrivedNotice);
+                                // 读者不属于不发消息的分馆，才会给这个读者发通知
+                                if (noSendArricedFenguanList.Contains(user.libraryCode) == true)
+                                {
+                                    strError = ""; //将在架预约的提示清掉。
+                                }
+                            }
+                        }
+
+
                     }
 
                 }

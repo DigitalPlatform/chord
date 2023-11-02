@@ -888,10 +888,13 @@
 
         <div class="mui-input-row">
             <label class="leftLabel">是否给读者发到书通知</label>
-            <select id="selIsSendArrivedNotice">
-                <option value="Y" selected>是</option>
-                <option value="N">否</option>
-            </select>
+            <input id="selIsSendArrivedNotice" type="text" class="mui-input"  data-bind="value:model.editor.IsSendArrivedNotice">
+            <!--
+    <select id="selIsSendArrivedNotice">
+        <option value="Y" selected>是</option>
+        <option value="N">否</option>
+    </select>
+        -->
         </div>
 
         <div class="mui-input-row">
