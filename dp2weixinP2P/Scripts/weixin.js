@@ -646,6 +646,11 @@ function deleteBiblio(biblioPath, biblioTimestamp) {
 
             alert("删除书目成功。");
 
+
+            // 2024/1/10 删除书目后跳转到检索界面
+            var url = "/Biblio/Index";
+            gotoUrl(url);
+
         },
         function (xhq, textStatus, errorThrown) {
             // 关闭等待层
