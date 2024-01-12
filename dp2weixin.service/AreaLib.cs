@@ -69,6 +69,9 @@ namespace dp2weixin.service
                         // 2022/10/13 目标数据库
                         string biblioDbName = DomUtil.GetAttr(libNode, "biblioDbName");
 
+                        // 2024/1/12 
+                        string searchAllBiblio = DomUtil.GetAttr(libNode, "searchAllBiblio");
+
                         LibModel lib = new LibModel();
                         lib.libId = id;
                         lib.name = name;
@@ -81,6 +84,7 @@ namespace dp2weixin.service
                         lib.patronMaskValue = patronMaskValue; //2021/8/3增加
                         lib.fieldsMap = fieldsMap;//2022/10/13加
                         lib.biblioDbName = biblioDbName;//2022/10/13 加
+                        lib.searchAllBiblio = searchAllBiblio;
 
 
                         area.libs.Add(lib);
@@ -150,6 +154,7 @@ namespace dp2weixin.service
                     lib.patronMaskValue = oldLib.patronMaskValue; //2021/8/3 增加屏蔽通知中的读者信息
                     lib.fieldsMap=oldLib.fieldsMap;//2022/10/13加
                     lib.biblioDbName = oldLib.biblioDbName;//2022/10/13加
+                    lib.searchAllBiblio=oldLib.searchAllBiblio;//2024/1/12
 
                     //lib.capoUser = oldLib.capoUser; // 20220720-ryh 发现这个字段没有使用到
                     //lib.visible = oldLib.visible;   // 20220720-ryh 发现这个字段没有使用到
@@ -188,6 +193,7 @@ namespace dp2weixin.service
                             + " patronMaskValue='" + lib.patronMaskValue + "'" // 2021/8/3 增加通知中屏幕读者信息
                             + " fieldsMap='" + lib.fieldsMap + "'"  // 2022/10/13 增加编目配置的字段规则
                             + " biblioDbName='" + lib.biblioDbName + "'"  //2022/10/13 加
+                            + " searchAllBiblio='"+lib.searchAllBiblio + "'" //2024/1/12
 
 
                             + " />";
@@ -404,6 +410,9 @@ namespace dp2weixin.service
 
         // 2022/10/13 增加目标数据库，用于新增书目
         public string biblioDbName = "";
+
+        // 2024/1/12 是否检索全部书目
+        public string searchAllBiblio = "0";
 
         // 2022/07/20 在整理接口过程中发现capoUser这个字段没有使用到，所以注释掉
         // 对应的capo帐户

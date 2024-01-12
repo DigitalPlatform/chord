@@ -7272,18 +7272,37 @@ ErrorInfo成员里可能会有报错信息。
                 WxUserItem activeUser = WxUserDatabase.Current.GetActive(weixinId);
                 string libraryCode = "";
                 if (activeUser != null)
-                    libraryCode = activeUser.bindLibraryCode; // todo，这里用实际还是绑定,现成用的绑定帐户
+                    libraryCode = activeUser.bindLibraryCode; // todo，这里用实际还是绑定,现在用的绑定帐户
 
 
                 // 过滤条件，如果有分馆代码的过滤条件为分馆代码，如果图书馆设置的过滤条件
+
                 // todo 2022/10/20 感觉这里应该是把两个条件组合起来，现在这种写法是排斥效果。
+                // 2024/1/11 将分馆过滤与单独配置的过滤，改为组合的用法。
                 string filter = "";
                 if (string.IsNullOrEmpty(libraryCode) == false)
                 {
                     filter = libraryCode;
+
+                    // 2024/1/12 如果明确配置了检索全部书目，则不过滤分馆
+                    LibModel libCfg = this._areaMgr.GetLibCfg(lib.id, libraryCode);
+                    if (libCfg != null && string.IsNullOrEmpty(libCfg.searchAllBiblio) == false)
+                    {
+                        if (libCfg.searchAllBiblio.ToLower() == "true")  
+                        {
+                            filter = "";
+                        }
+                    }
                 }
-                else if (string.IsNullOrEmpty(biblioFilter) == false)
+
+
+
+                // 过滤一些特殊状态的图书
+                if (string.IsNullOrEmpty(biblioFilter) == false)
                 {
+                    if (filter != "")
+                        filter += ",";
+
                     filter = biblioFilter;
                 }
 
