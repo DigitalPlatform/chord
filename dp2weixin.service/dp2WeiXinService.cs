@@ -3452,9 +3452,13 @@ ISBN|010$a
                 //    && string.IsNullOrEmpty(lib.comment) == false
                 //    && lib.comment.IndexOf("OnshelfArrivedNoNotice") != -1)
 
+                // 2024/1/15 修改
+                if (lib.IsSendArrivedNotice == null)
+                    lib.IsSendArrivedNotice = "Y";
+
                 // //2020/3/22 改为直接使用变量
                 // 2023/11/2 改为一个丰富信息的字符串
-                if (lib.IsSendArrivedNotice.Contains("N") == true) 
+                if (lib.IsSendArrivedNotice != null && lib.IsSendArrivedNotice.Contains("N") == true) 
                 {
 
                     if (lib.IsSendArrivedNotice == "N")
