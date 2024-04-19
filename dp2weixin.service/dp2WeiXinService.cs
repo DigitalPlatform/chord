@@ -11284,7 +11284,7 @@ ErrorInfo成员里可能会有报错信息。
             gzh = this._gzhContainer.GetByAppName(gzhName); //函数内会处理空的情况
             if (gzh == null)
             {
-                strError = "验证失败：非正规途径[" + state + "]进入！";
+                strError = "验证失败：非正规途径 state=[" + state + "] gzhName=["+gzhName+"]进入！";
                 return -1;
             }
 
