@@ -5866,7 +5866,7 @@ ErrorInfo成员里可能会有报错信息。
                 + "name=" + name;
 
             // 消息模块
-            string strMessageTemplate1 = "%name% 您好！\n您的读者帐户(证条码号为 %barcode%)已设临时密码 %temppassword%，%period% 内有效";
+            string strMessageTemplate1 = "%name% 您好！\n您的读者帐户验证码为%temppassword%，有效时长%period%";   //2024/12/17 为了让接收短信快一点，将“临时密码”4个字改为了验证码。并且简化文字。"%name% 您好！\n您的读者帐户(证条码号为 %barcode%)已设验证码%temppassword%，%period% 内有效"
 
 
             // 使用代理账号capo 20161024 jane
