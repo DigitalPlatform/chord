@@ -1299,31 +1299,41 @@ namespace dp2weixin.service
                 }
             }
 
-
-
-            // 从微信本地库获取有多少用户绑定这个读者，给绑定这位读者的用户都要发通知
-            List<WxUserItem> bindPatronList = WxUserDatabase.Current.Get("",
-                libId,
-                libraryCode,  //null, 2020/8/3发现这里传的null，应该是传librarycode
-                WxUserDatabase.C_Type_Patron,
-                 patronBarcode,
-                 "",
-                 true);
-
-            // 写一下日志，2020/8/1发现会收到两条消息
-            if (bindPatronList.Count > 0)
+            // 2024/12/23 加固程序，消息传过来的读者证条码可能为空，为空的话，不能去库中匹配，要不会匹配到所有读者
+            List<WxUserItem> bindPatronList = new List<WxUserItem>();
+            if (string.IsNullOrEmpty(patronBarcode) == true)
             {
-                string temp = "";
-                foreach (WxUserItem u in bindPatronList)
-                {
-                    temp += "weixinid=[" + u.weixinId + "],id=[" + u.id + "],readerBarcode=[" + u.readerBarcode + "],readerName=[" + u.readerName + "]\r\n";
-                }
-                this.WriteDebug("根据patronBarcode=[" + patronBarcode + "]从本地库找到[" + bindPatronList.Count + "]条绑定了该读者帐号，详情如下：\r\n" + temp);
+                this.WriteDebug("patronBarcode为空，无法匹配绑定该读者的帐号。");
             }
             else
             {
-                this.WriteDebug("根据patronBarcode=[" + patronBarcode + "]从本地库找到[0]条绑定了该读者帐号。");
+                // 从微信本地库获取有多少用户绑定这个读者，给绑定这位读者的用户都要发通知
+                 bindPatronList = WxUserDatabase.Current.Get("",
+                    libId,
+                    libraryCode,  //null, 2020/8/3发现这里传的null，应该是传librarycode
+                    WxUserDatabase.C_Type_Patron,
+                     patronBarcode,
+                     "",
+                     true);
+
+                // 写一下日志，2020/8/1发现会收到两条消息
+                if (bindPatronList.Count > 0)
+                {
+                    string temp = "";
+                    foreach (WxUserItem u in bindPatronList)
+                    {
+                        temp += "weixinid=[" + u.weixinId + "],id=[" + u.id + "],readerBarcode=[" + u.readerBarcode + "],readerName=[" + u.readerName + "]\r\n";
+                    }
+                    this.WriteDebug("根据patronBarcode=[" + patronBarcode + "]从本地库找到[" + bindPatronList.Count + "]条绑定了该读者帐号，详情如下：\r\n" + temp);
+                }
+                else
+                {
+                    this.WriteDebug("根据patronBarcode=[" + patronBarcode + "]从本地库找到[0]条绑定了该读者帐号。");
+                }
             }
+
+
+
 
             // 2021/8/3 屏蔽读者信息,配置在libcfg中
             bool send2PatronIsMask = false;
