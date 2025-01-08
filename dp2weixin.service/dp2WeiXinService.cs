@@ -9916,7 +9916,11 @@ ErrorInfo成员里可能会有报错信息。
                     //else
                     {
                         //2022/8/5改进，接口返回的信息自然会脱敏，我爱图书馆这边原样显示返回的值即可
-                        strBorrowInfo = "借阅者：" + item.borrower + "<br/>" //"借阅者：***<br/>"
+                        string temp = item.borrower;
+                        if (temp.Length > 10 && temp.Substring(0,3)=="***")
+                            temp = temp.Substring(0, 10) + "...";  // 2025/01/06 是***，且超过10位，截取
+
+                        strBorrowInfo = "借阅者：" + temp + "<br/>" //2025/01/06 item.borrower   //"借阅者：***<br/>"
                             + "借阅日期：" + item.borrowDate + "<br/>"
                             + "借期：" + item.borrowPeriod + "<br/>"
                             + "还书日期：" + item.returningDate;
